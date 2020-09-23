@@ -2,4 +2,4 @@
 
 This is the Personal website for Chi-Kuang Yeh, powered by Hugo's Avicenna Theme.
 
-Currently, I am second year PhD Candidate at the University of Waterloo, Department of Statistics and Acturial Science. Cannot believe that I'll enter to my third year of my doctoral time soon. Time flies!
+Currently, I am third-year PhD student majoring in Statistics, working with Prof. Greg Rice at the University of Waterloo.
