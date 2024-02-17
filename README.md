@@ -2,4 +2,4 @@
 
 This is the Personal website for Chi-Kuang Yeh, powered by Hugo's Avicenna Theme.
 
-Currently, I am third-year PhD student majoring in Statistics, working with Prof. Greg Rice at the University of Waterloo.
+I am currently a Canadian Statistical Sciences Institute (CANSSI) Distinguished Postdoctoral Fellow at the University of Waterloo.
