@@ -1,0 +1,77 @@
+---
+title: "Optiaml Regression Design"
+date: "2025-06-20"
+description: "A short tutorial to optimal regression design"
+tags: ["R", "Optimal_design", "tutorial"]
+categories: ["resources"]
+math: true
+---
+
+## Introduction to Optimal Regression Design
+
+In statistical modeling, especially in regression analysis, we often face the question:
+
+> *"Where and how should we collect data to obtain the most accurate parameter estimates?"*
+
+This question is answered by **Optimal Experimental Design**, a field that seeks to identify **the best sampling scheme** under a specified statistical model.
+
+---
+
+### 🎯 General Objective
+
+Let the model be a linear regression:
+
+\[
+Y_i = \mathbf{f}(x_i)^\top \boldsymbol{\beta} + \varepsilon_i,\quad \varepsilon_i \sim \mathcal{N}(0, \sigma^2)
+\]
+
+where:
+
++ \( \boldsymbol{\beta} \in \mathbb{R}^p \) are the parameters to estimate,
+
++  \( \mathbf{f}(x) \in \mathbb{R}^p \) is the regression basis (e.g., \( \mathbf{f}(x) = [1, x]^\top \)),
+
++ \( x_i \in \mathcal{X} \) are the design points in a compact design space.
+
+The **Fisher Information Matrix** for a weighted design $\xi = \{(x_i, w_i)\}$ is:
+
+\[
+M(\xi) = \sum_{i=1}^n w_i\, \mathbf{f}(x_i)\, \mathbf{f}(x_i)^\top
+\]
+
+We wish to **choose design weights** \( w_i \geq 0 \), \( \sum w_i = 1 \), to maximize information about \( \boldsymbol{\beta} \).
+
+---
+
+### 🧮 Common Optimality Criteria
+
+| Criterion        |           Objective                |        Interpretation                       |
+|:----------------:|:----------------------------------:|:--------------------------------------------:|
+| **D-optimality** | Maximize \( \det M(\xi) \)         | Minimize volume of confidence ellipsoid     |
+| **A-optimality** | Minimize \( \operatorname{tr}[M(\xi)^{-1}] \) | Minimize average variance of estimates |
+| **E-optimality** | Maximize \( \lambda_{\min}(M(\xi)) \) | Minimize worst-case variance direction   |
+Each criterion reflects a different goal:
+- **D-opt** aims for overall information efficiency.
+- **A-opt** targets average estimation precision.
+- **E-opt** guards against poorly estimated directions.
+
+---
+
+### ⚙️ Problem Statement
+
+The optimal design problem is thus:
+
+\[
+\begin{aligned}
+&\max_{w \in \mathbb{R}^n} && \Phi(M(w)) \\
+&\text{s.t.} && w_i \geq 0,\quad \sum_{i=1}^n w_i = 1
+\end{aligned}
+\]
+
+where \( \Phi \) is one of the optimality criteria (e.g., \( \lambda_{\min}(M) \) for E-optimality).
+
+This leads to a **convex optimization problem**, especially suitable for numerical methods using packages such as `CVXR`.
+
+---
+
+In the following sections, we demonstrate how to solve this optimization problem in **R**, using **E-optimality** as a case study.
