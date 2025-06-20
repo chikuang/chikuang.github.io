@@ -5,9 +5,17 @@ description: "A short tutorial to optimal regression design"
 tags: ["R", "Optimal_design", "tutorial"]
 categories: ["resources"]
 math: true
+output: blogdown::html_page
 ---
 
-## Introduction to Optimal Regression Design
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\f}{\mathbf{f}}
+\newcommand{\bbeta}{\mathbf{\beta}}
+\newcommand{\btheta}{\mathbf{\theta}}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\tr}{\operatorname{tr}}
+
+# Introduction to Optimal Regression Design
 
 In statistical modeling, especially in regression analysis, we often face the question:
 
@@ -17,58 +25,70 @@ This question is answered by **Optimal Experimental Design**, a field that seeks
 
 ---
 
-### 🎯 General Objective
+# 🎯 General Objective
 
 Let the model be a linear regression:
 
 \[
-Y_i = \mathbf{f}(x_i)^\top \boldsymbol{\beta} + \varepsilon_i,\quad \varepsilon_i \sim \mathcal{N}(0, \sigma^2)
+Y_i = g(x_i;\bbeta)^\top  + \varepsilon_i,\quad \varepsilon_i \sim \mathcal{N}(0, \sigma^2)
 \]
 where:
 
-  + Note \( \boldsymbol{\beta} \in \mathbb{R}^p \) are the parameters to estimate,
-  + \( \mathbf{f}(x) \in \mathbb{R}^p \) is the regression basis (e.g., \( \mathbf{f}(x) = [1, x]^\top \)),
-  + \( x_i \in \mathcal{X} \) are the design points in a compact design space.
+  + Note \( \bbeta \in \R^p \) are the parameters to estimate,
+  + \( g(\cdot)\) is mean function,
+  + \( x_i \in \X \) are the design points in a compact design space.
 
 The **Fisher Information Matrix** for a weighted design $\xi = \{(x_i, w_i)\}$ is:
 
 \[
-M(\xi) = \sum_{i=1}^n w_i\, \mathbf{f}(x_i)\, \mathbf{f}(x_i)^\top
+M(\xi) = \int_\X \frac{\partial g}{\partial \bbeta}\frac{\partial g}{\partial \bbeta^\top} \mu(d\xi),
 \]
 
-We wish to **choose design weights** \( w_i \geq 0 \), \( \sum w_i = 1 \), to maximize information about \( \boldsymbol{\beta} \).
+We wish to **choose design weights** \( w_i \geq 0 \), \( \sum w_i = 1 \), to maximize information about \( \bbeta \).
 
 ---
 
-### 🧮 Common Optimality Criteria
+# 🧮 Common Optimality Criteria
 
 | Criterion        |           Objective                |        Interpretation                       |
 |:----------------:|:----------------------------------:|:--------------------------------------------:|
-| **D-optimality** | Maximize \( \det M(\xi) \)         | Minimize volume of confidence ellipsoid     |
-| **A-optimality** | Minimize \( \operatorname{tr}[M(\xi)^{-1}] \) | Minimize average variance of estimates |
-| **E-optimality** | Maximize \( \lambda_{\min}(M(\xi)) \) | Minimize worst-case variance direction   |
+| **\(D\)-optimality** | Maximize \( \det M(\xi) \)         | Minimize volume of confidence ellipsoid     |
+| **\(A\)-optimality** | Minimize \( \tr\{M(\xi)^{-1}\} \) | Minimize average variance of estimates |
+| **\(E\)-optimality** | Maximize \( \lambda_{\min}\{M(\xi)\} \) | Minimize worst-case variance direction   |
 Each criterion reflects a different goal:
-- **D-opt** aims for overall information efficiency.
-- **A-opt** targets average estimation precision.
-- **E-opt** guards against poorly estimated directions.
+- **\(D\)-opt** aims for overall information efficiency.
+- **\(A\)-opt** targets average estimation precision.
+- **\(E\)-opt** guards against poorly estimated directions.
 
 ---
 
-### ⚙️ Problem Statement
+# ⚙️ Problem Statement
 
 The optimal design problem is thus:
 
 \[
 \begin{aligned}
-&\max_{w \in \mathbb{R}^n} && \Phi(M(w)) \\
+&\max_{w \in \R^n} && \Phi(M(w)) \\
 &\text{s.t.} && w_i \geq 0,\quad \sum_{i=1}^n w_i = 1
 \end{aligned}
 \]
 
-where \( \Phi \) is one of the optimality criteria (e.g., \( \lambda_{\min}(M) \) for E-optimality).
+where \( \Phi \) is one of the optimality criteria (e.g., \( \lambda_{\min}(M) \) for \(E\)-optimality).
 
 This leads to a **convex optimization problem**, especially suitable for numerical methods using packages such as `CVXR`.
 
 ---
 
-In the following sections, we demonstrate how to solve this optimization problem in **R**, using **E-optimality** as a case study.
+In the following sections, we demonstrate how to solve this optimization problem in **R**, using **\(E\)-optimality** as a case study.
+
+# TODO
+
+1. Add examples
+2. Add SLSE
+3. Add more optimality criteria
+4. Equivalence theorem
+
+# Reference 
+1. Pukelsheim, F. (2006). Optimal Design of Experiments: A Case Study Approach. SIAM.
+2. Atkinson, A. C., & Donev, A. N. (1992). Optimum Experimental Designs. Oxford University Press.
+3. Kiefer, J. (1959). Optimum Experimental Designs. Journal of the Royal Statistical Society: Series B (Methodological), 21(2), 272-304.
