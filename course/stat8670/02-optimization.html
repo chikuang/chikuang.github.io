@@ -76,7 +76,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-485d01fc63b59abcd3ee1bf1e8e2748d.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-e4baa099099b77f7feedd108bf77a49f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -245,6 +245,7 @@ window.Quarto = {
    
   <ul>
   <li><a href="#speed-comparison" id="toc-speed-comparison" class="nav-link active" data-scroll-target="#speed-comparison"><span class="header-section-number">2.1</span> Speed comparison</a></li>
+  <li><a href="#type-of-optimization-algorithms" id="toc-type-of-optimization-algorithms" class="nav-link" data-scroll-target="#type-of-optimization-algorithms"><span class="header-section-number">2.2</span> Type of Optimization Algorithms</a></li>
   </ul>
 </nav>
     </div>
@@ -277,35 +278,31 @@ window.Quarto = {
 <p>For GLMs or non-linear regression, we need to do this <strong>iterativelly</strong>!</p>
 <section id="speed-comparison" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="speed-comparison"><span class="header-section-number">2.1</span> Speed comparison</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2017-07-13</span>)</span>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2017-07-13</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(<span class="dv">5000</span> <span class="sc">*</span> <span class="dv">100</span>), <span class="dv">5000</span>, <span class="dv">100</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">5000</span>)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(microbenchmark)</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">microbenchmark</span>(<span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> X) <span class="sc">%*%</span> <span class="fu">t</span>(X) <span class="sc">%*%</span> y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
 <pre><code>Warning in microbenchmark(solve(t(X) %*% X) %*% t(X) %*% y): less accurate
-nanosecond times to avoid potential integer overflows</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Unit: milliseconds
+nanosecond times to avoid potential integer overflows
+Unit: milliseconds
                              expr      min       lq     mean   median       uq
- solve(t(X) %*% X) %*% t(X) %*% y 28.80447 29.85524 30.71113 30.29113 31.20571
+ solve(t(X) %*% X) %*% t(X) %*% y 28.57097 29.23575 30.04752 29.87713 30.62448
       max neval
- 46.53553   100</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">microbenchmark</span>(<span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> X) <span class="sc">%*%</span> <span class="fu">t</span>(X) <span class="sc">%*%</span> y,</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>               <span class="fu">solve</span>(<span class="fu">crossprod</span>(X), <span class="fu">crossprod</span>(X, y)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
+ 32.21641   100</code></pre>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">microbenchmark</span>(<span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> X) <span class="sc">%*%</span> <span class="fu">t</span>(X) <span class="sc">%*%</span> y,</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>               <span class="fu">solve</span>(<span class="fu">crossprod</span>(X), <span class="fu">crossprod</span>(X, y)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <pre><code>Unit: milliseconds
                                  expr      min       lq     mean   median
-     solve(t(X) %*% X) %*% t(X) %*% y 28.67642 29.54794 30.19905 29.81948
- solve(crossprod(X), crossprod(X, y)) 24.97802 25.09141 25.36419 25.25705
+     solve(t(X) %*% X) %*% t(X) %*% y 28.39886 29.03231 29.73657 29.41512
+ solve(crossprod(X), crossprod(X, y)) 24.96937 25.01504 25.25663 25.05457
        uq      max neval
- 30.77403 33.75891   100
- 25.40838 27.70042   100</code></pre>
-</div>
-</div>
+ 30.23379 32.94231   100
+ 25.16457 28.50168   100</code></pre>
+</section>
+<section id="type-of-optimization-algorithms" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="type-of-optimization-algorithms"><span class="header-section-number">2.2</span> Type of Optimization Algorithms</h2>
+<p>There are in general two types of the optimization algorithms: (1). <strong>deterministic</strong> and (2). <strong>metaheuristic</strong>. Deterministic and metaheuristic algorithms represent two distinct paradigms in optimization. Deterministic methods, such as gradient descent, produce the same solution for a given input and follow a predictable path toward an optimum. In contrast, metaheuristic approaches—like genetic algorithms—incorporate randomness and do not guarantee the best possible solution. However, they are often more effective at avoiding local optima and exploring complex search spaces.</p>
 <hr>
 <p>Examples are borrowed from the following sources:</p>
 <ul>
