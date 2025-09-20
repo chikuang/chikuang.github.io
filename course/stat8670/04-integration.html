@@ -6,10 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Chi-Kuang Yeh">
-<meta name="dcterms.date" content="2025-09-20">
 
-<title>STAT 8670 - Computational Methods in Statistics</title>
+<title>4&nbsp; Numerical integration – STAT 8670 - Computational Methods in Statistics</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -32,7 +30,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./01-intro.html" rel="next">
+<link href="./05-resample.html" rel="next">
+<link href="./03-generating-rv.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
@@ -72,6 +71,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="custom-callouts.css">
 </head>
@@ -116,7 +144,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Preface</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./04-integration.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Numerical integration</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -134,7 +162,7 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Preface</span></a>
   </div>
 </li>
@@ -158,7 +186,7 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./04-integration.html" class="sidebar-item-text sidebar-link">
+  <a href="./04-integration.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Numerical integration</span></span></a>
   </div>
 </li>
@@ -213,21 +241,11 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#preface" id="toc-preface" class="nav-link active" data-scroll-target="#preface">Preface</a>
+  <li><a href="#motivation-and-usage" id="toc-motivation-and-usage" class="nav-link active" data-scroll-target="#motivation-and-usage"><span class="header-section-number">4.1</span> Motivation and usage</a></li>
+  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section"><span class="header-section-number">4.2</span> </a></li>
+  <li><a href="#multivariate-case" id="toc-multivariate-case" class="nav-link" data-scroll-target="#multivariate-case"><span class="header-section-number">4.3</span> Multivariate Case</a>
   <ul class="collapse">
-  <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a>
-  <ul class="collapse">
-  <li><a href="#prerequisites" id="toc-prerequisites" class="nav-link" data-scroll-target="#prerequisites">Prerequisites</a></li>
-  <li><a href="#instructor" id="toc-instructor" class="nav-link" data-scroll-target="#instructor">Instructor</a></li>
-  </ul></li>
-  <li><a href="#office-hour" id="toc-office-hour" class="nav-link" data-scroll-target="#office-hour">Office Hour</a></li>
-  <li><a href="#grade-distribution" id="toc-grade-distribution" class="nav-link" data-scroll-target="#grade-distribution">Grade Distribution</a></li>
-  <li><a href="#assignment" id="toc-assignment" class="nav-link" data-scroll-target="#assignment">Assignment</a></li>
-  <li><a href="#midterm" id="toc-midterm" class="nav-link" data-scroll-target="#midterm">Midterm</a></li>
-  <li><a href="#final-project" id="toc-final-project" class="nav-link" data-scroll-target="#final-project">Final Project</a></li>
-  <li><a href="#topics-and-corresponding-lectures" id="toc-topics-and-corresponding-lectures" class="nav-link" data-scroll-target="#topics-and-corresponding-lectures">Topics and Corresponding Lectures</a></li>
-  <li><a href="#recommended-textbooks" id="toc-recommended-textbooks" class="nav-link" data-scroll-target="#recommended-textbooks">Recommended Textbooks</a></li>
-  <li><a href="#side-readings" id="toc-side-readings" class="nav-link" data-scroll-target="#side-readings">Side Readings</a></li>
+  <li><a href="#em-algorithm" id="toc-em-algorithm" class="nav-link" data-scroll-target="#em-algorithm"><span class="header-section-number">4.3.1</span> EM Algorithm</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -237,26 +255,14 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">STAT 8670 - Computational Methods in Statistics</h1>
+<h1 class="title"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Numerical integration</span></h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-             <p>Chi-Kuang Yeh </p>
-          </div>
-  </div>
     
-    <div>
-    <div class="quarto-title-meta-heading">Published</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date">September 20, 2025</p>
-    </div>
-  </div>
   
     
   </div>
@@ -266,130 +272,75 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="preface" class="level1 unnumbered">
-<h1 class="unnumbered">Preface</h1>
-<section id="description" class="level2">
-<h2 class="anchored" data-anchor-id="description">Description</h2>
-<p>Topics ins included are optimization, numerical integration, bootstrapping, cross-validation and Jackknife, density estimation, smoothing, and use of the statistical computer package of S-plus/R.</p>
-<section id="prerequisites" class="level3">
-<h3 class="anchored" data-anchor-id="prerequisites">Prerequisites</h3>
-<p>MATH 4752/6752 – Mathematical Statistics II, and the ability to program in a high-level language.</p>
-</section>
-<section id="instructor" class="level3">
-<h3 class="anchored" data-anchor-id="instructor">Instructor</h3>
-<p><a href="https://chikuang.github.io/">Chi-Kuang Yeh</a>, I am an Assistant Professor in the Department of Mathematics and Statistics, Georgia State University.</p>
+<section id="motivation-and-usage" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="motivation-and-usage"><span class="header-section-number">4.1</span> Motivation and usage</h2>
+<p>Integration is a fundamental concept in statistics, for instance, when calculating the variance, we have <span class="math display">\[
+  \mathbb EX = \int_{x\in\mathcal X} x dF_X(x),\quad \mathbb E_{x\in\mathcal X} g(X) = \int g(x) dF_X(x).
+\]</span> If density exists, we have <span class="math display">\[
+\mathbb EX = \int_{x\in\mathcal X} x f_X(x) dx,\quad \mathbb Eg(X) = \int_{x\in\mathcal X} g(x) f_X(x) dx.
+\]</span> Other than calculating for the moments, integration also plays a big parts in other parts in the field of statistics and data science.</p>
 <ul>
-<li>Office: Suite 1407, 25 Park Place.</li>
-<li>Email: <a href="mailto:cyeh@gsu.edu">cyeh@gsu.edu</a>.</li>
+<li>Marginal likelihood and Bayesian statistics:</li>
 </ul>
-</section>
-</section>
-<section id="office-hour" class="level2">
-<h2 class="anchored" data-anchor-id="office-hour">Office Hour</h2>
-<p>14:00–15:00 on Tuesday and Wednesday.</p>
-</section>
-<section id="grade-distribution" class="level2">
-<h2 class="anchored" data-anchor-id="grade-distribution">Grade Distribution</h2>
+<p><span class="math display">\[
+  p(x) = \int_{\theta\in\Theta}     p(x|\theta)p(\theta)\,d\theta,
+\]</span> where the integration is over the nuisance/latent parameter <span class="math inline">\(\theta\in\Theta\)</span>.</p>
 <ul>
-<li>Assignments: 40%</li>
-<li>Term Exam 1: 15%</li>
-<li>Term Exam 2: 15%</li>
-<li>Final Project: 30%</li>
+<li>Bayesian Statistics</li>
 </ul>
-</section>
-<section id="assignment" class="level2">
-<h2 class="anchored" data-anchor-id="assignment">Assignment</h2>
-<ul class="task-list">
-<li><label><input type="checkbox" checked="">Assignment 1: Due on September 12, 2025</label></li>
-<li><label><input type="checkbox" checked="">Assignment 2: Due on September 22, 2025</label></li>
-<li><label><input type="checkbox">Assignment 3: TBA</label></li>
-</ul>
-</section>
-<section id="midterm" class="level2">
-<h2 class="anchored" data-anchor-id="midterm">Midterm</h2>
-<ul class="task-list">
-<li><label><input type="checkbox">Midterm 1 on October 8, 2025</label></li>
-<li><label><input type="checkbox">Midterm 2 on November 12, 2025</label></li>
-</ul>
-</section>
-<section id="final-project" class="level2">
-<h2 class="anchored" data-anchor-id="final-project">Final Project</h2>
-<ul class="task-list">
-<li><label><input type="checkbox">Report: Due Date TBA</label></li>
-<li><label><input type="checkbox">Presentation: Due Date TBA</label></li>
-</ul>
-</section>
-<section id="topics-and-corresponding-lectures" class="level2">
-<h2 class="anchored" data-anchor-id="topics-and-corresponding-lectures">Topics and Corresponding Lectures</h2>
-<p>Those chapters are based on the lecture notes. This part will be updated frequently.</p>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Topic</th>
-<th style="text-align: center;">Lecture Covered</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Introduction to R Programming</td>
-<td style="text-align: center;">1–2</td>
-</tr>
-<tr class="even">
-<td>Numerical Approaches and Optimization in 1-D</td>
-<td style="text-align: center;">3–5</td>
-</tr>
-<tr class="odd">
-<td>Review for Distribution</td>
-<td style="text-align: center;">6–7</td>
-</tr>
-<tr class="even">
-<td>Numerical integration</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="odd">
-<td>Term Exam 1</td>
-<td style="text-align: center;">L13</td>
-</tr>
-<tr class="even">
-<td>Jackknife</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="odd">
-<td>Bootstrap</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="even">
-<td>Cross-validation</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="odd">
-<td>Smoothing</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="even">
-<td>Density estimation</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="odd">
-<td>Monte Carlo Methods</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="recommended-textbooks" class="level2">
-<h2 class="anchored" data-anchor-id="recommended-textbooks">Recommended Textbooks</h2>
+<p>The Bayes’ theorem involves integration in both the denominator and posterior expectations:</p>
+<p><span class="math display">\[
+p(\theta|x) = \frac{p(x|\theta)p(\theta)}{\int p(x|\theta)p(\theta)\,d\theta}
+\]</span></p>
 <ul>
-<li><p>Givens, G.H. and Hoeting, J.A. (2012). <a href="https://www.stat.colostate.edu/computationalstatistics/"><em>Computational Statistics</em></a>. Wiley, New York.</p></li>
-<li><p>Rizzo, M.L. (2007) <a href="https://a-roshani.ir/files/SC/%5B4%5D%20%5BMaria%20L.%20Rizzo%5D%5B2019%5D%20Statistical%20Computing%20%20with%20R,%20Second%20Edition.pdf"><em>Statistical Computing with R</em></a>. CRC Press, Roca Baton.</p></li>
-<li><p>Hothorn, T. and Everitt, B.S. (2006). <a href="https://digitallibrary.tsu.ge/book/2019/september/books/A-Handbook-of-Statistical-Analyses.pdf"><em>A Handbook of Statistical Analyses Using R</em></a>. CRC Press, Boca Raton.</p></li>
+<li>Functional observations</li>
 </ul>
-</section>
-<section id="side-readings" class="level2">
-<h2 class="anchored" data-anchor-id="side-readings">Side Readings</h2>
+<p>When you want to calculate the inner product of the two observations <span class="math inline">\(x,y\in L^2(\mathcal X)\)</span>, you need to calculate the integral</p>
+<p><span class="math display">\[
+\langle f,g \rangle = \int f(t)g(t)\,dt.
+\]</span></p>
 <ul>
-<li>Wickham, H., Çetinkaya-Rundel, M. and Grolemund, G. (2023). <a href="https://r4ds.hadley.nz/"><em>R for Data Science</em></a>. O’Reilly.</li>
+<li>Machine Learning</li>
 </ul>
+<p>In machine learning, you often need to compute integrals in many tasks, including calculating the <em>risks</em> and <em>loss</em>.</p>
+<p>For example, in <em>supervised learning</em>, we have</p>
+<p><span class="math display">\[R(\theta) := \mathbb E{(X,Y) \sim P}[L(f_\theta(X), Y)],
+\]</span> where <span class="math inline">\(L(\cdot,\cdot)\)</span> is a loss function (e.g., squared error, cross-entropy).</p>
+<p>In variational inference (VI) solves this by approximating the true posterior <span class="math inline">\(p(\theta|x)\)</span> with a simpler distribution <span class="math inline">\(q_\phi(\theta)\)</span>. We then maximize the <em>Evidence Lower Bound</em> (ELBO):</p>
+<p><span class="math display">\[
+\log p(x) \geq \mathbb{E}{q\phi(\theta)}\big[\log p(x|\theta)\big] - \text{KL}(q_\phi(\theta)\,\|\,p(\theta)).
+\]</span> In this formula, we have two integrals to solve:</p>
+<ul>
+<li>The 1st term is an integral:</li>
+</ul>
+<p><span class="math display">\[\int q_\phi(\theta)\,\log p(x|\theta)\, d\theta,\]</span> which is often approximated by Monte Carlo sampling.</p>
+<ul>
+<li>The 2nd term, the KL divergence, is another integral:</li>
+</ul>
+<p><span class="math display">\[\text{KL}(q \| p) = \int q_\phi(\theta) \log \frac{q_\phi(\theta)}{p(\theta)} \, d\theta.\]</span></p>
+</section>
+<section id="section" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="section"><span class="header-section-number">4.2</span> </h2>
+</section>
+<section id="multivariate-case" class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="multivariate-case"><span class="header-section-number">4.3</span> Multivariate Case</h2>
+<p>We need to calculate the gradient/Jacobian matrix and Hessian matrix.</p>
+<section id="em-algorithm" class="level3" data-number="4.3.1">
+<h3 data-number="4.3.1" class="anchored" data-anchor-id="em-algorithm"><span class="header-section-number">4.3.1</span> EM Algorithm</h3>
+<p>The EM (Expectation–Maximization) algorithm is an optimization method that is often applied to find maximum likelihood estimates when data is incomplete or has missing values. It iteratively refines estimates of parameters by alternating between (1) expectation step (E-step) and (2) maximization step (M-step).</p>
+<!-- ::: {.callout-note title="Tip with Title"} -->
+<!-- For example, consider the function $f(x) = x^2$. -->
+<!-- ::: -->
+<!-- ::: callout-example -->
+<!-- Example -->
+<!-- $$ -->
+<!-- f(x) = x^2 -->
+<!-- $$ -->
+<!-- ::: -->
+<!-- ::: callout-theorem -->
+<!-- Example Theorem -->
+<!-- ::: -->
+<hr>
 
 
 </section>
@@ -798,10 +749,13 @@ ul.task-list li input[type="checkbox"] {
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
+      <a href="./03-generating-rv.html" class="pagination-link" aria-label="Generating Random Variables">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Generating Random Variables</span></span>
+      </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./01-intro.html" class="pagination-link" aria-label="Data Structure and R Programming">
-        <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Data Structure and R Programming</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./05-resample.html" class="pagination-link" aria-label="Resampling, Jackknife and Bootstrap">
+        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Resampling, Jackknife and Bootstrap</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
