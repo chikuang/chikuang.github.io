@@ -284,6 +284,12 @@ window.Quarto = {
   </ul></li>
   <li><a href="#acceptance-rejection-method" id="toc-acceptance-rejection-method" class="nav-link" data-scroll-target="#acceptance-rejection-method"><span class="header-section-number">3.3</span> Acceptance-Rejection Method</a></li>
   <li><a href="#using-known-probability-distribution-theory" id="toc-using-known-probability-distribution-theory" class="nav-link" data-scroll-target="#using-known-probability-distribution-theory"><span class="header-section-number">3.4</span> Using known probability distribution theory</a></li>
+  <li><a href="#sum-and-mixture" id="toc-sum-and-mixture" class="nav-link" data-scroll-target="#sum-and-mixture"><span class="header-section-number">3.5</span> Sum and Mixture</a>
+  <ul class="collapse">
+  <li><a href="#sumconvolution" id="toc-sumconvolution" class="nav-link" data-scroll-target="#sumconvolution"><span class="header-section-number">3.5.1</span> Sum/Convolution</a></li>
+  <li><a href="#mixture" id="toc-mixture" class="nav-link" data-scroll-target="#mixture"><span class="header-section-number">3.5.2</span> Mixture</a></li>
+  </ul></li>
+  <li><a href="#simulate-multivaraite-rvs" id="toc-simulate-multivaraite-rvs" class="nav-link" data-scroll-target="#simulate-multivaraite-rvs"><span class="header-section-number">3.6</span> Simulate Multivaraite RVs</a></li>
   </ul>
 </nav>
     </div>
@@ -440,9 +446,9 @@ Table&nbsp;3.1: Common probability distributions and their corresponding R funct
 <h2 data-number="3.2" class="anchored" data-anchor-id="inverse-transformation-method"><span class="header-section-number">3.2</span> Inverse Transformation Method</h2>
 <p>The first method to simulate rvs is the <em>inverse transformation method</em> (ITM).</p>
 <div class="callout-theorem" title="Probability Integral Transformation">
-<p>If <span class="math inline">\(X\sim F_x(X)\)</span> is a continuous rv, then the rv <span class="math inline">\(U = F_x(X) \sim \operatorname{Unif}(0,1)\)</span>.</p>
+<p>If <span class="math inline">\(X\sim F_X\)</span> is a continuous rv, then the rv <span class="math inline">\(U = F_X(x) \sim \operatorname{Unif}(0,1)\)</span>.</p>
 </div>
-<p>ITM of generating rvs applies the probability integral transformation. Define the inverse transformation <span class="math display">\[ F^{−1}_X(u) = \inf\{x : FX (x) = u\},\quad  0 &lt; u &lt; 1.\]</span> Then, if <span class="math inline">\(U \sim \operatorname{Unif}(0,1)\)</span>, the rv <span class="math inline">\(X = F^{−1}_X(U)\)</span> has the distribution <span class="math inline">\(F_X\)</span>. This can be shown as, for all <span class="math inline">\(x \in R\)</span> <span class="math display">\[\begin{align}
+<p>ITM of generating rvs applies the probability integral transformation. Define the inverse transformation <span class="math display">\[ F^{−1}_X(u) = \inf\{x : F_X(x) = u\},\quad  0 &lt; u &lt; 1.\]</span> Then, if <span class="math inline">\(U \sim \operatorname{Unif}(0,1)\)</span>, the rv <span class="math inline">\(X = F^{−1}_X(U)\)</span> has the distribution <span class="math inline">\(F_X\)</span>. This can be shown as, for all <span class="math inline">\(x \in R\)</span> <span class="math display">\[\begin{align}
 P\left(F_X^{-1}(U) \leq x\right) &amp; =P\left(\inf \left\{t: F_X(t)=U\right\} \leq x\right) \\
 &amp; =P\left(U \leq F_X(x)\right) \\
 &amp; =F_U\left(F_X(x)\right)=F_X(x),
@@ -477,7 +483,7 @@ P\left(F_X^{-1}(U) \leq x\right) &amp; =P\left(\inf \left\{t: F_X(t)=U\right\} \
 <p>Suppose we want to use the ITM to simulate <span class="math inline">\(N=1000\)</span> rvs from the density <span class="math inline">\(f_X(x)=3x^2,\quad x\in(0,1)\)</span>.</p>
 <ol type="1">
 <li><p>The cdf is <span class="math inline">\(F_X(x)=x^3\)</span>, so the inverse function is <span class="math inline">\(F_X^{-1}(u)=u^{1/3}\)</span>.</p></li>
-<li><p>Simulate <span class="math inline">\(N=1000\)</span> rvs from <span class="math inline">\(u\sum \operatorname{Unif}(0,1)\)</span> and apply the inverse function to obtain the 1000 <span class="math inline">\(x\)</span> values.</p></li>
+<li><p>Simulate <span class="math inline">\(N=1000\)</span> rvs from <span class="math inline">\(u\sim\operatorname{Unif}(0,1)\)</span> and apply the inverse function to obtain the 1000 <span class="math inline">\(x\)</span> values.</p></li>
 </ol>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">777</span>)</span>
@@ -572,7 +578,7 @@ P\left(F_X^{-1}(U) \leq x\right) &amp; =P\left(\inf \left\{t: F_X(t)=U\right\} \
 <p>Thus, <span class="math display">\[
 F_X^{-1}(u) =
 \begin{cases}
-1, &amp; u &gt; 0.6,
+1, &amp; u &gt; 0.6,\\
 0, &amp; u \leq 0.6.
 \end{cases}
 \]</span></p>
@@ -777,6 +783,79 @@ X=\frac{U}{U+V}
 </div>
 </div>
 </div>
+</section>
+<section id="sum-and-mixture" class="level2" data-number="3.5">
+<h2 data-number="3.5" class="anchored" data-anchor-id="sum-and-mixture"><span class="header-section-number">3.5</span> Sum and Mixture</h2>
+<section id="sumconvolution" class="level3" data-number="3.5.1">
+<h3 data-number="3.5.1" class="anchored" data-anchor-id="sumconvolution"><span class="header-section-number">3.5.1</span> Sum/Convolution</h3>
+<p>Let <span class="math inline">\(X_1, X_2, \ldots, X_n \overset{iid}{\sim}F_X\)</span>. Then we may consider the sum of the random variables <span class="math inline">\(S_n:=\sum_{i=1}^n X_i\)</span>, with distribution <span class="math inline">\(F_{S_n}\)</span>, which can be referred as <em>convoluton</em>. We can simulate <span class="math inline">\(S_n\)</span> by simulating <span class="math inline">\(X_1, X_2, \ldots, X_n\)</span> and summing them up. There are several common convolutions we have seen so far</p>
+<ol type="1">
+<li><p>Sum of <span class="math inline">\(n\)</span> independent i.i.d. chi-square with degreee of freedom (df) 1 is chi-square with df <span class="math inline">\(n\)</span>.</p></li>
+<li><p>Sum of <span class="math inline">\(n\)</span> independent i.i.d. exponential with rate <span class="math inline">\(\lambda\)</span> is gamma with shape <span class="math inline">\(n\)</span> and rate <span class="math inline">\(\lambda\)</span>.</p></li>
+<li><p>Sum of <span class="math inline">\(n\)</span> independent i.i.d. geometric with parametric <span class="math inline">\(p\)</span> is negative binomial with size <span class="math inline">\(n\)</span> and parameter <span class="math inline">\(p\)</span>.</p></li>
+</ol>
+<div class="callout-example" title="Chi square">
+<p>In order to simulate <span class="math inline">\(\chi^2\)</span> distribution with df k, we can simulate k independent standard normal rvs and sum their squares. Let’s simulate <span class="math inline">\(n\)</span> independent <span class="math inline">\(X\sim \chi^2(5)\)</span>.</p>
+<ol type="1">
+<li><p>Fill an <span class="math inline">\(n \times k\)</span> matrix with <span class="math inline">\(n k\)</span> realization of the random variables that follow <span class="math inline">\(N(0,1)\)</span>.</p></li>
+<li><p>Square each entry in the matrix (1).</p></li>
+<li><p>Compute the row sums of the squared normals. Each row sum is one random observation from the <span class="math inline">\(\chi^2(k)\)</span> distribution.</p></li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">777</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n<span class="sc">*</span>k), <span class="at">nrow =</span> n, <span class="at">ncol =</span> k)<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>X_row <span class="ot">&lt;-</span> <span class="fu">rowSums</span>(X)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(X_row)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.935237</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(X_row<span class="sc">^</span><span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 7.867086</code></pre>
+</div>
+</div>
+</div>
+</section>
+<section id="mixture" class="level3" data-number="3.5.2">
+<h3 data-number="3.5.2" class="anchored" data-anchor-id="mixture"><span class="header-section-number">3.5.2</span> Mixture</h3>
+<p>A mixture distribution is a probability distribution constructed as a weighted sum of other distributions. If <span class="math inline">\(X\)</span> is a rv with a mixture distribution, then its pdf is given by <span class="math display">\[
+F_X(x) = \sum_{i=1}^k \alpha_i F_{X_i}(x),
+\]</span> where <span class="math inline">\(\alpha_i\ge 0\)</span> and <span class="math inline">\(\sum_i \alpha_i=1\)</span>. We can just simply simulate each <em>component</em> <span class="math inline">\(X_i\)</span> first, then multiply with their corresponding weights <span class="math inline">\(\alpha_i\)</span>.</p>
+<div class="callout-example" title="Mixture of normal">
+<p>Suppose <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> is a mixture of two normal distributions, where <span class="math inline">\(X\sim N(\mu_1,\sigma_1^2)\)</span> with probability <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(Y\sim N(\mu_2,\sigma_2^2)\)</span> with probability <span class="math inline">\(1-\alpha\)</span>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="dv">3</span>, <span class="dv">3</span>)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>s_convolution <span class="ot">&lt;-</span> x1 <span class="sc">+</span> x2 <span class="co">#the convolution</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">runif</span>(n)</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(u <span class="sc">&gt;</span> <span class="fl">0.5</span>) <span class="co">#vector of 0’s and 1’s</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>m_mixture <span class="ot">&lt;-</span> k <span class="sc">*</span> x1 <span class="sc">+</span> (<span class="dv">1</span><span class="sc">-</span>k) <span class="sc">*</span> x2 <span class="co">#the mixture</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">value =</span> <span class="fu">c</span>(s_convolution, m_mixture),</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">type =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"convolution"</span>, <span class="st">"mixture"</span>), <span class="at">each =</span> n)</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> value, <span class="at">fill =</span> type)) <span class="sc">+</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">position =</span> <span class="st">"identity"</span>, <span class="at">bins =</span> <span class="dv">40</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Histograms of convolution and mixture"</span>, <span class="at">x =</span> <span class="st">"Value"</span>, <span class="at">y =</span> <span class="st">"Count"</span>) <span class="sc">+</span> </span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-generating-rv_files/figure-html/mixture normal-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Note: Mixture is <em>non-normal!</em> but the convolution is <em>normal</em>.</p>
+</div>
+</section>
+</section>
+<section id="simulate-multivaraite-rvs" class="level2" data-number="3.6">
+<h2 data-number="3.6" class="anchored" data-anchor-id="simulate-multivaraite-rvs"><span class="header-section-number">3.6</span> Simulate Multivaraite RVs</h2>
 <hr>
 <p>Reference used:</p>
 <ul>
