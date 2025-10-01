@@ -6,10 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Chi-Kuang Yeh">
-<meta name="dcterms.date" content="2025-09-30">
 
-<title>STAT 8670 - Computational Methods in Statistics</title>
+<title>6&nbsp; Resampling, Jackknife and Bootstrap – STAT 8670 - Computational Methods in Statistics</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -32,7 +30,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./01-intro.html" rel="next">
+<link href="./other-topics.html" rel="next">
+<link href="./05-integration.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
@@ -72,6 +71,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="custom-callouts.css">
 </head>
@@ -116,7 +144,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Preface</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./06-resample.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Resampling, Jackknife and Bootstrap</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -134,7 +162,7 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Preface</span></a>
   </div>
 </li>
@@ -170,7 +198,7 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./06-resample.html" class="sidebar-item-text sidebar-link">
+  <a href="./06-resample.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Resampling, Jackknife and Bootstrap</span></span></a>
   </div>
 </li>
@@ -219,22 +247,13 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#preface" id="toc-preface" class="nav-link active" data-scroll-target="#preface">Preface</a>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">6.1</span> Introduction</a></li>
+  <li><a href="#jackknife" id="toc-jackknife" class="nav-link" data-scroll-target="#jackknife"><span class="header-section-number">6.2</span> Jackknife</a>
   <ul class="collapse">
-  <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a>
-  <ul class="collapse">
-  <li><a href="#prerequisites" id="toc-prerequisites" class="nav-link" data-scroll-target="#prerequisites">Prerequisites</a></li>
-  <li><a href="#instructor" id="toc-instructor" class="nav-link" data-scroll-target="#instructor">Instructor</a></li>
+  <li><a href="#when-does-jackknife-not-work" id="toc-when-does-jackknife-not-work" class="nav-link" data-scroll-target="#when-does-jackknife-not-work"><span class="header-section-number">6.2.1</span> When does jackknife not work?</a></li>
   </ul></li>
-  <li><a href="#office-hour" id="toc-office-hour" class="nav-link" data-scroll-target="#office-hour">Office Hour</a></li>
-  <li><a href="#grade-distribution" id="toc-grade-distribution" class="nav-link" data-scroll-target="#grade-distribution">Grade Distribution</a></li>
-  <li><a href="#assignment" id="toc-assignment" class="nav-link" data-scroll-target="#assignment">Assignment</a></li>
-  <li><a href="#midterm" id="toc-midterm" class="nav-link" data-scroll-target="#midterm">Midterm</a></li>
-  <li><a href="#final-project" id="toc-final-project" class="nav-link" data-scroll-target="#final-project">Final Project</a></li>
-  <li><a href="#topics-and-corresponding-lectures" id="toc-topics-and-corresponding-lectures" class="nav-link" data-scroll-target="#topics-and-corresponding-lectures">Topics and Corresponding Lectures</a></li>
-  <li><a href="#recommended-textbooks" id="toc-recommended-textbooks" class="nav-link" data-scroll-target="#recommended-textbooks">Recommended Textbooks</a></li>
-  <li><a href="#side-readings" id="toc-side-readings" class="nav-link" data-scroll-target="#side-readings">Side Readings</a></li>
-  </ul></li>
+  <li><a href="#bootstrap" id="toc-bootstrap" class="nav-link" data-scroll-target="#bootstrap"><span class="header-section-number">6.3</span> Bootstrap</a></li>
+  <li><a href="#applications" id="toc-applications" class="nav-link" data-scroll-target="#applications"><span class="header-section-number">6.4</span> Applications</a></li>
   </ul>
 </nav>
     </div>
@@ -243,26 +262,14 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">STAT 8670 - Computational Methods in Statistics</h1>
+<h1 class="title"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Resampling, Jackknife and Bootstrap</span></h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-             <p>Chi-Kuang Yeh </p>
-          </div>
-  </div>
     
-    <div>
-    <div class="quarto-title-meta-heading">Published</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date">September 30, 2025</p>
-    </div>
-  </div>
   
     
   </div>
@@ -272,137 +279,30 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="preface" class="level1 unnumbered">
-<h1 class="unnumbered">Preface</h1>
-<section id="description" class="level2">
-<h2 class="anchored" data-anchor-id="description">Description</h2>
-<p>Topics ins included are optimization, numerical integration, bootstrapping, cross-validation and Jackknife, density estimation, smoothing, and use of the statistical computer package of S-plus/R.</p>
-<section id="prerequisites" class="level3">
-<h3 class="anchored" data-anchor-id="prerequisites">Prerequisites</h3>
-<p>MATH 4752/6752 – Mathematical Statistics II, and the ability to program in a high-level language.</p>
+<section id="introduction" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">6.1</span> Introduction</h2>
+<p>This chapter covers resampling methods including the jackknife and bootstrap techniques.</p>
 </section>
-<section id="instructor" class="level3">
-<h3 class="anchored" data-anchor-id="instructor">Instructor</h3>
-<p><a href="https://chikuang.github.io/">Chi-Kuang Yeh</a>, I am an Assistant Professor in the Department of Mathematics and Statistics, Georgia State University.</p>
-<ul>
-<li>Office: Suite 1407, 25 Park Place.</li>
-<li>Email: <a href="mailto:cyeh@gsu.edu">cyeh@gsu.edu</a>.</li>
-</ul>
+<section id="jackknife" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="jackknife"><span class="header-section-number">6.2</span> Jackknife</h2>
+<p>The jackknife is a resampling technique used to estimate the bias and variance of a statistic.</p>
+<p>Jackknife is like a <strong>leave-one-out cross-validation</strong>. Let <span class="math inline">\(\mathbf{x}= (x_1,\dots,x_n)\)</span> be an observed random sample, and denote the <span class="math inline">\(i\)</span>th jackknife sample by <span class="math inline">\(\mathbf{x}_{-i} = (x_1,\dots,x_{i-1},x_{i+1},\dots,x_n)\)</span>, that is, a subset of <span class="math inline">\(\mathbf{x}\)</span>.</p>
+<p>For the parameter of interest <span class="math inline">\(\theta\)</span>, if the statistics is <span class="math inline">\(T(\mathbf{x})=:\hat{\theta}\)</span> is computed on the full</p>
+<section id="when-does-jackknife-not-work" class="level3" data-number="6.2.1">
+<h3 data-number="6.2.1" class="anchored" data-anchor-id="when-does-jackknife-not-work"><span class="header-section-number">6.2.1</span> When does jackknife not work?</h3>
+<p>Jackknife does not work when the function <span class="math inline">\(T(\cdot)\)</span> is <strong>not a smooth</strong> functional!</p>
 </section>
 </section>
-<section id="office-hour" class="level2">
-<h2 class="anchored" data-anchor-id="office-hour">Office Hour</h2>
-<p>14:00–15:00 on Tuesday and Wednesday.</p>
+<section id="bootstrap" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="bootstrap"><span class="header-section-number">6.3</span> Bootstrap</h2>
+<p>The bootstrap is a resampling method that allows estimation of the sampling distribution of almost any statistic using random sampling methods.</p>
 </section>
-<section id="grade-distribution" class="level2">
-<h2 class="anchored" data-anchor-id="grade-distribution">Grade Distribution</h2>
-<ul>
-<li>Assignments: 40%</li>
-<li>Term Exam 1: 15%</li>
-<li>Term Exam 2: 15%</li>
-<li>Final Project: 30%</li>
-</ul>
-</section>
-<section id="assignment" class="level2">
-<h2 class="anchored" data-anchor-id="assignment">Assignment</h2>
-<ul class="task-list">
-<li><label><input type="checkbox" checked="">Assignment 1: Due on September 12, 2025</label></li>
-<li><label><input type="checkbox" checked="">Assignment 2: Due on September 22, 2025</label></li>
-<li><label><input type="checkbox">Assignment 3: TBA</label></li>
-</ul>
-</section>
-<section id="midterm" class="level2">
-<h2 class="anchored" data-anchor-id="midterm">Midterm</h2>
-<ul class="task-list">
-<li><label><input type="checkbox">Midterm 1 on October 8, 2025</label></li>
-<li><label><input type="checkbox">Midterm 2 on November 12, 2025</label></li>
-</ul>
-</section>
-<section id="final-project" class="level2">
-<h2 class="anchored" data-anchor-id="final-project">Final Project</h2>
-<ul class="task-list">
-<li><label><input type="checkbox">Report: Due Date TBA</label></li>
-<li><label><input type="checkbox">Presentation: Due Date TBA</label></li>
-</ul>
-</section>
-<section id="topics-and-corresponding-lectures" class="level2">
-<h2 class="anchored" data-anchor-id="topics-and-corresponding-lectures">Topics and Corresponding Lectures</h2>
-<p>Those chapters are based on the lecture notes. This part will be updated frequently.</p>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Topic</th>
-<th style="text-align: center;">Lecture Covered</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Introduction to R Programming</td>
-<td style="text-align: center;">1–2</td>
-</tr>
-<tr class="even">
-<td>Numerical Approaches and Optimization in 1-D</td>
-<td style="text-align: center;">3–5</td>
-</tr>
-<tr class="odd">
-<td>Review for Distribution</td>
-<td style="text-align: center;">6–7</td>
-</tr>
-<tr class="even">
-<td>Random Variable Generation</td>
-<td style="text-align: center;">8–10</td>
-</tr>
-<tr class="odd">
-<td>Monte Carlo and Integration</td>
-<td style="text-align: center;">11–</td>
-</tr>
-<tr class="even">
-<td>Term Exam 1</td>
-<td style="text-align: center;">13</td>
-</tr>
-<tr class="odd">
-<td>Jackknife</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="even">
-<td>Bootstrap</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="odd">
-<td>Cross-validation</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="even">
-<td>Smoothing</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="odd">
-<td>Density estimation</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="even">
-<td>Monte Carlo Methods</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="recommended-textbooks" class="level2">
-<h2 class="anchored" data-anchor-id="recommended-textbooks">Recommended Textbooks</h2>
-<ul>
-<li><p>Givens, G.H. and Hoeting, J.A. (2012). <a href="https://www.stat.colostate.edu/computationalstatistics/"><em>Computational Statistics</em></a>. Wiley, New York.</p></li>
-<li><p>Rizzo, M.L. (2007) <a href="https://a-roshani.ir/files/SC/%5B4%5D%20%5BMaria%20L.%20Rizzo%5D%5B2019%5D%20Statistical%20Computing%20%20with%20R,%20Second%20Edition.pdf"><em>Statistical Computing with R</em></a>. CRC Press, Roca Baton.</p></li>
-<li><p>Hothorn, T. and Everitt, B.S. (2006). <a href="https://digitallibrary.tsu.ge/book/2019/september/books/A-Handbook-of-Statistical-Analyses.pdf"><em>A Handbook of Statistical Analyses Using R</em></a>. CRC Press, Boca Raton.</p></li>
-</ul>
-</section>
-<section id="side-readings" class="level2">
-<h2 class="anchored" data-anchor-id="side-readings">Side Readings</h2>
-<ul>
-<li>Wickham, H., Çetinkaya-Rundel, M. and Grolemund, G. (2023). <a href="https://r4ds.hadley.nz/"><em>R for Data Science</em></a>. O’Reilly.</li>
-</ul>
+<section id="applications" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="applications"><span class="header-section-number">6.4</span> Applications</h2>
+<p>These methods are widely used in statistical inference and have applications in various fields.</p>
+<hr>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->
@@ -808,10 +708,13 @@ ul.task-list li input[type="checkbox"] {
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
+      <a href="./05-integration.html" class="pagination-link" aria-label="Numerical integration">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Numerical integration</span></span>
+      </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./01-intro.html" class="pagination-link" aria-label="Data Structure and R Programming">
-        <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Data Structure and R Programming</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./other-topics.html" class="pagination-link" aria-label="Additional Topics">
+        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Additional Topics</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

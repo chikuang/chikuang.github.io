@@ -6,10 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Chi-Kuang Yeh">
-<meta name="dcterms.date" content="2025-09-30">
 
-<title>STAT 8670 - Computational Methods in Statistics</title>
+<title>4&nbsp; Monte Carlo Simulation and Variance Reduction – STAT 8670 - Computational Methods in Statistics</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -22,6 +20,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -32,7 +65,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./01-intro.html" rel="next">
+<link href="./05-integration.html" rel="next">
+<link href="./03-generating-rv.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
@@ -72,6 +106,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="custom-callouts.css">
 </head>
@@ -116,7 +179,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Preface</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./04-monte-carlo.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Monte Carlo Simulation and Variance Reduction</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -134,7 +197,7 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Preface</span></a>
   </div>
 </li>
@@ -158,7 +221,7 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./04-monte-carlo.html" class="sidebar-item-text sidebar-link">
+  <a href="./04-monte-carlo.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Monte Carlo Simulation and Variance Reduction</span></span></a>
   </div>
 </li>
@@ -219,22 +282,7 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#preface" id="toc-preface" class="nav-link active" data-scroll-target="#preface">Preface</a>
-  <ul class="collapse">
-  <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a>
-  <ul class="collapse">
-  <li><a href="#prerequisites" id="toc-prerequisites" class="nav-link" data-scroll-target="#prerequisites">Prerequisites</a></li>
-  <li><a href="#instructor" id="toc-instructor" class="nav-link" data-scroll-target="#instructor">Instructor</a></li>
-  </ul></li>
-  <li><a href="#office-hour" id="toc-office-hour" class="nav-link" data-scroll-target="#office-hour">Office Hour</a></li>
-  <li><a href="#grade-distribution" id="toc-grade-distribution" class="nav-link" data-scroll-target="#grade-distribution">Grade Distribution</a></li>
-  <li><a href="#assignment" id="toc-assignment" class="nav-link" data-scroll-target="#assignment">Assignment</a></li>
-  <li><a href="#midterm" id="toc-midterm" class="nav-link" data-scroll-target="#midterm">Midterm</a></li>
-  <li><a href="#final-project" id="toc-final-project" class="nav-link" data-scroll-target="#final-project">Final Project</a></li>
-  <li><a href="#topics-and-corresponding-lectures" id="toc-topics-and-corresponding-lectures" class="nav-link" data-scroll-target="#topics-and-corresponding-lectures">Topics and Corresponding Lectures</a></li>
-  <li><a href="#recommended-textbooks" id="toc-recommended-textbooks" class="nav-link" data-scroll-target="#recommended-textbooks">Recommended Textbooks</a></li>
-  <li><a href="#side-readings" id="toc-side-readings" class="nav-link" data-scroll-target="#side-readings">Side Readings</a></li>
-  </ul></li>
+  <li><a href="#basic-monte-carlo-integration" id="toc-basic-monte-carlo-integration" class="nav-link active" data-scroll-target="#basic-monte-carlo-integration"><span class="header-section-number">4.1</span> Basic Monte Carlo Integration</a></li>
   </ul>
 </nav>
     </div>
@@ -243,26 +291,14 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">STAT 8670 - Computational Methods in Statistics</h1>
+<h1 class="title"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Monte Carlo Simulation and Variance Reduction</span></h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-             <p>Chi-Kuang Yeh </p>
-          </div>
-  </div>
     
-    <div>
-    <div class="quarto-title-meta-heading">Published</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date">September 30, 2025</p>
-    </div>
-  </div>
   
     
   </div>
@@ -272,137 +308,104 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="preface" class="level1 unnumbered">
-<h1 class="unnumbered">Preface</h1>
-<section id="description" class="level2">
-<h2 class="anchored" data-anchor-id="description">Description</h2>
-<p>Topics ins included are optimization, numerical integration, bootstrapping, cross-validation and Jackknife, density estimation, smoothing, and use of the statistical computer package of S-plus/R.</p>
-<section id="prerequisites" class="level3">
-<h3 class="anchored" data-anchor-id="prerequisites">Prerequisites</h3>
-<p>MATH 4752/6752 – Mathematical Statistics II, and the ability to program in a high-level language.</p>
-</section>
-<section id="instructor" class="level3">
-<h3 class="anchored" data-anchor-id="instructor">Instructor</h3>
-<p><a href="https://chikuang.github.io/">Chi-Kuang Yeh</a>, I am an Assistant Professor in the Department of Mathematics and Statistics, Georgia State University.</p>
+<p>Monte Carlo (MC) integration is a simulation-based method for <em>approximating integrals</em> using random sampling.</p>
+<p>In numerical integration, methods such as the trapezoidal rule use a <em>deterministic approach</em>. MC integration, on the other hand, employs a <em>non-deterministic</em> approach: each realization provides a different outcome.</p>
+<section id="basic-monte-carlo-integration" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="basic-monte-carlo-integration"><span class="header-section-number">4.1</span> Basic Monte Carlo Integration</h2>
+<p>To approximate the integral of a function <span class="math inline">\(f(x)\)</span> over the interval <span class="math inline">\([a, b]\)</span>, we can use the following formula:</p>
+<p>Consider the problem of estimating <span class="math inline">\(\theta = \int_0^1 g(x)dx\)</span>. If <span class="math inline">\(X_1,\dots , X_m\sim\operatorname{Unif}(0,1)\)</span>, then the MC estimator is given by:</p>
+<p><span class="math display">\[\hat{\theta}=\bar{g}_m(X)=\frac{1}{m}\sum_{i=1}^m g(X_i)\]</span> converges to <span class="math inline">\(\mathbb{E}[g(X)]\)</span> as <span class="math inline">\(m\to\infty\)</span> with probability 1, by <em>Strong law of Large Number</em> (SLLN). The simple MC estimator is unbiased, i.e., <span class="math inline">\(\bar{g}_m(X)\)</span>.</p>
+<div class="callout-example" title="Sample MC Integration">
+<p>Compute a MC estimate <span class="math display">\[
+\theta = \int_0^1 \exp(-x)dx,
+\]</span> and compare the estimate with the theoretical value</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">777</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1E3</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">runif</span>(n)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># simulated estimator</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>theta_hat <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="sc">-</span>x) <span class="sc">|&gt;</span> <span class="fu">mean</span>()</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># theoretical value</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>theta_true <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="dv">1</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># put them in a tibble</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>(results <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">Method =</span> <span class="fu">c</span>(<span class="st">"Simulated"</span>, <span class="st">"Theoretical"</span>),</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">Value  =</span> <span class="fu">c</span>(theta_hat, theta_true)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 2
+  Method      Value
+  &lt;chr&gt;       &lt;dbl&gt;
+1 Simulated   0.641
+2 Theoretical 0.632</code></pre>
+</div>
+</div>
+</div>
+<p>To simulate <span class="math inline">\(\int_a^b g(t)dt\)</span>, use change of variable so the limit becomes from <span class="math inline">\(0\)</span> to <span class="math inline">\(1\)</span>. This can be done through a <em>linear transformation</em> of the variable <span class="math inline">\(t\)</span>: <span class="math inline">\(y:=\frac{t-a}{b-a}\)</span>. Then, <span class="math inline">\(t=a+(b-a)y\)</span> and <span class="math inline">\(dt=(b-a)dy\)</span>. Thus, we have <span class="math display">\[
+\int_a^b g(t)dt = (b-a)\int_0^1 g(a+(b-a)y)dy.
+\]</span> Alternatively, instead of using <span class="math inline">\(\operatorname{Unif}(0,1)\)</span>, we can replace it with other densities with supports between <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>. One instance is, <span class="math display">\[
+\int_a^b g(t)dt = \int_a^b \frac{g(t)}{f}f dt = (b-a) \int_a^b  \frac{g(t)}{b-a} dt.
+\]</span> This is a <span class="math inline">\(b-a\)</span> times the expectation of <span class="math inline">\(g(X)\)</span> where <span class="math inline">\(X\sim \operatorname{Unif}(a,b)\)</span>. Therefore, this integral can be estimated by averaging through the function <span class="math inline">\(g(\cdot)\)</span> over the interval from <span class="math inline">\(a\)</span> to <span class="math inline">\(b\)</span> multiply by <span class="math inline">\(b-a\)</span>.</p>
+<div class="callout-example" title="MC Integration with different limits">
+<p>Compute a MC estimate of <span class="math display">\[
+\theta = \int_2^4 \exp(-x)dx,
+\]</span> and compare the estimate with the exact value of the integral.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">777</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fl">1E3</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">runif</span>(m, <span class="at">min =</span> <span class="dv">2</span>, <span class="at">max =</span> <span class="dv">4</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># simulated estimator</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>theta_hat <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">exp</span>(<span class="sc">-</span>x)) <span class="sc">*</span> (<span class="dv">4</span> <span class="sc">-</span> <span class="dv">2</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># theoretical value</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>theta_true <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="dv">2</span>) <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="dv">4</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co"># put into tibble</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>(results <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">Method =</span> <span class="fu">c</span>(<span class="st">"Simulated"</span>, <span class="st">"Theoretical"</span>),</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">Value  =</span> <span class="fu">c</span>(theta_hat, theta_true)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 2
+  Method      Value
+  &lt;chr&gt;       &lt;dbl&gt;
+1 Simulated   0.120
+2 Theoretical 0.117</code></pre>
+</div>
+</div>
+</div>
+<div class="callout-algorithm">
+<p>To summarize, the simple Monte Carlo estimator of the integral <span class="math inline">\(\theta = \int_a^b g(x)dx\)</span> is computed as follows.</p>
+<ol type="1">
+<li><p>Generate <span class="math inline">\(X_1, \dots , X_m\overset{iid}{\sim}\operatorname{Unif}(a,b)\)</span>,</p></li>
+<li><p>Compute <span class="math inline">\(\bar{g}(X) = \frac{1}{m} g(X_i)\)</span>.</p></li>
+<li><p><span class="math inline">\(\hat{\theta} = (b − a)\bar{g}(X)\)</span>.</p></li>
+</ol>
+</div>
+<div class="callout-example" title="MC integration with unbounded inteval">
+<p>Compute a MC estimate of a standard normal cdf</p>
+<p><span class="math display">\[
+\Phi(x)=\int_{-\infty}^x \frac{1}{\sqrt{2 \pi}} e^{-t^2 / 2} d t
+\]</span></p>
+<ol type="1">
+<li>Note, we cannot apply the algorithm above directly because the limits of integration cover an <em>unbounded interval</em>. However, we can break this problem into two cases: (i) <span class="math inline">\(x \ge 0\)</span> and (ii) <span class="math inline">\(x &lt; 0\)</span>, and use the <em>symmetry</em> of the normal density to handle the second case. Then the problem is to estimate <span class="math inline">\(\theta =\int_0^x \theta = \int_0^x \exp(−t^2/2) dt\)</span> for <span class="math inline">\(x &gt; 0\)</span>. This can be done by generating random <span class="math inline">\(\operatorname{Unif}(0,x)\)</span> numbers, but it would mean changing the parameters of the uniform distribution for each different value of the cdf required. Suppose that we prefer an algorithm that always samples from <span class="math inline">\(\operatorname{Unif}(0,1)\)</span>. This can be accomplished by a change of variables. Making the substitution <span class="math inline">\(y = t/x\)</span>, we have <span class="math inline">\(dt = x dy\)</span> and</li>
+</ol>
+<p><span class="math display">\[
+\theta=\int_0^1 x e^{-(x y)^2 / 2} d y
+\]</span> Thus, <span class="math inline">\(\theta = \mathbb{E}_Y[x\exp(-(xY)^2/2)]\)</span>, where the rv <span class="math inline">\(Y\sim \operatorname{Unif}(0,1)\)</span>. Generate iid <span class="math inline">\(\operatorname{Unif}(0,1)\)</span> random numbers <span class="math inline">\(u_1,\dots,u_m\)</span>, and compute <span class="math display">\[\hat{\theta}=\overline{g_m(u)}=\frac{1}{m} \sum_{i=1}^m x e^{-\left(u_i x\right)^2 / 2}.
+\]</span></p>
+</div>
+<hr>
+<p>Reference used:</p>
 <ul>
-<li>Office: Suite 1407, 25 Park Place.</li>
-<li>Email: <a href="mailto:cyeh@gsu.edu">cyeh@gsu.edu</a>.</li>
-</ul>
-</section>
-</section>
-<section id="office-hour" class="level2">
-<h2 class="anchored" data-anchor-id="office-hour">Office Hour</h2>
-<p>14:00–15:00 on Tuesday and Wednesday.</p>
-</section>
-<section id="grade-distribution" class="level2">
-<h2 class="anchored" data-anchor-id="grade-distribution">Grade Distribution</h2>
-<ul>
-<li>Assignments: 40%</li>
-<li>Term Exam 1: 15%</li>
-<li>Term Exam 2: 15%</li>
-<li>Final Project: 30%</li>
-</ul>
-</section>
-<section id="assignment" class="level2">
-<h2 class="anchored" data-anchor-id="assignment">Assignment</h2>
-<ul class="task-list">
-<li><label><input type="checkbox" checked="">Assignment 1: Due on September 12, 2025</label></li>
-<li><label><input type="checkbox" checked="">Assignment 2: Due on September 22, 2025</label></li>
-<li><label><input type="checkbox">Assignment 3: TBA</label></li>
-</ul>
-</section>
-<section id="midterm" class="level2">
-<h2 class="anchored" data-anchor-id="midterm">Midterm</h2>
-<ul class="task-list">
-<li><label><input type="checkbox">Midterm 1 on October 8, 2025</label></li>
-<li><label><input type="checkbox">Midterm 2 on November 12, 2025</label></li>
-</ul>
-</section>
-<section id="final-project" class="level2">
-<h2 class="anchored" data-anchor-id="final-project">Final Project</h2>
-<ul class="task-list">
-<li><label><input type="checkbox">Report: Due Date TBA</label></li>
-<li><label><input type="checkbox">Presentation: Due Date TBA</label></li>
-</ul>
-</section>
-<section id="topics-and-corresponding-lectures" class="level2">
-<h2 class="anchored" data-anchor-id="topics-and-corresponding-lectures">Topics and Corresponding Lectures</h2>
-<p>Those chapters are based on the lecture notes. This part will be updated frequently.</p>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Topic</th>
-<th style="text-align: center;">Lecture Covered</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Introduction to R Programming</td>
-<td style="text-align: center;">1–2</td>
-</tr>
-<tr class="even">
-<td>Numerical Approaches and Optimization in 1-D</td>
-<td style="text-align: center;">3–5</td>
-</tr>
-<tr class="odd">
-<td>Review for Distribution</td>
-<td style="text-align: center;">6–7</td>
-</tr>
-<tr class="even">
-<td>Random Variable Generation</td>
-<td style="text-align: center;">8–10</td>
-</tr>
-<tr class="odd">
-<td>Monte Carlo and Integration</td>
-<td style="text-align: center;">11–</td>
-</tr>
-<tr class="even">
-<td>Term Exam 1</td>
-<td style="text-align: center;">13</td>
-</tr>
-<tr class="odd">
-<td>Jackknife</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="even">
-<td>Bootstrap</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="odd">
-<td>Cross-validation</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="even">
-<td>Smoothing</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="odd">
-<td>Density estimation</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-<tr class="even">
-<td>Monte Carlo Methods</td>
-<td style="text-align: center;">TBA</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="recommended-textbooks" class="level2">
-<h2 class="anchored" data-anchor-id="recommended-textbooks">Recommended Textbooks</h2>
-<ul>
-<li><p>Givens, G.H. and Hoeting, J.A. (2012). <a href="https://www.stat.colostate.edu/computationalstatistics/"><em>Computational Statistics</em></a>. Wiley, New York.</p></li>
-<li><p>Rizzo, M.L. (2007) <a href="https://a-roshani.ir/files/SC/%5B4%5D%20%5BMaria%20L.%20Rizzo%5D%5B2019%5D%20Statistical%20Computing%20%20with%20R,%20Second%20Edition.pdf"><em>Statistical Computing with R</em></a>. CRC Press, Roca Baton.</p></li>
-<li><p>Hothorn, T. and Everitt, B.S. (2006). <a href="https://digitallibrary.tsu.ge/book/2019/september/books/A-Handbook-of-Statistical-Analyses.pdf"><em>A Handbook of Statistical Analyses Using R</em></a>. CRC Press, Boca Raton.</p></li>
-</ul>
-</section>
-<section id="side-readings" class="level2">
-<h2 class="anchored" data-anchor-id="side-readings">Side Readings</h2>
-<ul>
-<li>Wickham, H., Çetinkaya-Rundel, M. and Grolemund, G. (2023). <a href="https://r4ds.hadley.nz/"><em>R for Data Science</em></a>. O’Reilly.</li>
+<li>Chapter 6 of Rizzo, M.L. (2007). <em>Statistical Computing with R</em>. CRC Press, Roca Baton.</li>
 </ul>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->
@@ -808,10 +811,13 @@ ul.task-list li input[type="checkbox"] {
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
+      <a href="./03-generating-rv.html" class="pagination-link" aria-label="Generating Random Variables">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Generating Random Variables</span></span>
+      </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./01-intro.html" class="pagination-link" aria-label="Data Structure and R Programming">
-        <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Data Structure and R Programming</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./05-integration.html" class="pagination-link" aria-label="Numerical integration">
+        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Numerical integration</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
