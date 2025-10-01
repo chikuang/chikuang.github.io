@@ -283,6 +283,10 @@ window.Quarto = {
    
   <ul>
   <li><a href="#basic-monte-carlo-integration" id="toc-basic-monte-carlo-integration" class="nav-link active" data-scroll-target="#basic-monte-carlo-integration"><span class="header-section-number">4.1</span> Basic Monte Carlo Integration</a></li>
+  <li><a href="#variance-and-efficiency" id="toc-variance-and-efficiency" class="nav-link" data-scroll-target="#variance-and-efficiency"><span class="header-section-number">4.2</span> Variance and Efficiency</a>
+  <ul class="collapse">
+  <li><a href="#efficiency" id="toc-efficiency" class="nav-link" data-scroll-target="#efficiency"><span class="header-section-number">4.2.1</span> Efficiency</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -359,7 +363,7 @@ window.Quarto = {
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">runif</span>(m, <span class="at">min =</span> <span class="dv">2</span>, <span class="at">max =</span> <span class="dv">4</span>)</span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># simulated estimator</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>theta_hat <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">exp</span>(<span class="sc">-</span>x)) <span class="sc">*</span> (<span class="dv">4</span> <span class="sc">-</span> <span class="dv">2</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>theta_hat <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="sc">-</span>x) <span class="sc">|&gt;</span> <span class="fu">mean</span>() <span class="sc">*</span> (<span class="dv">4</span> <span class="sc">-</span> <span class="dv">2</span>)</span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># theoretical value</span></span>
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>theta_true <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="dv">2</span>) <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="dv">4</span>)</span>
@@ -398,7 +402,103 @@ window.Quarto = {
 \theta=\int_0^1 x e^{-(x y)^2 / 2} d y
 \]</span> Thus, <span class="math inline">\(\theta = \mathbb{E}_Y[x\exp(-(xY)^2/2)]\)</span>, where the rv <span class="math inline">\(Y\sim \operatorname{Unif}(0,1)\)</span>. Generate iid <span class="math inline">\(\operatorname{Unif}(0,1)\)</span> random numbers <span class="math inline">\(u_1,\dots,u_m\)</span>, and compute <span class="math display">\[\hat{\theta}=\overline{g_m(u)}=\frac{1}{m} \sum_{i=1}^m x e^{-\left(u_i x\right)^2 / 2}.
 \]</span></p>
+<p>The sample mean <span class="math inline">\(\hat{\theta}\)</span> converges to <span class="math inline">\(\mathbb{E}\hat{\theta} = \theta\)</span> as <span class="math inline">\(m\to \infty\)</span>. If <span class="math inline">\(x &gt; 0\)</span>, the estimate of <span class="math inline">\(\Phi(x) = 1/2 + \hat{\theta}/\sqrt{2\pi}\)</span>. If <span class="math inline">\(x &lt; 0\)</span> compute <span class="math inline">\(\Phi(x) = 1 − \Phi(−x)\)</span>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(.<span class="dv">1</span>, <span class="fl">2.5</span>, <span class="at">length =</span> <span class="dv">10</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">runif</span>(m)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>cdf <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(x))</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(x)) {</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  g <span class="ot">&lt;-</span> x[i] <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>(u <span class="sc">*</span> x[i])<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> <span class="dv">2</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  cdf[i] <span class="ot">&lt;-</span> <span class="fu">mean</span>(g) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="dv">2</span> <span class="sc">*</span> pi) <span class="sc">+</span> <span class="fl">0.5</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>Phi <span class="ot">&lt;-</span> <span class="fu">pnorm</span>(x)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">round</span>(<span class="fu">rbind</span>(x, cdf, Phi), <span class="dv">3</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    [,1]  [,2]  [,3]  [,4]  [,5]  [,6]  [,7]  [,8]  [,9] [,10]
+x   0.10 0.367 0.633 0.900 1.167 1.433 1.700 1.967 2.233 2.500
+cdf 0.54 0.643 0.737 0.816 0.878 0.924 0.956 0.976 0.987 0.994
+Phi 0.54 0.643 0.737 0.816 0.878 0.924 0.955 0.975 0.987 0.994</code></pre>
 </div>
+</div>
+<p>Notice that it would have been simpler to generate random Uniform(0, x) random variables and skip the transformation. In fact, the integrand of the previous example is itself a density function, and we can generate random variables from this density. This provides a more direct approach to estimating the integral.</p>
+</div>
+<div class="callout-example" title="MC integration with indicator function">
+<p>Let <span class="math inline">\(I(\cdot)\)</span> be the indicator function, and <span class="math inline">\(Z\sim N(0,1)\)</span>. Then for any constant <span class="math inline">\(x\)</span> we have <span class="math inline">\(\mathbb{E}[I(Z ≤ x)] = P (Z ≤ x) =\Phi(x)\)</span>, the standard normal cdf evaluated at <span class="math inline">\(x\)</span>.</p>
+<p>Generate a random sample <span class="math inline">\(z_1, \dots , z_m\sim N(0,1)\)</span>. Then the theoretical mean and sample mean are <span class="math display">\[\hat{\theta} = \frac{1}{m} \sum_{i=1}^m I(z_i \le x),\]</span> and <span class="math display">\[\mathbb{E}[\hat{\theta}] = P(Z \le x) = \Phi(x).\]</span></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">777</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="fl">2.5</span>, <span class="at">length =</span> <span class="dv">10</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fl">1E4</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(m)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(x) <span class="ot">&lt;-</span> <span class="fu">length</span>(x)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">apply</span>(x, <span class="at">MARGIN =</span> <span class="dv">1</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">FUN =</span> <span class="cf">function</span>(x, z) {<span class="fu">mean</span>(z <span class="sc">&lt;</span> x)}, <span class="at">z =</span> z)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>Phi <span class="ot">&lt;-</span> <span class="fu">pnorm</span>(x)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(x, p, Phi) <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     [,1]  [,2]  [,3]  [,4]  [,5]  [,6]  [,7]  [,8]  [,9] [,10]
+x   0.100 0.367 0.633 0.900 1.167 1.433 1.700 1.967 2.233 2.500
+p   0.544 0.645 0.740 0.818 0.881 0.926 0.957 0.976 0.986 0.993
+Phi 0.540 0.643 0.737 0.816 0.878 0.924 0.955 0.975 0.987 0.994</code></pre>
+</div>
+</div>
+<p>In this example, compared with the previous example, it appears that we have better agreement with <code>pnorm()</code> in the upper tail, but worse agreement near the center.</p>
+</div>
+<div id="callout-1" class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Summarizing, if <span class="math inline">\(f (x)\)</span> is a probability density function supported on a set A, (that is, <span class="math inline">\(f (x) \ge 0\)</span> for all <span class="math inline">\(x\in\mathbb{R}\)</span> and <span class="math inline">\(\int_A f (x) = 1\)</span>), to estimate the integral <span class="math display">\[\theta = \int_A g(x)f (x)dx,\]</span> generate a random sample <span class="math inline">\(x_1,\dots,x_m\)</span> from the distribution <span class="math inline">\(f (x)\)</span>, and compute the sample mean <span class="math display">\[\hat{\theta} = \frac{1}{m}\sum_{i=1}^mg(x_i).\]</span> Then <span class="math inline">\(\hat{\theta}\overset{p}{\to}\theta\)</span></p>
+</div>
+</div>
+<p>The standard error of <span class="math inline">\(\hat{\theta} = \frac{1}{m}\sum_{i=1}^m g(x_i)\)</span>.</p>
+<p>Recall that, <span class="math inline">\(\mathbb{V}ar{\hat{\theta}}=\sigma^2/m\)</span> where <span class="math inline">\(\sigma^2 = \mathbb{V}ar{g(X)}\)</span>. When the distribution of <span class="math inline">\(X\)</span> is unknown, we substitute for <span class="math inline">\(F_X\)</span> the empirical distribution <span class="math inline">\(F_m\)</span> of the sample <span class="math inline">\(x_1, \dots , x_m\)</span>. The variance of <span class="math inline">\(\hat{\theta}\)</span> can be estimated by <span class="math display">\[
+\frac{\hat{\sigma}}{m} = \frac{1}{m^2}\sum_{i=1}^m [g(x_i) - \bar{g}(x)]^2.
+\]</span></p>
+<p>Note that <span class="math display">\[\frac{1}{m}\sum_{i=1}^m[g(x_i)-\bar{g}(x_i)],\]</span> is the <em>plug-in estimate</em> of <span class="math inline">\(\mathbb{V}ar\{g(X)\}\)</span>. That is, it is the variance of <span class="math inline">\(U\)</span> , where <span class="math inline">\(U\)</span> is uniformly distributed on the set of replicates <span class="math inline">\(\{g(xi)\}\)</span>. The corresponding estimated standard error of <span class="math inline">\(\hat{\theta}\)</span> is <span class="math display">\[
+\widehat{se}(\hat{\theta}) = \frac{\hat{\sigma}}{\sqrt{m}} = \frac{1}{m}\left\{\sum_{i=1}^m [ g(x_i)- \bar{g}(x)]^2\right\}.
+\]</span> The CLT implies <span class="math display">\[
+\frac{\hat{\theta}-E[\hat{\theta}]}{\sqrt{\operatorname{Var} \hat{\theta}}} \overset{D}{\to} N(0,1),
+\]</span> as <span class="math inline">\(m\to\infty\)</span>.Hence, if <span class="math inline">\(m\)</span> is sufficiently large, <span class="math inline">\(\hat{\theta}\)</span> is approximately normal with mean <span class="math inline">\(\theta\)</span>. The large-sample, approximately normal distribution of <span class="math inline">\(\hat{\theta}\)</span> can be applied to put confidence limits or error bounds on the MC estimate of the integral, and check for convergence</p>
+<div class="callout-example" title="Error bound of MC integration">
+<p>Compute the 95% confidence interval for <span class="math inline">\(\Phi(2)\)</span> and <span class="math inline">\(\Phi(2.5)\)</span>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">777</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(m)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> (z <span class="sc">&lt;</span> x) <span class="co">#the indicator function</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="fu">mean</span>((g <span class="sc">-</span> <span class="fu">mean</span>(g))<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> m</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>cdf <span class="ot">&lt;-</span> <span class="fu">mean</span>(g)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(cdf, v)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 9.771000e-01 2.237559e-06</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(cdf <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> <span class="fu">sqrt</span>(v), cdf <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> <span class="fu">sqrt</span>(v))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.9741681 0.9800319</code></pre>
+</div>
+</div>
+<p>The interpretation is:</p>
+<p>the probability <span class="math inline">\(P (I(Z &lt; x) = 1)\)</span> is <span class="math inline">\(\Phi(2)\approx 0.977\)</span>. Here <span class="math inline">\(g(X)\)</span> has the distribution of the sample proportion of 1’s in <span class="math inline">\(m = 10000\)</span> Bernoulli trials with <span class="math inline">\(p\approx 0.977\)</span>, and the variance of <span class="math inline">\(g(X)\)</span> is therefore <span class="math inline">\((0.977)(1 − 0.977)/10000 =2.223e-06\)</span>. The MC estimate <span class="math inline">\(2.228e-06\)</span> of variance is quite close to this value.</p>
+<p>Q: What about <span class="math inline">\(\Phi(2.5)\)</span>?</p>
+</div>
+</section>
+<section id="variance-and-efficiency" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="variance-and-efficiency"><span class="header-section-number">4.2</span> Variance and Efficiency</h2>
+<section id="efficiency" class="level3" data-number="4.2.1">
+<h3 data-number="4.2.1" class="anchored" data-anchor-id="efficiency"><span class="header-section-number">4.2.1</span> Efficiency</h3>
+<p>Suppose we have two (unbiased) estimators <span class="math inline">\(\hat{\theta}_1\)</span> and <span class="math inline">\(\hat{\theta}_2\)</span> for θ. We say <span class="math inline">\(\hat{\theta}_1\)</span> is <em>statistically</em> more efficient than <span class="math inline">\(\hat{\theta}_2\)</span> if <span class="math display">\[\mathbb{V}ar(\hat{\theta}_1) &lt; \mathbb{V}ar(\hat{\theta}_2).\]</span> What is the variance of <span class="math inline">\(hat{\theta}_i\)</span> is unknown or hard to be calculated?</p>
+<p>can substitute it by sample estimate of the variance for each estimator.</p>
+<p>Note, the variance can <em>always be reduced by increasing the number of replicates</em>, so computational efficiency is also relevant.</p>
 <hr>
 <p>Reference used:</p>
 <ul>
@@ -406,6 +506,7 @@ window.Quarto = {
 </ul>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
