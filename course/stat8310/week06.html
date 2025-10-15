@@ -340,21 +340,17 @@ window.Quarto = {
 </header>
 
 
-<p>This week introduces <strong>hierarchical (multilevel) Bayesian models</strong>, which allow parameters to vary across groups while sharing information through higher-level priors.<br>
-We study partial pooling, shrinkage, and their implementation for normal and regression models.</p>
+<p>This week introduces <strong>hierarchical (multilevel) Bayesian models</strong>, which allow parameters to vary across groups while sharing information through higher-level priors.</p>
+<p>We study partial pooling, shrinkage, and their implementation for normal and regression models.</p>
 <hr>
 <section id="learning-goals" class="level2" data-number="7.1">
 <h2 data-number="7.1" class="anchored" data-anchor-id="learning-goals"><span class="header-section-number">7.1</span> Learning Goals</h2>
 <p>By the end of this week, you should be able to:</p>
 <ul>
-<li>Explain the motivation for hierarchical modeling.<br>
-</li>
-<li>Formulate hierarchical models with group-level parameters.<br>
-</li>
-<li>Interpret partial pooling and shrinkage.<br>
-</li>
-<li>Implement a two-level Bayesian model in R using simulation or <code>brms</code>.<br>
-</li>
+<li>Explain the motivation for hierarchical modeling.</li>
+<li>Formulate hierarchical models with group-level parameters.</li>
+<li>Interpret partial pooling and shrinkage.</li>
+<li>Implement a two-level Bayesian model in R using simulation or <code>brms</code>.</li>
 <li>Compare complete, no-pooling, and partial-pooling approaches.</li>
 </ul>
 <hr>
@@ -363,15 +359,18 @@ We study partial pooling, shrinkage, and their implementation for normal and reg
 <h2 data-number="7.2" class="anchored" data-anchor-id="lecture-1-motivation-and-structure-of-hierarchical-models"><span class="header-section-number">7.2</span> Lecture 1 — Motivation and Structure of Hierarchical Models</h2>
 <section id="why-hierarchical-models" class="level3" data-number="7.2.1">
 <h3 data-number="7.2.1" class="anchored" data-anchor-id="why-hierarchical-models"><span class="header-section-number">7.2.1</span> 1.1 Why Hierarchical Models?</h3>
-<p>Hierarchical models capture <strong>structured variability</strong> among related groups or units: - Repeated measures within individuals<br>
-- Students within classrooms<br>
-- Machines within factories</p>
+<p>Hierarchical models capture <strong>structured variability</strong> among related groups or units:</p>
+<ul>
+<li>Repeated measures within individuals</li>
+<li>Students within classrooms</li>
+<li>Machines within factories</li>
+</ul>
 <p>They balance <strong>within-group</strong> and <strong>between-group</strong> information by introducing group-specific parameters drawn from a common population distribution.</p>
 <hr>
 </section>
 <section id="model-structure" class="level3" data-number="7.2.2">
 <h3 data-number="7.2.2" class="anchored" data-anchor-id="model-structure"><span class="header-section-number">7.2.2</span> 1.2 Model Structure</h3>
-<p>For group <span class="math inline">\(begin:math:text\)</span> j = 1,\ldots,J <span class="math inline">\(end:math:text\)</span> and observations <span class="math inline">\(begin:math:text\)</span> i = 1,\ldots,n_j <span class="math inline">\(end:math:text\)</span>:</p>
+<p>For group <span class="math inline">\(j = 1,\ldots,J\)</span> and observations <span class="math inline">\(i = 1,\ldots,n_j\)</span>:</p>
 <p><span class="math display">\[
 y_{ij} \mid \theta_j, \sigma^2 \sim \mathcal{N}(\theta_j, \sigma^2), \qquad
 \theta_j \mid \mu, \tau^2 \sim \mathcal{N}(\mu, \tau^2).
@@ -380,11 +379,10 @@ y_{ij} \mid \theta_j, \sigma^2 \sim \mathcal{N}(\theta_j, \sigma^2), \qquad
 \mu \sim \mathcal{N}(0,10^2), \quad \tau \sim \text{Half-Cauchy}(0,5).
 \]</span></p>
 <ul>
-<li><span class="math inline">\(begin:math:text\)</span> \mu <span class="math inline">\(end:math:text\)</span>: overall population mean<br>
+<li><span class="math inline">\(\mu\)</span>: overall population mean<br>
 </li>
-<li><span class="math inline">\(begin:math:text\)</span> \tau <span class="math inline">\(end:math:text\)</span>: between-group standard deviation (pooling strength)<br>
-</li>
-<li><span class="math inline">\(begin:math:text\)</span> \sigma <span class="math inline">\(end:math:text\)</span>: within-group standard deviation</li>
+<li><span class="math inline">\(\tau\)</span>: between-group standard deviation (pooling strength)</li>
+<li><span class="math inline">\(\sigma\)</span>: within-group standard deviation</li>
 </ul>
 <hr>
 </section>
@@ -394,7 +392,7 @@ y_{ij} \mid \theta_j, \sigma^2 \sim \mathcal{N}(\theta_j, \sigma^2), \qquad
 <colgroup>
 <col style="width: 34%">
 <col style="width: 36%">
-<col style="width: 28%">
+<col style="width: 29%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -406,7 +404,7 @@ y_{ij} \mid \theta_j, \sigma^2 \sim \mathcal{N}(\theta_j, \sigma^2), \qquad
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><strong>No pooling</strong></td>
-<td style="text-align: left;">Estimate each <span class="math inline">\(begin:math:text\)</span> \theta_j <span class="math inline">\(end:math:text\)</span> separately</td>
+<td style="text-align: left;">Estimate each <span class="math inline">\(\theta_j\)</span> separately</td>
 <td style="text-align: left;">Ignores commonality across groups</td>
 </tr>
 <tr class="even">
@@ -425,17 +423,14 @@ y_{ij} \mid \theta_j, \sigma^2 \sim \mathcal{N}(\theta_j, \sigma^2), \qquad
 </section>
 <section id="shrinkage-intuition" class="level3" data-number="7.2.4">
 <h3 data-number="7.2.4" class="anchored" data-anchor-id="shrinkage-intuition"><span class="header-section-number">7.2.4</span> 1.4 Shrinkage Intuition</h3>
-<p>Posterior for each group mean <span class="math inline">\(begin:math:text\)</span> \theta_j <span class="math inline">\(end:math:text\)</span> shrinks toward the global mean <span class="math inline">\(begin:math:text\)</span> \mu <span class="math inline">\(end:math:text\)</span>:<br>
-<span class="math display">\[
+<p>Posterior for each group mean $ _j$ shrinks toward the global mean <span class="math inline">\(\mu\)</span>: <span class="math display">\[
 E[\theta_j \mid y] = w_j \bar{y}_j + (1-w_j)\mu,
-\]</span> where<br>
-<span class="math display">\[
+\]</span> where <span class="math display">\[
 w_j = \frac{n_j/\sigma^2}{n_j/\sigma^2 + 1/\tau^2}.
 \]</span></p>
 <ul>
-<li>Large <span class="math inline">\(begin:math:text\)</span> n_j <span class="math inline">\(end:math:text\)</span> (lots of data): <span class="math inline">\(begin:math:text\)</span> w_j \to 1 <span class="math inline">\(end:math:text\)</span> → less shrinkage.<br>
-</li>
-<li>Small <span class="math inline">\(begin:math:text\)</span> n_j <span class="math inline">\(end:math:text\)</span>: <span class="math inline">\(begin:math:text\)</span> w_j \to 0 <span class="math inline">\(end:math:text\)</span> → stronger shrinkage toward <span class="math inline">\(begin:math:text\)</span> \mu <span class="math inline">\(end:math:text\)</span>.</li>
+<li>Large <span class="math inline">\(n_j\)</span> (lots of data): <span class="math inline">\(w_j \to 1\)</span> → less shrinkage.</li>
+<li>Small <span class="math inline">\(n_j\)</span>: <span class="math inline">\(w_j \to 0\)</span> → stronger shrinkage toward <span class="math inline">\(\mu\)</span>.</li>
 </ul>
 <hr>
 </section>
@@ -539,9 +534,12 @@ y_{ij} = \alpha_j + \beta_j x_{ij} + \varepsilon_{ij}, \quad \varepsilon_{ij} \s
 </section>
 <section id="interpretation" class="level3" data-number="7.3.3">
 <h3 data-number="7.3.3" class="anchored" data-anchor-id="interpretation"><span class="header-section-number">7.3.3</span> 2.3 Interpretation</h3>
-<p>Posterior summaries provide: - Group-level means <span class="math inline">\(begin:math:text\)</span> \alpha_j, \beta_j <span class="math inline">\(end:math:text\)</span>.<br>
-- Population-level means <span class="math inline">\(begin:math:text\)</span> \mu_\alpha, \mu_\beta <span class="math inline">\(end:math:text\)</span>.<br>
-- Variability estimates <span class="math inline">\(begin:math:text\)</span> \tau_\alpha, \tau_\beta <span class="math inline">\(end:math:text\)</span> showing degree of pooling.</p>
+<p>Posterior summaries provide:</p>
+<ul>
+<li>Group-level means <span class="math inline">\(\alpha_j, \beta_j\)</span>.</li>
+<li>Population-level means <span class="math inline">\(\mu_\alpha, \mu_\beta\)</span>.</li>
+<li>Variability estimates <span class="math inline">\(\tau_{\alpha}, \tau_{\beta}\)</span> showing degree of pooling.</li>
+</ul>
 <p>Visualize partial pooling by comparing group-specific fits to the global regression line.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pp_check</span>(m_hier)</span>
