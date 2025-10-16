@@ -279,7 +279,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./APP_D_integration.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Appendix – Numerical integration</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Appendix: Numerical integration</span></span></a>
   </div>
 </li>
       </ul>
@@ -295,17 +295,21 @@ window.Quarto = {
    
   <ul>
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">5.1</span> Introduction</a></li>
-  <li><a href="#jackknife" id="toc-jackknife" class="nav-link" data-scroll-target="#jackknife"><span class="header-section-number">5.2</span> Jackknife</a>
+  <li><a href="#resampling-methods" id="toc-resampling-methods" class="nav-link" data-scroll-target="#resampling-methods"><span class="header-section-number">5.2</span> Resampling methods</a></li>
+  <li><a href="#motivations" id="toc-motivations" class="nav-link" data-scroll-target="#motivations"><span class="header-section-number">5.3</span> Motivations</a>
   <ul class="collapse">
-  <li><a href="#when-does-jackknife-not-work" id="toc-when-does-jackknife-not-work" class="nav-link" data-scroll-target="#when-does-jackknife-not-work"><span class="header-section-number">5.2.1</span> When does jackknife not work?</a></li>
+  <li><a href="#bias-variance-tradeoff" id="toc-bias-variance-tradeoff" class="nav-link" data-scroll-target="#bias-variance-tradeoff"><span class="header-section-number">5.3.1</span> Bias-Variance Tradeoff</a></li>
   </ul></li>
-  <li><a href="#bootstrap" id="toc-bootstrap" class="nav-link" data-scroll-target="#bootstrap"><span class="header-section-number">5.3</span> Bootstrap</a></li>
-  <li><a href="#applications" id="toc-applications" class="nav-link" data-scroll-target="#applications"><span class="header-section-number">5.4</span> Applications</a></li>
-  <li><a href="#bootstrap-1" id="toc-bootstrap-1" class="nav-link" data-scroll-target="#bootstrap-1"><span class="header-section-number">5.5</span> Bootstrap</a></li>
+  <li><a href="#bootstrap" id="toc-bootstrap" class="nav-link" data-scroll-target="#bootstrap"><span class="header-section-number">5.4</span> Bootstrap</a></li>
+  <li><a href="#jackknife" id="toc-jackknife" class="nav-link" data-scroll-target="#jackknife"><span class="header-section-number">5.5</span> Jackknife</a>
+  <ul class="collapse">
+  <li><a href="#when-does-jackknife-not-work" id="toc-when-does-jackknife-not-work" class="nav-link" data-scroll-target="#when-does-jackknife-not-work"><span class="header-section-number">5.5.1</span> When does jackknife not work?</a></li>
+  </ul></li>
   <li><a href="#jackknife-1" id="toc-jackknife-1" class="nav-link" data-scroll-target="#jackknife-1"><span class="header-section-number">5.6</span> Jackknife</a>
   <ul class="collapse">
   <li><a href="#jackknife-estimate-of-bias" id="toc-jackknife-estimate-of-bias" class="nav-link" data-scroll-target="#jackknife-estimate-of-bias"><span class="header-section-number">5.6.1</span> Jackknife Estimate of Bias</a></li>
   </ul></li>
+  <li><a href="#applications" id="toc-applications" class="nav-link" data-scroll-target="#applications"><span class="header-section-number">5.7</span> Applications</a></li>
   </ul>
 </nav>
     </div>
@@ -335,26 +339,33 @@ window.Quarto = {
 <h2 data-number="5.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">5.1</span> Introduction</h2>
 <p>This chapter covers resampling methods including the jackknife and bootstrap techniques.</p>
 </section>
-<section id="jackknife" class="level2" data-number="5.2">
-<h2 data-number="5.2" class="anchored" data-anchor-id="jackknife"><span class="header-section-number">5.2</span> Jackknife</h2>
-<p>The jackknife is a resampling technique used to estimate the bias and variance of a statistic.</p>
-<p>Jackknife is like a <strong>leave-one-out cross-validation</strong>. Let <span class="math inline">\(\mathbf{x}= (x_1,\dots,x_n)\)</span> be an observed random sample, and denote the <span class="math inline">\(i\)</span>th jackknife sample by <span class="math inline">\(\mathbf{x}_{-i} = (x_1,\dots,x_{i-1},x_{i+1},\dots,x_n)\)</span>, that is, a subset of <span class="math inline">\(\mathbf{x}\)</span>.</p>
-<p>For the parameter of interest <span class="math inline">\(\theta\)</span>, if the statistics is <span class="math inline">\(T(\mathbf{x})=:\hat{\theta}\)</span> is computed on the full</p>
-<section id="when-does-jackknife-not-work" class="level3" data-number="5.2.1">
-<h3 data-number="5.2.1" class="anchored" data-anchor-id="when-does-jackknife-not-work"><span class="header-section-number">5.2.1</span> When does jackknife not work?</h3>
-<p>Jackknife does not work when the function <span class="math inline">\(T(\cdot)\)</span> is <strong>not a smooth</strong> functional!</p>
+<section id="resampling-methods" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="resampling-methods"><span class="header-section-number">5.2</span> Resampling methods</h2>
+<p>Resampling methods treat an observed sample as a finite population, and random samples are generated (resampled) from it to estimate population characteristics and make inferences about the sampled population.</p>
+<ul>
+<li><p><strong>Bootstrap</strong>: Bootstrap methods are often used when the distribution of the target population is not specified; the sample is the only information available.</p></li>
+<li><p><strong>Jackknife</strong>: The jackknife is a resampling technique used to estimate the bias and variance of a statistic. It is like a leave-one-out (LOO) cross-validation.</p></li>
+<li><p><em>Cross-validation</em>: Cross-validation is a model validation technique for assessing how the results of a statistical analysis will generalize to an independent data set. It is mainly used in settings where the goal is prediction, and one wants to estimate how accurately a predictive model will perform in practice.</p></li>
+<li><p><em>Permutation tests</em>: Permutation tests are a type of non-parametric statistical test that involves rearranging the data points to test a hypothesis. They are used to determine whether the observed effect is statistically significant by comparing it to the distribution of effects obtained through random permutations of the data.</p></li>
+</ul>
+</section>
+<section id="motivations" class="level2" data-number="5.3">
+<h2 data-number="5.3" class="anchored" data-anchor-id="motivations"><span class="header-section-number">5.3</span> Motivations</h2>
+<section id="bias-variance-tradeoff" class="level3" data-number="5.3.1">
+<h3 data-number="5.3.1" class="anchored" data-anchor-id="bias-variance-tradeoff"><span class="header-section-number">5.3.1</span> Bias-Variance Tradeoff</h3>
+<p>In statistics, the bias-variance tradeoff is the property of a model that the variance of the parameter estimated across samples can be reduced by increasing the bias in the estimated parameters. If we look at the Mean square error (MSE) of an estimator <span class="math inline">\(\hat{\theta}\)</span> for a parameter <span class="math inline">\(\theta\)</span>:</p>
+<p><span class="math display">\[\mathbb{E}[(\hat{\theta}-\theta )^2 ]= \mathbb{V}ar(\hat{\theta}) + [\mathbb{b}(\hat{\theta})]^2,\]</span> where <span class="math inline">\(\mathbb{b}\)</span> is the bias of the estimator.</p>
 </section>
 </section>
-<section id="bootstrap" class="level2" data-number="5.3">
-<h2 data-number="5.3" class="anchored" data-anchor-id="bootstrap"><span class="header-section-number">5.3</span> Bootstrap</h2>
-<p>The bootstrap is a resampling method that allows estimation of the sampling distribution of almost any statistic using random sampling methods.</p>
-</section>
-<section id="applications" class="level2" data-number="5.4">
-<h2 data-number="5.4" class="anchored" data-anchor-id="applications"><span class="header-section-number">5.4</span> Applications</h2>
-<p>These methods are widely used in statistical inference and have applications in various fields.</p>
-</section>
-<section id="bootstrap-1" class="level2" data-number="5.5">
-<h2 data-number="5.5" class="anchored" data-anchor-id="bootstrap-1"><span class="header-section-number">5.5</span> Bootstrap</h2>
+<section id="bootstrap" class="level2" data-number="5.4">
+<h2 data-number="5.4" class="anchored" data-anchor-id="bootstrap"><span class="header-section-number">5.4</span> Bootstrap</h2>
+<p>The bootstrap is a resampling method that allows estimation of the <em>sampling distribution</em> of almost any statistic using random sampling methods.</p>
+<ul>
+<li><p>Parametric bootstrap:</p></li>
+<li><p>Nonparametric bootstrap: In nonparametric bootstrap, the distribution is not specified.</p></li>
+</ul>
+<p>The distribution of the finite population represented by the sample can be regarded as a pseudo-population with similar characteristics as the true popu- lation. By repeatedly generating random samples from this pseudo-population (resampling), the sampling distribution of a statistic can be estimated. Prop- erties of an estimator such as bias or standard error can be estimated by resampling.</p>
+<p>Bootstrap estimates of a sampling distribution are analogous to the idea of density estimation. We construct a histogram of a sample to obtain an estimate of the shape of the density function. The histogram is not the density, but in a nonparametric problem, can be viewed as a reasonable estimate of the density. We have methods to generate random samples from completely specified densities; bootstrap generates random samples from the empirical distribution of the sample.</p>
 <p>The term <em>bootstrap</em> can refer to nonparametric bootstrap or parametric bootstrap. Monte Carlo methods that involve sampling from a fully specified probability distribution, such as methods of Chapter 7 are sometimes called parametric bootstrap. Nonparametric bootstrap is the subject of this chapter. In nonparametric bootstrap, the distribution is not specified.</p>
 <p>To generate a bootstrap random sample by resampling x, generate n random integers <span class="math inline">\(\{i_1,\dots, i_n\}\)</span> uniformly distributed on <span class="math inline">\(\{1,\dots , n\}\)</span> and select the bootstrap sample <span class="math inline">\(x^∗ = (x_{i_1} ,\dots, x_{i_n} )\)</span>. Suppose θ is the parameter of interest (θ could be a vector), and ˆθ is an estimator of θ. Then the bootstrap estimate of the distribution of ˆθ is obtained as follows.</p>
 <ol type="1">
@@ -365,6 +376,16 @@ window.Quarto = {
 </ol></li>
 <li>The bootstrap estimate of Fˆθ (·) is the empirical distribution of the repli- cates ˆθ(1), . . . , ˆθ(B).</li>
 </ol>
+</section>
+<section id="jackknife" class="level2" data-number="5.5">
+<h2 data-number="5.5" class="anchored" data-anchor-id="jackknife"><span class="header-section-number">5.5</span> Jackknife</h2>
+<p>The jackknife is a resampling technique used to estimate the bias and variance of a statistic.</p>
+<p>Jackknife is like a <strong>leave-one-out cross-validation</strong>. Let <span class="math inline">\(\mathbf{x}= (x_1,\dots,x_n)\)</span> be an observed random sample, and denote the <span class="math inline">\(i\)</span>th jackknife sample by <span class="math inline">\(\mathbf{x}_{-i} = (x_1,\dots,x_{i-1},x_{i+1},\dots,x_n)\)</span>, that is, a subset of <span class="math inline">\(\mathbf{x}\)</span>.</p>
+<p>For the parameter of interest <span class="math inline">\(\theta\)</span>, if the statistics is <span class="math inline">\(T(\mathbf{x})=:\hat{\theta}\)</span> is computed on the full</p>
+<section id="when-does-jackknife-not-work" class="level3" data-number="5.5.1">
+<h3 data-number="5.5.1" class="anchored" data-anchor-id="when-does-jackknife-not-work"><span class="header-section-number">5.5.1</span> When does jackknife not work?</h3>
+<p>Jackknife does not work when the function <span class="math inline">\(T(\cdot)\)</span> is <strong>not a smooth</strong> functional!</p>
+</section>
 </section>
 <section id="jackknife-1" class="level2" data-number="5.6">
 <h2 data-number="5.6" class="anchored" data-anchor-id="jackknife-1"><span class="header-section-number">5.6</span> Jackknife</h2>
@@ -399,10 +420,20 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<hr>
-
-
 </section>
+</section>
+<section id="applications" class="level2" data-number="5.7">
+<h2 data-number="5.7" class="anchored" data-anchor-id="applications"><span class="header-section-number">5.7</span> Applications</h2>
+<p>These methods are widely used in statistical inference and have applications in various fields.</p>
+<hr>
+<p>Reference:</p>
+<ul>
+<li><p>Chapter 8 of Rizzo, M.L. (2007). <em>Statistical Computing with R</em>. CRC Press, Roca Baton.</p></li>
+<li><p>Wu, C.F.J. (1986).<a href="https://projecteuclid.org/journals/annals-of-statistics/volume-14/issue-4/Jackknife-Bootstrap-and-Other-Resampling-Methods-in-Regression-Analysis/10.1214/aos/1176350142.full">Bootstrap and Other Resampling Methods in Regression Analysis</a>. <em>The Annals of Statistics</em>.</p></li>
+<li><p>Wu, C.F.J. (1986).<a href="https://projecteuclid.org/journals/annals-of-statistics/volume-14/issue-4/Jackknife-Bootstrap-and-Other-Resampling-Methods-in-Regression-Analysis/10.1214/aos/1176350142.full">Bootstrap and Other Resampling Methods in Regression Analysis</a>. <em>The Annals of Statistics</em>.</p></li>
+</ul>
+
+
 </section>
 
 </main> <!-- /main -->
