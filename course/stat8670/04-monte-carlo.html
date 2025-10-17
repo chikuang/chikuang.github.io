@@ -305,7 +305,13 @@ window.Quarto = {
   <li><a href="#hit-or-miss-approach" id="toc-hit-or-miss-approach" class="nav-link" data-scroll-target="#hit-or-miss-approach"><span class="header-section-number">4.3.1</span> Hit-or-Miss Approach</a></li>
   <li><a href="#efficiency" id="toc-efficiency" class="nav-link" data-scroll-target="#efficiency"><span class="header-section-number">4.3.2</span> Efficiency</a></li>
   </ul></li>
-  <li><a href="#variance-reduction" id="toc-variance-reduction" class="nav-link" data-scroll-target="#variance-reduction"><span class="header-section-number">4.4</span> Variance Reduction</a></li>
+  <li><a href="#variance-reduction" id="toc-variance-reduction" class="nav-link" data-scroll-target="#variance-reduction"><span class="header-section-number">4.4</span> Variance Reduction</a>
+  <ul class="collapse">
+  <li><a href="#rule-of-thumb-for-target-standard-error" id="toc-rule-of-thumb-for-target-standard-error" class="nav-link" data-scroll-target="#rule-of-thumb-for-target-standard-error"><span class="header-section-number">4.4.1</span> Rule-of-thumb for target standard error</a></li>
+  </ul></li>
+  <li><a href="#antithetic-variables" id="toc-antithetic-variables" class="nav-link" data-scroll-target="#antithetic-variables"><span class="header-section-number">4.5</span> Antithetic Variables</a></li>
+  <li><a href="#control-variates" id="toc-control-variates" class="nav-link" data-scroll-target="#control-variates"><span class="header-section-number">4.6</span> Control Variates</a></li>
+  <li><a href="#other-methods" id="toc-other-methods" class="nav-link" data-scroll-target="#other-methods"><span class="header-section-number">4.7</span> Other methods</a></li>
   </ul>
 </nav>
     </div>
@@ -649,6 +655,219 @@ p := P(X \leq x) = F(x).
 \operatorname{Eff}(\hat{\theta}_1, \hat{\theta}_2) = \frac{\mathbb{V}ar(\hat{\theta}_1)- \mathbb{V}ar(\hat{\theta}_2)}{\mathbb{V}ar(\hat{\theta}_1)}.
 \]</span></p>
 </div>
+<p>Let <span class="math inline">\(X\)</span> be a random object and let <span class="math inline">\(g(\cdot)\)</span> be a (possibly vector–valued) statistic of a <em>sample</em> from the distribution of <span class="math inline">\(X\)</span>. For <span class="math inline">\(j=1,\ldots,m\)</span>, draw an i.i.d. replicate sample <span class="math inline">\(X^{(j)}=\{X^{(j)}_1,\ldots,X^{(j)}_n\}\)</span> and compute <span class="math display">\[
+Y_j = g\!\big(X^{(j)}\big).
+\tag{6.5}
+\]</span> Then <span class="math inline">\(Y_1,\ldots,Y_m\)</span> are i.i.d. with common mean <span class="math display">\[
+\theta \;=\; \mathbb{E}\big[g(X)\big] \;=\; \mathbb{E}[Y].
+\]</span></p>
+<p>The MC estimator of <span class="math inline">\(\theta\)</span> is the sample mean <span class="math display">\[
+\hat{\theta}\;=\; \bar Y \;=\; \frac{1}{m}\sum_{j=1}^m Y_j.
+\]</span> By linearity of expectation, <span class="math display">\[
+\mathbb{E}[\hat{\theta}] \;=\; \theta,
+\]</span> so <span class="math inline">\(\hat{\theta}\)</span> is unbiased. Its variance is <span class="math display">\[
+\mathbb{V}ar(\hat{\theta})
+  \;=\; \mathbb{V}ar(\bar Y)
+  \;=\; \frac{\mathbb{V}ar\{g(X)\}}{m}.
+\]</span></p>
+<p>Hence the standard error decays as <span class="math inline">\(m^{-1/2}\)</span>. To reduce the standard error from <span class="math inline">\(0.01\)</span> to <span class="math inline">\(0.0001\)</span>, one would need about <span class="math inline">\(10000\)</span> times as many replicates. More generally, if <span class="math inline">\(\mathbb{V}ar\{g(X)\}=\sigma^2\)</span> and we target standard error at most <span class="math inline">\(\varepsilon\)</span>, then <span class="math display">\[
+m \;\ge\; \frac{\sigma^2}{\varepsilon^2}
+\]</span> replicates suffice (ignoring finite–<span class="math inline">\(m\)</span> effects).</p>
+<p>The remainder of this note gives a minimal simulation illustrating the <span class="math inline">\(1/\sqrt{m}\)</span> behavior and provides a template for later variance–reduction sections (e.g., control variates, antithetic sampling, importance sampling).</p>
+<section id="rule-of-thumb-for-target-standard-error" class="level3" data-number="4.4.1">
+<h3 data-number="4.4.1" class="anchored" data-anchor-id="rule-of-thumb-for-target-standard-error"><span class="header-section-number">4.4.1</span> Rule-of-thumb for target standard error</h3>
+<p>Given a target standard error <span class="math inline">\(\varepsilon\)</span>, we can solve <span class="math inline">\(\sqrt{\sigma^2/m} \le \varepsilon\)</span> for <span class="math inline">\(m\)</span>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>sigma2_true <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.05</span>, <span class="fl">0.01</span>, <span class="fl">0.005</span>, <span class="fl">0.001</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>required_m <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(sigma2_true <span class="sc">/</span> (epsilon<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">se_target =</span> epsilon, <span class="at">m_needed =</span> required_m)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  se_target m_needed
+1     0.100    2e+02
+2     0.050    8e+02
+3     0.010    2e+04
+4     0.005    8e+04
+5     0.001    2e+06</code></pre>
+</div>
+</div>
+<blockquote class="blockquote">
+<p><strong>Remark.</strong> Increasing <span class="math inline">\(m\)</span> always reduces variance but can be costly. Variance–reduction techniques seek lower variance at the <em>same</em> <span class="math inline">\(m\)</span> (or similar compute), rather than increasing <span class="math inline">\(m\)</span> alone.</p>
+</blockquote>
+</section>
+</section>
+<section id="antithetic-variables" class="level2" data-number="4.5">
+<h2 data-number="4.5" class="anchored" data-anchor-id="antithetic-variables"><span class="header-section-number">4.5</span> Antithetic Variables</h2>
+<p>Antithetic variables are a variance reduction technique used in MC simulation to improve the efficiency of estimators. The basic idea is to use pairs of negatively correlated random variables to reduce the variance of the estimator. Recall that the variance of two variables are <span class="math display">\[
+\mathbb{V}ar(X+Y) = \mathbb{V}ar(X) + \mathbb{V}ar(Y) + 2\mathbb{C}ov(X,Y),
+\]</span> where <span class="math inline">\(\mathbb{C}ov(X,Y) =\mathbb{E}[XY] - \mathbb{E}[X] \mathbb{E}[Y]\)</span>. The covariance can be written as <span class="math inline">\(\mathbb{C}ov(X,Y) = \rho_{YX} \sigma_X \sigma_Y\)</span>, where <span class="math inline">\(\rho_{YX}\)</span> is the correlation coefficient between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>. If <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> are negatively correlated, i.e., <span class="math inline">\(\rho_{YX} &lt; 0\)</span>, then <span class="math inline">\(\mathbb{C}ov(X,Y) &lt; 0\)</span>, which can lead to a reduction in the variance of the sum <span class="math inline">\(X + Y\)</span>.</p>
+<div class="callout-definition" title="Antithetic Variables">
+<p>Random Variables <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> on the same probability space are said to be <em>antithetic</em> if they are negatively correlated, i.e., <span class="math inline">\(\mathbb{C}ov(X,Y) &lt; 0\)</span>.</p>
+</div>
+<p>Now, consier two random variable <span class="math inline">\(U_1\)</span> and <span class="math inline">\(U_2\)</span> that follows the same distribution. Then, if we take the average of the two random variables, we have <span class="math display">\[
+\mathbb{V}ar\left(\frac{U_1 + U_2}{2}\right) = \frac{1}{4} \left\{\mathbb{V}ar(U_1) + \mathbb{V}ar(U_2) + 2\mathbb{C}ov(U_1,U_2)\right\},
+\]</span> which will be smaller than when the two variables are independent (in that case, the last term is 0). Hence, the idea here it to consider the case where the RVs are <strong>negatively correlated.</strong></p>
+<p>Suppose that <span class="math inline">\(X_1, \dots , X_n\)</span> are simulated via the ITM. For each of the m replicates we have generated <span class="math inline">\(U_j \sim\operatorname{Unif}(0,1)\)</span>, and the corresponding <span class="math inline">\(X^{(j)} = F^{−1}_X(U_j), j = 1, \dots, n\)</span>. From before, we know that if <span class="math inline">\(U\sim\operatorname{Unif}(0,1)\)</span>, then <span class="math inline">\(1 − U\)</span> has the same distribution as <span class="math inline">\(U\)</span>, but <span class="math inline">\(U\)</span> and <span class="math inline">\(1 − U\)</span> are negatively correlated. Then</p>
+<p><span class="math display">\[ Y_j = g(F^{−1}_X(U^{(j)}_1 ), \dots , F^{−1}_X(U_n^{(j)})),\]</span> and</p>
+<p><span class="math display">\[ Y_j^\prime = g(F^{−1}_X(1-U^{(j)}_1 ), . . . , F^{−1}_X(1-U_n^{(j)}))\]</span> have the same distribution. So the question now if, when will <span class="math inline">\(Y_j^{\prime}\)</span> and <span class="math inline">\(Y_j\)</span> be negatively correlated?</p>
+<p>We will see that if <span class="math inline">\(g(\cdot)\)</span> is monotone, then <span class="math inline">\(Y_j\)</span> and <span class="math inline">\(Y_j^{\prime}\)</span> are negatively correlated.</p>
+<div class="callout-definition" title="d-dimensional monotone function">
+<p>Define <span class="math inline">\((x_1, . . . , x_n) \le (y_1, \dots , y_n)\)</span> if <span class="math inline">\(x_j ≤ y_j, j = 1, \dots, n\)</span>. An <span class="math inline">\(n\)</span>-variate function <span class="math inline">\(g := g(X_1, \dots, X_n)\)</span> is increasing if it is increasing in its coordinates. That is, <span class="math inline">\(g\)</span> is increasing if <span class="math inline">\(g(x_1,\dots, x_n) \le g(y_1, \dots, y_n)\)</span> whenever <span class="math inline">\((x_1, \dots , x_n) \le (y_1, . . . , y_n)\)</span>. Similarly <span class="math inline">\(g\)</span> is decreasing if it is decreasing in its coordinates. Then <span class="math inline">\(g\)</span> is monotone if it is increasing or decreasing.</p>
+</div>
+<div class="callout-theorem" title="Expectation with the product of Monotone Functions">
+<p>Let <span class="math inline">\(X\)</span> be a random varaible, and <span class="math inline">\(f\)</span> and <span class="math inline">\(g\)</span> are monotonic increasing functions. Then <span class="math display">\[
+\mathbb{E}[f(X)g(X)] \ge \mathbb{E}[f(X)]\mathbb{E}[g(X)].
+\]</span></p>
+</div>
+<div class="callout-theorem" title="Negative correaltion for Monotone function">
+<p>It is actually a corollary of the above theorem.</p>
+<p>Let <span class="math inline">\(g := g(X_1, \dots, X_n)\)</span> be monotonic, and <span class="math inline">\(U_1, \dots, U_n \sim \operatorname{Unif}(0,1)\)</span> be independent. Then</p>
+<p><span class="math display">\[ Y_j^\prime = g(F^{−1}_X(1-U_1 ), . . . , F^{−1}_X(1-U_n))\]</span> and <span class="math display">\[ Y_j = g(F^{−1}_X(U_1 ), . . . , F^{−1}_X(U_n))\]</span> are <strong>negatively correlated</strong>.</p>
+</div>
+<div class="callout-example" title="Antithetic Variables Example">
+<p>Refer to the example 4, illustrating MC integration applied to estimate the standard normal cdf</p>
+<p><span class="math display">\[
+\Phi(x)=\int_{-\infty}^x \frac{1}{\sqrt{2 \pi}} e^{-t^2 / 2} d t
+\]</span></p>
+<p>Repeat the estimation using antithetic variables, and find the approximate reduction in standard error. In this example, after change of variable, the target parameter is <span class="math inline">\(\theta = \mathbb{E}_U[x\exp\{-(xU)^2/2\}]\)</span> where <span class="math inline">\(U\sim\operatorname{Unif}(0,1)\)</span>.</p>
+<p>By restricting the simualtion to the upper tail, the function <span class="math inline">\(g\)</span> is monotone, so the hypothesis of Theorem 2 is satisfied. Now, we generate <span class="math inline">\(u_1,\dots,u_{m/2}\overset{iid}{\sim}\operatorname{Unif}(0,1)\)</span>, and compute the half of the replicates using <span class="math display">\[
+Y_j=g^{(j)}(u)=x e^{-\left(u_j x\right)^2 / 2}, \quad j=1, \ldots, m / 2,
+\]</span> as before, but also compute <span class="math display">\[
+Y_j^{\prime}=x e^{-\left(\left(1-u_j\right) x\right)^2 / 2}, \quad j=1, \ldots, m / 2 .
+\]</span></p>
+<p>Thus, the sample mean is <span class="math display">\[
+\begin{aligned}
+\hat{\theta}=\overline{g_m(u)} &amp; =\frac{1}{m} \sum_{j=1}^{m / 2}\left(x e^{-\left(u_j x\right)^2 / 2}+x e^{-\left(\left(1-u_j\right) x\right)^2 / 2}\right) \\
+&amp; =\frac{1}{m / 2} \sum_{j=1}^{m / 2}\left(\frac{x e^{-\left(u_j x\right)^2 / 2}+x e^{-\left(\left(1-u_j\right) x\right)^2 / 2}}{2}\right)\\
+&amp; \to \mathbb{E}[\hat{\theta}] = \theta, \quad \text{as } m\to\infty.
+\end{aligned}
+\]</span> If <span class="math inline">\(x\ge 0\)</span>, the estimate is <span class="math inline">\(\Phi(x) = 0.5 + \hat{\theta}/ \sqrt{2\pi}\)</span>, where as if <span class="math inline">\(x&lt; 0\)</span>, the estimate is <span class="math inline">\(\Phi(x) = 1-\Phi(-x)\)</span>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>MC.Phi <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">R =</span> <span class="dv">10000</span>, <span class="at">antithetic =</span> <span class="cn">TRUE</span>) {</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  u <span class="ot">&lt;-</span> <span class="fu">runif</span>(R <span class="sc">/</span> <span class="dv">2</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span>antithetic) {</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    v <span class="ot">&lt;-</span> <span class="fu">runif</span>(R <span class="sc">/</span> <span class="dv">2</span>)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    v <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> u</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  u <span class="ot">&lt;-</span> <span class="fu">c</span>(u, v)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  cdf <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(x))</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(x)) {</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    g <span class="ot">&lt;-</span> x[i] <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>(u <span class="sc">*</span> x[i])<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> <span class="dv">2</span>)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    cdf[i] <span class="ot">&lt;-</span> <span class="fu">mean</span>(g) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="dv">2</span> <span class="sc">*</span> pi) <span class="sc">+</span> <span class="fl">0.5</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  cdf</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(.<span class="dv">1</span>, <span class="fl">2.5</span>, <span class="at">length=</span><span class="dv">5</span>)</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>Phi <span class="ot">&lt;-</span> <span class="fu">pnorm</span>(x)</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>MC_raw <span class="ot">&lt;-</span> <span class="fu">MC.Phi</span>(x, <span class="at">anti =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>MC_anti <span class="ot">&lt;-</span> <span class="fu">MC.Phi</span>(x)</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">round</span>(<span class="fu">rbind</span>(x, MC_raw, MC_anti, Phi), <span class="dv">5</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           [,1]    [,2]    [,3]    [,4]    [,5]
+x       0.10000 0.70000 1.30000 1.90000 2.50000
+MC_raw  0.53983 0.75825 0.90418 0.97311 0.99594
+MC_anti 0.53983 0.75805 0.90325 0.97132 0.99370
+Phi     0.53983 0.75804 0.90320 0.97128 0.99379</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="do">## For variance</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>MC_raw <span class="ot">&lt;-</span> MC_anti <span class="ot">&lt;-</span> <span class="fu">numeric</span>(m)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fl">1.95</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>m) {</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  MC_raw[i] <span class="ot">&lt;-</span> <span class="fu">MC.Phi</span>(x, <span class="at">R =</span> <span class="dv">1000</span>, <span class="at">anti =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  MC_anti[i] <span class="ot">&lt;-</span> <span class="fu">MC.Phi</span>(x, <span class="at">R =</span> <span class="dv">1000</span>)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(MC_raw) <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.006875</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(MC_anti) <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.000439</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>eff <span class="ot">&lt;-</span> (<span class="fu">var</span>(MC_raw) <span class="sc">-</span> <span class="fu">var</span>(MC_anti))<span class="sc">/</span><span class="fu">var</span>(MC_raw) </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>eff <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.995917</code></pre>
+</div>
+</div>
+<p>Conclusion: The antithetic variable approach achieved approximately 0.9959 reduction in variance at x = 1.95.</p>
+</div>
+</section>
+<section id="control-variates" class="level2" data-number="4.6">
+<h2 data-number="4.6" class="anchored" data-anchor-id="control-variates"><span class="header-section-number">4.6</span> Control Variates</h2>
+<p>Control variates is another variance reduction technique used in MC simulation to improve the efficiency of estimators. The basic idea is to use a known variable that is correlated with the variable of interest to reduce the variance of the estimator.</p>
+<p>Suppose there exists a function <span class="math inline">\(f(\cdot)\)</span> such that <span class="math inline">\(\mu=\mathbb{E}[f(X)]\)</span> is known, and <span class="math inline">\(f(X)\)</span> is correlated with <span class="math inline">\(g(X)\)</span>. Then, we have, for a constant <span class="math inline">\(c\in\mathbb{R}\)</span>, <span class="math inline">\(\hat{\theta}_c = g(X) + c\{f(X) - \mu\}\)</span> is also an unbiased estimator of <span class="math inline">\(\theta\)</span>. The variance of <span class="math inline">\(\hat{\theta}_c\)</span> is <span class="math display">\[
+\mathbb{V}ar(\hat{\theta}_c) = \mathbb{V}ar\{g(X)\} + c^2\mathbb{V}ar\{f(X)\} + 2c\mathbb{C}ov\{g(X), f(X)\}.
+\]</span> This is a quadratic function in <span class="math inline">\(c\)</span>, and it is minimized at <span class="math display">\[
+c^*=-\frac{\mathbb{C}ov\{g(X), f(X))\}}{\mathbb{V}ar\{f(X)\}}.
+\]</span> By plugging in this optimizer <span class="math inline">\(c=c^\ast\)</span>, the resulting variance is <span class="math display">\[
+\mathbb{V}ar(\hat{\theta}_{c^\ast}) = \mathbb{V}ar\{g(X)\} - \frac{[\mathbb{C}ov\{g(X), f(X)\}]^2}{\mathbb{V}ar\{f(X)\}}.
+\]</span> This RV <span class="math inline">\(f(X)\)</span> is called a <em>control variate</em> for the estimator of <span class="math inline">\(g(X)\)</span>. We can see that the <span class="math inline">\(\mathbb{V}ar\{g(X)\}\)</span> is reduced by the second term <span class="math inline">\([\mathbb{C}ov\{g(X), f(X)\}]^2/\mathbb{V}ar\{f(X)\}\)</span>, and the percentage of variance reduction is <span class="math display">\[
+100 \frac{[\mathbb{C}ov(g(X), f(X))]^2}{\mathbb{V}ar(g(X)) \mathbb{V}ar(f(X))}=100[\mathbb{C}orr(g(X), f(X))]^2 .
+\]</span> Thus, if <span class="math inline">\(g(X)\)</span> and <span class="math inline">\(f(X)\)</span> is strongly correlated, the variance will be reduced, and if they are uncorrelated, there is no reduction in variance.</p>
+<p>TO estimate <span class="math inline">\(c^*\)</span>, we need to estimate <span class="math inline">\(\mathbb{C}ov\{g(X),f(X)\}\)</span> and <span class="math inline">\(\mathbb{V}ar\{f(X)\}\)</span>, which may be estimated using MC too, in the preliminary steps.</p>
+<div class="callout-example" title="Control Variates Example">
+<p>Use control variate approach to compute <span class="math display">\[
+\theta = \mathbb{E}[\exp(U)] =\int_0^1\exp(u)du,\quad \text{where } U\sim\operatorname{Unif}(0,1).
+\]</span> We can easily find the analytical solution <span class="math inline">\(\theta=\exp(1) - \exp(0) = e - 1 = 1.718282\)</span>, but how to use the control variate approach to estimate <span class="math inline">\(\theta\)</span>?</p>
+<p>We can apply the simple MC approach where the variance is <span class="math inline">\(\mathbb{V}ar\{g(U)\}/m\)</span>, where <span class="math display">\[
+\mathbb{V}ar(g(U))=\mathbb{V}ar\left(e^U\right)=\mathbb{E}\left[e^{2 U}\right]-\theta^2=\frac{e^2-1}{2}-(e-1)^2 \approx 0.2420
+\]</span></p>
+<p>As for control variate, a natural choice is <span class="math inline">\(U\sim\operatorname{Unif}(0,1)\)</span>. Then the mean is <span class="math inline">\(\mu=\mathbb{E}[U]=1/2\)</span>, variance is <span class="math inline">\(\mathbb{V}ar(U) = 1/12\)</span> and the covariance is <span class="math inline">\(\mathbb{C}ov(e^U, U)= \mathbb{E}[Ue^U]-\mathbb{E}[U]\mathbb{E}[\exp(U)]= 1-(e-1)/2 \approx 0.1409\)</span>. Thus, the optimal <span class="math inline">\(c^* = -\mathbb{C}ov(e^U,U)/\mathbb{V}ar(U) =-12+6(e-1)^2 \approx -1.6903\)</span>.</p>
+<p>Then, the controlled estimator is <span class="math inline">\(\hat{\theta}_{c^\ast}=\exp(U)-1.6903(U-0.5)\)</span>. With <span class="math inline">\(m\)</span> replications, we have <span class="math display">\[
+\begin{aligned}
+m\mathbb{V}ar(\hat{\theta}_{c^\ast})
+&amp;=\operatorname{Var}\left(e^U\right)-\frac{\left[\operatorname{Cov}\left(e^U, U\right)\right]^2}{\operatorname{Var}(U)} \\ &amp;=\frac{e^2-1}{2}-(e-1)^2-12\left(1-\frac{e-1}{2}\right) \\
+&amp; \doteq 0.2420356-12(0.1408591)^2 \\
+&amp; =0.003940175 .
+\end{aligned}
+\]</span></p>
+<p>Thus, the reduction in variance using the control variate compared with the simple Monte Carlo estimate is <span class="math display">\[100 \frac{1-0.003940175}{0.2429355} = 98.3781 \%\]</span>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">777</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="sc">-</span> <span class="dv">12</span> <span class="sc">+</span> <span class="dv">6</span> <span class="sc">*</span> (<span class="fu">exp</span>(<span class="dv">1</span>) <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>U <span class="ot">&lt;-</span> <span class="fu">runif</span>(m)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>T1_MC <span class="ot">&lt;-</span> <span class="fu">exp</span>(U) <span class="co">#simple MC</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>T2_cv <span class="ot">&lt;-</span> <span class="fu">exp</span>(U) <span class="sc">+</span> a <span class="sc">*</span> (U <span class="sc">-</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>) <span class="co">#controlled</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(T1_MC) <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.715071</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(T2_cv) <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.717789</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>eff <span class="ot">&lt;-</span> (<span class="fu">var</span>(T1_MC) <span class="sc">-</span> <span class="fu">var</span>(T2_cv)) <span class="sc">/</span> <span class="fu">var</span>(T1_MC)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>eff <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.9835</code></pre>
+</div>
+</div>
+<p>This show that the reduction is 0.9835% in variance using the control variate approach, which is the same as our analysis above</p>
+</div>
+</section>
+<section id="other-methods" class="level2" data-number="4.7">
+<h2 data-number="4.7" class="anchored" data-anchor-id="other-methods"><span class="header-section-number">4.7</span> Other methods</h2>
+<p>There are other variance reduction techniques, including</p>
+<ul>
+<li><p>Importance Sampling</p></li>
+<li><p>Stratified Sampling</p></li>
+<li><p>Stratified Importance Sampling</p></li>
+</ul>
+<p>Due to the limited amount of time we have, we will not go over those methods here. Interested readers may refer to the references below.</p>
+<hr>
+<p>Reference used:</p>
+<ul>
+<li><p>Chapter 6 of Rizzo, M.L. (2007). <em>Statistical Computing with R</em>. CRC Press, Roca Baton.</p></li>
+<li><p>Monte Carlo Method page on Wikiepdia, <a href="https://en.wikipedia.org/wiki/Monte_Carlo_method">Link</a>.</p></li>
+<li><p>Wasserman, L. (2003). <a href="https://egrcc.github.io/docs/math/all-of-statistics.pdf"><em>All of Statistics: A Concise Course in Statistical Inference</em></a>.</p></li>
+</ul>
 
 
 </section>
