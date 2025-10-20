@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>5&nbsp; Cross Validation – STAT 8670 - Computational Methods in Statistics</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./06-resample.html" rel="next">
+<link href="./04-monte-carlo.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-c331ea236564e4415b565911d3f29016.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="./index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT 8670 - Computational Methods in Statistics</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8670"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="././STAT-8670---Computational-Methods-in-Statistics.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./05-cv.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Cross Validation</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="./index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01-intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Data Structure and R Programming</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02-optimization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Numerical Approaches and Optimization in 1-D</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03-generating-rv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Generating Random Variables</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04-monte-carlo.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Monte Carlo Simulation and Variance Reduction</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05-cv.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Cross Validation</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06-resample.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Resampling, Jackknife and Bootstrap</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./other-topics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Additional Topics</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./99-references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendix</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./App_A-intro-R.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Appendix: Introduction to R?</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./App_B-distribution.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Appendix: Distributions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./App_C_Rpackage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Appendix: Project &amp; R Package</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./APP_D_integration.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Appendix: Numerical integration</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">5.1</span> Introduction</a></li>
+  <li><a href="#resampling-methods" id="toc-resampling-methods" class="nav-link" data-scroll-target="#resampling-methods"><span class="header-section-number">5.2</span> Resampling methods</a></li>
+  <li><a href="#machine-learning-models" id="toc-machine-learning-models" class="nav-link" data-scroll-target="#machine-learning-models"><span class="header-section-number">5.3</span> Machine Learning Models</a></li>
+  <li><a href="#training-and-testingvalidating-sets" id="toc-training-and-testingvalidating-sets" class="nav-link" data-scroll-target="#training-and-testingvalidating-sets"><span class="header-section-number">5.4</span> Training and testing/validating sets</a></li>
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup"><span class="header-section-number">5.5</span> Setup</a></li>
+  <li><a href="#what-is-cross-validation" id="toc-what-is-cross-validation" class="nav-link" data-scroll-target="#what-is-cross-validation"><span class="header-section-number">5.6</span> What is Cross-Validation?</a></li>
+  <li><a href="#k-fold-cross-validation" id="toc-k-fold-cross-validation" class="nav-link" data-scroll-target="#k-fold-cross-validation"><span class="header-section-number">5.7</span> K-Fold Cross-Validation</a></li>
+  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion"><span class="header-section-number">5.8</span> Discussion</a></li>
+  <li><a href="#choice-of-fold-k" id="toc-choice-of-fold-k" class="nav-link" data-scroll-target="#choice-of-fold-k"><span class="header-section-number">5.9</span> Choice of Fold K</a></li>
+  <li><a href="#example-stock-market" id="toc-example-stock-market" class="nav-link" data-scroll-target="#example-stock-market"><span class="header-section-number">5.10</span> Example: Stock market</a></li>
+  <li><a href="#leave-one-out-cross-validation-loocv" id="toc-leave-one-out-cross-validation-loocv" class="nav-link" data-scroll-target="#leave-one-out-cross-validation-loocv"><span class="header-section-number">5.11</span> Leave-One-Out Cross-Validation (LOOCV)</a></li>
+  <li><a href="#take-home-messages" id="toc-take-home-messages" class="nav-link" data-scroll-target="#take-home-messages"><span class="header-section-number">5.12</span> Take Home Messages</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Cross Validation</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">5.1</span> Introduction</h2>
+<p>This chapter covers resampling technique called <em>cross-validation</em>.</p>
+<p>Cross-validation (CV) is a statistical method used to estimate the <em>skill</em> of machine learning (ML) models. It is commonly used in applied ML to compare and select a model for a given predictive modeling problem because it is easy to understand, easy to implement, and results in skill estimates that generally have a lower <em>bias</em> than other methods.</p>
+</section>
+<section id="resampling-methods" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="resampling-methods"><span class="header-section-number">5.2</span> Resampling methods</h2>
+<p><em>Resampling methods</em> is a way to use the observed data to generate hypothetical samples. It treats an observed sample as a <em>finite population</em>, and random samples are generated/resampled from it to estimate population characteristics and make inferences about the sampled population. It is useful when:</p>
+<ul>
+<li><p>Do not know the underlying distribution of a population</p></li>
+<li><p>The formula may be difficult to be calculated.</p></li>
+</ul>
+<p>Some commonly used resampling methods include:</p>
+<ul>
+<li><p><strong>Bootstrap</strong>: Bootstrap methods are often used when the distribution of the target population is not specified; the sample is the only information available.</p></li>
+<li><p><strong>Jackknife</strong>: The jackknife is a resampling technique used to estimate the bias and variance of a statistic. It is like a leave-one-out (LOO) cross-validation.</p></li>
+<li><p><strong>Cross-validation</strong>: Cross-validation is a model validation technique for assessing how the results of a statistical analysis will generalize to an independent data set. It is mainly used in settings where the goal is prediction, and one wants to estimate how accurately a predictive model will perform in practice.</p></li>
+<li><p><strong>Permutation tests</strong>: Permutation tests are a type of non-parametric statistical test that involves rearranging the data points to test a hypothesis. They are used to determine whether the observed effect is statistically significant by comparing it to the distribution of effects obtained through random permutations of the data.</p></li>
+</ul>
+</section>
+<section id="machine-learning-models" class="level2" data-number="5.3">
+<h2 data-number="5.3" class="anchored" data-anchor-id="machine-learning-models"><span class="header-section-number">5.3</span> Machine Learning Models</h2>
+<ul>
+<li><p><strong>Left</strong>: What machine learning can do</p></li>
+<li><p><strong>Right</strong>: Model/Methods</p></li>
+</ul>
+<div class="columns">
+<div class="column">
+<p><img src="fig/ML_gpt.png" class="img-fluid" style="width:100.0%"></p>
+</div><div class="column">
+<p><img src="fig/ML_models.png" class="img-fluid" style="width:100.0%"></p>
+</div>
+</div>
+</section>
+<section id="training-and-testingvalidating-sets" class="level2" data-number="5.4">
+<h2 data-number="5.4" class="anchored" data-anchor-id="training-and-testingvalidating-sets"><span class="header-section-number">5.4</span> Training and testing/validating sets</h2>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="fig/train_test.jpeg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Questions</strong><br>
+How do we choose between different models <span class="math inline">\(f_1,\dots,f_m\)</span>?</p>
+<!-- ## Data split -->
+<!-- * Train a model $\hat{f}$ on the \blue{training set}.  -->
+<!-- * Use the $\hat{f}$ with the \orange{features} to predict the \red{outcomes}, $\hat{y}$ -->
+<!-- * Difference between $\red{y}$ and $\hat{y}$. -->
+<!-- ![Data split.](fig/data-split.png){width=55%} -->
+<!-- ## Evaluation -->
+<!-- There are different metrics to evaluation the prediction. For instance -->
+<!-- If $y$ is continuous variable, we can use Mean-Square error. -->
+<!-- If $y$ is categorical, we can use the error rate.  -->
+<!-- ## Bias-Variance Tradeoff -->
+<!-- If we have a complex model, we may have many different tuning parameters.  -->
+<!-- \begin{beamercolorbox}[rounded=true,shadow=true,sep=10pt]{customblock_blue} -->
+<!--     \textbf{\large Bias-Variance Tradeoff}\\ -->
+<!-- $$ -->
+<!-- \mse[y,\hat{y}] \propto \var(\hat{y}) + \bias^2(\hat{y}) -->
+<!-- $$ -->
+<!-- \end{beamercolorbox} -->
+</section>
+<section id="setup" class="level2" data-number="5.5">
+<h2 data-number="5.5" class="anchored" data-anchor-id="setup"><span class="header-section-number">5.5</span> Setup</h2>
+<p>Suppose we have a <strong>supervised learning</strong> model <span class="math inline">\(f(X)\to Y\)</span>.</p>
+<p>Denote the training set by <span class="math inline">\(\mathcal{T}=\{(X_i,Y_i)\}_{i=1}^{N_{train}}\)</span>.</p>
+<p>How to choose between the models <span class="math inline">\(f_1,\dots,f_m\)</span>?</p>
+<p>Ideal: <span class="math inline">\((X,Y)\sim F_{X,Y}\)</span>.</p>
+<p>Define the generalization error (Population error) as <span class="math display">\[
+  \mathrm{Err}(f) = \mathbb{E}_{X,Y}[\{Y-f(X)\}^2]
+\]</span></p>
+<p>Choose <span class="math inline">\(f\)</span> by <span class="math display">\[
+  \arg\min_{f\in\{f_1,\dots,f_m\}} \mathrm{Err}(f)
+\]</span></p>
+<p>Suppose we have a <strong>supervised learning</strong> model <span class="math inline">\(f(X)\to Y\)</span>.</p>
+<p>Denote the training set by <span class="math inline">\(\mathcal{T}=\{(X_i,Y_i)\}_{i=1}^{N_{train}}\)</span>.</p>
+<p>How to choose between the models <span class="math inline">\(f_1,\dots,f_m\)</span>?</p>
+<p>Ideal: <span class="math inline">\((X,Y)\sim F_{X,Y}\)</span> ().</p>
+<p>Define the generalization error (Population error) as <span class="math display">\[
+  \mathrm{Err}(f) = E_{X,Y}[(Y-f(X))^2]
+\]</span></p>
+<p>Choose <span class="math inline">\(f\)</span> by <span class="math display">\[
+  \arg\min_{f\in\{f_1,\dots,f_m\}} \mathrm{Err}(f)
+\]</span></p>
+<p><strong>Question</strong>:</p>
+<p>What to do if we do not know about <span class="math inline">\(F_{X_Y}\)</span>?</p>
+<p>Let <span class="math inline">\(V:=\{(X_i,Y_i)\}_{i=1}^{N_{Val}}\)</span> be the validating/testing set.</p>
+<p><span class="math display">\[
+  \mathrm{Err}(f) = E[(Y-f(X))^2] \approx \frac{1}{N_{Val}}\sum_{i=1}^{N_{Val}}(Y_i-f(X_i))^2 =: \mathrm{err}_{Val}(f).
+\]</span></p>
+<p>When <span class="math inline">\(N_{Val}\to\infty\)</span>, <span class="math inline">\(\mathrm{err}_{Val}(f)\to \mathrm{Err}(f)\)</span>.</p>
+<p>We can then do <span class="math display">\[
+  \arg\min_{f\in\{f_1,\dots,f_m\}} \mathrm{err}_{Val}(f)
+\]</span> If <span class="math inline">\(N_{val}\)</span> is large, we can have good estimate of <span class="math inline">\(\mathrm{Err}(f)\)</span>.</p>
+<p>But actually, we may only have <em>small</em> validating set.</p>
+<p>Problems with simple Train-Test Split:</p>
+<ul>
+<li><p>Splitting 50-50 wastes data that could improve the model.</p></li>
+<li><p>Splitting 80-20 may leave too little test data for reliable evaluation.</p></li>
+</ul>
+<p>What we can do? !</p>
+<p>Cross-validation uses <strong>all</strong> data efficiently for training and testing.</p>
+</section>
+<section id="what-is-cross-validation" class="level2" data-number="5.6">
+<h2 data-number="5.6" class="anchored" data-anchor-id="what-is-cross-validation"><span class="header-section-number">5.6</span> What is Cross-Validation?</h2>
+<p>Suppose there are 5 folds (<span class="math inline">\(K=5\)</span>).</p>
+<p><img src="fig/yy/Training_ipad2.jpeg" class="img-fluid"></p>
+<p>Put together, we have</p>
+<p><span class="math display">\[
+  \mathrm{err}_{cv}(f) = \frac{1}{N}\sum_{k=1}^5 \sum_{i\in S_k}(y_i-\hat{f}^{[s_k^C]}(x_i))^2.
+\]</span></p>
+<p>Then cross-validation is to find <span class="math display">\[
+  f^* = \arg\min_{f\in\{f_1,\dots,f_m\}} \mathrm{err}_{cv}(f).
+\]</span></p>
+</section>
+<section id="k-fold-cross-validation" class="level2" data-number="5.7">
+<h2 data-number="5.7" class="anchored" data-anchor-id="k-fold-cross-validation"><span class="header-section-number">5.7</span> K-Fold Cross-Validation</h2>
+<p>Let <span class="math inline">\(\mathcal{D}=\{X_i,Y_i\}_{i=1}^N\)</span> be our data.</p>
+<ol type="1">
+<li><p>Split the data into K approximately equal sizes parts/fold <span class="math inline">\(K\)</span></p></li>
+<li><p>For each <span class="math inline">\(k=1,2,\dots,K\)</span>, repeat the following steps:</p>
+<ol type="i">
+<li>Leave the <span class="math inline">\(k\)</span>th fold <span class="math inline">\(S_k\)</span> from the data <span class="math inline">\(\mathcal{D}\)</span>, and denote the remaining data as <span class="math inline">\(S_k^C\)</span>. We fit the model to <span class="math inline">\(S_k^C\)</span> and denote the corresponding model we obtained by <span class="math inline">\(\hat{f}^{[S_k^C]}\)</span></li>
+<li>Calculate the total prediction error on the fitted model <span class="math inline">\(\hat{f}^{[S_k^C]}\)</span> on the left-out fold <span class="math inline">\(S_k\)</span> <span class="math display">\[
+  \mathrm{err}_{cv,k}(f) = \sum_{i\in S_k} L(Y_i, \hat{f}^{[S_k^C]}(X_i)).
+\]</span></li>
+</ol></li>
+<li><p>The <strong>CV estimate</strong> of prediction error is <span class="math display">\[
+  \mathrm{err}_{cv}(f) = \frac{1}{N}\sum_{k=1}^K \mathrm{err}_{cv,k}(f).
+\]</span></p></li>
+</ol>
+<hr>
+<p>So if we have <span class="math inline">\(M\)</span> models, <span class="math inline">\(f_1,f_2,\dots,f_M\)</span>, we can use cross-validation to select the best model by computing the cross-validation error for each model <span class="math inline">\(\mathrm{err}_{cv}(f_1), \mathrm{err}_{cv}(f_2),\dots \mathrm{err}_{cv}(f_M)\)</span></p>
+<p>Then the best model is <span class="math display">\[
+  f^*=\arg\min_{f\in\{f_1,\dots,f_M\}} \mathrm{err}_{cv}(f).
+\]</span></p>
+<p>There are two many use of the K-fold CV</p>
+<ol type="1">
+<li><p>Tune hyperparameters</p>
+<p>e.g., In linear regression: <span class="math inline">\(y=\beta_0+\sum_{j=1}^L\beta_kx^k+\varepsilon\)</span>, <span class="math inline">\(L\)</span> is the hyperparameter here.</p>
+<p>M1. <span class="math inline">\(y = \beta_0 + \beta_1 x_1 + \varepsilon\)</span></p>
+<p>M2. <span class="math inline">\(y = \beta_0 + \beta_1 x_1 + \beta_2 x^2 + \varepsilon\)</span></p>
+<p>M3. <span class="math inline">\(y = \beta_0 + \beta_1 x_1 + \beta_2 x^2 + \beta_3 x^3+ \varepsilon\)</span></p></li>
+<li><p>To better evaluate the performance of a model</p></li>
+</ol>
+<p>The number of folds depends on the data size.</p>
+</section>
+<section id="discussion" class="level2" data-number="5.8">
+<h2 data-number="5.8" class="anchored" data-anchor-id="discussion"><span class="header-section-number">5.8</span> Discussion</h2>
+<p><strong>Question</strong>:</p>
+<p>What would you consider when choosing <span class="math inline">\(K\)</span>?**</p>
+<p>Answer: The Bias-Variance Decomposition!</p>
+<p><span class="math display">\[\begin{align*}
+\text{Generalization error} &amp;~=~ \text{variance} &amp;~+~&amp; \text{bias} &amp;~+~&amp; \text{irreducible error} \\
+\mathbb{E}_\mathcal{T}[(y-f(x;\mathcal{T}))^2] &amp;~=~ \mathbb{V}ar(x) &amp;~+~&amp; \mathbb{B}\mathrm{ias}^2(x) &amp;~+~&amp; \varepsilon^2.
+\end{align*}\]</span></p>
+<p>See Section 7.3, Equation (7.9) Hastie et al.&nbsp;(2009).</p>
+<hr>
+<p><strong>Pop-up quiz</strong>:</p>
+<p>Q: What are the characteristic a good model <span class="math inline">\(f\)</span> should have?</p>
+<ol type="1">
+<li><p>Low bias, high variance</p></li>
+<li><p>High bias, low variance</p></li>
+<li><p>Low bias, low variance</p></li>
+<li><p>High bias, high variance</p></li>
+<li><p>None of above</p></li>
+</ol>
+<hr>
+<!-- ## Modeling steps (from Dubin) -->
+<!-- E. Steyerberg[^note3], an expert in model prediction and validation, recommends seven modeling steps: -->
+<!-- [^note3]:  Steyerberg, E.W. and Vergouwe, Y. (2014) Towards better clinical prediction models: seven steps for development and an ABCD for validation. European Heart Journal, 35, 1925--1931. -->
+<!-- 1. data inspection -->
+<!-- 2. coding of predictors (based on a priori plans) -->
+<!-- 3. model specification -->
+<!-- 4. model estimation -->
+<!-- 5. model performance -->
+<!-- 6. model validation -->
+<!-- 7. presentation of results -->
+<!-- We will be focusing mainly on (5) and (6). -->
+<!-- ## What is cross validation? -->
+<!-- Cross validation (CV) is a widely used technique to estimate **prediction error**.  -->
+<!-- One would like to think cross-validation estimates the **prediction error** for the model at hand, fit to the training data -->
+<!-- ##  -->
+<!-- \begin{beamercolorbox}[rounded=true,shadow=true,sep=10pt]{customblock_pink} -->
+<!--     \textbf{\large Pop-up quiz}\\ -->
+<!--   Q: If you are given an arbitrary data set? What is the split ratio between training and testing data you would choose? -->
+<!-- \vspace{0.5cm}  -->
+<!-- 1. 50-50 -->
+<!-- 2. 90-10 -->
+<!-- 3. 80-20 -->
+<!-- 4. 70-30 -->
+<!-- 5. Depends -->
+<!-- 6. Unsure -->
+<!-- \end{beamercolorbox} -->
+<!-- ## Key Concepts: Bias and Variance -->
+<!-- Bias -->
+<!-- * Systematic error: The difference between predicted values and the true target. -->
+<!-- * Example: A model missing the target entirely. -->
+<!-- Variance -->
+<!-- * Sensitivity to data changes: How much predictions change with new data. -->
+<!-- * Example: Hitting different spots on the target each time. -->
+<!-- Goal -->
+<!-- * Minimize both bias and variance. -->
+<!-- ![](fig/bias-variance.png). -->
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="fig/b-v-tradeoff.png" class="img-fluid figure-img"></p>
+<figcaption>Picture borrowed from <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>.</figcaption>
+</figure>
+</div>
+<p><img src="fig/fig2_crop.png" class="img-fluid"></p>
+<p>With new data <span class="math inline">\((X,Y)\)</span> from the same distribution:</p>
+<p><img src="fig/fig3_crop.png" class="img-fluid"></p>
+<!-- ## Prediction  -->
+<!-- Suppose we have a training data and testing data -->
+<!-- \[ -->
+<!-- \err = \E[L(Y, \hat{f}(X))], -->
+<!-- \] -->
+<!-- the average generalization error when the method $\hat{f}(X)$ is applied to an independent test sample from the joint distribution of $X$ and $Y$. -->
+<!-- ## Notation -->
+<!-- Let the training set that consist $N$ samples as  -->
+<!-- \[ -->
+<!--   \T = \{(X_i, Y_i)\}_{i=1}^N, -->
+<!-- \] -->
+<!-- where -->
+<!-- * $X_i\in \R^P$ are the features. -->
+<!-- * $Y_i\in \R$ are the responses. -->
+<!-- We train the model, and use some *prediction rule* to determine $\hat{Y}=\hat{f}_\T(X)$. -->
+<!-- ## Understanding K -Fold Cross-Validation {.allowframebreaks} -->
+<!-- There are two many use of the K-fold CV -->
+<!-- 1. Tune hyper parameters  -->
+<!-- 2. To better evaluate the performance of a model -->
+<!-- The number of folds depends on the data size. -->
+<!-- 1. The cross-validation approach involves randomly dividing the set of observations into $K$ groups, or folds, of approximately equal size.  -->
+<!-- 2. The first fold is treated as a validation set and the method is fit on the remaining $K-1$ folds -->
+<!-- 3. Repeat step 2 for $K$ times; each time, a different group of observations is treated as a validation set.  -->
+<!-- \framebreak -->
+<!-- Let $\T=\{X_i,Y_i\}_{i=1}^N$ be the training data. -->
+<!-- 1. Split the data into K roughly equal sizes parts $K$ -->
+<!-- 2. For each $k=1,2,\dots,K$, repeat the following steps: -->
+<!--     (i) Leave the $k$th fold $\T_k$ (i.e., part) from the data $\T$, and denote the remaining data as $\T_{-k}$. We fit the model to $\T_{-k}$ and denote the corresponding model we obtained by $\hat{f}_{\T_{-k}}$ -->
+<!--     (ii) Calculate the total prediction error on the fitted model $\hat{f}_{\T_{-k}}$ on the left-out fold $\T_k$ -->
+<!-- \[ -->
+<!--   cv_k = \sum_{i\in \T_k} L(Y_i, \hat{f}_{\T_{-k}}(X_i)). -->
+<!-- \] -->
+<!-- 3. The **CV estimate** of prediction error is  -->
+<!-- \[ -->
+<!--   \widehat{\err}_{cv} = \frac{1}{K}\sum_{k=1}^K cv_k. -->
+<!-- \] -->
+</section>
+<section id="choice-of-fold-k" class="level2" data-number="5.9">
+<h2 data-number="5.9" class="anchored" data-anchor-id="choice-of-fold-k"><span class="header-section-number">5.9</span> Choice of Fold K</h2>
+<!-- If we have our fitted model $\hat{f}$, we then have -->
+<!-- \begin{align*} -->
+<!-- \mse(x_0)  -->
+<!--   &= \E_\T[f(x_0)-\hat{y}_0]^2 \\ -->
+<!--   &= \E_\T[\hat{y}_0-\E_\T(\hat{y}_0)]^2 + \{\E_\T(\hat{y}_0-f(x_0)\}^2\\ -->
+<!--   &= \var_\T(\hat{y}_0) + \bias^2(\hat{y}_0) -->
+<!-- \end{align*} -->
+<p>Q: What values of <span class="math inline">\(K, 2 \leq K \leq N\)</span> should we use? </p>
+<ul>
+<li><p>Large <span class="math inline">\(K\)</span>: <strong>high variance</strong>, but <strong>small bias</strong>.</p></li>
+<li><p>Small <span class="math inline">\(K\)</span>: <strong>low variance</strong>, but <strong>high bias</strong>.</p></li>
+</ul>
+<!-- training set. CV overestimates the test error for the model fit on -->
+<!--       the entire data set. Thus, the CV-estimate of prediction -->
+<!--       error is always biased high, and  -->
+<p>Bias decreases as <span class="math inline">\(K\)</span> increases.</p>
+<!-- ##  -->
+<!-- An extreme case $K=N$:  -->
+<!-- * the CV estimator is approximately \purple{unbiased} for the true -->
+<!-- (expected) prediction error, but can have \purple{high variance} because the N “training sets” are so similar to one another. But computational burden! -->
+<!-- $K = 5$  -->
+<!-- * Cross-validation has \purple{lower variance}. But \purple{bias} -->
+<!-- could be a problem, depending on how the performance of the learning method varies with the size of the training set. -->
+</section>
+<section id="example-stock-market" class="level2" data-number="5.10">
+<h2 data-number="5.10" class="anchored" data-anchor-id="example-stock-market"><span class="header-section-number">5.10</span> Example: Stock market</h2>
+<p>We look at the dataset in <strong>Smarket</strong> package in R.</p>
+<p>It contains the daily percentage returns for the S&amp;P 500 stock index between 2001 and 2005.</p>
+<p><span class="math inline">\(N = 1250\)</span></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ISLR2)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">attach</span>(Smarket)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the table and scale it to fit the page</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(Smarket) <span class="sc">%&gt;%</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="st">"latex"</span>, <span class="at">caption =</span><span class="st">" First Few Rows of Smarket Dataset"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>, <span class="at">position =</span> <span class="st">"center"</span>, <span class="at">font_size =</span> <span class="dv">8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+
+</div>
+</div>
+</section>
+<section id="leave-one-out-cross-validation-loocv" class="level2" data-number="5.11">
+<h2 data-number="5.11" class="anchored" data-anchor-id="leave-one-out-cross-validation-loocv"><span class="header-section-number">5.11</span> Leave-One-Out Cross-Validation (LOOCV)</h2>
+<ul>
+<li><p>When <span class="math inline">\(K=N\)</span>, the size of the training data, it is leave-one-out cross validation.</p></li>
+<li><p>Instead of creating two subsets of comparable size, a single observation <span class="math inline">\((x_i, y_i)\)</span> is used for the validation set and the remaining observations make up the training set.</p></li>
+<li><p>Repeat this for each observation and get the average.</p></li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="fig/LOOCV.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<figcaption>Illustration for Leave one out CV.</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="fig/yeying/pic5.png" class="img-fluid figure-img"></p>
+<figcaption>5 fold CV.</figcaption>
+</figure>
+</div>
+<!-- ![Result of the 5-fold CV with 10 runs.](fig/yeying/pic10.pdf) -->
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><embed src="fig/yeying/pic10.pdf" class="img-fluid" style="width:50.0%"></p>
+<figcaption>Result of the 5-fold CV with 10 runs.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<!-- ## Cross validation may be used to choose the hyper parameter  -->
+<!-- * Linear Regression (\purple{No hyper parameter}) -->
+<!-- * LASSO Regression -->
+<!-- * Ridge Regression -->
+<!-- * Random Forest -->
+<!-- * Gradient Boosting -->
+<!-- * Neural Networks -->
+<!-- Many of the models have something called **Hyperparameter**.  -->
+<!-- ##  -->
+<!-- Some models have hyperparameters that need to be tuned, some have only a few, some have more. -->
+<!-- For example, in LASSO regression, there is only 1 hyperparameter -->
+<!-- whereas in Random Forest, the hyperparameters are -->
+<!--   1. max depth  -->
+<!--   2. min sample split -->
+<!--   3. max terminal node -->
+<!--   4. min sample leaf -->
+<!--   5. ...  -->
+<!-- \begin{beamercolorbox}[rounded=true,shadow=true,sep=10pt]{customblock} -->
+<!--     \textbf{\large }\\ -->
+<!--     CV can help in choosing the hyperparameter(s). -->
+<!-- \end{beamercolorbox} -->
+</section>
+<section id="take-home-messages" class="level2" data-number="5.12">
+<h2 data-number="5.12" class="anchored" data-anchor-id="take-home-messages"><span class="header-section-number">5.12</span> Take Home Messages</h2>
+<p>What is CV?</p>
+<ul>
+<li>A method to estimate prediction error using all data efficiently.</li>
+</ul>
+<p>Why K-fold?:</p>
+<ul>
+<li>Balances bias and variance effectively.</li>
+</ul>
+<p>LOOCV:</p>
+<ul>
+<li>Special case with K = N, unbiased but expensive.</li>
+</ul>
+<p>Practical Tips:</p>
+<ul>
+<li><p>K = 5 or K = 10 is common and (usually) works well.</p></li>
+<li><p>Use CV to tune hyperparameters and compare models.</p></li>
+</ul>
+<p>Note:</p>
+<ul>
+<li>Cross-validation can be applied in various contexts!</li>
+</ul>
+<hr>
+<ul>
+<li><p>Note: This lecture is based on the book by Hastie et al.&nbsp;(2009), and James et al.&nbsp;(2013).</p></li>
+<li><p>Section 7.11 in Hastie, T., Tibshirani R. and Friedman, J. (2008). <a href="https://www.sas.upenn.edu/~fdiebold/NoHesitations/BookAdvanced.pdf">The Elements of Statistical Learning</a>. Springer, 2nd edition.</p></li>
+</ul>
+
+
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1"><p>https://djsaunde.wordpress.com/2017/07/17/the-bias-variance-tradeoff/<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./04-monte-carlo.html" class="pagination-link" aria-label="Monte Carlo Simulation and Variance Reduction">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Monte Carlo Simulation and Variance Reduction</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./06-resample.html" class="pagination-link" aria-label="Resampling, Jackknife and Bootstrap">
+        <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Resampling, Jackknife and Bootstrap</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
