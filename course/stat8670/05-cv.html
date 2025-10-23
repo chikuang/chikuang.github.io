@@ -408,18 +408,9 @@ How do we choose between different models <span class="math inline">\(f_1,\dots,
 <p>Choose <span class="math inline">\(f\)</span> by <span class="math display">\[
   \arg\min_{f\in\{f_1,\dots,f_m\}} \mathrm{Err}(f)
 \]</span></p>
-<p>Suppose we have a <strong>supervised learning</strong> model <span class="math inline">\(f(X)\to Y\)</span>.</p>
-<p>Denote the training set by <span class="math inline">\(\mathcal{T}=\{(X_i,Y_i)\}_{i=1}^{N_{train}}\)</span>.</p>
-<p>How to choose between the models <span class="math inline">\(f_1,\dots,f_m\)</span>?</p>
-<p>Ideal: <span class="math inline">\((X,Y)\sim F_{X,Y}\)</span> ().</p>
-<p>Define the generalization error (Population error) as <span class="math display">\[
-  \mathrm{Err}(f) = E_{X,Y}[(Y-f(X))^2]
-\]</span></p>
-<p>Choose <span class="math inline">\(f\)</span> by <span class="math display">\[
-  \arg\min_{f\in\{f_1,\dots,f_m\}} \mathrm{Err}(f)
-\]</span></p>
+<p>But, <span class="math inline">\((X,Y)\sim F_{X,Y}\)</span> is usally <strong>unknown</strong>!</p>
 <p><strong>Question</strong>:</p>
-<p>What to do if we do not know about <span class="math inline">\(F_{X_Y}\)</span>?</p>
+<p>What to do if we do not know about <span class="math inline">\(F_{X,Y}\)</span>?</p>
 <p>Let <span class="math inline">\(V:=\{(X_i,Y_i)\}_{i=1}^{N_{Val}}\)</span> be the validating/testing set.</p>
 <p><span class="math display">\[
   \mathrm{Err}(f) = E[(Y-f(X))^2] \approx \frac{1}{N_{Val}}\sum_{i=1}^{N_{Val}}(Y_i-f(X_i))^2 =: \mathrm{err}_{Val}(f).
@@ -452,6 +443,7 @@ How do we choose between different models <span class="math inline">\(f_1,\dots,
 <section id="k-fold-cross-validation" class="level2" data-number="5.7">
 <h2 data-number="5.7" class="anchored" data-anchor-id="k-fold-cross-validation"><span class="header-section-number">5.7</span> K-Fold Cross-Validation</h2>
 <p>Let <span class="math inline">\(\mathcal{D}=\{X_i,Y_i\}_{i=1}^N\)</span> be our data.</p>
+<div class="callout-algorithm" title="K-fold CV">
 <ol type="1">
 <li><p>Split the data into K approximately equal sizes parts/fold <span class="math inline">\(K\)</span></p></li>
 <li><p>For each <span class="math inline">\(k=1,2,\dots,K\)</span>, repeat the following steps:</p>
@@ -465,19 +457,25 @@ How do we choose between different models <span class="math inline">\(f_1,\dots,
   \mathrm{err}_{cv}(f) = \frac{1}{N}\sum_{k=1}^K \mathrm{err}_{cv,k}(f).
 \]</span></p></li>
 </ol>
-<hr>
+</div>
 <p>So if we have <span class="math inline">\(M\)</span> models, <span class="math inline">\(f_1,f_2,\dots,f_M\)</span>, we can use cross-validation to select the best model by computing the cross-validation error for each model <span class="math inline">\(\mathrm{err}_{cv}(f_1), \mathrm{err}_{cv}(f_2),\dots \mathrm{err}_{cv}(f_M)\)</span></p>
 <p>Then the best model is <span class="math display">\[
   f^*=\arg\min_{f\in\{f_1,\dots,f_M\}} \mathrm{err}_{cv}(f).
 \]</span></p>
 <p>There are two many use of the K-fold CV</p>
 <ol type="1">
-<li><p>Tune hyperparameters</p>
-<p>e.g., In linear regression: <span class="math inline">\(y=\beta_0+\sum_{j=1}^L\beta_kx^k+\varepsilon\)</span>, <span class="math inline">\(L\)</span> is the hyperparameter here.</p>
+<li>Tune hyperparameters</li>
+</ol>
+<div class="callout-example" title="Hyperparameter Tuning using CV in linear regression">
+<p>Suppose we have a family of models:</p>
+<p><span class="math inline">\(y=\beta_0+\sum_{j=1}^L\beta_kx^k+\varepsilon\)</span>, <span class="math inline">\(L\)</span> is the hyperparameter here.</p>
 <p>M1. <span class="math inline">\(y = \beta_0 + \beta_1 x_1 + \varepsilon\)</span></p>
 <p>M2. <span class="math inline">\(y = \beta_0 + \beta_1 x_1 + \beta_2 x^2 + \varepsilon\)</span></p>
-<p>M3. <span class="math inline">\(y = \beta_0 + \beta_1 x_1 + \beta_2 x^2 + \beta_3 x^3+ \varepsilon\)</span></p></li>
-<li><p>To better evaluate the performance of a model</p></li>
+<p>M3. <span class="math inline">\(y = \beta_0 + \beta_1 x_1 + \beta_2 x^2 + \beta_3 x^3+ \varepsilon\)</span></p>
+<p>We may use K-fold CV to choose the best <span class="math inline">\(L\)</span>.</p>
+</div>
+<ol start="2" type="1">
+<li>To better evaluate the performance of a model</li>
 </ol>
 <p>The number of folds depends on the data size.</p>
 </section>
@@ -537,7 +535,12 @@ How do we choose between different models <span class="math inline">\(f_1,\dots,
 <!-- * Example: Hitting different spots on the target each time. -->
 <!-- Goal -->
 <!-- * Minimize both bias and variance. -->
-<!-- ![](fig/bias-variance.png). -->
+<p><img src="fig/bias-variance.png" class="img-fluid">. <!-- fig/bias-variance.png} --></p>
+<ul>
+<li><p>Bias (Systematic error): The difference between predicted values and the true target.</p></li>
+<li><p>Variance (Sensitivity to data changes): How much predictions change with new data.</p></li>
+<li><p>Goal: Minimize both bias and variance.</p></li>
+</ul>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="fig/b-v-tradeoff.png" class="img-fluid figure-img"></p>
@@ -586,6 +589,8 @@ How do we choose between different models <span class="math inline">\(f_1,\dots,
 </section>
 <section id="choice-of-fold-k" class="level2" data-number="5.9">
 <h2 data-number="5.9" class="anchored" data-anchor-id="choice-of-fold-k"><span class="header-section-number">5.9</span> Choice of Fold K</h2>
+<p>Bias-Variance Tradeoff in CV:</p>
+<p>The choice of K is a tradeoff between bias and variance.</p>
 <!-- If we have our fitted model $\hat{f}$, we then have -->
 <!-- \begin{align*} -->
 <!-- \mse(x_0)  -->
@@ -593,7 +598,7 @@ How do we choose between different models <span class="math inline">\(f_1,\dots,
 <!--   &= \E_\T[\hat{y}_0-\E_\T(\hat{y}_0)]^2 + \{\E_\T(\hat{y}_0-f(x_0)\}^2\\ -->
 <!--   &= \var_\T(\hat{y}_0) + \bias^2(\hat{y}_0) -->
 <!-- \end{align*} -->
-<p>Q: What values of <span class="math inline">\(K, 2 \leq K \leq N\)</span> should we use? </p>
+<p>Q: What values of <span class="math inline">\(K, 2 \leq K \leq N\)</span> should we use?</p>
 <ul>
 <li><p>Large <span class="math inline">\(K\)</span>: <strong>high variance</strong>, but <strong>small bias</strong>.</p></li>
 <li><p>Small <span class="math inline">\(K\)</span>: <strong>low variance</strong>, but <strong>high bias</strong>.</p></li>
@@ -649,16 +654,11 @@ How do we choose between different models <span class="math inline">\(f_1,\dots,
 <figcaption>5 fold CV.</figcaption>
 </figure>
 </div>
-<!-- ![Result of the 5-fold CV with 10 runs.](fig/yeying/pic10.pdf) -->
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><embed src="fig/yeying/pic10.pdf" class="img-fluid" style="width:50.0%"></p>
+<p><img src="fig/yeying/pic10.png" class="img-fluid figure-img"></p>
 <figcaption>Result of the 5-fold CV with 10 runs.</figcaption>
 </figure>
-</div>
-</div>
 </div>
 <!-- ## Cross validation may be used to choose the hyper parameter  -->
 <!-- * Linear Regression (\purple{No hyper parameter}) -->
@@ -705,7 +705,7 @@ How do we choose between different models <span class="math inline">\(f_1,\dots,
 <ul>
 <li>Cross-validation can be applied in various contexts!</li>
 </ul>
-<div class="callout-example" title="A">
+<div class="callout-example" title="Model selection using CV">
 <p>Each panel reproduces your model fit:</p>
 <ul>
 <li>Linear: <span class="math inline">\(y = \beta_0 + \beta_1 x\)</span></li>
@@ -781,52 +781,57 @@ How do we choose between different models <span class="math inline">\(f_1,\dots,
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="05-cv_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="05-cv_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">attach</span>(ironslag)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">length</span>(magnetic) <span class="co"># in DAAG ironslag</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>e1 <span class="ot">&lt;-</span> e2 <span class="ot">&lt;-</span> e3 <span class="ot">&lt;-</span> e4 <span class="ot">&lt;-</span> <span class="fu">numeric</span>(n)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># for n-fold cross validation</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># fit models on leave-one-out samples</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  y <span class="ot">&lt;-</span> magnetic[<span class="sc">-</span>k]</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> chemical[<span class="sc">-</span>k]</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  J1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x)</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  yhat1 <span class="ot">&lt;-</span> J1<span class="sc">$</span>coef[<span class="dv">1</span>] <span class="sc">+</span> J1<span class="sc">$</span>coef[<span class="dv">2</span>] <span class="sc">*</span> chemical[k]</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  e1[k] <span class="ot">&lt;-</span> magnetic[k] <span class="sc">-</span> yhat1</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  J2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">I</span>(x<span class="sc">^</span><span class="dv">2</span>))</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  yhat2 <span class="ot">&lt;-</span> J2<span class="sc">$</span>coef[<span class="dv">1</span>] <span class="sc">+</span> J2<span class="sc">$</span>coef[<span class="dv">2</span>] <span class="sc">*</span> chemical[k] <span class="sc">+</span></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    J2<span class="sc">$</span>coef[<span class="dv">3</span>] <span class="sc">*</span> chemical[k]<span class="sc">^</span><span class="dv">2</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  e2[k] <span class="ot">&lt;-</span> magnetic[k] <span class="sc">-</span> yhat2</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  J3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(y) <span class="sc">~</span> x)</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  logyhat3 <span class="ot">&lt;-</span> J3<span class="sc">$</span>coef[<span class="dv">1</span>] <span class="sc">+</span> J3<span class="sc">$</span>coef[<span class="dv">2</span>] <span class="sc">*</span> chemical[k]</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  yhat3 <span class="ot">&lt;-</span> <span class="fu">exp</span>(logyhat3)</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  e3[k] <span class="ot">&lt;-</span> magnetic[k] <span class="sc">-</span> yhat3</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  J4 <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(y) <span class="sc">~</span> <span class="fu">log</span>(x))</span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  logyhat4 <span class="ot">&lt;-</span> J4<span class="sc">$</span>coef[<span class="dv">1</span>] <span class="sc">+</span> J4<span class="sc">$</span>coef[<span class="dv">2</span>] <span class="sc">*</span> <span class="fu">log</span>(chemical[k])</span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  yhat4 <span class="ot">&lt;-</span> <span class="fu">exp</span>(logyhat4)</span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  e4[k] <span class="ot">&lt;-</span> magnetic[k] <span class="sc">-</span> yhat4</span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="co"># compute MSEs</span></span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>mse <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">mean</span>(e1<span class="sc">^</span><span class="dv">2</span>), <span class="fu">mean</span>(e2<span class="sc">^</span><span class="dv">2</span>), <span class="fu">mean</span>(e3<span class="sc">^</span><span class="dv">2</span>), <span class="fu">mean</span>(e4<span class="sc">^</span><span class="dv">2</span>))</span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="co"># put into a tidy data frame</span></span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">"Linear"</span>, <span class="st">"Quadratic"</span>, <span class="st">"Exponential"</span>, <span class="st">"Log–Log"</span>),</span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>  <span class="at">MSE =</span> <span class="fu">round</span>(mse, <span class="dv">4</span>)</span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="co"># display as a clean table</span></span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(results, </span>
-<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>             <span class="at">caption =</span> <span class="st">"Model Comparison of Mean Squared Errors"</span>, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="st">"c"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">attach</span>(ironslag)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from ironslag (pos = 3):
+
+    chemical, magnetic</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">length</span>(magnetic) <span class="co"># in DAAG ironslag</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>e1 <span class="ot">&lt;-</span> e2 <span class="ot">&lt;-</span> e3 <span class="ot">&lt;-</span> e4 <span class="ot">&lt;-</span> <span class="fu">numeric</span>(n)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># for n-fold cross validation</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># fit models on leave-one-out samples</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  y <span class="ot">&lt;-</span> magnetic[<span class="sc">-</span>k]</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> chemical[<span class="sc">-</span>k]</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  J1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  yhat1 <span class="ot">&lt;-</span> J1<span class="sc">$</span>coef[<span class="dv">1</span>] <span class="sc">+</span> J1<span class="sc">$</span>coef[<span class="dv">2</span>] <span class="sc">*</span> chemical[k]</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  e1[k] <span class="ot">&lt;-</span> magnetic[k] <span class="sc">-</span> yhat1</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  J2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">I</span>(x<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  yhat2 <span class="ot">&lt;-</span> J2<span class="sc">$</span>coef[<span class="dv">1</span>] <span class="sc">+</span> J2<span class="sc">$</span>coef[<span class="dv">2</span>] <span class="sc">*</span> chemical[k] <span class="sc">+</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    J2<span class="sc">$</span>coef[<span class="dv">3</span>] <span class="sc">*</span> chemical[k]<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  e2[k] <span class="ot">&lt;-</span> magnetic[k] <span class="sc">-</span> yhat2</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  J3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(y) <span class="sc">~</span> x)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  logyhat3 <span class="ot">&lt;-</span> J3<span class="sc">$</span>coef[<span class="dv">1</span>] <span class="sc">+</span> J3<span class="sc">$</span>coef[<span class="dv">2</span>] <span class="sc">*</span> chemical[k]</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  yhat3 <span class="ot">&lt;-</span> <span class="fu">exp</span>(logyhat3)</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  e3[k] <span class="ot">&lt;-</span> magnetic[k] <span class="sc">-</span> yhat3</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  J4 <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(y) <span class="sc">~</span> <span class="fu">log</span>(x))</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  logyhat4 <span class="ot">&lt;-</span> J4<span class="sc">$</span>coef[<span class="dv">1</span>] <span class="sc">+</span> J4<span class="sc">$</span>coef[<span class="dv">2</span>] <span class="sc">*</span> <span class="fu">log</span>(chemical[k])</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  yhat4 <span class="ot">&lt;-</span> <span class="fu">exp</span>(logyhat4)</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  e4[k] <span class="ot">&lt;-</span> magnetic[k] <span class="sc">-</span> yhat4</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="co"># compute MSEs</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>mse <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">mean</span>(e1<span class="sc">^</span><span class="dv">2</span>), <span class="fu">mean</span>(e2<span class="sc">^</span><span class="dv">2</span>), <span class="fu">mean</span>(e3<span class="sc">^</span><span class="dv">2</span>), <span class="fu">mean</span>(e4<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="co"># put into a tidy data frame</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">"Linear"</span>, <span class="st">"Quadratic"</span>, <span class="st">"Exponential"</span>, <span class="st">"Log–Log"</span>),</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  <span class="at">MSE =</span> <span class="fu">round</span>(mse, <span class="dv">4</span>)</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a><span class="co"># display as a clean table</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(results, </span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>             <span class="at">caption =</span> <span class="st">"Model Comparison of Mean Squared Errors"</span>, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="st">"c"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <caption>Model Comparison of Mean Squared Errors</caption>
@@ -856,7 +861,7 @@ How do we choose between different models <span class="math inline">\(f_1,\dots,
 </tbody>
 </table>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>L2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>L2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
@@ -874,16 +879,16 @@ Coefficients:
 0.055\,X^2
 \]</span></p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>)) <span class="co">#layout for graphs</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(L2<span class="sc">$</span>fit, L2<span class="sc">$</span>res) <span class="co">#residuals vs fitted values</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="dv">0</span>, <span class="dv">0</span>) <span class="co">#reference line</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(L2<span class="sc">$</span>res) <span class="co">#normal probability plot</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">qqline</span>(L2<span class="sc">$</span>res) <span class="co">#reference line</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>)) <span class="co">#restore display</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>)) <span class="co">#layout for graphs</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(L2<span class="sc">$</span>fit, L2<span class="sc">$</span>res) <span class="co">#residuals vs fitted values</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="dv">0</span>, <span class="dv">0</span>) <span class="co">#reference line</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(L2<span class="sc">$</span>res) <span class="co">#normal probability plot</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">qqline</span>(L2<span class="sc">$</span>res) <span class="co">#reference line</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>)) <span class="co">#restore display</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="05-cv_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="05-cv_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
