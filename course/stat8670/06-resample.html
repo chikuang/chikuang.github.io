@@ -330,10 +330,11 @@ window.Quarto = {
   <li><a href="#bootstrap-confidence-interval" id="toc-bootstrap-confidence-interval" class="nav-link" data-scroll-target="#bootstrap-confidence-interval"><span class="header-section-number">6.7</span> Bootstrap Confidence Interval</a>
   <ul class="collapse">
   <li><a href="#standard-normal-bootstrap-ci" id="toc-standard-normal-bootstrap-ci" class="nav-link" data-scroll-target="#standard-normal-bootstrap-ci"><span class="header-section-number">6.7.1</span> Standard Normal Bootstrap CI</a></li>
+  <li><a href="#basic-bootstrap-ci" id="toc-basic-bootstrap-ci" class="nav-link" data-scroll-target="#basic-bootstrap-ci"><span class="header-section-number">6.7.2</span> Basic Bootstrap CI</a></li>
+  <li><a href="#bootstrap-percentile-ci" id="toc-bootstrap-percentile-ci" class="nav-link" data-scroll-target="#bootstrap-percentile-ci"><span class="header-section-number">6.7.3</span> Bootstrap Percentile CI</a></li>
   </ul></li>
   <li><a href="#others" id="toc-others" class="nav-link" data-scroll-target="#others"><span class="header-section-number">6.8</span> Others</a></li>
-  <li><a href="#applications" id="toc-applications" class="nav-link" data-scroll-target="#applications"><span class="header-section-number">6.9</span> Applications</a></li>
-  <li><a href="#side-reading-wont-be-on-the-exam" id="toc-side-reading-wont-be-on-the-exam" class="nav-link" data-scroll-target="#side-reading-wont-be-on-the-exam"><span class="header-section-number">6.10</span> Side reading (Won’t be on the exam)</a></li>
+  <li><a href="#side-reading-wont-be-on-the-exam" id="toc-side-reading-wont-be-on-the-exam" class="nav-link" data-scroll-target="#side-reading-wont-be-on-the-exam"><span class="header-section-number">6.9</span> Side reading (Won’t be on the exam)</a></li>
   </ul>
 </nav>
     </div>
@@ -1037,7 +1038,7 @@ t1* 0.7763745 -0.01075929   0.1364617</code></pre>
 <section id="standard-normal-bootstrap-ci" class="level3" data-number="6.7.1">
 <h3 data-number="6.7.1" class="anchored" data-anchor-id="standard-normal-bootstrap-ci"><span class="header-section-number">6.7.1</span> Standard Normal Bootstrap CI</h3>
 <p>he standard normal bootstrap confidence interval is the simplest approach, but not necessarily the best. Suppose that <span class="math inline">\(\hat \theta\)</span> is an estimator of parameter θ, and assume the standard error of the estimator is <span class="math inline">\(se(\hat \theta)\)</span>. If <span class="math inline">\(\hat \theta\)</span> is a sample mean and the sample size is large, then the CLT implies that <span class="math display">\[
-\frac{\hat{\theta}-\mathbb E\hat \theta}{s e(\hat{\theta})} \approx N(0,1).
+\frac{\hat{\theta}-\mathbb E[\hat \theta]}{s e(\hat{\theta})} \approx N(0,1)=Z.
 \]</span> Hence, if <span class="math inline">\(\hat \theta\)</span> is unbiased of <span class="math inline">\(\theta\)</span>, then an approximate <span class="math inline">\(100(1-\alpha)\)</span>% CI for <span class="math inline">\(\theta\)</span> is given by <span class="math display">\[
 \hat \theta\pm z_{1-\alpha / 2} s e(\hat \theta),
 \]</span> Advantage:</p>
@@ -1047,94 +1048,369 @@ t1* 0.7763745 -0.01075929   0.1364617</code></pre>
 <p>Disadvantage: requires several assumptions.</p>
 <ol type="1">
 <li><span class="math inline">\(\hat \theta\sim N\)</span> or <span class="math inline">\(\hat \theta\)</span> is a sample mean and <span class="math inline">\(n\)</span> is large.</li>
-<li><span class="math inline">\(\mathbb E\hat \theta=\theta\)</span>.</li>
+<li><span class="math inline">\(\mathbb E[\hat \theta]=\theta\)</span>.</li>
 </ol>
 <p>Bias can be estimated and used to center the Z statistic, but the estimator is a rv, so the transformed variable is not normal. Here we have treated <span class="math inline">\(se(\hat \theta)\)</span> as a <em>known parameter</em>, but in the bootstrap <span class="math inline">\(se(\hat \theta)\)</span> is estimated (the sample standard deviation of the replicates).</p>
+</section>
+<section id="basic-bootstrap-ci" class="level3" data-number="6.7.2">
+<h3 data-number="6.7.2" class="anchored" data-anchor-id="basic-bootstrap-ci"><span class="header-section-number">6.7.2</span> Basic Bootstrap CI</h3>
+<p>The basic bootstrap CI interval transforms the distribution of the replicates by <strong>subtracting the observed statistic</strong>. The quantiles of the transformed sample <span class="math inline">\(\hat \theta^\ast-\hat \theta\)</span> are used to determine the confidence limits.</p>
+<p>The <span class="math inline">\(100(1 − \alpha)\)</span>% confidence limits for the basic bootstrap confidence interval are <span class="math display">\[
+\boxed{
+(2\hat \theta- \hat \theta^
+\ast_{1-\alpha/2},\quad 2\hat \theta- \hat \theta^
+\ast_{\alpha/2})},
+\]</span> whee re <span class="math inline">\(\hat \theta^\ast_q\)</span> is the <span class="math inline">\(q\)</span>th quantile of the bootstrap replicates <span class="math inline">\(\hat \theta^{(1)},\dots ,\hat \theta^{(B)}\)</span>.</p>
+<div id="callout-8" class="callout callout-style-default callout-note callout-titled" title="Derivation of the Basic Bootstrap CI">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Derivation of the Basic Bootstrap CI
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Let <span class="math inline">\(\mathbf{x}= (x_1,\dots,x_n)\)</span> be the observed sample, and a statistics <span class="math inline">\(\hat \theta= T_n(\mathbf{x})\)</span> be the estimator of the parameter of interest <span class="math inline">\(\theta\)</span> of the sampling distribution. Assume that we have <span class="math inline">\(B\)</span> replicates <span class="math inline">\(\hat \theta^\ast\)</span> from bootstrap.</p>
+<p>To obtain a <strong>symmetric</strong> <span class="math inline">\(100(1-\alpha)\)</span>% CI for <span class="math inline">\(\theta\)</span>, say <span class="math inline">\((L,U)\)</span>, we know that we need <span class="math display">\[
+P(U \le \theta)= P(\theta \le L)=\alpha/2.
+\]</span> Then, we have <span class="math display">\[
+\alpha/2 = P(L \ge \theta) = P(L-\hat \theta\ge \theta - \hat \theta) = P(\hat \theta- \theta \le \hat \theta- L).
+\]</span></p>
+<p>Now, we have to solve it, we need <span class="math inline">\(L-\hat \theta\)</span> be the <span class="math inline">\(1-\alpha/2\)</span>’s quantile of the distribution of <span class="math inline">\(\hat \theta- \theta\)</span>. However, the distribution of <span class="math inline">\(\hat \theta- \theta\)</span> is <em>unknown</em>. In bootstrap, we approximate the distribution of <span class="math inline">\(\hat \theta- \theta\)</span> by the distribution of <span class="math inline">\(\hat \theta^\ast - \hat \theta\)</span>. Thus, we set <span class="math inline">\(\hat \theta- L\)</span> to be the <span class="math inline">\(1-\alpha/2\)</span>’s quantile of the distribution of <span class="math inline">\(\hat \theta^\ast - \hat \theta\)</span>, denoted as <span class="math inline">\(\hat \theta^\ast_{1-\alpha/2}\)</span>, that is, <span class="math inline">\(\hat \theta^\ast_{1-\alpha/2}-\hat \theta\)</span>. Then, we set <span class="math inline">\(\hat \theta-L\)</span> to be <span class="math inline">\(\hat \theta^\ast_{1-\alpha/2}-\hat \theta\)</span>.</p>
+<p>Similarly, for the upper limit <span class="math inline">\(U\)</span>, we have <span class="math display">\[
+\alpha/2 = P(\theta \ge U) = P(\theta - \hat \theta\ge U - \hat \theta) = P(\hat \theta- \theta \le \hat \theta- U),
+\]</span> which leads to <span class="math inline">\(\hat \theta-U = \hat \theta_{\alpha/2}^\ast - \hat \theta\)</span>. We *move <span class="math inline">\(\hat \theta\)</span> to other side for both <span class="math inline">\(L\)</span> and <span class="math inline">\(U\)</span>. As a result, we obtain <span class="math display">\[
+(L,~U) = (2\hat \theta- \hat \theta^\ast_{1-\alpha/2},~2\hat \theta- \hat \theta^\ast_{\alpha/2}),
+\]</span> which is the result of a basic bootstrap CI we state previously.</p>
+</div>
+</div>
+</section>
+<section id="bootstrap-percentile-ci" class="level3" data-number="6.7.3">
+<h3 data-number="6.7.3" class="anchored" data-anchor-id="bootstrap-percentile-ci"><span class="header-section-number">6.7.3</span> Bootstrap Percentile CI</h3>
+<p>This method use directly from the empirical distribution.</p>
+<p>A bootstrap percentile interval uses the empirical distribution of the bootstrap replicates as the reference distribution. The quantiles of the empirical distribution are estimators of the quantiles of the sampling distribution of <span class="math inline">\(\hat \theta\)</span>, so that these (random) quantiles may match the true distribution better when the distribution of <span class="math inline">\(\hat \theta\)</span> is <strong>not normal</strong>. Suppose that <span class="math inline">\(\{\hat \theta^{(b)}\}_{b=1}^B\)</span> are the bootstrap replicates of the statistic <span class="math inline">\(\hat \theta\)</span>. From the ecdf of the replicates, compute the <span class="math inline">\(\alpha/2\)</span> quantile <span class="math inline">\(\hat \theta_{\alpha/2}\)</span>, and the <span class="math inline">\(1 − \alpha/2\)</span> quantile <span class="math inline">\(\hat \theta_{1-\alpha/2}\)</span>.</p>
+<p>Researchers showed that this method some theoretical advantages over the standard normal interval and somewhat better coverage performance in practice.</p>
+<div id="callout-9" class="callout callout-style-default callout-note callout-titled" title="R command">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>R command
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The <code>boot::boot.ci(.)</code> computes 5 types of bootstrap CI:</p>
+<ol type="1">
+<li>basic</li>
+<li>normal</li>
+<li>percentile</li>
+<li>studentized</li>
+<li>BCa (bias-corrected and accelerated), which is an improved percentile intervals that aim to have better theoretical properties and better performance in practice.</li>
+</ol>
+</div>
+</div>
+<div class="callout-example" title="Bootstrap CIs on the patch ratio statistics">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(boot)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(patch, <span class="at">package =</span> <span class="st">"bootstrap"</span>)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="co"># function to compute the statistic</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>theta.boot <span class="ot">&lt;-</span> <span class="cf">function</span>(dat, ind) {</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>  y <span class="ot">&lt;-</span> dat[ind, <span class="dv">1</span>]</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>  z <span class="ot">&lt;-</span> dat[ind, <span class="dv">2</span>]</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mean</span>(y) <span class="sc">/</span> <span class="fu">mean</span>(z)</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> patch<span class="sc">$</span>y</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> patch<span class="sc">$</span>z</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">cbind</span>(y, z)</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>boot.obj <span class="ot">&lt;-</span> <span class="fu">boot</span>(dat, <span class="at">statistic =</span> theta.boot, <span class="at">R =</span> <span class="dv">2000</span>)</span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(boot.obj)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+ORDINARY NONPARAMETRIC BOOTSTRAP
+
+
+Call:
+boot(data = dat, statistic = theta.boot, R = 2000)
+
+
+Bootstrap Statistics :
+      original     bias    std. error
+t1* -0.0713061 0.01265825   0.1047968</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">boot.ci</span>(boot.obj,</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">type =</span> <span class="fu">c</span>(<span class="st">"basic"</span>, <span class="st">"norm"</span>, <span class="st">"perc"</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
+Based on 2000 bootstrap replicates
+
+CALL : 
+boot.ci(boot.out = boot.obj, type = c("basic", "norm", "perc"))
+
+Intervals : 
+Level      Normal              Basic              Percentile     
+95%   (-0.2894,  0.1214 )   (-0.3422,  0.0839 )   (-0.2265,  0.1995 )  
+Calculations and Intervals on Original Scale</code></pre>
+</div>
+</div>
+<p>Recall that the old and new patches are bioequivalent if |θ| ≤ 0.20. Hence, the interval estimates do not support bioequivalence of the old and new patches. Next we compute the bootstrap confidence intervals according to their defini- tions. Compare the following results with the boot.ci output.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="co"># normal</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>CI_normal <span class="ot">&lt;-</span> boot.obj<span class="sc">$</span>t0 <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="fu">c</span>(alpha<span class="sc">/</span><span class="dv">2</span>, <span class="dv">1</span> <span class="sc">-</span> alpha<span class="sc">/</span><span class="dv">2</span>)) <span class="sc">*</span> <span class="fu">sd</span>(boot.obj<span class="sc">$</span>t)</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="co"># basic</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>CI_basic <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> boot.obj<span class="sc">$</span>t0 <span class="sc">-</span> <span class="fu">quantile</span>(boot.obj<span class="sc">$</span>t, <span class="at">probs =</span> <span class="fu">c</span>(<span class="dv">1</span> <span class="sc">-</span> alpha<span class="sc">/</span><span class="dv">2</span>, alpha<span class="sc">/</span><span class="dv">2</span>), <span class="at">type =</span> <span class="dv">1</span>)</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a><span class="co"># percentile</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>CI_percentile <span class="ot">&lt;-</span> <span class="fu">quantile</span>(boot.obj<span class="sc">$</span>t, <span class="at">probs =</span> <span class="fu">c</span>(alpha<span class="sc">/</span><span class="dv">2</span>, <span class="dv">1</span> <span class="sc">-</span> alpha<span class="sc">/</span><span class="dv">2</span>), <span class="at">type =</span> <span class="dv">6</span>)</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a><span class="co"># combine into data frame</span></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>CI_table <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">Method =</span> <span class="fu">c</span>(<span class="st">"Normal"</span>, <span class="st">"Basic"</span>, <span class="st">"Percentile"</span>),</span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">Lower =</span> <span class="fu">c</span>(CI_normal[<span class="dv">1</span>], CI_basic[<span class="dv">1</span>], CI_percentile[<span class="dv">1</span>]),</span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">Upper =</span> <span class="fu">c</span>(CI_normal[<span class="dv">2</span>], CI_basic[<span class="dv">2</span>], CI_percentile[<span class="dv">2</span>])</span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a><span class="co"># display as kable</span></span>
+<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(CI_table, <span class="at">digits =</span> <span class="dv">4</span>, <span class="at">caption =</span> <span class="st">"Bootstrap Confidence Intervals"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Bootstrap Confidence Intervals</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: left;">Method</th>
+<th style="text-align: right;">Lower</th>
+<th style="text-align: right;">Upper</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Normal</td>
+<td style="text-align: right;">-0.2713</td>
+<td style="text-align: right;">0.1287</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">97.5%</td>
+<td style="text-align: left;">Basic</td>
+<td style="text-align: right;">-0.3077</td>
+<td style="text-align: right;">0.0876</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2.5%</td>
+<td style="text-align: left;">Percentile</td>
+<td style="text-align: right;">-0.2302</td>
+<td style="text-align: right;">0.1674</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="callout-10" class="callout callout-style-default callout-note callout-titled" title="Remark">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Remark
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The normal interval computed by boot.ci corrects for bias. Notice that the boot.ci normal interval differs from our result by the bias estimate shown in the output from boot. This is confirmed by read- ing the source code for the function. To view the source code for this calculation, when the boot package is loaded, enter the command getAnywhere(norm.ci) at the console. Also see norm.inter and [68] for details of calculations of quantiles.</p>
+</div>
+</div>
+<div class="callout-example" title="Bootstrap CIs for correlation coefficients">
+<p>Example 8.10 (Bootstrap confidence intervals for the correlation statis- tic). Compute 95% bootstrap confidence interval estimates for the correlation statistic in the law data of Example 8.2.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(boot)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(law, <span class="at">package =</span> <span class="st">"bootstrap"</span>)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>boot.obj <span class="ot">&lt;-</span> <span class="fu">boot</span>(law,</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">R =</span> <span class="dv">2000</span>,</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">statistic =</span> <span class="cf">function</span>(x, i) {</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cor</span>(x[i, <span class="dv">1</span>], x[i, <span class="dv">2</span>])</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">boot.ci</span>(boot.obj, </span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>              <span class="at">type =</span> <span class="fu">c</span>(<span class="st">"basic"</span>, <span class="st">"norm"</span>, <span class="st">"perc"</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
+Based on 2000 bootstrap replicates
+
+CALL : 
+boot.ci(boot.out = boot.obj, type = c("basic", "norm", "perc"))
+
+Intervals : 
+Level      Normal              Basic              Percentile     
+95%   ( 0.5151,  1.0364 )   ( 0.5901,  1.0946 )   ( 0.4582,  0.9627 )  
+Calculations and Intervals on Original Scale</code></pre>
+</div>
+</div>
+<p>All three intervals cover the correlation <span class="math inline">\(\rho=0.76\)</span> of the universe of all law schools in law82. One reason for the difference in the percentile and normal confidence intervals could be that the sampling distribution of correlation statistic is not close to normal (see the histogram in Figure 8.1). When the sampling distribution of the statistic is approximately normal, the percentile interval will agree with the normal interval.</p>
+</div>
+<section id="bootstrap-t-ci" class="level4" data-number="6.7.3.1">
+<h4 data-number="6.7.3.1" class="anchored" data-anchor-id="bootstrap-t-ci"><span class="header-section-number">6.7.3.1</span> Bootstrap t CI</h4>
+<p>Even if the distribution of <span class="math inline">\(\hat \theta\)</span> is normal and <span class="math inline">\(\mathbb E[\hat \theta]=\theta\)</span>, the normal distribution is not exactly correct for the Z statistic, because we estimate <span class="math inline">\(se(\hat \theta)\)</span>. Nor can we claim that it is a Student t statistic, because the distribution of the bootstrap estimator <span class="math inline">\(se(\hat \theta)\)</span> is unknown. <strong>The bootstrap t interval does not use a Student t distribution as the reference distribution</strong>. Instead, the sampling distribution of a <em>t type</em> statistic (a studentized statistic) is generated by resampling. Let <span class="math inline">\(\mathbf{x}= (x_1, \dots, x_n)\)</span> be an observed sample. The <span class="math inline">\(100(1 − \alpha)\)</span>% bootstrap t confidence interval is <span class="math display">\[
+\boxed{
+\left(\hat{\theta}-t_{1-\alpha / 2}^* \widehat{s e}(\hat{\theta}), \quad \hat{\theta}-t_{\alpha / 2}^* \widehat{s e}(\hat{\theta})\right)},
+\]</span></p>
+<p>where <span class="math inline">\(se(\hat \theta),~ t^\ast_{\alpha/2}\)</span> and <span class="math inline">\(t^\ast_{1-\alpha/2}\)</span> are computed as outlined below.</p>
+<div class="callout-algorithm" title="Algorithm of Bootstrap t CI">
+<ol type="1">
+<li>Compute the observed statistic <span class="math inline">\(\hat \theta\)</span>.</li>
+<li>For each replicate, indexed <span class="math inline">\(b = 1, \dots,B\)</span>:</li>
+</ol>
+<ol type="a">
+<li>Sample with replacement from x to get the bth sample <span class="math inline">\(\mathbf{x}^{(b)} = (x_1^{(b)}, \dots , x_n^{(b)})\)</span></li>
+<li>Compute <span class="math inline">\(\hat \theta^{(b)}\)</span> from the <span class="math inline">\(b\)</span>th sample <span class="math inline">\(x^{(b)}\)</span>.</li>
+<li>Compute or estimate the standard error <span class="math inline">\(\widehat{se}(\hat \theta^{(b)})\)</span> (a separate estimate for each bootstrap sample; a bootstrap estimate will resample from the current bootstrap sample <span class="math inline">\(\mathbf{x}^{(b)}\)</span>, not <span class="math inline">\(\mathbf{x}\)</span>).</li>
+<li>Compute the <span class="math inline">\(b\)</span>th replicate of the <em>t</em> statistic, <span class="math display">\[t(b) = \frac{\hat \theta^{(b)}−\hat \theta}{\widehat{se}(\hat \theta^{(b)})}.\]</span></li>
+</ol>
+<ol start="3" type="1">
+<li>The sample of replicates <span class="math inline">\(t^{(1)},\dots t^{(B)}\)</span> is the reference distribution for bootstrap <span class="math inline">\(t\)</span>. Find the sample quantiles <span class="math inline">\(t^\ast_{\alpha/2}\)</span> and <span class="math inline">\(t^\ast_{1-\alpha/2}\)</span> from the ordered sample of replicates <span class="math inline">\(t^{(b)}\)</span>.</li>
+<li>Compute <span class="math inline">\(\widehat{\hat \theta}\)</span>, the sample standard deviation of the replicates <span class="math inline">\(\hat \theta^{(b)}\)</span>.</li>
+<li>Compute confidence limits <span class="math display">\[
+\left(\hat{\theta}-t_{1-\alpha / 2}^* \widehat{\sec }(\hat{\theta}), \quad \hat{\theta}-t_{\alpha / 2}^* \widehat{\operatorname{se}}(\hat{\theta})\right) .
+\]</span></li>
+</ol>
+</div>
+<p>One disadvantage is the <em>computational time</em>!</p>
+<p>To the bootstrap <span class="math inline">\(t\)</span> interval, typically <span class="math inline">\(\widehat{se}(\hat \theta^{(b)})\)</span> must be obtained by bootstrap. This is <em>a bootstrap nested inside a bootstrap</em>. If <span class="math inline">\(B = 1000\)</span>, for example, the bootstrap t confidence interval method takes approximately <span class="math inline">\(1000\)</span> times longer than any of the other methods.</p>
+<hr>
+<p>Here, we see how to compute the bootstrap <span class="math inline">\(t\)</span> confidence interval for a univariate or a multivariate sample <span class="math inline">\(\mathbf{x}\)</span>. The required arguments to the function are</p>
+<ul>
+<li>the sample data <span class="math inline">\(\mathbf{x}\)</span>, and</li>
+<li>the function statistic that computes the statistic <span class="math inline">\(T_n(\mathbf{x})\)</span>.</li>
+</ul>
+<p>The default values are:</p>
+<ul>
+<li>significance level is <span class="math inline">\(\alpha=0.05\)</span></li>
+<li>number of bootstrap replicates <span class="math inline">\(B=500\)</span>,</li>
+<li>number of replicates for estimating standard error is <span class="math inline">\(100\)</span>.</li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>boot.t.ci <span class="ot">&lt;-</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">function</span>(x, <span class="at">B =</span> <span class="dv">500</span>, <span class="at">R =</span> <span class="dv">100</span>, <span class="at">level =</span> .<span class="dv">95</span>, statistic) {</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># compute the bootstrap t CI</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>    x <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(x)</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>    n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(x)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>    stat <span class="ot">&lt;-</span> <span class="fu">numeric</span>(B)</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>    se <span class="ot">&lt;-</span> <span class="fu">numeric</span>(B)</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>    boot.se <span class="ot">&lt;-</span> <span class="cf">function</span>(x, R, f) {</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>      <span class="co"># local function to compute the bootstrap</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>      <span class="co"># estimate of standard error for statistic f(x)</span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>      x <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(x)</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>      m <span class="ot">&lt;-</span> <span class="fu">nrow</span>(x)</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>      th <span class="ot">&lt;-</span> <span class="fu">replicate</span>(R, <span class="at">expr =</span> {</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>        i <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>m, <span class="at">size =</span> m, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">f</span>(x[i, ])</span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>      })</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">sd</span>(th))</span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (b <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>B) {</span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a>      j <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>n, <span class="at">size =</span> n, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a>      y <span class="ot">&lt;-</span> x[j, ]</span>
+<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a>      stat[b] <span class="ot">&lt;-</span> <span class="fu">statistic</span>(y)</span>
+<span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a>      se[b] <span class="ot">&lt;-</span> <span class="fu">boot.se</span>(y, <span class="at">R =</span> R, <span class="at">f =</span> statistic)</span>
+<span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb35-26"><a href="#cb35-26" aria-hidden="true" tabindex="-1"></a>    stat0 <span class="ot">&lt;-</span> <span class="fu">statistic</span>(x)</span>
+<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a>    t.stats <span class="ot">&lt;-</span> (stat <span class="sc">-</span> stat0) <span class="sc">/</span> se</span>
+<span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a>    se0 <span class="ot">&lt;-</span> <span class="fu">sd</span>(stat)</span>
+<span id="cb35-29"><a href="#cb35-29" aria-hidden="true" tabindex="-1"></a>    alpha <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> level</span>
+<span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a>    Qt <span class="ot">&lt;-</span> <span class="fu">quantile</span>(t.stats, <span class="fu">c</span>(alpha <span class="sc">/</span> <span class="dv">2</span>, <span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>), <span class="at">type =</span> <span class="dv">1</span>)</span>
+<span id="cb35-31"><a href="#cb35-31" aria-hidden="true" tabindex="-1"></a>    <span class="fu">names</span>(Qt) <span class="ot">&lt;-</span> <span class="fu">rev</span>(<span class="fu">names</span>(Qt))</span>
+<span id="cb35-32"><a href="#cb35-32" aria-hidden="true" tabindex="-1"></a>    CI <span class="ot">&lt;-</span> <span class="fu">rev</span>(stat0 <span class="sc">-</span> Qt <span class="sc">*</span> se0)</span>
+<span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a>  }</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>We then aim to apply this function to our problem in hand.</p>
+<div class="callout-example" title="Bootstrap t CI for patch ratio statistics">
+<p>Now, we want to compute a 95% bootstrap <span class="math inline">\(t\)</span> confidence interval for the ratio statistic we discussed previously.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">cbind</span>(patch<span class="sc">$</span>y, patch<span class="sc">$</span>z)</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>stat <span class="ot">&lt;-</span> <span class="cf">function</span>(dat) {</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mean</span>(dat[, <span class="dv">1</span>]) <span class="sc">/</span> <span class="fu">mean</span>(dat[, <span class="dv">2</span>])</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>ci <span class="ot">&lt;-</span> <span class="fu">boot.t.ci</span>(dat, <span class="at">statistic =</span> stat, <span class="at">B =</span> <span class="dv">2000</span>, </span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>                <span class="at">R =</span> <span class="dv">200</span>)</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(ci)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      2.5%      97.5% 
+-0.2733909  0.4381807 </code></pre>
+</div>
+</div>
+<p>The upper confidence limit of the bootstrap <span class="math inline">\(t\)</span> confidence interval is much larger than the three intervals in Example 9 and the bootstrap <span class="math inline">\(t\)</span> is the widest interval here.</p>
+</div>
+</section>
 </section>
 </section>
 <section id="others" class="level2" data-number="6.8">
 <h2 data-number="6.8" class="anchored" data-anchor-id="others"><span class="header-section-number">6.8</span> Others</h2>
-<p>The distribution of <span class="math inline">\(X^\ast\)</span> is the empirical distribution <span class="math inline">\(F_n\)</span> of the sample <span class="math inline">\(x\)</span>. The empirical distribution places mass <span class="math inline">\(1/n\)</span> at each observed data point. The bootstrap uses the empirical distribution as an estimate of the true but unknown distribution <span class="math inline">\(F\)</span>.</p>
-<p>The bootstrap is a resampling method that allows estimation of the <em>sampling distribution</em> of almost any statistic using random sampling methods.</p>
-<ul>
-<li><p>Parametric bootstrap</p></li>
-<li><p>Nonparametric bootstrap: In nonparametric bootstrap, the distribution is not specified.</p></li>
-</ul>
-<div class="callout-example" title="Simple example of Bootstrap">
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">333</span>)</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1E4</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="fl">1E4</span></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">5</span>, <span class="at">sd =</span> <span class="dv">2</span>) <span class="co">#original sample</span></span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>boot_means <span class="ot">&lt;-</span> pbapply<span class="sc">::</span><span class="fu">pbsapply</span>(<span class="dv">1</span><span class="sc">:</span>B, <span class="cf">function</span>(i){</span>
-<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>  indices <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>n, <span class="at">size =</span> n, <span class="at">replace =</span> <span class="cn">TRUE</span>) <span class="co">#resample</span></span>
-<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  boot.sample <span class="ot">&lt;-</span> x[indices]</span>
-<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mean</span>(boot.sample)</span>
-<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>}) </span>
-<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(boot_means)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 4.999525</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(boot_means, <span class="at">breaks =</span> <span class="dv">50</span>, <span class="at">main =</span> <span class="st">"Bootstrap distribution of the mean"</span>, <span class="at">xlab =</span> <span class="st">"Mean"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="06-resample_files/figure-html/bootstrap-simple-example-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute statistics</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>true_mean <span class="ot">&lt;-</span> <span class="dv">5</span></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>boot_mean <span class="ot">&lt;-</span> <span class="fu">mean</span>(boot_means)</span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">x =</span> boot_means)</span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> x)) <span class="sc">+</span></span>
-<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="fu">aes</span>(<span class="at">y =</span> ..density..), <span class="at">bins =</span> <span class="dv">50</span>, </span>
-<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>                 <span class="at">fill =</span> <span class="st">"lightgreen"</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">color =</span> <span class="st">"darkgreen"</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> true_mean, <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">size =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
-<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> boot_mean, <span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">linetype =</span> <span class="st">"solid"</span>, <span class="at">size =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
-<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Bootstrap Distribution of the Sample Mean"</span>,</span>
-<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Bootstrap Mean"</span>,</span>
-<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Density"</span></span>
-<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> true_mean, <span class="at">y =</span> <span class="fl">0.3</span>, <span class="at">label =</span> <span class="st">"True mean = 5"</span>, <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>) <span class="sc">+</span></span>
-<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> boot_mean, <span class="at">y =</span> <span class="fl">0.25</span>, <span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"Bootstrap mean = %.2f"</span>, boot_mean),</span>
-<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>           <span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>) <span class="sc">+</span></span>
-<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-ℹ Please use `linewidth` instead.</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: The dot-dot notation (`..density..`) was deprecated in ggplot2 3.4.0.
-ℹ Please use `after_stat(density)` instead.</code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="06-resample_files/figure-html/bootstrap-simple-example-2.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<p>The bootstrap is a general tool for assessing statistical accuracy. First we describe the bootstrap in general, and then show how it can be used to estimate extra-sample prediction error. As with cross-validation, the boot- strap seeks to estimate the conditional error ErrT , but typically estimates well only the expected prediction error Err.</p>
-<p>The distribution of the finite population represented by the sample can be regarded as a pseudo-population with similar characteristics as the true population. By repeatedly generating random samples from this pseudo-population (resampling), the sampling distribution of a statistic can be estimated. Properties of an estimator such as <em>bias</em> or <em>standard error</em> can be estimated by resampling.</p>
-<p>Bootstrap estimates of a sampling distribution are analogous to the idea of density estimation. We construct a histogram of a sample to obtain an estimate of the shape of the density function. The histogram is not the density, but in a nonparametric problem, can be viewed as a reasonable estimate of the density. We have methods to generate random samples from completely specified densities; bootstrap generates random samples from the empirical distribution of the sample.</p>
-<p>The term <em>bootstrap</em> can refer to nonparametric bootstrap or parametric bootstrap. Monte Carlo methods that involve sampling from a fully specified probability distribution, such as methods of Chapter 7 are sometimes called parametric bootstrap. Nonparametric bootstrap is the subject of this chapter. In nonparametric bootstrap, the distribution is not specified.</p>
-<p>To generate a bootstrap random sample by resampling <span class="math inline">\(x\)</span>, generate n random integers <span class="math inline">\(\{i_1,\dots, i_n\}\)</span> uniformly distributed on <span class="math inline">\(\{1,\dots , n\}\)</span> and select the bootstrap sample <span class="math inline">\(x^∗ = (x_{i_1} ,\dots, x_{i_n} )\)</span>. Suppose <span class="math inline">\(\theta\)</span> is the parameter of interest (<span class="math inline">\(\theta\)</span> could be a vector), and <span class="math inline">\(\hat \theta\)</span> is an estimator of <span class="math inline">\(\theta\)</span>. Then the bootstrap estimate of the distribution of <span class="math inline">\(\hat \theta\)</span> is obtained as follows.</p>
+<p>There are other method to construct bootstrap CIs. Interested reader should read the reference book, Davison &amp; Hinkley (1997).</p>
+<!-- ---  -->
+<!-- The distribution of $X^\ast$ is the empirical distribution $F_n$ of the sample $x$. The empirical distribution places mass $1/n$ at each observed data point. The bootstrap uses the empirical distribution as an estimate of the true but unknown distribution $F$. -->
+<!-- The bootstrap is a resampling method that allows estimation of the *sampling distribution* of almost any statistic using random sampling methods. -->
+<!-- -   Parametric bootstrap -->
+<!-- -   Nonparametric bootstrap: In nonparametric bootstrap, the distribution is not specified. -->
+<!-- ::: {.callout-example title="Simple example of Bootstrap"} -->
+<!-- ```{r bootstrap-simple-example} -->
+<!-- set.seed(333) -->
+<!-- n <- 1E4 -->
+<!-- B <- 1E4 -->
+<!-- x <- rnorm(n, mean = 5, sd = 2) #original sample -->
+<!-- boot_means <- pbapply::pbsapply(1:B, function(i){ -->
+<!--   indices <- sample(1:n, size = n, replace = TRUE) #resample -->
+<!--   boot.sample <- x[indices] -->
+<!--   mean(boot.sample) -->
+<!-- }) -->
+<!-- mean(boot_means) -->
+<!-- hist(boot_means, breaks = 50, main = "Bootstrap distribution of the mean", xlab = "Mean") -->
+<!-- # Compute statistics -->
+<!-- true_mean <- 5 -->
+<!-- boot_mean <- mean(boot_means) -->
+<!-- df <- tibble(x = boot_means) -->
+<!-- # Plot -->
+<!-- ggplot(df, aes(x = x)) + -->
+<!--   geom_histogram(aes(y = ..density..), bins = 50, -->
+<!--                  fill = "lightgreen", color = "black", alpha = 0.7) + -->
+<!--   geom_density(color = "darkgreen", size = 1) + -->
+<!--   geom_vline(xintercept = true_mean, color = "red", linetype = "dashed", size = 1.1) + -->
+<!--   geom_vline(xintercept = boot_mean, color = "blue", linetype = "solid", size = 1.1) + -->
+<!--   labs( -->
+<!--     title = "Bootstrap Distribution of the Sample Mean", -->
+<!--     x = "Bootstrap Mean", -->
+<!--     y = "Density" -->
+<!--   ) + -->
+<!--   annotate("text", x = true_mean, y = 0.3, label = "True mean = 5", color = "red", hjust = -0.1) + -->
+<!--   annotate("text", x = boot_mean, y = 0.25, label = sprintf("Bootstrap mean = %.2f", boot_mean), -->
+<!--            color = "blue", hjust = -0.1) + -->
+<!--   theme_minimal(base_size = 14) -->
+<!-- ``` -->
+<!-- ::: -->
+<!-- The bootstrap is a general tool for assessing statistical accuracy. First we describe the bootstrap in general, and then show how it can be used to estimate extra-sample prediction error. As with cross-validation, the boot- strap seeks to estimate the conditional error ErrT , but typically estimates well only the expected prediction error Err. -->
+<!-- The distribution of the finite population represented by the sample can be regarded as a pseudo-population with similar characteristics as the true population. By repeatedly generating random samples from this pseudo-population (resampling), the sampling distribution of a statistic can be estimated. Properties of an estimator such as *bias* or *standard error* can be estimated by resampling. -->
+<!-- Bootstrap estimates of a sampling distribution are analogous to the idea of density estimation. We construct a histogram of a sample to obtain an estimate of the shape of the density function. The histogram is not the density, but in a nonparametric problem, can be viewed as a reasonable estimate of the density. We have methods to generate random samples from completely specified densities; bootstrap generates random samples from the empirical distribution of the sample. -->
+<!-- The term *bootstrap* can refer to nonparametric bootstrap or parametric bootstrap. Monte Carlo methods that involve sampling from a fully specified probability distribution, such as methods of Chapter 7 are sometimes called parametric bootstrap. Nonparametric bootstrap is the subject of this chapter. In nonparametric bootstrap, the distribution is not specified. -->
+<!-- To generate a bootstrap random sample by resampling $x$, generate n random integers $\{i_1,\dots, i_n\}$ uniformly distributed on $\{1,\dots , n\}$ and select the bootstrap sample $x^∗ = (x_{i_1} ,\dots, x_{i_n} )$. Suppose $\theta$ is the parameter of interest ($\theta$ could be a vector), and $\hat \theta$ is an estimator of $\theta$. Then the bootstrap estimate of the distribution of $\hat \theta$ is obtained as follows. -->
+<!-- ## Applications -->
+<!-- These methods are widely used in statistical inference and have applications in various fields. -->
 </section>
-<section id="applications" class="level2" data-number="6.9">
-<h2 data-number="6.9" class="anchored" data-anchor-id="applications"><span class="header-section-number">6.9</span> Applications</h2>
-<p>These methods are widely used in statistical inference and have applications in various fields.</p>
-</section>
-<section id="side-reading-wont-be-on-the-exam" class="level2" data-number="6.10">
-<h2 data-number="6.10" class="anchored" data-anchor-id="side-reading-wont-be-on-the-exam"><span class="header-section-number">6.10</span> Side reading (Won’t be on the exam)</h2>
-<div id="callout-8" class="callout callout-style-default callout-note callout-titled" title="Normal theory for SE (will not be on exam)">
+<section id="side-reading-wont-be-on-the-exam" class="level2" data-number="6.9">
+<h2 data-number="6.9" class="anchored" data-anchor-id="side-reading-wont-be-on-the-exam"><span class="header-section-number">6.9</span> Side reading (Won’t be on the exam)</h2>
+<div id="callout-11" class="callout callout-style-default callout-note callout-titled" title="Normal theory for SE (will not be on exam)">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
@@ -1186,38 +1462,38 @@ z = \frac{1}{2}\log\!\left(\frac{1 + r}{1 - r}\right),
 <p>✅ <strong>Normal approximation (Fisher z) SE = 0.115</strong></p>
 <p>Alternatively, we may use the <strong>Bootstrap Estimate</strong> to compare with:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bootstrap) <span class="co"># for the law data</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Sample data</span></span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>law <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">LSAT =</span> <span class="fu">c</span>(<span class="dv">576</span>, <span class="dv">635</span>, <span class="dv">558</span>, <span class="dv">578</span>, <span class="dv">666</span>, <span class="dv">580</span>, <span class="dv">555</span>, <span class="dv">661</span>, <span class="dv">651</span>, <span class="dv">605</span>, <span class="dv">653</span>, <span class="dv">575</span>, <span class="dv">545</span>, <span class="dv">572</span>, <span class="dv">594</span>),</span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">GPA  =</span> <span class="fu">c</span>(<span class="dv">339</span>, <span class="dv">330</span>, <span class="dv">281</span>, <span class="dv">303</span>, <span class="dv">344</span>, <span class="dv">307</span>, <span class="dv">300</span>, <span class="dv">343</span>, <span class="dv">336</span>, <span class="dv">313</span>, <span class="dv">312</span>, <span class="dv">274</span>, <span class="dv">276</span>, <span class="dv">288</span>, <span class="dv">296</span>)</span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Sample correlation</span></span>
-<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="fu">cor</span>(law<span class="sc">$</span>LSAT, law<span class="sc">$</span>GPA)</span>
-<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(law)</span>
-<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Bootstrap estimate of SE</span></span>
-<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="dv">200</span></span>
-<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>R <span class="ot">&lt;-</span> <span class="fu">replicate</span>(B, {</span>
-<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>  i <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>n, <span class="at">size =</span> n, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cor</span>(law<span class="sc">$</span>LSAT[i], law<span class="sc">$</span>GPA[i])</span>
-<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a>se_boot <span class="ot">&lt;-</span> <span class="fu">sd</span>(R)</span>
-<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Normal approximation</span></span>
-<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a>se_normal <span class="ot">&lt;-</span> <span class="fu">sqrt</span>((<span class="dv">1</span> <span class="sc">-</span> r<span class="sc">^</span><span class="dv">2</span>)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> (n <span class="sc">-</span> <span class="dv">1</span>))</span>
-<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Fisher z-approximation</span></span>
-<span id="cb34-26"><a href="#cb34-26" aria-hidden="true" tabindex="-1"></a>se_fisher <span class="ot">&lt;-</span> (<span class="dv">1</span> <span class="sc">-</span> r<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> <span class="fu">sqrt</span>(n <span class="sc">-</span> <span class="dv">3</span>)</span>
-<span id="cb34-27"><a href="#cb34-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-28"><a href="#cb34-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Display results</span></span>
-<span id="cb34-29"><a href="#cb34-29" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
-<span id="cb34-30"><a href="#cb34-30" aria-hidden="true" tabindex="-1"></a>  <span class="at">Method =</span> <span class="fu">c</span>(<span class="st">"Bootstrap"</span>, <span class="st">"Normal theory"</span>, <span class="st">"Fisher z-approximation"</span>),</span>
-<span id="cb34-31"><a href="#cb34-31" aria-hidden="true" tabindex="-1"></a>  <span class="at">SE =</span> <span class="fu">c</span>(se_boot, se_normal, se_fisher)</span>
-<span id="cb34-32"><a href="#cb34-32" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bootstrap) <span class="co"># for the law data</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Sample data</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>law <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">LSAT =</span> <span class="fu">c</span>(<span class="dv">576</span>, <span class="dv">635</span>, <span class="dv">558</span>, <span class="dv">578</span>, <span class="dv">666</span>, <span class="dv">580</span>, <span class="dv">555</span>, <span class="dv">661</span>, <span class="dv">651</span>, <span class="dv">605</span>, <span class="dv">653</span>, <span class="dv">575</span>, <span class="dv">545</span>, <span class="dv">572</span>, <span class="dv">594</span>),</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">GPA  =</span> <span class="fu">c</span>(<span class="dv">339</span>, <span class="dv">330</span>, <span class="dv">281</span>, <span class="dv">303</span>, <span class="dv">344</span>, <span class="dv">307</span>, <span class="dv">300</span>, <span class="dv">343</span>, <span class="dv">336</span>, <span class="dv">313</span>, <span class="dv">312</span>, <span class="dv">274</span>, <span class="dv">276</span>, <span class="dv">288</span>, <span class="dv">296</span>)</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Sample correlation</span></span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="fu">cor</span>(law<span class="sc">$</span>LSAT, law<span class="sc">$</span>GPA)</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(law)</span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Bootstrap estimate of SE</span></span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="dv">200</span></span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>R <span class="ot">&lt;-</span> <span class="fu">replicate</span>(B, {</span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>  i <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>n, <span class="at">size =</span> n, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cor</span>(law<span class="sc">$</span>LSAT[i], law<span class="sc">$</span>GPA[i])</span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a>se_boot <span class="ot">&lt;-</span> <span class="fu">sd</span>(R)</span>
+<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Normal approximation</span></span>
+<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a>se_normal <span class="ot">&lt;-</span> <span class="fu">sqrt</span>((<span class="dv">1</span> <span class="sc">-</span> r<span class="sc">^</span><span class="dv">2</span>)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> (n <span class="sc">-</span> <span class="dv">1</span>))</span>
+<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Fisher z-approximation</span></span>
+<span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a>se_fisher <span class="ot">&lt;-</span> (<span class="dv">1</span> <span class="sc">-</span> r<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> <span class="fu">sqrt</span>(n <span class="sc">-</span> <span class="dv">3</span>)</span>
+<span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-28"><a href="#cb38-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Display results</span></span>
+<span id="cb38-29"><a href="#cb38-29" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb38-30"><a href="#cb38-30" aria-hidden="true" tabindex="-1"></a>  <span class="at">Method =</span> <span class="fu">c</span>(<span class="st">"Bootstrap"</span>, <span class="st">"Normal theory"</span>, <span class="st">"Fisher z-approximation"</span>),</span>
+<span id="cb38-31"><a href="#cb38-31" aria-hidden="true" tabindex="-1"></a>  <span class="at">SE =</span> <span class="fu">c</span>(se_boot, se_normal, se_fisher)</span>
+<span id="cb38-32"><a href="#cb38-32" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                  Method        SE
 1              Bootstrap 0.1200175
@@ -1226,21 +1502,23 @@ z = \frac{1}{2}\log\!\left(\frac{1 + r}{1 - r}\right),
 </div>
 </div>
 <hr>
-<section id="reference" class="level2" data-number="6.11">
-<h2 data-number="6.11" class="anchored" data-anchor-id="reference"><span class="header-section-number">6.11</span> Reference:</h2>
+<section id="reference" class="level2" data-number="6.10">
+<h2 data-number="6.10" class="anchored" data-anchor-id="reference"><span class="header-section-number">6.10</span> Reference:</h2>
 <ul>
+<li><p>Davison, A.C. and Hinkley, D.V. (1997). <a href="https://www.cambridge.org/core/books/bootstrap-methods-and-their-application/ED2FD043579F27952363566DC09CBD6A">Bootstrap Methods and their Application</a>. Cambridge University Press.</p></li>
 <li><p>Section 7.11 in Hastie, T., Tibshirani R. and Friedman, J. (2008). <a href="https://www.sas.upenn.edu/~fdiebold/NoHesitations/BookAdvanced.pdf">The Elements of Statistical Learning</a>. Springer, 2nd edition.</p></li>
 <li><p>Chapter 8 of Rizzo, M.L. (2007). <em>Statistical Computing with R</em>. CRC Press, Roca Baton.</p></li>
 <li><p>Wu, C.F.J. (1986).<a href="https://projecteuclid.org/journals/annals-of-statistics/volume-14/issue-4/Jackknife-Bootstrap-and-Other-Resampling-Methods-in-Regression-Analysis/10.1214/aos/1176350142.full">Bootstrap and Other Resampling Methods in Regression Analysis</a>. <em>The Annals of Statistics</em>.</p></li>
 </ul>
 <hr>
 </section>
-<section id="r-functions" class="level2" data-number="6.12">
-<h2 data-number="6.12" class="anchored" data-anchor-id="r-functions"><span class="header-section-number">6.12</span> R Functions</h2>
+<section id="r-functions" class="level2" data-number="6.11">
+<h2 data-number="6.11" class="anchored" data-anchor-id="r-functions"><span class="header-section-number">6.11</span> R Functions</h2>
 <p>Some useful R functions for resampling methods:</p>
 <ul>
 <li><p><code>sample()</code>: Generate random samples from a specified set of data points.</p></li>
 <li><p><code>boot::boot()</code>: Perform bootstrap resampling and compute statistics.</p></li>
+<li><p><code>bootstrap</code>: A package that is associated with the book by Efron and Tibshirani (1993). It contains variety of the functions for bootstrap and jackknife, and the dataset used in the book.</p></li>
 </ul>
 </section>
 </div>
