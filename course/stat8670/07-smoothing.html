@@ -106,6 +106,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="custom-callouts.css">
 </head>
@@ -272,8 +301,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#moving-average-smoothing" id="toc-moving-average-smoothing" class="nav-link active" data-scroll-target="#moving-average-smoothing"><span class="header-section-number">7.0.1</span> Moving Average Smoothing</a></li>
+  <li><a href="#kernel-smoothing" id="toc-kernel-smoothing" class="nav-link" data-scroll-target="#kernel-smoothing"><span class="header-section-number">7.0.2</span> Kernel Smoothing</a></li>
+  <li><a href="#smoothing-splines" id="toc-smoothing-splines" class="nav-link" data-scroll-target="#smoothing-splines"><span class="header-section-number">7.0.3</span> Smoothing Splines</a></li>
+  <li><a href="#reference" id="toc-reference" class="nav-link" data-scroll-target="#reference"><span class="header-section-number">7.1</span> Reference:</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -341,8 +379,278 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>Once the data is smoothed, we can see the underlying trend more clearly. Smoothing techniques are widely used in various fields such as signal processing, time series analysis, and machine learning to enhance data quality and extract meaningful patterns. In this chapter, we will see a few techniques for smoothing data.</p>
+<section id="moving-average-smoothing" class="level3" data-number="7.0.1">
+<h3 data-number="7.0.1" class="anchored" data-anchor-id="moving-average-smoothing"><span class="header-section-number">7.0.1</span> Moving Average Smoothing</h3>
+<p>One of the simplest smoothing techniques is the <strong>moving average.</strong> The moving average smooths data by averaging neighboring data points. The formula for a simple moving average with a window size of <span class="math inline">\(k\)</span> is given by: <span class="math display">\[
+x_i^{\text{smoothed}} = \frac{1}{k} \sum_{j=i-\frac{k-1}{2}}^{i+\frac{k-1}{2}} x_j,
+\]</span> where <span class="math inline">\(x_i\)</span> is the original data point, and <span class="math inline">\(x_i^{\text{smoothed}}\)</span> is the smoothed data point.</p>
+<div class="callout-example" title="Example: Moving Average Smoothing">
+<p>Suppose <span class="math inline">\(\mathbf{x}=(x_1,\dots,x_n)\)</span> and <span class="math inline">\(y_i=\sin(x_i)+N(0, 0.5^2)\)</span> are the observed data points. We can apply a moving average smoother with a window size of <span class="math inline">\(k\)</span> to smooth the data, where <span class="math inline">\(k=1,3,\dots,11\)</span>. The following R code demonstrates how to implement moving average smoothing with different window sizes and visualize the results.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">length.out =</span> n)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">sin</span>(x) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">0.5</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Moving average smoother (use odd windows to align with your legend)</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">7</span>, <span class="dv">9</span>, <span class="dv">11</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>smoothed_y_list <span class="ot">&lt;-</span> <span class="fu">lapply</span>(k, <span class="cf">function</span>(window_size) {</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># centered moving average; edges will be NA (that’s expected)</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  stats<span class="sc">::</span><span class="fu">filter</span>(y, <span class="fu">rep</span>(<span class="dv">1</span> <span class="sc">/</span> window_size, window_size), <span class="at">sides =</span> <span class="dv">2</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Build data frame</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> x, <span class="at">y =</span> y)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(k)) {</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  df[[<span class="fu">paste0</span>(<span class="st">"smoothed_y_"</span>, k[i])]] <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(smoothed_y_list[[i]])</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Long format for ggplot</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(reshape2)</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>df_melted <span class="ot">&lt;-</span> <span class="fu">melt</span>(</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  df,</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">id.vars =</span> <span class="st">"x"</span>,</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable.name =</span> <span class="st">"Type"</span>,</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  <span class="at">value.name =</span> <span class="st">"Value"</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Order legend nicely and provide clean labels</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>wanted_levels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"y"</span>, <span class="fu">paste0</span>(<span class="st">"smoothed_y_"</span>, k))</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>labels_named <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="st">"Original Data"</span>,</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_3"</span>  <span class="ot">=</span> <span class="st">"Window Size 3"</span>,</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_5"</span>  <span class="ot">=</span> <span class="st">"Window Size 5"</span>,</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_7"</span>  <span class="ot">=</span> <span class="st">"Window Size 7"</span>,</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_9"</span>  <span class="ot">=</span> <span class="st">"Window Size 9"</span>,</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_11"</span> <span class="ot">=</span> <span class="st">"Window Size 11"</span></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>colors_named <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="st">"gray50"</span>,</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_3"</span>  <span class="ot">=</span> <span class="st">"blue"</span>,</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_5"</span>  <span class="ot">=</span> <span class="st">"red"</span>,</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_7"</span>  <span class="ot">=</span> <span class="st">"green"</span>,</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_9"</span>  <span class="ot">=</span> <span class="st">"purple"</span>,</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_11"</span> <span class="ot">=</span> <span class="st">"orange"</span></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>df_melted<span class="sc">$</span>Type <span class="ot">&lt;-</span> <span class="fu">factor</span>(df_melted<span class="sc">$</span>Type, <span class="at">levels =</span> wanted_levels)</span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_melted, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> Value, <span class="at">color =</span> Type)) <span class="sc">+</span></span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Moving Average Smoothing with Different Window Sizes"</span>,</span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"X"</span>, <span class="at">y =</span> <span class="st">"Y"</span></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> colors_named, <span class="at">labels =</span> labels_named, <span class="at">drop =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="07-smoothing_files/figure-html/moving-average-smoothing-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="kernel-smoothing" class="level3" data-number="7.0.2">
+<h3 data-number="7.0.2" class="anchored" data-anchor-id="kernel-smoothing"><span class="header-section-number">7.0.2</span> Kernel Smoothing</h3>
+<p>Another popular smoothing technique is <strong>kernel smoothing.</strong> Kernel smoothing uses a kernel function to weight neighboring data points when estimating the smoothed value at a given point. The formula for kernel smoothing is given by: <span class="math display">\[
+x_i^{\text{smoothed}} = \frac{\sum_{j=1}^{n} K\left(\frac{x_i - x_j}{h}\right) x_j}{\sum_{j=1}^{n} K\left(\frac{x_i - x_j}{h}\right)},
+\]</span> where <span class="math inline">\(K\)</span> is the kernel function, <span class="math inline">\(h\)</span> is the bandwidth parameter, and <span class="math inline">\(x_i^{\text{smoothed}}\)</span> is the smoothed data point.</p>
+<p>Some common kernel functions include the following:</p>
+<ul>
+<li>Gaussian kernel: <span class="math inline">\(K(u) = \frac{1}{\sqrt{2\pi}} e^{-\frac{1}{2}u^2}\)</span></li>
+<li>Epanechnikov kernel: <span class="math inline">\(K(u) = \frac{3}{4}(1-u^2)\)</span> for <span class="math inline">\(|u| \leq 1\)</span>, and <span class="math inline">\(0\)</span> otherwise</li>
+<li>uniform kernel: <span class="math inline">\(K(u) = \frac{1}{2}\)</span> for <span class="math inline">\(|u| \leq 1\)</span>, and <span class="math inline">\(0\)</span> otherwise</li>
+</ul>
+<div id="callout-1" class="callout callout-style-default callout-note callout-titled" title="Choice of the kernel and the bandwidth">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Choice of the kernel and the bandwidth
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The choice of the kernel function <span class="math inline">\(K\)</span> is often less critical than the choice of the bandwidth <span class="math inline">\(h\)</span>. Common choices like the Gaussian kernel are widely used due to their smoothness and mathematical properties.</p>
+<p>The choice of bandwidth <span class="math inline">\(h\)</span> is crucial, as it determines the degree of smoothing. A smaller bandwidth results in less smoothing, while a larger bandwidth leads to more smoothing.</p>
+</div>
+</div>
+<div class="callout-example" title="Example: Kernel Smoothing">
+<p>Suppose <span class="math inline">\(\mathbf{x}=(x_1,\dots,x_n)\)</span> and <span class="math inline">\(y_i=\sin(x_i)+N(0, 0.5^2)\)</span> are the observed data points. We can apply kernel smoothing with different bandwidths <span class="math inline">\(h\)</span> to smooth the data, where <span class="math inline">\(h=0.1,0.3,0.5,0.7,1.0\)</span>. The following R code demonstrates how to implement kernel smoothing with different bandwidths and visualize the results.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">length.out =</span> n)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">sin</span>(x) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">0.5</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Kernel smoother function</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>kernel_smooth <span class="ot">&lt;-</span> <span class="cf">function</span>(x, y, h) {</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">length</span>(x)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  smoothed_y <span class="ot">&lt;-</span> <span class="fu">numeric</span>(n)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    weights <span class="ot">&lt;-</span> <span class="fu">dnorm</span>((x[i] <span class="sc">-</span> x) <span class="sc">/</span> h)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    smoothed_y[i] <span class="ot">&lt;-</span> <span class="fu">sum</span>(weights <span class="sc">*</span> y) <span class="sc">/</span> <span class="fu">sum</span>(weights)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(smoothed_y)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Bandwidths</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>h_values <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.5</span>, <span class="fl">0.7</span>, <span class="fl">1.0</span>)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>smoothed_y_list <span class="ot">&lt;-</span> <span class="fu">lapply</span>(h_values, <span class="cf">function</span>(h) {</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kernel_smooth</span>(x, y, h)</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Build data frame</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> x, <span class="at">y =</span> y)</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(h_values)) {</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  df[[<span class="fu">paste0</span>(<span class="st">"smoothed_y_h"</span>, h_values[i])]] <span class="ot">&lt;-</span> smoothed_y_list[[i]]</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Long format for ggplot</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(reshape2)</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>df_melted <span class="ot">&lt;-</span> <span class="fu">melt</span>(</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>  df,</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>  <span class="at">id.vars =</span> <span class="st">"x"</span>,</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable.name =</span> <span class="st">"Type"</span>,</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>  <span class="at">value.name =</span> <span class="st">"Value"</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Order legend nicely and provide clean labels</span></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>wanted_levels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"y"</span>, <span class="fu">paste0</span>(<span class="st">"smoothed_y_h"</span>, h_values))</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>labels_named <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="st">"Original Data"</span>,</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_h0.1"</span> <span class="ot">=</span> <span class="st">"Bandwidth 0.1"</span>,</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_h0.3"</span> <span class="ot">=</span> <span class="st">"Bandwidth 0.3"</span>,</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_h0.5"</span> <span class="ot">=</span> <span class="st">"Bandwidth 0.5"</span>,</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_h0.7"</span> <span class="ot">=</span> <span class="st">"Bandwidth 0.7"</span>,</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_h1"</span>   <span class="ot">=</span> <span class="st">"Bandwidth 1.0"</span></span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>colors_named <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="st">"gray50"</span>,</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_h0.1"</span> <span class="ot">=</span> <span class="st">"blue"</span>,</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_h0.3"</span> <span class="ot">=</span> <span class="st">"red"</span>,</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_h0.5"</span> <span class="ot">=</span> <span class="st">"green"</span>,</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_h0.7"</span> <span class="ot">=</span> <span class="st">"purple"</span>,</span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_h1"</span>   <span class="ot">=</span> <span class="st">"orange"</span></span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>df_melted<span class="sc">$</span>Type <span class="ot">&lt;-</span> <span class="fu">factor</span>(df_melted<span class="sc">$</span>Type, <span class="at">levels =</span> wanted_levels)</span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_melted, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> Value, <span class="at">color =</span> Type)) <span class="sc">+</span></span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Kernel Smoothing with Different Bandwidths"</span>,</span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"X"</span>, <span class="at">y =</span> <span class="st">"Y"</span></span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> colors_named, <span class="at">labels =</span> labels_named, <span class="at">drop =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="07-smoothing_files/figure-html/kernel-smoothing-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="smoothing-splines" class="level3" data-number="7.0.3">
+<h3 data-number="7.0.3" class="anchored" data-anchor-id="smoothing-splines"><span class="header-section-number">7.0.3</span> Smoothing Splines</h3>
+<p>Smoothing splines are a flexible method for smoothing data by fitting a piecewise polynomial function to the data points. The smoothing spline minimizes the following objective function: <span class="math display">\[
+\sum_{i=1}^{n} \{y_i - f(x_i)\}^2 + \lambda \int (f''(x))^2 dx,
+\]</span> where <span class="math inline">\(y_i\)</span> are the observed data points, <span class="math inline">\(f(x)\)</span> is the smoothing spline, <span class="math inline">\(\lambda\)</span> is the smoothing parameter that controls the trade-off between fidelity to the data and smoothness of the spline, and <span class="math inline">\(f''(x)\)</span> is the second derivative of the spline function.</p>
+<div class="callout-example" title="Example: Smoothing Splines">
+<p>Suppose <span class="math inline">\(\mathbf{x}=(x_1,\dots,x_n)\)</span> and <span class="math inline">\(y_i=\sin(x_i)+N(0, 0.5^2)\)</span> are the observed data points. We can apply smoothing splines with different smoothing parameters <span class="math inline">\(\lambda\)</span> to smooth the data, where <span class="math inline">\(\lambda=0.01,0.1,1,10,100\)</span>. The following R code demonstrates how to implement smoothing splines with different smoothing parameters and visualize the results.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">length.out =</span> n)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">sin</span>(x) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">0.5</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Smoothing spline using lambda (penalty on curvature)</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>smoothing_spline <span class="ot">&lt;-</span> <span class="cf">function</span>(x, y, lambda) {</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  fit <span class="ot">&lt;-</span> <span class="fu">smooth.spline</span>(x, y, <span class="at">lambda =</span> lambda)  <span class="co"># &lt;-- use lambda, not spar</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(fit, x)<span class="sc">$</span>y</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Smoothing parameters (penalty sizes)</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>lambda_values <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.1</span>, <span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">100</span>)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>smoothed_y_list <span class="ot">&lt;-</span> <span class="fu">lapply</span>(lambda_values, <span class="cf">function</span>(lambda) {</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">smoothing_spline</span>(x, y, lambda)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Build data frame</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> x, <span class="at">y =</span> y)</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(lambda_values)) {</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  nm <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"smoothed_y_lambda"</span>, lambda_values[i])</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  df[[nm]] <span class="ot">&lt;-</span> smoothed_y_list[[i]]</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Long format for ggplot</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(reshape2)</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>df_melted <span class="ot">&lt;-</span> <span class="fu">melt</span>(</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>  df,</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>  <span class="at">id.vars =</span> <span class="st">"x"</span>,</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable.name =</span> <span class="st">"Type"</span>,</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  <span class="at">value.name =</span> <span class="st">"Value"</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a><span class="co"># Order legend &amp; labels</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>wanted_levels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"y"</span>, <span class="fu">paste0</span>(<span class="st">"smoothed_y_lambda"</span>, lambda_values))</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>labels_named <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="st">"Original Data"</span>,</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_lambda0.01"</span> <span class="ot">=</span> <span class="st">"Lambda 0.01"</span>,</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_lambda0.1"</span>  <span class="ot">=</span> <span class="st">"Lambda 0.1"</span>,</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_lambda1"</span>    <span class="ot">=</span> <span class="st">"Lambda 1"</span>,</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_lambda10"</span>   <span class="ot">=</span> <span class="st">"Lambda 10"</span>,</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_lambda100"</span>  <span class="ot">=</span> <span class="st">"Lambda 100"</span></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>colors_named <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="st">"gray50"</span>,</span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_lambda0.01"</span> <span class="ot">=</span> <span class="st">"blue"</span>,</span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_lambda0.1"</span>  <span class="ot">=</span> <span class="st">"red"</span>,</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_lambda1"</span>    <span class="ot">=</span> <span class="st">"green"</span>,</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_lambda10"</span>   <span class="ot">=</span> <span class="st">"purple"</span>,</span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>  <span class="st">"smoothed_y_lambda100"</span>  <span class="ot">=</span> <span class="st">"orange"</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>df_melted<span class="sc">$</span>Type <span class="ot">&lt;-</span> <span class="fu">factor</span>(df_melted<span class="sc">$</span>Type, <span class="at">levels =</span> wanted_levels)</span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_melted, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> Value, <span class="at">color =</span> Type)) <span class="sc">+</span></span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Smoothing Splines with Different Penalties (lambda)"</span>,</span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"X"</span>, <span class="at">y =</span> <span class="st">"Y"</span></span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> colors_named, <span class="at">labels =</span> labels_named, <span class="at">drop =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="07-smoothing_files/figure-html/smoothing-splines-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</section>
+<section id="reference" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="reference"><span class="header-section-number">7.1</span> Reference:</h2>
+<ul>
+<li><p>Gu, C. (2013). <a href="https://link.springer.com/book/10.1007/978-1-4757-3683-0">Smoothing Spline ANOVA Models</a>. Springer, 2nd Edition.</p></li>
+<li><p>Ramsay, J.O., Hooker, G. and Graves, S. (2009). <a href="https://link.springer.com/book/10.1007/978-0-387-98185-7">Functional Data Analysis with R and MATLAB</a>. Springer.</p></li>
+</ul>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
