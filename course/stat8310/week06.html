@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>7&nbsp; Week 6 — Hierarchical Bayesian Models – STAT8310 - Bayesian Data Analysis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./week07.html" rel="next">
+<link href="./week05.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-27c261d06b905028a18691de25d09dde.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT8310 - Bayesian Data Analysis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8310"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="././STAT-8310---Bayesian-Data-Analysis.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./week06.html"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Week 6 — Hierarchical Bayesian Models</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Quick Overview</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./week01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Week 1 — Introduction and Bayesian Thinking</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./week02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Week 2 — Conjugate Priors and Analytical Posteriors</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./week03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Week 3 — Monte Carlo Integration and Simulation-Based Bayesian Inference</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./week04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Week 4 — Markov Chain Monte Carlo (MCMC) Methods</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./week05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Week 5 — Model Checking and Comparison</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./week06.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Week 6 — Hierarchical Bayesian Models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./week07.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Week 7 — Bayesian Decision Theory</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./week08.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Week 8 — Advanced Bayesian Computation</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#learning-goals" id="toc-learning-goals" class="nav-link active" data-scroll-target="#learning-goals"><span class="header-section-number">7.1</span> Learning Goals</a></li>
+  <li><a href="#lecture-1-motivation-and-structure-of-hierarchical-models" id="toc-lecture-1-motivation-and-structure-of-hierarchical-models" class="nav-link" data-scroll-target="#lecture-1-motivation-and-structure-of-hierarchical-models"><span class="header-section-number">7.2</span> Lecture 1 — Motivation and Structure of Hierarchical Models</a>
+  <ul class="collapse">
+  <li><a href="#why-hierarchical-models" id="toc-why-hierarchical-models" class="nav-link" data-scroll-target="#why-hierarchical-models"><span class="header-section-number">7.2.1</span> 1.1 Why Hierarchical Models?</a></li>
+  <li><a href="#model-structure" id="toc-model-structure" class="nav-link" data-scroll-target="#model-structure"><span class="header-section-number">7.2.2</span> 1.2 Model Structure</a></li>
+  <li><a href="#three-extremes-of-pooling" id="toc-three-extremes-of-pooling" class="nav-link" data-scroll-target="#three-extremes-of-pooling"><span class="header-section-number">7.2.3</span> 1.3 Three Extremes of Pooling</a></li>
+  <li><a href="#shrinkage-intuition" id="toc-shrinkage-intuition" class="nav-link" data-scroll-target="#shrinkage-intuition"><span class="header-section-number">7.2.4</span> 1.4 Shrinkage Intuition</a></li>
+  <li><a href="#example-simulated-group-means" id="toc-example-simulated-group-means" class="nav-link" data-scroll-target="#example-simulated-group-means"><span class="header-section-number">7.2.5</span> 1.5 Example — Simulated Group Means</a></li>
+  <li><a href="#advantages-of-hierarchical-models" id="toc-advantages-of-hierarchical-models" class="nav-link" data-scroll-target="#advantages-of-hierarchical-models"><span class="header-section-number">7.2.6</span> 1.6 Advantages of Hierarchical Models</a></li>
+  </ul></li>
+  <li><a href="#lecture-2-hierarchical-regression-and-implementation" id="toc-lecture-2-hierarchical-regression-and-implementation" class="nav-link" data-scroll-target="#lecture-2-hierarchical-regression-and-implementation"><span class="header-section-number">7.3</span> Lecture 2 — Hierarchical Regression and Implementation</a>
+  <ul class="collapse">
+  <li><a href="#hierarchical-linear-regression" id="toc-hierarchical-linear-regression" class="nav-link" data-scroll-target="#hierarchical-linear-regression"><span class="header-section-number">7.3.1</span> 2.1 Hierarchical Linear Regression</a></li>
+  <li><a href="#example-hierarchical-regression-with-brms" id="toc-example-hierarchical-regression-with-brms" class="nav-link" data-scroll-target="#example-hierarchical-regression-with-brms"><span class="header-section-number">7.3.2</span> 2.2 Example — Hierarchical Regression with <code>brms</code></a></li>
+  <li><a href="#interpretation" id="toc-interpretation" class="nav-link" data-scroll-target="#interpretation"><span class="header-section-number">7.3.3</span> 2.3 Interpretation</a></li>
+  <li><a href="#practical-considerations" id="toc-practical-considerations" class="nav-link" data-scroll-target="#practical-considerations"><span class="header-section-number">7.3.4</span> 2.4 Practical Considerations</a></li>
+  <li><a href="#summary-of-hierarchical-modeling-benefits" id="toc-summary-of-hierarchical-modeling-benefits" class="nav-link" data-scroll-target="#summary-of-hierarchical-modeling-benefits"><span class="header-section-number">7.3.5</span> 2.5 Summary of Hierarchical Modeling Benefits</a></li>
+  </ul></li>
+  <li><a href="#homework-6" id="toc-homework-6" class="nav-link" data-scroll-target="#homework-6"><span class="header-section-number">7.4</span> Homework 6</a></li>
+  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways"><span class="header-section-number">7.5</span> Key Takeaways</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Week 6 — Hierarchical Bayesian Models</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>This week introduces <strong>hierarchical (multilevel) Bayesian models</strong>, which allow parameters to vary across groups while sharing information through higher-level priors.</p>
+<p>We study partial pooling, shrinkage, and their implementation for normal and regression models.</p>
+<hr>
+<section id="learning-goals" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="learning-goals"><span class="header-section-number">7.1</span> Learning Goals</h2>
+<p>By the end of this week, you should be able to:</p>
+<ul>
+<li>Explain the motivation for hierarchical modeling.</li>
+<li>Formulate hierarchical models with group-level parameters.</li>
+<li>Interpret partial pooling and shrinkage.</li>
+<li>Implement a two-level Bayesian model in R using simulation or <code>brms</code>.</li>
+<li>Compare complete, no-pooling, and partial-pooling approaches.</li>
+</ul>
+<hr>
+</section>
+<section id="lecture-1-motivation-and-structure-of-hierarchical-models" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="lecture-1-motivation-and-structure-of-hierarchical-models"><span class="header-section-number">7.2</span> Lecture 1 — Motivation and Structure of Hierarchical Models</h2>
+<section id="why-hierarchical-models" class="level3" data-number="7.2.1">
+<h3 data-number="7.2.1" class="anchored" data-anchor-id="why-hierarchical-models"><span class="header-section-number">7.2.1</span> 1.1 Why Hierarchical Models?</h3>
+<p>Hierarchical models capture <strong>structured variability</strong> among related groups or units:</p>
+<ul>
+<li>Repeated measures within individuals</li>
+<li>Students within classrooms</li>
+<li>Machines within factories</li>
+</ul>
+<p>They balance <strong>within-group</strong> and <strong>between-group</strong> information by introducing group-specific parameters drawn from a common population distribution.</p>
+<hr>
+</section>
+<section id="model-structure" class="level3" data-number="7.2.2">
+<h3 data-number="7.2.2" class="anchored" data-anchor-id="model-structure"><span class="header-section-number">7.2.2</span> 1.2 Model Structure</h3>
+<p>For group <span class="math inline">\(j = 1,\ldots,J\)</span> and observations <span class="math inline">\(i = 1,\ldots,n_j\)</span>:</p>
+<p><span class="math display">\[
+y_{ij} \mid \theta_j, \sigma^2 \sim \mathcal{N}(\theta_j, \sigma^2), \qquad
+\theta_j \mid \mu, \tau^2 \sim \mathcal{N}(\mu, \tau^2).
+\]</span></p>
+<p>Top-level priors: <span class="math display">\[
+\mu \sim \mathcal{N}(0,10^2), \quad \tau \sim \text{Half-Cauchy}(0,5).
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\mu\)</span>: overall population mean<br>
+</li>
+<li><span class="math inline">\(\tau\)</span>: between-group standard deviation (pooling strength)</li>
+<li><span class="math inline">\(\sigma\)</span>: within-group standard deviation</li>
+</ul>
+<hr>
+</section>
+<section id="three-extremes-of-pooling" class="level3" data-number="7.2.3">
+<h3 data-number="7.2.3" class="anchored" data-anchor-id="three-extremes-of-pooling"><span class="header-section-number">7.2.3</span> 1.3 Three Extremes of Pooling</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 34%">
+<col style="width: 36%">
+<col style="width: 29%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Model Type</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>No pooling</strong></td>
+<td style="text-align: left;">Estimate each <span class="math inline">\(\theta_j\)</span> separately</td>
+<td style="text-align: left;">Ignores commonality across groups</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Complete pooling</strong></td>
+<td style="text-align: left;">Force all groups to share one parameter</td>
+<td style="text-align: left;">Ignores group differences</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Partial pooling</strong></td>
+<td style="text-align: left;">Combine information via hierarchical prior</td>
+<td style="text-align: left;">Balances both; default Bayesian choice</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="shrinkage-intuition" class="level3" data-number="7.2.4">
+<h3 data-number="7.2.4" class="anchored" data-anchor-id="shrinkage-intuition"><span class="header-section-number">7.2.4</span> 1.4 Shrinkage Intuition</h3>
+<p>Posterior for each group mean $ _j$ shrinks toward the global mean <span class="math inline">\(\mu\)</span>: <span class="math display">\[
+E[\theta_j \mid y] = w_j \bar{y}_j + (1-w_j)\mu,
+\]</span> where <span class="math display">\[
+w_j = \frac{n_j/\sigma^2}{n_j/\sigma^2 + 1/\tau^2}.
+\]</span></p>
+<ul>
+<li>Large <span class="math inline">\(n_j\)</span> (lots of data): <span class="math inline">\(w_j \to 1\)</span> → less shrinkage.</li>
+<li>Small <span class="math inline">\(n_j\)</span>: <span class="math inline">\(w_j \to 0\)</span> → stronger shrinkage toward <span class="math inline">\(\mu\)</span>.</li>
+</ul>
+<hr>
+</section>
+<section id="example-simulated-group-means" class="level3" data-number="7.2.5">
+<h3 data-number="7.2.5" class="anchored" data-anchor-id="example-simulated-group-means"><span class="header-section-number">7.2.5</span> 1.5 Example — Simulated Group Means</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">6</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>J <span class="ot">&lt;-</span> <span class="dv">8</span>; n_j <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">10</span>, J)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>mu_true <span class="ot">&lt;-</span> <span class="dv">5</span>; tau_true <span class="ot">&lt;-</span> <span class="dv">2</span>; sigma_true <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>theta_true <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(J, mu_true, tau_true)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">sapply</span>(theta_true, <span class="cf">function</span>(tj) <span class="fu">rnorm</span>(<span class="dv">10</span>, tj, sigma_true))</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>ybar <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(y)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># No pooling (group means)</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>no_pool <span class="ot">&lt;-</span> ybar</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Complete pooling (global mean)</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>complete_pool <span class="ot">&lt;-</span> <span class="fu">mean</span>(y)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Partial pooling: simple empirical Bayes shrinkage</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>tau_hat <span class="ot">&lt;-</span> <span class="fu">sd</span>(ybar)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>sigma_hat <span class="ot">&lt;-</span> <span class="fu">sd</span>(<span class="fu">as.vector</span>(y))</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>w <span class="ot">&lt;-</span> (n_j<span class="sc">/</span>sigma_hat<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> (n_j<span class="sc">/</span>sigma_hat<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="dv">1</span><span class="sc">/</span>tau_hat<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>partial_pool <span class="ot">&lt;-</span> w<span class="sc">*</span>ybar <span class="sc">+</span> (<span class="dv">1</span><span class="sc">-</span>w)<span class="sc">*</span>complete_pool</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">Group=</span><span class="dv">1</span><span class="sc">:</span>J,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>           <span class="at">ybar=</span><span class="fu">round</span>(ybar,<span class="dv">2</span>),</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>           <span class="at">NoPool=</span><span class="fu">round</span>(no_pool,<span class="dv">2</span>),</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>           <span class="at">Partial=</span><span class="fu">round</span>(partial_pool,<span class="dv">2</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Group ybar NoPool Partial
+1     1 5.53   5.53    5.53
+2     2 4.06   4.06    4.21
+3     3 6.90   6.90    6.76
+4     4 8.19   8.19    7.91
+5     5 4.86   4.86    4.93
+6     6 5.42   5.42    5.43
+7     7 2.20   2.20    2.55
+8     8 6.99   6.99    6.84</code></pre>
+</div>
+</div>
+<p>Observe how partial-pool estimates move small-sample groups toward the global mean.</p>
+<hr>
+</section>
+<section id="advantages-of-hierarchical-models" class="level3" data-number="7.2.6">
+<h3 data-number="7.2.6" class="anchored" data-anchor-id="advantages-of-hierarchical-models"><span class="header-section-number">7.2.6</span> 1.6 Advantages of Hierarchical Models</h3>
+<ul>
+<li>Borrow strength across groups.<br>
+</li>
+<li>Naturally incorporate uncertainty at multiple levels.<br>
+</li>
+<li>Handle unbalanced data and missingness elegantly.<br>
+</li>
+<li>Allow group-level predictors and complex dependence structures.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="lecture-2-hierarchical-regression-and-implementation" class="level2" data-number="7.3">
+<h2 data-number="7.3" class="anchored" data-anchor-id="lecture-2-hierarchical-regression-and-implementation"><span class="header-section-number">7.3</span> Lecture 2 — Hierarchical Regression and Implementation</h2>
+<section id="hierarchical-linear-regression" class="level3" data-number="7.3.1">
+<h3 data-number="7.3.1" class="anchored" data-anchor-id="hierarchical-linear-regression"><span class="header-section-number">7.3.1</span> 2.1 Hierarchical Linear Regression</h3>
+<p>General form: <span class="math display">\[
+y_{ij} = \alpha_j + \beta_j x_{ij} + \varepsilon_{ij}, \quad \varepsilon_{ij} \sim \mathcal{N}(0,\sigma^2),
+\]</span> <span class="math display">\[
+\alpha_j \sim \mathcal{N}(\mu_\alpha, \tau_\alpha^2), \quad
+\beta_j \sim \mathcal{N}(\mu_\beta, \tau_\beta^2).
+\]</span></p>
+<p>This allows both intercepts and slopes to vary by group.</p>
+<hr>
+</section>
+<section id="example-hierarchical-regression-with-brms" class="level3" data-number="7.3.2">
+<h3 data-number="7.3.2" class="anchored" data-anchor-id="example-hierarchical-regression-with-brms"><span class="header-section-number">7.3.2</span> 2.2 Example — Hierarchical Regression with <code>brms</code></h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">7</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>J <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>n_j <span class="ot">&lt;-</span> <span class="dv">20</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>group <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span>J, <span class="at">each=</span>n_j)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(J<span class="sc">*</span>n_j, <span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>alpha_true <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(J, <span class="dv">2</span>, <span class="dv">1</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>beta_true  <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(J, <span class="dv">3</span>, <span class="fl">0.5</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>sigma_true <span class="ot">&lt;-</span> <span class="fl">0.8</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> alpha_true[group] <span class="sc">+</span> beta_true[group]<span class="sc">*</span>x <span class="sc">+</span> <span class="fu">rnorm</span>(J<span class="sc">*</span>n_j, <span class="dv">0</span>, sigma_true)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(y, x, <span class="at">group=</span><span class="fu">factor</span>(group))</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Hierarchical model (random intercept and slope)</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>m_hier <span class="ot">&lt;-</span> <span class="fu">brm</span>(y <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> group),</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>              <span class="at">data=</span>dat, <span class="at">family=</span><span class="fu">gaussian</span>(),</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>              <span class="at">chains=</span><span class="dv">2</span>, <span class="at">iter=</span><span class="dv">2000</span>, <span class="at">refresh=</span><span class="dv">0</span>)</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m_hier)</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(m_hier)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The <code>(1 + x | group)</code> formula defines a <strong>varying intercept and slope</strong> for each group.</p>
+<hr>
+</section>
+<section id="interpretation" class="level3" data-number="7.3.3">
+<h3 data-number="7.3.3" class="anchored" data-anchor-id="interpretation"><span class="header-section-number">7.3.3</span> 2.3 Interpretation</h3>
+<p>Posterior summaries provide:</p>
+<ul>
+<li>Group-level means <span class="math inline">\(\alpha_j, \beta_j\)</span>.</li>
+<li>Population-level means <span class="math inline">\(\mu_\alpha, \mu_\beta\)</span>.</li>
+<li>Variability estimates <span class="math inline">\(\tau_{\alpha}, \tau_{\beta}\)</span> showing degree of pooling.</li>
+</ul>
+<p>Visualize partial pooling by comparing group-specific fits to the global regression line.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pp_check</span>(m_hier)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">conditional_effects</span>(m_hier), <span class="at">points=</span><span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<hr>
+</section>
+<section id="practical-considerations" class="level3" data-number="7.3.4">
+<h3 data-number="7.3.4" class="anchored" data-anchor-id="practical-considerations"><span class="header-section-number">7.3.4</span> 2.4 Practical Considerations</h3>
+<ul>
+<li>Choose weakly informative hyperpriors for scale parameters (e.g., Half-Cauchy or Exponential).<br>
+</li>
+<li>Inspect group-level posterior intervals to assess pooling.<br>
+</li>
+<li>Center predictors for numerical stability.<br>
+</li>
+<li>Use hierarchical models as the default when groups share a common process.</li>
+</ul>
+<hr>
+</section>
+<section id="summary-of-hierarchical-modeling-benefits" class="level3" data-number="7.3.5">
+<h3 data-number="7.3.5" class="anchored" data-anchor-id="summary-of-hierarchical-modeling-benefits"><span class="header-section-number">7.3.5</span> 2.5 Summary of Hierarchical Modeling Benefits</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 41%">
+<col style="width: 58%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Partial pooling</strong></td>
+<td style="text-align: left;">Shares strength across groups while retaining group differences.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Shrinkage</strong></td>
+<td style="text-align: left;">Stabilizes small-sample estimates toward population mean.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Interpretability</strong></td>
+<td style="text-align: left;">Captures multi-level variation naturally.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Predictive accuracy</strong></td>
+<td style="text-align: left;">Usually superior to separate or fully pooled models.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+</section>
+<section id="homework-6" class="level2" data-number="7.4">
+<h2 data-number="7.4" class="anchored" data-anchor-id="homework-6"><span class="header-section-number">7.4</span> Homework 6</h2>
+<ol type="1">
+<li><strong>Conceptual</strong>
+<ul>
+<li>Explain why hierarchical modeling is often superior to analyzing groups separately.<br>
+</li>
+<li>Distinguish between complete pooling, no pooling, and partial pooling.</li>
+</ul></li>
+<li><strong>Computational</strong>
+<ul>
+<li>Simulate a small dataset with several groups and fit:
+<ol type="a">
+<li>Separate regressions (no pooling).<br>
+</li>
+<li>A single pooled regression.<br>
+</li>
+<li>A hierarchical model (partial pooling).<br>
+</li>
+</ol></li>
+<li>Compare estimates for each group and interpret shrinkage behavior.</li>
+</ul></li>
+<li><strong>Reflection</strong>
+<ul>
+<li>In what situations would you <em>not</em> use a hierarchical model?<br>
+</li>
+<li>How does the hierarchical prior act as a regularizer?</li>
+</ul></li>
+</ol>
+<hr>
+</section>
+<section id="key-takeaways" class="level2" data-number="7.5">
+<h2 data-number="7.5" class="anchored" data-anchor-id="key-takeaways"><span class="header-section-number">7.5</span> Key Takeaways</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Concept</th>
+<th>Summary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Hierarchical Model</td>
+<td>Combines group-level and population-level inference.</td>
+</tr>
+<tr class="even">
+<td>Partial Pooling</td>
+<td>Balances within- and between-group information.</td>
+</tr>
+<tr class="odd">
+<td>Shrinkage</td>
+<td>Moves noisy group estimates toward a global mean.</td>
+</tr>
+<tr class="even">
+<td>Hierarchical Regression</td>
+<td>Extends pooling to both intercepts and slopes.</td>
+</tr>
+<tr class="odd">
+<td>Practical Insight</td>
+<td>Default choice when analyzing grouped or multilevel data.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><strong>Next Week:</strong> Bayesian Decision Theory — introducing utilities, losses, and optimal decision rules under uncertainty.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./week05.html" class="pagination-link" aria-label="Week 5 — Model Checking and Comparison">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Week 5 — Model Checking and Comparison</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./week07.html" class="pagination-link" aria-label="Week 7 — Bayesian Decision Theory">
+        <span class="nav-page-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Week 7 — Bayesian Decision Theory</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
