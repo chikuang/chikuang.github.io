@@ -468,5 +468,65 @@
     "crumbs": [
       "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7 — Bayesian Decision Theory</span>"
     ]
+  },
+  {
+    "objectID": "week08.html",
+    "href": "week08.html",
+    "title": "9  Week 8 — Advanced Bayesian Computation",
+    "section": "",
+    "text": "9.1 Learning Goals\nThis week explores two major developments that enable scalable Bayesian inference for complex or high-dimensional models:\nHamiltonian Monte Carlo (HMC) and Variational Inference (VI).\nWe study their principles, intuition, and practical use in software such as Stan and brms.\nBy the end of this week, you should be able to:",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8 — Advanced Bayesian Computation</span>"
+    ]
+  },
+  {
+    "objectID": "week08.html#learning-goals",
+    "href": "week08.html#learning-goals",
+    "title": "9  Week 8 — Advanced Bayesian Computation",
+    "section": "",
+    "text": "Explain the motivation for advanced sampling and approximation methods.\n\nDescribe the mechanics and intuition of Hamiltonian Monte Carlo.\n\nUnderstand the trade-offs between exact (MCMC) and approximate (VI) inference.\n\nRun basic HMC and VI fits using modern R interfaces.\n\nInterpret diagnostics for both approaches.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8 — Advanced Bayesian Computation</span>"
+    ]
+  },
+  {
+    "objectID": "week08.html#lecture-1-hamiltonian-monte-carlo-hmc",
+    "href": "week08.html#lecture-1-hamiltonian-monte-carlo-hmc",
+    "title": "9  Week 8 — Advanced Bayesian Computation",
+    "section": "9.2 Lecture 1 — Hamiltonian Monte Carlo (HMC)",
+    "text": "9.2 Lecture 1 — Hamiltonian Monte Carlo (HMC)\n\n9.2.1 1.1 Motivation\nTraditional MCMC (e.g., Metropolis–Hastings, Gibbs) can mix slowly in high dimensions.\nHamiltonian Monte Carlo accelerates exploration by using gradient information from the log posterior to simulate physical motion through parameter space.\n\n\n\n9.2.2 1.2 Hamiltonian Dynamics\nWe introduce an auxiliary “momentum” variable \\(p\\) and define the Hamiltonian: \\[\nH(\\theta,p) = U(\\theta) + K(p),\n\\] where\n- \\(U(\\theta) = -\\log p(\\theta\\mid y)\\) (potential energy = negative log posterior),\n- \\(K(p) = \\tfrac{1}{2} p^\\top M^{-1}p\\) (kinetic energy, with mass matrix \\(M\\)).\nThe system evolves via Hamilton’s equations: \\[\n\\frac{d\\theta}{dt} = \\frac{\\partial H}{\\partial p}, \\qquad\n\\frac{dp}{dt} = -\\frac{\\partial H}{\\partial \\theta}.\n\\]\n\n\n\n9.2.3 1.3 Leapfrog Integration\nTo approximate continuous motion, HMC uses a leapfrog integrator with step size \\(\\epsilon\\) and \\(L\\) steps:\n\n\\(p\\_{t+\\epsilon/2} = p_t - \\frac{\\epsilon}{2}\\nabla\\_\\theta U(\\theta_t)\\)\n\n\\(\\theta\\_{t+\\epsilon} = \\theta_t + \\epsilon M^{-1}p\\_{t+\\epsilon/2}\\)\n\n\\(p\\_{t+\\epsilon} = p\\_{t+\\epsilon/2} - \\frac{\\epsilon}{2}\\nabla\\_\\theta U(\\theta\\_{t+\\epsilon})\\)\n\nAfter simulating this path, we apply a Metropolis acceptance step using the change in \\(H\\).\n\n\n\n9.2.4 1.4 Intuition\n\nThe gradient \\(\\nabla\\_\\theta U(\\theta)\\) guides proposals along high-density regions, avoiding random walk behavior.\n\nProper tuning of step size \\(\\epsilon\\) and number of steps \\(L\\) yields efficient exploration.\n\nModern implementations (e.g., Stan) adapt these automatically via the No-U-Turn Sampler (NUTS).\n\n\n\n\n9.2.5 1.5 Example — Logistic Regression with HMC (Stan)\n\nlibrary(brms)\nset.seed(8)\n\n# Simulated logistic data\nN &lt;- 200\nx &lt;- rnorm(N)\ny &lt;- rbinom(N, 1, plogis(-1 + 2*x))\ndat &lt;- data.frame(x, y)\n\n# Fit via Hamiltonian Monte Carlo (NUTS)\nfit_hmc &lt;- brm(y ~ x, data=dat, family=bernoulli(), chains=2, iter=2000, refresh=0)\nsummary(fit_hmc)\nplot(fit_hmc)\n\nStan’s NUTS algorithm performs automatic adaptation of step size and trajectory length.\n\n\n\n9.2.6 1.6 Diagnosing HMC Performance\nKey diagnostics: - Divergent transitions → numerical instability (reduce step size or re-scale parameters).\n- Energy Bayesian Fraction of Missing Information (E-BFMI) → low values (&lt;0.3) indicate poor exploration.\n- \\(\\widehat{R}\\) and effective sample size → check convergence and mixing.\n\nlibrary(bayesplot)\nmcmc_nuts_divergence(fit_hmc)\nmcmc_trace(fit_hmc, pars=c(\"b_Intercept\",\"b_x\"))\n\n\n\n\n9.2.7 1.7 Advantages of HMC\n\n\n\n\n\n\n\nFeature\nBenefit\n\n\n\n\nGradient-based proposals\nRapid movement through high-density regions\n\n\nHigher acceptance rates\nFewer rejections than random-walk MH\n\n\nFewer tuning parameters\nAutomatic adaptation (NUTS)\n\n\nRobust for high-dimensional models\nUsed in most modern Bayesian software",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8 — Advanced Bayesian Computation</span>"
+    ]
+  },
+  {
+    "objectID": "week08.html#lecture-2-variational-inference-vi",
+    "href": "week08.html#lecture-2-variational-inference-vi",
+    "title": "9  Week 8 — Advanced Bayesian Computation",
+    "section": "9.3 Lecture 2 — Variational Inference (VI)",
+    "text": "9.3 Lecture 2 — Variational Inference (VI)\n\n9.3.1 2.1 Motivation\nWhen exact sampling is too costly (e.g., massive datasets, deep models),\nVariational Inference (VI) approximates the posterior by a simpler distribution \\(q\\_\\lambda(\\theta)\\) within a parameterized family.\n\n\n\n9.3.2 2.2 Objective Function\nWe minimize the Kullback–Leibler (KL) divergence: \\[\n\\text{KL}(q_\\lambda(\\theta) \\,\\|\\, p(\\theta\\mid y))\n  = \\int q_\\lambda(\\theta)\\log\\frac{q_\\lambda(\\theta)}{p(\\theta\\mid y)}\\,d\\theta.\n\\]\nEquivalently, we maximize the Evidence Lower Bound (ELBO): \\[\n\\text{ELBO}(\\lambda)\n= E_{q_\\lambda}[\\log p(y,\\theta)] - E_{q_\\lambda}[\\log q_\\lambda(\\theta)].\n\\] The higher the ELBO, the closer \\(q\\_\\lambda(\\theta)\\) is to the true posterior.\n\n\n\n9.3.3 2.3 Mean-Field Approximation\nA common simplification assumes factorization: \\[\nq_\\lambda(\\theta) = \\prod_j q_{\\lambda_j}(\\theta_j),\n\\] which allows coordinate-wise optimization of each factor.\n\n\n\n9.3.4 2.4 Example — Variational Bayes for a Normal Mean\nAssume \\(y_i\\sim N(\\theta,1)\\) with prior \\(\\theta\\sim N(0,1)\\).\nAnalytically, the posterior is \\(N\\left(\\frac{n\\bar{y}}{n+1}, \\frac{1}{n+1}\\right)\\).\nWe approximate it variationally by another normal \\(q(\\theta)=N(m,s^2)\\),\nand find \\(m,s^2\\) maximizing ELBO.\n\nset.seed(9)\ny &lt;- rnorm(50, mean=1)\nn &lt;- length(y)\nlog_joint &lt;- function(theta) sum(dnorm(y, theta, 1, log=TRUE)) + dnorm(theta, 0, 1, log=TRUE)\n\n# Closed-form optimal q is Normal(m,s^2) with same moments as true posterior:\nm_vi &lt;- n*mean(y)/(n+1)\ns2_vi &lt;- 1/(n+1)\nc(mean=m_vi, sd=sqrt(s2_vi))\n\n     mean        sd \n0.8884051 0.1400280 \n\n\n\n\n\n9.3.5 2.5 Automatic VI with brms\n\nlibrary(brms)\nset.seed(10)\nN &lt;- 1000\nx &lt;- rnorm(N)\ny &lt;- 2 + 1.5*x + rnorm(N)\ndat &lt;- data.frame(x,y)\n\nfit_vi &lt;- brm(y ~ x, data=dat, family=gaussian(),\n              algorithm=\"meanfield\", iter=5000, refresh=0)\nsummary(fit_vi)\n\nVI provides a fast deterministic approximation, trading off accuracy for scalability.\n\n\n\n9.3.6 2.6 Comparison: HMC vs VI\n\n\n\n\n\n\n\n\nFeature\nHMC (NUTS)\nVariational Inference\n\n\n\n\nType\nSampling (asymptotically exact)\nOptimization (approximate)\n\n\nAccuracy\nVery high\nDepends on variational family\n\n\nSpeed\nSlower\nVery fast\n\n\nDiagnostics\nConvergence via \\(\\widehat{R}\\), ESS\nELBO convergence\n\n\nUse case\nComplex or small data\nMassive or real-time problems\n\n\n\n\n\n\n9.3.7 2.7 Visual Comparison (Conceptual)\n\ntheta &lt;- seq(-3,3,length=400)\nposterior &lt;- dnorm(theta, 0, 1)              # true posterior\nvi_approx &lt;- dnorm(theta, 0, 1.5)            # wider variational approx\nplot(theta, posterior, type=\"l\", lwd=2, col=\"black\", ylim=c(0,0.5),\n     main=\"Posterior (HMC) vs Variational Approximation\",\n     ylab=\"Density\", xlab=expression(theta))\nlines(theta, vi_approx, col=\"orange\", lwd=2, lty=2)\nlegend(\"topright\", legend=c(\"Exact posterior (HMC)\",\"VI approximation\"),\n       col=c(\"black\",\"orange\"), lwd=2, lty=c(1,2), bty=\"n\")\n\n\n\n\n\n\n\n\n\n\n\n9.3.8 2.8 Practical Advice\n\nUse HMC (NUTS) as the default for accuracy and diagnostics.\n\nUse VI for large-scale models, initialization, or quick exploration.\n\nCompare results: if VI and HMC differ substantially, favor HMC.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8 — Advanced Bayesian Computation</span>"
+    ]
+  },
+  {
+    "objectID": "week08.html#homework-8",
+    "href": "week08.html#homework-8",
+    "title": "9  Week 8 — Advanced Bayesian Computation",
+    "section": "9.4 Homework 8",
+    "text": "9.4 Homework 8\n\nConceptual\n\nExplain the difference between sampling-based and optimization-based inference.\n\nWhat role does the ELBO play in VI?\n\nComputational\n\nFit a simple linear regression using both HMC and VI in brms.\n\nCompare posterior means, standard deviations, and computation time.\n\nReflection\n\nIn what types of real-world problems might VI be preferred over HMC?\n\nHow would you check whether your VI approximation is adequate?",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8 — Advanced Bayesian Computation</span>"
+    ]
+  },
+  {
+    "objectID": "week08.html#key-takeaways",
+    "href": "week08.html#key-takeaways",
+    "title": "9  Week 8 — Advanced Bayesian Computation",
+    "section": "9.5 Key Takeaways",
+    "text": "9.5 Key Takeaways\n\n\n\n\n\n\n\nConcept\nSummary\n\n\n\n\nHamiltonian Monte Carlo\nUses gradients to propose efficient moves through parameter space.\n\n\nNo-U-Turn Sampler (NUTS)\nAdapts step size and trajectory automatically.\n\n\nVariational Inference\nOptimizes a tractable approximation to the posterior.\n\n\nELBO\nObjective function for VI; measures closeness to the true posterior.\n\n\nTrade-off\nHMC = accuracy, VI = speed; choice depends on model and data size.\n\n\n\n\nNext Week: Bayesian Model Averaging and Ensemble Learning — combining multiple Bayesian models for improved predictive performance.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8 — Advanced Bayesian Computation</span>"
+    ]
   }
 ]
