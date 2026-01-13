@@ -494,7 +494,7 @@
     "href": "week08.html#lecture-1-hamiltonian-monte-carlo-hmc",
     "title": "9  Week 8 — Advanced Bayesian Computation",
     "section": "9.2 Lecture 1 — Hamiltonian Monte Carlo (HMC)",
-    "text": "9.2 Lecture 1 — Hamiltonian Monte Carlo (HMC)\n\n9.2.1 1.1 Motivation\nTraditional MCMC (e.g., Metropolis–Hastings, Gibbs) can mix slowly in high dimensions.\nHamiltonian Monte Carlo accelerates exploration by using gradient information from the log posterior to simulate physical motion through parameter space.\n\n\n\n9.2.2 1.2 Hamiltonian Dynamics\nWe introduce an auxiliary “momentum” variable \\(p\\) and define the Hamiltonian: \\[\nH(\\theta,p) = U(\\theta) + K(p),\n\\] where\n- \\(U(\\theta) = -\\log p(\\theta\\mid y)\\) (potential energy = negative log posterior),\n- \\(K(p) = \\tfrac{1}{2} p^\\top M^{-1}p\\) (kinetic energy, with mass matrix \\(M\\)).\nThe system evolves via Hamilton’s equations: \\[\n\\frac{d\\theta}{dt} = \\frac{\\partial H}{\\partial p}, \\qquad\n\\frac{dp}{dt} = -\\frac{\\partial H}{\\partial \\theta}.\n\\]\n\n\n\n9.2.3 1.3 Leapfrog Integration\nTo approximate continuous motion, HMC uses a leapfrog integrator with step size \\(\\epsilon\\) and \\(L\\) steps:\n\n\\(p\\_{t+\\epsilon/2} = p_t - \\frac{\\epsilon}{2}\\nabla\\_\\theta U(\\theta_t)\\)\n\n\\(\\theta\\_{t+\\epsilon} = \\theta_t + \\epsilon M^{-1}p\\_{t+\\epsilon/2}\\)\n\n\\(p\\_{t+\\epsilon} = p\\_{t+\\epsilon/2} - \\frac{\\epsilon}{2}\\nabla\\_\\theta U(\\theta\\_{t+\\epsilon})\\)\n\nAfter simulating this path, we apply a Metropolis acceptance step using the change in \\(H\\).\n\n\n\n9.2.4 1.4 Intuition\n\nThe gradient \\(\\nabla\\_\\theta U(\\theta)\\) guides proposals along high-density regions, avoiding random walk behavior.\n\nProper tuning of step size \\(\\epsilon\\) and number of steps \\(L\\) yields efficient exploration.\n\nModern implementations (e.g., Stan) adapt these automatically via the No-U-Turn Sampler (NUTS).\n\n\n\n\n9.2.5 1.5 Example — Logistic Regression with HMC (Stan)\n\nlibrary(brms)\nset.seed(8)\n\n# Simulated logistic data\nN &lt;- 200\nx &lt;- rnorm(N)\ny &lt;- rbinom(N, 1, plogis(-1 + 2*x))\ndat &lt;- data.frame(x, y)\n\n# Fit via Hamiltonian Monte Carlo (NUTS)\nfit_hmc &lt;- brm(y ~ x, data=dat, family=bernoulli(), chains=2, iter=2000, refresh=0)\nsummary(fit_hmc)\nplot(fit_hmc)\n\nStan’s NUTS algorithm performs automatic adaptation of step size and trajectory length.\n\n\n\n9.2.6 1.6 Diagnosing HMC Performance\nKey diagnostics: - Divergent transitions → numerical instability (reduce step size or re-scale parameters).\n- Energy Bayesian Fraction of Missing Information (E-BFMI) → low values (&lt;0.3) indicate poor exploration.\n- \\(\\widehat{R}\\) and effective sample size → check convergence and mixing.\n\nlibrary(bayesplot)\nmcmc_nuts_divergence(fit_hmc)\nmcmc_trace(fit_hmc, pars=c(\"b_Intercept\",\"b_x\"))\n\n\n\n\n9.2.7 1.7 Advantages of HMC\n\n\n\n\n\n\n\nFeature\nBenefit\n\n\n\n\nGradient-based proposals\nRapid movement through high-density regions\n\n\nHigher acceptance rates\nFewer rejections than random-walk MH\n\n\nFewer tuning parameters\nAutomatic adaptation (NUTS)\n\n\nRobust for high-dimensional models\nUsed in most modern Bayesian software",
+    "text": "9.2 Lecture 1 — Hamiltonian Monte Carlo (HMC)\n\n9.2.1 1.1 Motivation\nTraditional MCMC (e.g., Metropolis–Hastings, Gibbs) can mix slowly in high dimensions.\nHamiltonian Monte Carlo accelerates exploration by using gradient information from the log posterior to simulate physical motion through parameter space.\n\n\n\n9.2.2 1.2 Hamiltonian Dynamics\nWe introduce an auxiliary “momentum” variable \\(p\\) and define the Hamiltonian: \\[\nH(\\theta,p) = U(\\theta) + K(p),\n\\] where\n- \\(U(\\theta) = -\\log p(\\theta\\mid y)\\) (potential energy = negative log posterior),\n- \\(K(p) = \\tfrac{1}{2} p^\\top M^{-1}p\\) (kinetic energy, with mass matrix \\(M\\)).\nThe system evolves via Hamilton’s equations: \\[\n\\frac{d\\theta}{dt} = \\frac{\\partial H}{\\partial p}, \\qquad\n\\frac{dp}{dt} = -\\frac{\\partial H}{\\partial \\theta}.\n\\]\n\n\n\n9.2.3 1.3 Leapfrog Integration\nTo approximate continuous motion, HMC uses a leapfrog integrator with step size \\(\\epsilon\\) and \\(L\\) steps:\n\n\\(p\\_{t+\\epsilon/2} = p_t - \\frac{\\epsilon}{2}\\nabla_\\theta U(\\theta_t)\\)\n\n\\(\\theta\\_{t+\\epsilon} = \\theta_t + \\epsilon M^{-1}p_{t+\\epsilon/2}\\)\n\n\\(p_{t+\\epsilon} = p_{t+\\epsilon/2} - \\frac{\\epsilon}{2}\\nabla_\\theta U(\\theta_{t+\\epsilon})\\)\n\nAfter simulating this path, we apply a Metropolis acceptance step using the change in \\(H\\).\n\n\n\n9.2.4 Intuition\n\nThe gradient \\(\\nabla_\\theta U(\\theta)\\) guides proposals along high-density regions, avoiding random walk behavior.\n\nProper tuning of step size \\(\\epsilon\\) and number of steps \\(L\\) yields efficient exploration.\n\nModern implementations (e.g., Stan) adapt these automatically via the No-U-Turn Sampler (NUTS).\n\n\n\n\n9.2.5 1.5 Example — Logistic Regression with HMC (Stan)\n\nlibrary(brms)\nset.seed(8)\n\n# Simulated logistic data\nN &lt;- 200\nx &lt;- rnorm(N)\ny &lt;- rbinom(N, 1, plogis(-1 + 2*x))\ndat &lt;- data.frame(x, y)\n\n# Fit via Hamiltonian Monte Carlo (NUTS)\nfit_hmc &lt;- brm(y ~ x, data=dat, family=bernoulli(), chains=2, iter=2000, refresh=0)\nsummary(fit_hmc)\nplot(fit_hmc)\n\nStan’s NUTS algorithm performs automatic adaptation of step size and trajectory length.\n\n\n\n9.2.6 1.6 Diagnosing HMC Performance\nKey diagnostics: - Divergent transitions → numerical instability (reduce step size or re-scale parameters).\n- Energy Bayesian Fraction of Missing Information (E-BFMI) → low values (\\(&lt;0.3\\)) indicate poor exploration.\n- \\(\\widehat{R}\\) and effective sample size → check convergence and mixing.\n\nlibrary(bayesplot)\nmcmc_nuts_divergence(fit_hmc)\nmcmc_trace(fit_hmc, pars=c(\"b_Intercept\",\"b_x\"))\n\n\n\n\n9.2.7 1.7 Advantages of HMC\n\n\n\n\n\n\n\nFeature\nBenefit\n\n\n\n\nGradient-based proposals\nRapid movement through high-density regions\n\n\nHigher acceptance rates\nFewer rejections than random-walk MH\n\n\nFewer tuning parameters\nAutomatic adaptation (NUTS)\n\n\nRobust for high-dimensional models\nUsed in most modern Bayesian software",
     "crumbs": [
       "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8 — Advanced Bayesian Computation</span>"
     ]
@@ -527,6 +527,196 @@
     "text": "9.5 Key Takeaways\n\n\n\n\n\n\n\nConcept\nSummary\n\n\n\n\nHamiltonian Monte Carlo\nUses gradients to propose efficient moves through parameter space.\n\n\nNo-U-Turn Sampler (NUTS)\nAdapts step size and trajectory automatically.\n\n\nVariational Inference\nOptimizes a tractable approximation to the posterior.\n\n\nELBO\nObjective function for VI; measures closeness to the true posterior.\n\n\nTrade-off\nHMC = accuracy, VI = speed; choice depends on model and data size.\n\n\n\n\nNext Week: Bayesian Model Averaging and Ensemble Learning — combining multiple Bayesian models for improved predictive performance.",
     "crumbs": [
       "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8 — Advanced Bayesian Computation</span>"
+    ]
+  },
+  {
+    "objectID": "week09.html",
+    "href": "week09.html",
+    "title": "10  Week 9 — Bayesian Model Averaging and Ensemble Learning",
+    "section": "",
+    "text": "10.1 Learning Goals\nThis week introduces Bayesian Model Averaging (BMA), a principled framework to combine inferences from multiple Bayesian models, and contrasts it with ensemble methods common in machine learning.\nWe discuss model uncertainty, predictive averaging, and practical implementations for linear regression and classification.\nBy the end of this week, you should be able to:",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9 — Bayesian Model Averaging and Ensemble Learning</span>"
+    ]
+  },
+  {
+    "objectID": "week09.html#learning-goals",
+    "href": "week09.html#learning-goals",
+    "title": "10  Week 9 — Bayesian Model Averaging and Ensemble Learning",
+    "section": "",
+    "text": "Explain the motivation for Bayesian Model Averaging.\n\nDerive model-averaged predictions using posterior model probabilities.\n\nCompare BMA with frequentist model selection and ML ensembles.\n\nImplement BMA for simple regression models in R.\n\nDiscuss advantages and limitations of Bayesian model combination.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9 — Bayesian Model Averaging and Ensemble Learning</span>"
+    ]
+  },
+  {
+    "objectID": "week09.html#lecture-1-bayesian-model-averaging-bma",
+    "href": "week09.html#lecture-1-bayesian-model-averaging-bma",
+    "title": "10  Week 9 — Bayesian Model Averaging and Ensemble Learning",
+    "section": "10.2 Lecture 1 — Bayesian Model Averaging (BMA)",
+    "text": "10.2 Lecture 1 — Bayesian Model Averaging (BMA)\n\n10.2.1 1.1 Model Uncertainty\nModel selection often ignores uncertainty about which model is true.\nBMA accounts for this by averaging over all candidate models weighted by their posterior probabilities.\nFor models \\(M_1, \\ldots, M_K\\): \\[\np(M_k \\mid y) = \\frac{p(y \\mid M_k)\\,p(M_k)}{\\sum_{j=1}^K p(y \\mid M_j)\\,p(M_j)}.\n\\]\nHere: - \\(p(y \\\\mid M_k)\\) = marginal likelihood under model \\(M_k\\).\n- \\(p(M_k)\\) = prior model probability.\n- \\(p(M_k \\\\mid y)\\) = posterior model probability.\n\n\n\n10.2.2 1.2 Model-Averaged Posterior and Predictions\nPosterior distribution for parameter θ:\n\\[\np(\\theta \\mid y) = \\sum_{k=1}^K p(\\theta \\mid y, M_k)\\,p(M_k \\mid y).\n\\]\nPosterior predictive distribution:\n\\[\np(\\tilde{y} \\mid y) = \\sum_{k=1}^K p(\\tilde{y} \\mid y, M_k)\\,p(M_k \\mid y).\n\\]\nBMA integrates out model uncertainty rather than conditioning on a single “best” model.\n\n\n\n10.2.3 1.3 Comparison with Model Selection\n\n\n\n\n\n\n\n\nApproach\nKey Idea\nLimitation\n\n\n\n\nModel Selection\nChoose one best model (e.g., by AIC, WAIC, LOO)\nIgnores model uncertainty\n\n\nModel Averaging\nCombine all models weighted by posterior probability\nComputationally heavier, prior sensitive\n\n\n\n\n\n\n10.2.4 1.4 Example — Two Competing Linear Models\n\nset.seed(9)\nn &lt;- 100\nx &lt;- rnorm(n)\ny &lt;- 1 + 2*x + 0.5*x^2 + rnorm(n, sd=1)\n\nm1 &lt;- lm(y ~ x)\nm2 &lt;- lm(y ~ x + I(x^2))\n\nlog_marglik1 &lt;- -AIC(m1)/2\nlog_marglik2 &lt;- -AIC(m2)/2\np_m1 &lt;- exp(log_marglik1)\np_m2 &lt;- exp(log_marglik2)\n\nw1 &lt;- p_m1 / (p_m1 + p_m2)\nw2 &lt;- p_m2 / (p_m1 + p_m2)\n\npred1 &lt;- predict(m1)\npred2 &lt;- predict(m2)\nbma_pred &lt;- w1*pred1 + w2*pred2\n\nc(weights=c(M1=w1, M2=w2)[1:2])\n\n  weights.M1   weights.M2 \n1.426496e-08 1.000000e+00 \n\n\n\nplot(x, y, pch=19, col=\"#00000055\", main=\"Bayesian Model Averaging (Linear vs Quadratic)\",\n     xlab=\"x\", ylab=\"y\")\nxs &lt;- seq(min(x), max(x), length.out=200)\nlines(xs, predict(m1, newdata=data.frame(x=xs)), col=\"steelblue\", lwd=2)\nlines(xs, predict(m2, newdata=data.frame(x=xs)), col=\"firebrick\", lwd=2)\nlines(xs, w1*predict(m1, newdata=data.frame(x=xs)) +\n          w2*predict(m2, newdata=data.frame(x=xs)),\n      col=\"darkgreen\", lwd=3, lty=2)\nlegend(\"topleft\", legend=c(\"Model 1 (linear)\",\"Model 2 (quadratic)\",\"BMA prediction\"),\n       col=c(\"steelblue\",\"firebrick\",\"darkgreen\"), lwd=c(2,2,3), lty=c(1,1,2), bty=\"n\")\n\n\n\n\nModel-averaged predictions vs. data\n\n\n\n\nInterpretation: The model-averaged prediction blends the strengths of both models, weighted by their posterior support.\n\n\n\n10.2.5 1.5 Advantages of BMA\n\nIncorporates model uncertainty directly.\n\nAvoids overconfidence from single-model conditioning.\n\nImproves predictive performance, especially in small samples.\n\nProvides model weights interpretable as probabilities.\n\n\n\n\n10.2.6 1.6 Limitations\n\nRequires marginal likelihoods (often hard to compute).\n\nSensitive to model priors and parameter priors.\n\nComputationally expensive for many models.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9 — Bayesian Model Averaging and Ensemble Learning</span>"
+    ]
+  },
+  {
+    "objectID": "week09.html#lecture-2-bayesian-ensembles-and-predictive-stacking",
+    "href": "week09.html#lecture-2-bayesian-ensembles-and-predictive-stacking",
+    "title": "10  Week 9 — Bayesian Model Averaging and Ensemble Learning",
+    "section": "10.3 Lecture 2 — Bayesian Ensembles and Predictive Stacking",
+    "text": "10.3 Lecture 2 — Bayesian Ensembles and Predictive Stacking\n\n10.3.1 2.1 Beyond BMA: Ensemble Learning\nMachine learning often uses ensembles (e.g., bagging, boosting, stacking) to improve prediction.\nBayesian analogues combine predictive distributions rather than point estimates.\n\n\n\n10.3.2 2.2 Predictive Stacking\nRather than using posterior model probabilities, stacking optimizes weights to maximize predictive performance under cross-validation: \\[\nw^* = \\arg\\max_{w} \\sum_{i=1}^n \\log\\left(\\sum_k w_k\\, p(y_i \\mid y_{-i}, M_k)\\right),\n\\] subject to \\(w_k \\\\ge 0\\) and \\(\\\\sum_k w_k = 1\\).\nThis yields stacking weights that combine models for best out-of-sample prediction.\n\n\n\n10.3.3 2.3 Example — Predictive Stacking with loo\n\nlibrary(brms)\nlibrary(loo)\n\nset.seed(10)\ndat &lt;- data.frame(x = rnorm(200))\ndat$y &lt;- 1 + 2*dat$x + 0.5*dat$x^2 + rnorm(200)\n\nm1 &lt;- brm(y ~ x, data=dat, refresh=0)\nm2 &lt;- brm(y ~ x + I(x^2), data=dat, refresh=0)\n\nloo1 &lt;- loo(m1)\nloo2 &lt;- loo(m2)\n\n# Stacking weights based on LOO predictive densities\nw_stack &lt;- loo_model_weights(list(m1,m2), method=\"stacking\")\nw_pseudo &lt;- loo_model_weights(list(m1,m2), method=\"pseudobma\")\n\nw_stack\nw_pseudo\n\nInterpretation:\n- Stacking weights directly optimize predictive log-likelihood.\n- Pseudo-BMA provides a simpler (WAIC/LOO-based) approximation.\n\n\n\n10.3.4 2.4 Comparison: BMA vs Stacking\n\n\n\n\n\n\n\n\nFeature\nBayesian Model Averaging\nPredictive Stacking\n\n\n\n\nWeights\nPosterior model probabilities\nOptimized predictive weights\n\n\nGoal\nRepresent model uncertainty\nMaximize predictive performance\n\n\nComputation\nNeeds marginal likelihoods\nUses cross-validation\n\n\nPrior dependence\nSensitive\nWeak or none\n\n\nTypical use\nTheoretical coherence\nPractical prediction\n\n\n\n\n\n\n10.3.5 2.5 Ensemble Prediction Example\n\nset.seed(11)\nn &lt;- 100\nx &lt;- rnorm(n)\ny_true &lt;- 2 + 3*x - 1.5*x^2\ny &lt;- y_true + rnorm(n, sd=2)\n\nm1 &lt;- lm(y ~ x)\nm2 &lt;- lm(y ~ poly(x, 2, raw=TRUE))\n\npred_grid &lt;- seq(min(x), max(x), length=200)\np1 &lt;- predict(m1, newdata=data.frame(x=pred_grid))\np2 &lt;- predict(m2, newdata=data.frame(x=pred_grid))\n\n# Ensemble weighting (ad hoc stacking weights)\nw1 &lt;- 0.3; w2 &lt;- 0.7\np_ens &lt;- w1*p1 + w2*p2\n\nplot(x, y, pch=19, col=\"#00000055\", main=\"Model Ensemble Prediction\",\n     xlab=\"x\", ylab=\"y\")\nlines(pred_grid, p1, col=\"blue\", lwd=2)\nlines(pred_grid, p2, col=\"red\", lwd=2)\nlines(pred_grid, p_ens, col=\"darkgreen\", lwd=3, lty=2)\nlegend(\"topleft\", legend=c(\"Model 1\",\"Model 2\",\"Ensemble\"),\n       col=c(\"blue\",\"red\",\"darkgreen\"), lwd=c(2,2,3), lty=c(1,1,2), bty=\"n\")\n\n\n\n\n\n\n\n\n\n\n\n10.3.6 2.6 Practical Guidance\n\nUse BMA when posterior model probabilities are available (few models, interpretable priors).\n\nUse stacking or ensemble averaging when prediction accuracy is the goal.\n\nAvoid double counting data — always base weights on held-out or cross-validation predictive performance.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9 — Bayesian Model Averaging and Ensemble Learning</span>"
+    ]
+  },
+  {
+    "objectID": "week09.html#homework-9",
+    "href": "week09.html#homework-9",
+    "title": "10  Week 9 — Bayesian Model Averaging and Ensemble Learning",
+    "section": "10.4 Homework 9",
+    "text": "10.4 Homework 9\n\nConceptual\n\nExplain how BMA differs from model selection.\n\nWhy does stacking avoid prior sensitivity found in BMA?\n\nComputational\n\nSimulate data where two Bayesian regression models compete.\n\nFit both models in R (e.g., using brms or lm).\n\nCompute stacking and pseudo-BMA weights using loo_model_weights().\n\nCompare model-averaged predictions to the true curve.\n\nReflection\n\nDiscuss when BMA and stacking might give very different results.\n\nHow can model averaging improve scientific interpretability?",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9 — Bayesian Model Averaging and Ensemble Learning</span>"
+    ]
+  },
+  {
+    "objectID": "week09.html#key-takeaways",
+    "href": "week09.html#key-takeaways",
+    "title": "10  Week 9 — Bayesian Model Averaging and Ensemble Learning",
+    "section": "10.5 Key Takeaways",
+    "text": "10.5 Key Takeaways\n\n\n\n\n\n\n\nConcept\nSummary\n\n\n\n\nBayesian Model Averaging\nCombines models weighted by posterior probabilities.\n\n\nPredictive Stacking\nChooses weights that maximize predictive accuracy via cross-validation.\n\n\nModel Uncertainty\nAccounted for rather than ignored.\n\n\nPractical Use\nBMA for interpretability; stacking for prediction.\n\n\nModern Tools\nloo_model_weights() in R provides both stacking and pseudo-BMA weights.\n\n\n\n\nNext Week: Bayesian Nonparametrics — infinite-dimensional models such as Dirichlet processes and Gaussian processes for flexible Bayesian modeling.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9 — Bayesian Model Averaging and Ensemble Learning</span>"
+    ]
+  },
+  {
+    "objectID": "week10.html",
+    "href": "week10.html",
+    "title": "11  Week 10 — Bayesian Nonparametrics",
+    "section": "",
+    "text": "11.1 Learning Goals\nThis week introduces Bayesian Nonparametric (BNP) models, which allow infinite flexibility in representing uncertainty about functions, densities, or model structure.\nWe focus on two cornerstone approaches: Dirichlet Processes for mixture modeling and clustering, and Gaussian Processes for regression on functions.\nBy the end of this week, you should be able to:",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10 — Bayesian Nonparametrics</span>"
+    ]
+  },
+  {
+    "objectID": "week10.html#learning-goals",
+    "href": "week10.html#learning-goals",
+    "title": "11  Week 10 — Bayesian Nonparametrics",
+    "section": "",
+    "text": "Explain the motivation for nonparametric Bayesian models.\n\nDescribe the Dirichlet Process and its stick-breaking and Chinese Restaurant representations.\n\nExplain how DP mixture models perform clustering automatically.\n\nUnderstand Gaussian Processes for function estimation.\n\nImplement simple DP and GP examples in R using available packages.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10 — Bayesian Nonparametrics</span>"
+    ]
+  },
+  {
+    "objectID": "week10.html#lecture-1-dirichlet-process-models",
+    "href": "week10.html#lecture-1-dirichlet-process-models",
+    "title": "11  Week 10 — Bayesian Nonparametrics",
+    "section": "11.2 Lecture 1 — Dirichlet Process Models",
+    "text": "11.2 Lecture 1 — Dirichlet Process Models\n\n11.2.1 1.1 Motivation\nClassical parametric models fix the number of parameters (e.g., number of clusters).\nDirichlet Processes (DPs) let the data decide model complexity by placing a prior on infinite mixture components.\n\n\n\n11.2.2 1.2 The Dirichlet Process\nA Dirichlet Process \\(\\text{DP}(\\alpha, G_0)\\) is a distribution over distributions such that,\nfor any partition \\(A_1, \\ldots, A_k\\) of the space, \\[\n(G(A_1),\\ldots,G(A_k)) \\sim \\text{Dirichlet}(\\alpha G_0(A_1), \\ldots, \\alpha G_0(A_k)).\n\\]\n\n\\(G_0\\): base (prior mean) distribution.\n\n\\(\\alpha\\): concentration parameter controlling clustering strength.\n\nAs \\(\\alpha \\to 0\\): few clusters (more sharing).\nAs \\(\\alpha \\to \\infty\\): many clusters (approaches \\(G_0\\)).\n\n\n\n11.2.3 1.3 Stick-Breaking Representation\nA constructive definition (Sethuraman, 1994): \\[\nG = \\sum_{k=1}^{\\infty} \\pi_k \\delta_{\\theta_k}, \\quad\n\\theta_k \\sim G_0, \\quad\n\\pi_k = v_k \\prod_{l&lt;k}(1-v_l), \\quad\nv_k \\sim \\text{Beta}(1,\\alpha).\n\\]\nThe weights \\(\\pi_k\\) form an infinite sequence summing to 1 — conceptually “breaking a stick” into random lengths.\n\n\n\n11.2.4 1.4 DP Mixture Model\nFor data \\(y_1,\\ldots,y_n\\): \\[\ny_i \\mid \\theta_i \\sim F(\\theta_i), \\qquad\n\\theta_i \\mid G \\sim G, \\qquad\nG \\sim \\text{DP}(\\alpha, G_0).\n\\]\nMarginally, this induces clustering because multiple \\(y_i\\) can share the same \\(\\theta_i\\).\n\n\n\n11.2.5 1.5 Chinese Restaurant Process (CRP)\nEquivalent generative process:\n\nCustomer 1 starts a new table.\n\nCustomer \\(i\\) joins an existing table \\(k\\) with probability\n\\(n_k / (\\alpha + i - 1)\\),\nor starts a new one with probability \\(\\alpha / (\\alpha + i - 1)\\).\n\nThis describes how clusters grow adaptively as data arrive.\n\n\n\n11.2.6 1.6 Example — Simulated DP Mixture of Normals\n\nset.seed(10)\nlibrary(dirichletprocess)\n\n# Generate mixture data\ny &lt;- c(rnorm(50, -3, 0.5), rnorm(50, 3, 0.5))\n\n# Fit a Dirichlet Process Gaussian Mixture\ndp &lt;- DirichletProcessGaussian(y)\ndp &lt;- Fit(dp, its = 2000)\n\n# Cluster assignments\nplot(dp) + ggplot2::ggtitle(\"Dirichlet Process Gaussian Mixture\")\n\nWarning: `aes_()` was deprecated in ggplot2 3.0.0.\nℹ Please use tidy evaluation idioms with `aes()`\nℹ The deprecated feature was likely used in the dirichletprocess package.\n  Please report the issue at\n  &lt;https://github.com/dm13450/dirichletprocess/issues&gt;.\n\n\n\n\n\n\n\n\n\nInterpretation: the DP mixture automatically discovers clusters without specifying their number in advance.\n\n\n\n11.2.7 1.7 Practical Notes\n\nThe posterior number of clusters depends on \\(\\alpha\\) and data separation.\n\nInference via Gibbs sampling or variational truncation.\n\nExtensions: Hierarchical DP, DP regression, and DP topic models.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10 — Bayesian Nonparametrics</span>"
+    ]
+  },
+  {
+    "objectID": "week10.html#lecture-2-gaussian-processes-for-regression",
+    "href": "week10.html#lecture-2-gaussian-processes-for-regression",
+    "title": "11  Week 10 — Bayesian Nonparametrics",
+    "section": "11.3 Lecture 2 — Gaussian Processes for Regression",
+    "text": "11.3 Lecture 2 — Gaussian Processes for Regression\n\n11.3.1 2.1 Motivation\nA Gaussian Process (GP) defines a prior directly over functions, enabling flexible nonlinear regression without specifying a parametric form.\n\n\n\n11.3.2 2.2 Definition\nA GP is a collection of random variables \\(f(x)\\) such that every finite subset has a joint multivariate normal distribution: \\[\nf(x) \\sim \\text{GP}(m(x), k(x,x')),\n\\] where\n\n\\(m(x) = E[f(x)]\\): mean function,\n\\(k(x,x') = \\text{Cov}(f(x),f(x'))\\): covariance (kernel) function.\n\n\n\n\n11.3.3 GP Regression Model\nFor data \\((x_i, y_i)\\): \\[\ny_i = f(x_i) + \\varepsilon_i, \\quad \\varepsilon_i \\sim \\mathcal{N}(0, \\sigma^2).\n\\] Posterior of \\(f(x)\\) given \\(y\\): \\[\nf_* \\mid y, X, X_* \\sim \\mathcal{N}(\\bar{f}_*, \\text{Cov}(f_*)),\n\\] where the mean and covariance are computed using kernel matrices.\n\n\n\n11.3.4 2.4 Common Kernels\n\n\n\n\n\n\n\n\nKernel\nFormula\nProperty\n\n\n\n\nSquared Exponential\n\\(k(x,x') = \\tau^2 \\exp\\!\\left(-\\frac{(x-x')^2}{2\\ell^2}\\right)\\)\nSmooth, infinitely differentiable\n\n\nMatérn\n\\(k(x,x') = \\tau\\^2 \\frac{2\\^{1-\\nu}}{\\Gamma(\\nu)}(\\sqrt{2\\nu})\\)\nx-x’\n\n\nPeriodic\n\\(k(x,x') = \\tau^2\\exp(-2\\sin^2(\\pi))\\)\nx-x’\n\n\n\n\n\n\n11.3.5 2.5 Example — Gaussian Process Regression in R\n\nlibrary(GPfit)\nset.seed(11)\n\nx &lt;- seq(-3, 3, length.out = 50)\ny &lt;- sin(x) + rnorm(50, sd = 0.2)\n\n# Make X a column matrix (good practice for GPfit)\ngp_model &lt;- GP_fit(X = matrix(x, ncol = 1), Y = y)\n\nWarning in GP_fit(X = matrix(x, ncol = 1), Y = y): X should be in range (0, 1)\n\nplot(gp_model)\n\n\n\n\n\n\n\n\n\npred_grid &lt;- seq(-3, 3, length.out = 200)\npred &lt;- predict(gp_model, xnew = matrix(pred_grid, ncol = 1))\n\nyhat &lt;- as.numeric(pred$Y_hat)\nse   &lt;- sqrt(as.numeric(pred$MSE))  # MSE is a variance vector; no diag()\n\nplot(x, y, pch = 19, col = \"#00000055\",\n     main = \"Gaussian Process Regression\", xlab = \"x\", ylab = \"y\")\nlines(pred_grid, yhat, lwd = 2, col = \"darkorange\")\nlines(pred_grid, yhat + 2*se, lty = 2, col = \"gray40\")\nlines(pred_grid, yhat - 2*se, lty = 2, col = \"gray40\")\n\n\n\n\nGaussian Process Regression Fit\n\n\n\n\nInterpretation: the GP posterior mean tracks the true function smoothly, with uncertainty quantified by the shaded region.\n\n\n\n11.3.6 2.6 GP vs DP: Comparison\n\n\n\n\n\n\n\n\nAspect\nDirichlet Process\nGaussian Process\n\n\n\n\nDomain\nDistributions / Clusters\nFunctions\n\n\nOutput\nDiscrete clustering\nContinuous regression\n\n\nFlexibility\nUnknown number of components\nInfinite function space\n\n\nTypical Use\nDensity estimation, mixture modeling\nNonlinear regression, spatial data\n\n\n\n\n\n\n11.3.7 2.7 Practical Considerations\n\nGP computational cost is \\(O(n^3)\\); use sparse or inducing-point approximations for large \\(n\\).\n\nChoice of kernel determines function smoothness and inductive bias.\n\nIn practice, hyperparameters (e.g., \\(\\ell,~\\tau\\)) are learned via marginal likelihood maximization.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10 — Bayesian Nonparametrics</span>"
+    ]
+  },
+  {
+    "objectID": "week10.html#homework-10",
+    "href": "week10.html#homework-10",
+    "title": "11  Week 10 — Bayesian Nonparametrics",
+    "section": "11.4 Homework 10",
+    "text": "11.4 Homework 10\n\nConceptual\n\nCompare the roles of \\(\\alpha\\) in DP and the kernel parameters in GP.\n\nExplain the difference between parametric and nonparametric Bayesian models.\n\nComputational\n\nSimulate data from two Gaussian clusters and fit a DP mixture model using dirichletprocess.\n\nFit a GP regression to noisy sinusoidal data using GPfit.\n\nPlot both model fits and discuss flexibility.\n\nReflection\n\nWhen might nonparametric models be overkill?\n\nHow could hierarchical extensions of DP or GP handle grouped data?",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10 — Bayesian Nonparametrics</span>"
+    ]
+  },
+  {
+    "objectID": "week10.html#key-takeaways",
+    "href": "week10.html#key-takeaways",
+    "title": "11  Week 10 — Bayesian Nonparametrics",
+    "section": "11.5 Key Takeaways",
+    "text": "11.5 Key Takeaways\n\n\n\n\n\n\n\nConcept\nSummary\n\n\n\n\nDirichlet Process\nPrior over distributions enabling infinite mixture models.\n\n\nStick-Breaking Construction\nRepresents DP as weighted infinite discrete components.\n\n\nChinese Restaurant Process\nIntuitive clustering interpretation of DP.\n\n\nGaussian Process\nDefines prior over functions for regression and smoothing.\n\n\nCommon Feature\nBoth model complexity grows with data — no fixed parameter dimension.\n\n\n\n\nNext Week: Bayesian Time Series and State-Space Models — dynamic modeling and sequential inference using Bayesian methods.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10 — Bayesian Nonparametrics</span>"
+    ]
+  },
+  {
+    "objectID": "week11.html",
+    "href": "week11.html",
+    "title": "12  Week 11 — Bayesian Time Series and State-Space Models",
+    "section": "",
+    "text": "12.1 Learning Goals\nThis week introduces Bayesian approaches to time series analysis and state-space modeling, which unify filtering, forecasting, and dynamic parameter estimation under a probabilistic framework.\nWe study both classical dynamic linear models (DLMs) and modern Bayesian filtering methods.\nBy the end of this week, you should be able to:",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11 — Bayesian Time Series and State-Space Models</span>"
+    ]
+  },
+  {
+    "objectID": "week11.html#learning-goals",
+    "href": "week11.html#learning-goals",
+    "title": "12  Week 11 — Bayesian Time Series and State-Space Models",
+    "section": "",
+    "text": "Formulate Bayesian dynamic models for time series data.\n\nUnderstand latent (state) variable representations.\n\nApply Bayesian updating and filtering for sequential data.\n\nImplement simple state-space and autoregressive models in R.\n\nInterpret uncertainty propagation over time.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11 — Bayesian Time Series and State-Space Models</span>"
+    ]
+  },
+  {
+    "objectID": "week11.html#lecture-1-dynamic-linear-models-dlms",
+    "href": "week11.html#lecture-1-dynamic-linear-models-dlms",
+    "title": "12  Week 11 — Bayesian Time Series and State-Space Models",
+    "section": "12.2 Lecture 1 — Dynamic Linear Models (DLMs)",
+    "text": "12.2 Lecture 1 — Dynamic Linear Models (DLMs)\n\n12.2.1 1.1 Motivation\nTime series exhibit temporal dependence.\nDynamic models describe how latent states evolve over time and how observations depend on those states: \\[\n\\text{State equation: } \\theta_t = G_t \\theta_{t-1} + \\omega_t, \\quad \\omega_t \\sim N(0,W_t),\n\\] \\[\n\\text{Observation equation: } y_t = F_t^\\top \\theta_t + \\nu_t, \\quad \\nu_t \\sim N(0,V_t).\n\\]\nHere,\n- \\[ \\\\theta_t \\]: latent state vector,\n- \\[ y_t \\]: observed data,\n- \\[ G_t, F_t \\]: known system matrices,\n- \\[ W_t, V_t \\]: process and observation noise covariances.\n\n\n\n12.2.2 1.2 Bayesian Updating\nGiven data up to time \\[t-1\\], the prior for \\[\\\\theta_t\\] is: \\[\np(\\theta_t \\mid y_{1:t-1}) = N(a_t, R_t),\n\\] where\n\\[ a_t = G_t m\\_{t-1} \\],\n\\[ R_t = G_t C\\_{t-1} G_t\\^\\\\top + W_t \\].\nAfter observing \\[ y_t \\]: \\[\np(\\theta_t \\mid y_{1:t}) = N(m_t, C_t),\n\\] where\n\\[ m_t = a_t + A_t (y_t - F_t\\^\\\\top a_t) \\],\n\\[ C_t = R_t - A_t F_t\\^\\\\top R_t \\],\nand \\[ A_t = R_t F_t (F_t\\^\\\\top R_t F_t + V_t)\\^{-1} \\] is the Kalman gain.\n\n\n\n12.2.3 1.3 Example — Local Level Model\nSimplest DLM: \\[\ny_t = \\theta_t + \\nu_t, \\quad \\theta_t = \\theta_{t-1} + \\omega_t,\n\\] with \\[ \\\\nu_t \\\\sim N(0,V) \\], \\[ \\\\omega_t \\\\sim N(0,W) \\].\n\nset.seed(11)\nn &lt;- 100\ntheta &lt;- numeric(n); y &lt;- numeric(n)\ntheta[1] &lt;- 0\nfor (t in 2:n) theta[t] &lt;- theta[t-1] + rnorm(1, 0, 0.2)\ny &lt;- theta + rnorm(n, 0, 0.5)\nplot.ts(cbind(y, theta), col=c(\"black\",\"blue\"), lwd=2,\n        main=\"Local Level Model: True State vs Observed y\", ylab=\"\")\nlegend(\"topleft\", legend=c(\"Observed y\",\"True θ\"), col=c(\"black\",\"blue\"), lwd=2, bty=\"n\")\n\n\n\n\n\n\n\n\n\n\n\n12.2.4 1.4 Filtering with the Kalman Algorithm\nWe estimate the evolving state mean \\[ m_t \\] recursively:\n\nm &lt;- numeric(n); C &lt;- numeric(n)\nm[1] &lt;- 0; C[1] &lt;- 1\nV &lt;- 0.5^2; W &lt;- 0.2^2\n\nfor (t in 2:n) {\n  a &lt;- m[t-1]\n  R &lt;- C[t-1] + W\n  A &lt;- R / (R + V)\n  m[t] &lt;- a + A * (y[t] - a)\n  C[t] &lt;- (1 - A) * R\n}\n\nplot.ts(cbind(y, m), col=c(\"black\",\"red\"), lwd=2,\n        main=\"Kalman Filter Estimate of Latent State\", ylab=\"\")\nlegend(\"topleft\", legend=c(\"Observed y\",\"Filtered mean m_t\"),\n       col=c(\"black\",\"red\"), lwd=2, bty=\"n\")\n\n\n\n\n\n\n\n\nThe red line tracks the smoothed latent process inferred from noisy data.\n\n\n\n12.2.5 1.5 Forecasting and Uncertainty\nPredictive distribution for the next observation: \\[\ny_{t+1} \\mid y_{1:t} \\sim N(F_{t+1}^\\top a_{t+1}, F_{t+1}^\\top R_{t+1} F_{t+1} + V_{t+1}).\n\\]\nForecast variance increases as the state uncertainty grows over time.\n\n\n\n12.2.6 1.6 Advantages of Bayesian DLMs\n\nNaturally handle missing observations.\n\nFlexible hierarchical extensions (time-varying parameters).\n\nProbabilistic forecasting with credible intervals.\n\nOnline updating suitable for real-time applications.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11 — Bayesian Time Series and State-Space Models</span>"
+    ]
+  },
+  {
+    "objectID": "week11.html#lecture-2-state-space-models-and-bayesian-filtering",
+    "href": "week11.html#lecture-2-state-space-models-and-bayesian-filtering",
+    "title": "12  Week 11 — Bayesian Time Series and State-Space Models",
+    "section": "12.3 Lecture 2 — State-Space Models and Bayesian Filtering",
+    "text": "12.3 Lecture 2 — State-Space Models and Bayesian Filtering\n\n12.3.1 2.1 General State-Space Models\nGeneral form: \\[\nx_t = f(x_{t-1}) + \\omega_t, \\qquad y_t = g(x_t) + \\nu_t,\n\\] where \\[ f \\] and \\[ g \\] may be nonlinear or non-Gaussian.\nExamples: stochastic volatility, epidemic dynamics, tracking models.\n\n\n\n12.3.2 2.2 Bayesian Filtering\nWe recursively compute: \\[\np(x_t \\mid y_{1:t}) \\propto p(y_t \\mid x_t)\\int p(x_t \\mid x_{t-1})\\,p(x_{t-1}\\mid y_{1:t-1})\\,dx_{t-1}.\n\\]\nClosed forms exist only for linear-Gaussian models (Kalman).\nOtherwise, approximate methods are required: - Particle Filtering (Sequential Monte Carlo).\n- Extended Kalman Filter (linearization).\n- Unscented Kalman Filter (deterministic sampling).\n\n\n\n12.3.3 2.3 Particle Filtering (Sequential Monte Carlo)\nIdea: Represent \\[ p(x_t\\\\mid y\\_{1:t}) \\] by weighted particles \\[ \\\\{x_t\\^{(i)}, w_t\\^{(i)}\\\\} \\].\n\nPrediction: Sample \\[ x_t\\^{(i)} \\\\sim p(x_t\\\\mid x\\_{t-1}\\^{(i)}) \\]$.\n\nWeighting: \\[ w_t\\^{(i)} \\\\propto p(y_t\\\\mid x_t\\^{(i)}) \\].\n\nResampling: Normalize and resample particles based on \\[ w_t\\^{(i)} \\].\n\nAs \\[ N \\\\to \\\\infty \\], the empirical distribution approximates the true posterior.\n\n\n\n12.3.4 2.4 Example — Particle Filter for a Simple Nonlinear Model\n\nset.seed(12)\nn &lt;- 50; Np &lt;- 500\nx_true &lt;- numeric(n); y &lt;- numeric(n)\nx_true[1] &lt;- 0\nfor (t in 2:n) x_true[t] &lt;- 0.7*x_true[t-1] + rnorm(1,0,0.5)\ny &lt;- x_true^2/2 + rnorm(n,0,0.2)\n\n# Initialize particles\nx_pf &lt;- matrix(0, nrow=n, ncol=Np)\nw &lt;- matrix(1/Np, nrow=n, ncol=Np)\nx_pf[1,] &lt;- rnorm(Np, 0, 1)\n\nfor (t in 2:n) {\n  # Propagate\n  x_pf[t,] &lt;- 0.7*x_pf[t-1,] + rnorm(Np,0,0.5)\n  # Weight\n  w[t,] &lt;- dnorm(y[t], mean=x_pf[t,]^2/2, sd=0.2)\n  w[t,] &lt;- w[t,]/sum(w[t,])\n  # Resample\n  idx &lt;- sample(1:Np, Np, replace=TRUE, prob=w[t,])\n  x_pf[t,] &lt;- x_pf[t,idx]\n}\n\nx_est &lt;- colMeans(x_pf)\nplot.ts(cbind(y, x_true, x_est), col=c(\"black\",\"blue\",\"red\"), lwd=2,\n        main=\"Particle Filter Tracking\", ylab=\"\")\nlegend(\"topleft\", legend=c(\"Observed y\",\"True state\",\"PF estimate\"),\n       col=c(\"black\",\"blue\",\"red\"), lwd=2, bty=\"n\")\n\n\n\n\n\n\n\n\nThe particle filter captures nonlinear state dynamics unavailable to standard Kalman filtering.\n\n\n\n12.3.5 2.5 Extensions and Modern Bayesian State Models\n\nDynamic GLMs for count or binary data.\n\nStochastic Volatility Models in finance.\n\nDynamic Factor Models for multivariate time series.\n\nBayesian Structural Time Series (BSTS) — trend + seasonality decomposition.\n\n\nlibrary(bsts)\ndata(Seatbelts)\ny &lt;- Seatbelts[,\"drivers\"]\nss &lt;- AddLocalLevel(list(), y)\nbsts_fit &lt;- bsts(y ~ 1, state.specification = ss, niter = 2000)\nplot(bsts_fit)\n\n\n\n\n12.3.6 2.6 Practical Considerations\n\nChoose priors for \\[ V_t, W_t \\] that balance smoothness and responsiveness.\n\nUse HMC or SMC samplers for full Bayesian inference.\n\nCheck convergence and predictive calibration through one-step-ahead forecasts.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11 — Bayesian Time Series and State-Space Models</span>"
+    ]
+  },
+  {
+    "objectID": "week11.html#homework-11",
+    "href": "week11.html#homework-11",
+    "title": "12  Week 11 — Bayesian Time Series and State-Space Models",
+    "section": "12.4 Homework 11",
+    "text": "12.4 Homework 11\n\nConceptual\n\nExplain the difference between filtering and smoothing in Bayesian time series analysis.\n\nWhen does the Kalman filter provide exact inference?\n\nComputational\n\nSimulate a local-level model and implement a Kalman filter in R.\n\nExtend it with time-varying variance or drift.\n\nCompare filtered estimates to true latent states.\n\nReflection\n\nHow does particle filtering generalize the Kalman filter?\n\nDiscuss a potential application of Bayesian state-space modeling in your field.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11 — Bayesian Time Series and State-Space Models</span>"
+    ]
+  },
+  {
+    "objectID": "week11.html#key-takeaways",
+    "href": "week11.html#key-takeaways",
+    "title": "12  Week 11 — Bayesian Time Series and State-Space Models",
+    "section": "12.5 Key Takeaways",
+    "text": "12.5 Key Takeaways\n\n\n\n\n\n\n\nConcept\nSummary\n\n\n\n\nDynamic Linear Model (DLM)\nLinear-Gaussian state-space model solved by Kalman filter.\n\n\nKalman Filter\nSequential Bayesian updating for latent states.\n\n\nParticle Filter\nSimulation-based approach for nonlinear or non-Gaussian models.\n\n\nForecasting\nNaturally derived from predictive posterior distribution.\n\n\nExtensions\nBSTS, stochastic volatility, dynamic regression, multivariate models.\n\n\n\n\nNext Week: Hierarchical Bayesian Inference for Complex Systems — multi-level time series and dynamic hierarchical modeling.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11 — Bayesian Time Series and State-Space Models</span>"
+    ]
+  },
+  {
+    "objectID": "summary.html",
+    "href": "summary.html",
+    "title": "13  Summary",
+    "section": "",
+    "text": "In summary, this book has no content whatsoever.\n\n1 + 1\n\n[1] 2",
+    "crumbs": [
+      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Summary</span>"
     ]
   }
 ]
