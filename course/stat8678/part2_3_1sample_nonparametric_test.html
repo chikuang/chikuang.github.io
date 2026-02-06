@@ -20,6 +20,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -258,7 +293,16 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#motivation" id="toc-motivation" class="nav-link active" data-scroll-target="#motivation"><span class="header-section-number">7.1</span> Motivation</a></li>
+  <li><a href="#motivation" id="toc-motivation" class="nav-link active" data-scroll-target="#motivation"><span class="header-section-number">7.1</span> Motivation</a>
+  <ul class="collapse">
+  <li><a href="#key-characteristics-of-nonparametric-tests" id="toc-key-characteristics-of-nonparametric-tests" class="nav-link" data-scroll-target="#key-characteristics-of-nonparametric-tests"><span class="header-section-number">7.1.1</span> Key Characteristics of Nonparametric Tests</a></li>
+  </ul></li>
+  <li><a href="#one-sample-nonparametric-test-in-sas" id="toc-one-sample-nonparametric-test-in-sas" class="nav-link" data-scroll-target="#one-sample-nonparametric-test-in-sas"><span class="header-section-number">7.2</span> One Sample Nonparametric Test in SAS</a></li>
+  <li><a href="#discussion-one-sided-vs-two-sided-tests" id="toc-discussion-one-sided-vs-two-sided-tests" class="nav-link" data-scroll-target="#discussion-one-sided-vs-two-sided-tests"><span class="header-section-number">7.3</span> Discussion: One-Sided vs Two-Sided Tests</a>
+  <ul class="collapse">
+  <li><a href="#approximate-one-sided-p-value-calculation" id="toc-approximate-one-sided-p-value-calculation" class="nav-link" data-scroll-target="#approximate-one-sided-p-value-calculation"><span class="header-section-number">7.3.1</span> Approximate One-Sided p-Value Calculation</a></li>
+  <li><a href="#why-does-this-work" id="toc-why-does-this-work" class="nav-link" data-scroll-target="#why-does-this-work"><span class="header-section-number">7.3.2</span> Why Does This Work?</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -293,8 +337,202 @@ window.Quarto = {
 </blockquote>
 <section id="motivation" class="level2" data-number="7.1">
 <h2 data-number="7.1" class="anchored" data-anchor-id="motivation"><span class="header-section-number">7.1</span> Motivation</h2>
+<p>A <strong>parametric test</strong> specifies certain assumptions about the distribution of responses in the population from which the sample is drawn. The validity and interpretability of parametric test results depend critically on whether these assumptions are satisfied.</p>
+<p>In contrast, a <strong>nonparametric test</strong> is based on a model that imposes only very general conditions and does <strong>not</strong> assume a specific parametric form for the population distribution.<br>
+For this reason, nonparametric tests are often referred to as <strong>distribution-free tests</strong>.</p>
+<p>Although nonparametric methods are not completely assumption-free, the assumptions they require are generally <strong>fewer and weaker</strong> than those of parametric tests.</p>
+<section id="key-characteristics-of-nonparametric-tests" class="level3" data-number="7.1.1">
+<h3 data-number="7.1.1" class="anchored" data-anchor-id="key-characteristics-of-nonparametric-tests"><span class="header-section-number">7.1.1</span> Key Characteristics of Nonparametric Tests</h3>
+<p>Nonparametric test statistics typically rely on simple features of the data, such as:</p>
+<ul>
+<li>Signs of measurements<br>
+</li>
+<li>Ranks or orderings<br>
+</li>
+<li>Category or frequency counts</li>
+</ul>
+<p>As a result:</p>
+<ul>
+<li>Linear transformations (stretching or compressing the scale) do <strong>not</strong> affect the test statistic.</li>
+<li>The null distribution of the test statistic can often be derived <strong>without specifying the population distribution</strong>.</li>
+</ul>
+<p>Nonparametric tests therefore avoid assumptions such as:</p>
+<ul>
+<li>Normality</li>
+<li>Homogeneity of variance</li>
+</ul>
+<p>Moreover, nonparametric methods usually compare <strong>medians rather than means</strong>, which makes them less sensitive to outliers.</p>
+<p><strong>Advantages of Nonparametric Tests</strong></p>
+<ul>
+<li>Applicable to <strong>all measurement scales</strong></li>
+<li>Particularly useful when the <strong>sample size is very small</strong>, unless the distribution is known</li>
+<li>Easier to learn and compute</li>
+<li>Require <strong>fewer assumptions</strong></li>
+<li>More <strong>robust</strong> due to weaker modeling assumptions</li>
+<li>Do not require explicit population parameters</li>
+<li>In some cases, results can be <strong>as exact</strong> as parametric procedures</li>
+</ul>
+<p><strong>Disadvantages of Nonparametric Tests</strong></p>
+<ul>
+<li>Often <strong>less powerful</strong> than parametric tests when parametric assumptions hold</li>
+<li>Provide less information about population parameters</li>
+<li>Interpretation is usually framed in terms of <strong>location or rank</strong>, not means</li>
+<li>Some procedures do not extend easily to complex models</li>
+</ul>
+<p><strong>Summary</strong></p>
+<ul>
+<li>Parametric tests rely on strong distributional assumptions but can be powerful and informative.</li>
+<li>Nonparametric tests trade efficiency for <strong>robustness and flexibility</strong>.</li>
+<li>In practice, nonparametric methods serve as valuable alternatives when assumptions are questionable or sample sizes are limited.</li>
+</ul>
+<p>In the next section, we will study <strong>specific one-sample nonparametric procedures</strong> and implement them in <strong>SAS</strong>.</p>
+</section>
+</section>
+<section id="one-sample-nonparametric-test-in-sas" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="one-sample-nonparametric-test-in-sas"><span class="header-section-number">7.2</span> One Sample Nonparametric Test in SAS</h2>
+<p>Base SAS provides two commonly used <strong>one-sample nonparametric tests</strong> through the <code>PROC UNIVARIATE</code> procedure:</p>
+<ul>
+<li><strong>Sign test</strong></li>
+<li><strong>Wilcoxon signed-rank test</strong></li>
+</ul>
+<p>Both tests are designed for situations in which we want to make inference about the <strong>location</strong> of a population, typically interpreted as the <strong>median</strong> rather than the mean.</p>
+<p>Suppose we are interested in testing whether the <strong>median resting pulse rate of marathon runners</strong> differs from a specified value. If the normality assumption required for a one-sample <em>t</em>-test is questionable, nonparametric alternatives provide a robust solution.</p>
+<p>By default, both tests examine the hypothesis that the median of the population from which the sample is drawn is equal to a specific value,s which is zero by dafault. However, we note that</p>
+<ul>
+<li><strong>Wilcoxon signed-rank test</strong>
+<ul>
+<li>Assumes the population distribution is <strong>symmetric</strong></li>
+<li>Generally more powerful when the symmetry assumption holds</li>
+</ul></li>
+<li><strong>Sign test</strong>
+<ul>
+<li>Does <strong>not</strong> require symmetry</li>
+<li>Uses only the <strong>sign</strong> of deviations from the hypothesized median</li>
+<li>More robust but typically less powerful</li>
+</ul></li>
+</ul>
+<p>Both tests can also be extended to <strong>paired (related) samples</strong>, which will be discussed later when we cover comparisons of two related samples.</p>
+<p>Both the sign test and the Wilcoxon signed-rank test are <strong>automatically available</strong> in <code>PROC UNIVARIATE</code>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="sc">/</span><span class="er">*</span> Syntax<span class="sc">:</span> PROC UNIVARIATE <span class="sc">*</span><span class="er">/</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>PROC UNIVARIATE <span class="sc">&lt;</span>options<span class="sc">&gt;</span>;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    BY <span class="sc">&lt;</span>variables<span class="sc">&gt;</span>;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    CDFPLOT <span class="sc">&lt;</span>variables<span class="sc">&gt;</span> <span class="er">&lt;/</span> options<span class="sc">&gt;</span>;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>CLASS variable<span class="dv">-1</span> <span class="sc">&lt;</span>(v<span class="sc">-</span>options)<span class="sc">&gt;</span> <span class="er">&lt;</span>variable<span class="dv">-2</span> <span class="sc">&lt;</span>(v<span class="sc">-</span>options)<span class="sc">&gt;</span><span class="er">&gt;&lt;/</span> KEYLEVEL<span class="ot">=</span><span class="fu">value1</span> (value1 value2</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)<span class="sc">&gt;</span>;FREQ variable;HISTOGRAM <span class="sc">&lt;</span>variables<span class="sc">&gt;</span> <span class="er">&lt;/</span> options<span class="sc">&gt;</span>;ID variables;INSET keyword<span class="sc">-</span>list <span class="sc">&lt;</span><span class="er">/</span> options<span class="sc">&gt;</span>;OUTPUT</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="sc">&lt;</span>OUT<span class="ot">=</span>SAS<span class="sc">-</span>data<span class="sc">-</span>set<span class="sc">&gt;</span> <span class="er">&lt;</span>keyword1<span class="ot">=</span>names ...keywordk<span class="ot">=</span>names<span class="sc">&gt;</span> <span class="er">&lt;</span>percentile<span class="sc">-</span>options<span class="sc">&gt;</span>;PPPLOT <span class="sc">&lt;</span>variables<span class="sc">&gt;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="er">&lt;/</span> options<span class="sc">&gt;</span>;PROBPLOT <span class="sc">&lt;</span>variables<span class="sc">&gt;</span> <span class="er">&lt;/</span> options<span class="sc">&gt;</span>;QQPLOT <span class="sc">&lt;</span>variables<span class="sc">&gt;</span> <span class="er">&lt;/</span> options<span class="sc">&gt;</span>;VAR variables;WEIGHT</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>variable;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>The <code>PROC UNIVARIATE</code> statement invokes the <strong>UNIVARIATE procedure</strong>, which provides detailed descriptive statistics, distributional summaries, and diagnostic plots for numerical variables.</li>
+<li>The <code>VAR</code> Statement
+<ul>
+<li>Specifies the <strong>numeric variables</strong> to be analyzed.</li>
+<li><strong>Required</strong> if the <code>OUTPUT</code> statement is used.</li>
+<li>If omitted, <strong>all numeric variables</strong> in the data set are analyzed.</li>
+</ul></li>
+<li>The PLOT statement (CDFPLOT, HISTOGRAM, PPPLOT, PROBPLOT, and QQPLOT) create graphical displays</li>
+<li>the INSET statement enhances these displays by adding a table of summary statistics directly on the graph.</li>
+</ul>
+<p>You can specify one or more of each of the plot statements, the INSET statement, and the OUTPUT statement. If you use a VAR statement, the variables listed in a plot statement must be a subset of the variables listed in the VAR statement.</p>
+<p>You can specify a <code>BY</code> statement to obtain separate analyses for each <code>BY</code> group. The <code>FREQ</code> statement specifies a variable whose values provide the frequency for each observation. The <code>ID</code> statement specifies one or more variables to identify the extreme observations. The <code>WEIGHT</code> statement specifies a variable whose values are used to weight certain statistics.</p>
+<p>You can use a <code>CLASS</code> statement to specify one or two variables that group the data into classification levels. The analysis is carried out for each combination of levels in the input data set, or within each BY group if you also specify a BY statement. You can use the <code>CLASS</code> statement with plot statements to create comparative displays, in which each cell contains a plot for one combination of classification levels.</p>
+<div class="callout-example" title="Revisit the court time examples">
+<p>We revisit the <strong>court length example</strong> to demonstrate how one-sample <strong>nonparametric tests</strong> can be used as an alternative or complement to the one-sample <em>t</em>-test.</p>
+<p>Suppose that, for some reason, we believe the <em>t</em>-test may not be an appropriate choice—perhaps due to concerns about normality—or we simply wish to <strong>double-check our conclusions</strong> using nonparametric methods. In this case, we can apply the nonparametric procedures available in <code>PROC UNIVARIATE</code>.</p>
+<p><strong>Step 1: Input the Data</strong></p>
+<p>We begin by entering the court length data into SAS.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>DATA time;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    INPUT time <span class="sc">@</span><span class="er">@</span>;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    DATALINES;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="dv">43</span>  <span class="dv">90</span>  <span class="dv">84</span>  <span class="dv">87</span>  <span class="dv">116</span>  <span class="dv">95</span>  <span class="dv">86</span>  <span class="dv">99</span>  <span class="dv">93</span>  <span class="dv">92</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="dv">121</span> <span class="dv">71</span>  <span class="dv">66</span>  <span class="dv">98</span>  <span class="dv">79</span>  <span class="dv">102</span> <span class="dv">60</span>  <span class="dv">112</span> <span class="dv">105</span> <span class="dv">98</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Step 2: Perform a One-Sample Nonparametric Test</strong></p>
+<p>To test whether the population median court length differs from 80 days, we use PROC UNIVARIATE with the MU0= option.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="sc">/</span><span class="er">*</span> Perform one<span class="sc">-</span>sample nonparametric test <span class="sc">*</span><span class="er">/</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>PROC UNIVARIATE DATA<span class="ot">=</span>time MU0<span class="ot">=</span><span class="dv">80</span>;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    VAR time;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Step 3: Interpret the Output</strong></p>
+<p>From the output, SAS provides: + Test statistics + p-values for both nonparametric tests</p>
+<p>These results allow us to assess whether there is statistical evidence that the population median court length differs from 80 days, without relying on the normality assumption required by the t-test.</p>
+</div>
+</section>
+<section id="discussion-one-sided-vs-two-sided-tests" class="level2" data-number="7.3">
+<h2 data-number="7.3" class="anchored" data-anchor-id="discussion-one-sided-vs-two-sided-tests"><span class="header-section-number">7.3</span> Discussion: One-Sided vs Two-Sided Tests</h2>
+<p><strong>Question:</strong><br>
+Is this a <em>one-sided</em> or a <em>two-sided</em> test?</p>
+<p>In this example, <strong>SAS reports only two-sided p-values</strong> by default for the nonparametric tests in <code>PROC UNIVARIATE</code>. If a <strong>one-sided test</strong> is desired, SAS does not directly provide the result.</p>
+<p>However, a <strong>simple (though not exact) workaround</strong> can be used to approximate the one-sided p-value from the two-sided p-value.</p>
+<section id="approximate-one-sided-p-value-calculation" class="level3" data-number="7.3.1">
+<h3 data-number="7.3.1" class="anchored" data-anchor-id="approximate-one-sided-p-value-calculation"><span class="header-section-number">7.3.1</span> Approximate One-Sided p-Value Calculation</h3>
+<ol type="1">
+<li><p>Let<br>
+<span class="math display">\[
+p^* = \frac{\text{two-sided p-value}}{2}.
+\]</span></p></li>
+<li><p>Then proceed according to the alternative hypothesis:</p></li>
+</ol>
+<section id="case-1-right-sided-test" class="level4" data-number="7.3.1.1">
+<h4 data-number="7.3.1.1" class="anchored" data-anchor-id="case-1-right-sided-test"><span class="header-section-number">7.3.1.1</span> Case 1: Right-sided test</h4>
+<p>Testing<br>
+<span class="math display">\[
+H_1: \mu &gt; 80 \quad (\text{or } \mu &gt; \mu_0)
+\]</span></p>
+<ul>
+<li><p>If the sample mean <span class="math inline">\(\bar{x} &gt; \mu_0\)</span>, then<br>
+<span class="math display">\[
+\text{one-sided p-value} = p^*.
+\]</span></p></li>
+<li><p>If the sample mean <span class="math inline">\(\bar{x} &lt; \mu_0\)</span>, then<br>
+<span class="math display">\[
+\text{one-sided p-value} = 1 - p^*.
+\]</span></p></li>
+</ul>
+</section>
+<section id="case-2-left-sided-test" class="level4" data-number="7.3.1.2">
+<h4 data-number="7.3.1.2" class="anchored" data-anchor-id="case-2-left-sided-test"><span class="header-section-number">7.3.1.2</span> Case 2: Left-sided test</h4>
+<p>Testing<br>
+<span class="math display">\[
+H_1: \mu &lt; 80 \quad (\text{or } \mu &lt; \mu_0)
+\]</span></p>
+<ul>
+<li><p>If the sample mean <span class="math inline">\(\bar{x} &lt; \mu_0\)</span>, then<br>
+<span class="math display">\[
+\text{one-sided p-value} = p^*.
+\]</span></p></li>
+<li><p>If the sample mean <span class="math inline">\(\bar{x} &gt; \mu_0\)</span>, then<br>
+<span class="math display">\[
+\text{one-sided p-value} = 1 - p^*.
+\]</span></p></li>
+</ul>
+</section>
+</section>
+<section id="why-does-this-work" class="level3" data-number="7.3.2">
+<h3 data-number="7.3.2" class="anchored" data-anchor-id="why-does-this-work"><span class="header-section-number">7.3.2</span> Why Does This Work?</h3>
+<p>A two-sided p-value measures evidence in <strong>both directions</strong> away from the null hypothesis. Dividing it by two isolates the probability mass in <strong>one tail</strong> of the sampling distribution.</p>
+<p>However, this adjustment is only valid when: - The test statistic is symmetric under the null hypothesis - The observed statistic is in the direction specified by the alternative</p>
+<p>Because these conditions are not always guaranteed for nonparametric tests, this method should be viewed as an <strong>approximation</strong>, not an exact one-sided test.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part2_3_1sample_nonparametric_test_files/figure-html/test-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<hr>
+<blockquote class="blockquote">
+<p><strong>Key takeaway:</strong><br>
+SAS nonparametric procedures default to two-sided inference. While approximate one-sided p-values can be obtained manually, interpretation should be done with care.</p>
+</blockquote>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
