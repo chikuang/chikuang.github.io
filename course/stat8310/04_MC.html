@@ -276,8 +276,19 @@ window.Quarto = {
   <li><a href="#numerical-evaluation" id="toc-numerical-evaluation" class="nav-link" data-scroll-target="#numerical-evaluation"><span class="header-section-number">4.5</span> Numerical Evaluation</a>
   <ul class="collapse">
   <li><a href="#there-are-much-more-about-the-mc-method" id="toc-there-are-much-more-about-the-mc-method" class="nav-link" data-scroll-target="#there-are-much-more-about-the-mc-method"><span class="header-section-number">4.5.2</span> There are much more about the MC method</a></li>
+  <li><a href="#mc-for-predictive-distribution" id="toc-mc-for-predictive-distribution" class="nav-link" data-scroll-target="#mc-for-predictive-distribution"><span class="header-section-number">4.5.3</span> MC for predictive distribution</a></li>
   </ul></li>
-  <li><a href="#markov-chain-monte-carlo-mcmc-1" id="toc-markov-chain-monte-carlo-mcmc-1" class="nav-link" data-scroll-target="#markov-chain-monte-carlo-mcmc-1"><span class="header-section-number">4.6</span> Markov Chain Monte Carlo (MCMC)</a></li>
+  <li><a href="#sampling-from-predictive-distributions" id="toc-sampling-from-predictive-distributions" class="nav-link" data-scroll-target="#sampling-from-predictive-distributions"><span class="header-section-number">4.6</span> 4.3 Sampling from Predictive Distributions</a>
+  <ul class="collapse">
+  <li><a href="#sampling-model-vs-predictive-model" id="toc-sampling-model-vs-predictive-model" class="nav-link" data-scroll-target="#sampling-model-vs-predictive-model"><span class="header-section-number">4.6.1</span> Sampling Model vs Predictive Model</a></li>
+  <li><a href="#prior-predictive-distribution" id="toc-prior-predictive-distribution" class="nav-link" data-scroll-target="#prior-predictive-distribution"><span class="header-section-number">4.6.2</span> Prior Predictive Distribution</a></li>
+  <li><a href="#posterior-predictive-distribution" id="toc-posterior-predictive-distribution" class="nav-link" data-scroll-target="#posterior-predictive-distribution"><span class="header-section-number">4.6.3</span> Posterior Predictive Distribution</a></li>
+  <li><a href="#monte-carlo-sampling-from-the-posterior-predictive-distribution" id="toc-monte-carlo-sampling-from-the-posterior-predictive-distribution" class="nav-link" data-scroll-target="#monte-carlo-sampling-from-the-posterior-predictive-distribution"><span class="header-section-number">4.6.4</span> Monte Carlo Sampling from the Posterior Predictive Distribution</a></li>
+  <li><a href="#example-comparing-two-groups-poisson-model" id="toc-example-comparing-two-groups-poisson-model" class="nav-link" data-scroll-target="#example-comparing-two-groups-poisson-model"><span class="header-section-number">4.6.5</span> Example: Comparing Two Groups (Poisson Model)</a></li>
+  <li><a href="#monte-carlo-approximation-of-predictive-quantities" id="toc-monte-carlo-approximation-of-predictive-quantities" class="nav-link" data-scroll-target="#monte-carlo-approximation-of-predictive-quantities"><span class="header-section-number">4.6.6</span> Monte Carlo Approximation of Predictive Quantities</a></li>
+  <li><a href="#checking" id="toc-checking" class="nav-link" data-scroll-target="#checking"><span class="header-section-number">4.6.7</span> Checking</a></li>
+  </ul></li>
+  <li><a href="#markov-chain-monte-carlo-mcmc-1" id="toc-markov-chain-monte-carlo-mcmc-1" class="nav-link" data-scroll-target="#markov-chain-monte-carlo-mcmc-1"><span class="header-section-number">4.7</span> Markov Chain Monte Carlo (MCMC)</a></li>
   </ul>
 </nav>
     </div>
@@ -771,11 +782,198 @@ MC_1000 1.5180    0.8860   1.1810   1.8937</code></pre>
 <li>etc…</li>
 </ul>
 <p>You may refer to my notes in Chapter 4 in the <a href="https://chikuang.github.io/course/stat8670/04-monte-carlo.html#other-methods">Computational Methods in Statistics Course</a>.</p>
-<p>Here, we are gonig to shift our attention to a special kind of MC method, namely the MCMC method.</p>
+</section>
+<section id="mc-for-predictive-distribution" class="level3" data-number="4.5.3">
+<h3 data-number="4.5.3" class="anchored" data-anchor-id="mc-for-predictive-distribution"><span class="header-section-number">4.5.3</span> MC for predictive distribution</h3>
 </section>
 </section>
-<section id="markov-chain-monte-carlo-mcmc-1" class="level2" data-number="4.6">
-<h2 data-number="4.6" class="anchored" data-anchor-id="markov-chain-monte-carlo-mcmc-1"><span class="header-section-number">4.6</span> Markov Chain Monte Carlo (MCMC)</h2>
+<section id="sampling-from-predictive-distributions" class="level2" data-number="4.6">
+<h2 data-number="4.6" class="anchored" data-anchor-id="sampling-from-predictive-distributions"><span class="header-section-number">4.6</span> 4.3 Sampling from Predictive Distributions</h2>
+<p>As discussed earlier, the <strong>predictive distribution</strong> of a future random variable <span class="math inline">\(\tilde Y\)</span> is the probability distribution that reflects uncertainty about <span class="math inline">\(\tilde Y\)</span> after accounting for both:</p>
+<ul>
+<li>known quantities (conditioned on observed data), and<br>
+</li>
+<li>unknown quantities (integrated out).</li>
+</ul>
+<section id="sampling-model-vs-predictive-model" class="level3" data-number="4.6.1">
+<h3 data-number="4.6.1" class="anchored" data-anchor-id="sampling-model-vs-predictive-model"><span class="header-section-number">4.6.1</span> Sampling Model vs Predictive Model</h3>
+<p>Suppose <span class="math inline">\(\tilde Y\)</span> denotes the number of children for a randomly selected woman aged 40 with a college degree.</p>
+<p>If the true mean birthrate <span class="math inline">\(\theta\)</span> were known, uncertainty about <span class="math inline">\(\tilde Y\)</span> would be described by the <strong>sampling model</strong> <span class="math display">\[
+\Pr(\tilde Y = \tilde y \mid \theta) = p(\tilde y \mid \theta)
+= \frac{\theta^{\tilde y} e^{-\theta}}{\tilde y!},
+\]</span> that is, <span class="math display">\[
+\tilde Y \mid \theta \sim \text{Poisson}(\theta).
+\]</span></p>
+<p>In practice, however, <span class="math inline">\(\theta\)</span> is unknown. Therefore, predictions must account for uncertainty in <span class="math inline">\(\theta\)</span>.</p>
+<hr>
+</section>
+<section id="prior-predictive-distribution" class="level3" data-number="4.6.2">
+<h3 data-number="4.6.2" class="anchored" data-anchor-id="prior-predictive-distribution"><span class="header-section-number">4.6.2</span> Prior Predictive Distribution</h3>
+<p>If no data have been observed, predictions are obtained by integrating out <span class="math inline">\(\theta\)</span> using the prior distribution: <span class="math display">\[
+\Pr(\tilde Y = \tilde y)
+= \int p(\tilde y \mid \theta)\, p(\theta)\, d\theta.
+\]</span></p>
+<p>This is called the <strong>prior predictive distribution</strong>.</p>
+<p>For a Poisson model with a Gamma prior, <span class="math display">\[
+\theta \sim \text{Gamma}(a,b),
+\]</span> the prior predictive distribution of <span class="math inline">\(\tilde Y\)</span> is <span class="math display">\[
+\tilde Y \sim \text{Negative Binomial}(a,b).
+\]</span></p>
+</section>
+<section id="posterior-predictive-distribution" class="level3" data-number="4.6.3">
+<h3 data-number="4.6.3" class="anchored" data-anchor-id="posterior-predictive-distribution"><span class="header-section-number">4.6.3</span> Posterior Predictive Distribution</h3>
+<p>After observing data <span class="math inline">\(Y_1 = y_1, \ldots, Y_n = y_n\)</span>, the relevant predictive distribution for a new observation is <span class="math display">\[
+\Pr(\tilde Y = \tilde y \mid Y_1=y_1,\ldots,Y_n=y_n)
+= \int p(\tilde y \mid \theta)\, p(\theta \mid y_1,\ldots,y_n)\, d\theta.
+\]</span></p>
+<p>This distribution is called the <strong>posterior predictive distribution</strong>.</p>
+<p>For the Poisson–Gamma model, the posterior distribution is <span class="math display">\[
+\theta \mid y_1,\ldots,y_n \sim \text{Gamma}\!\left(a + \sum_{i=1}^n y_i,\; b+n\right),
+\]</span> and the posterior predictive distribution is again Negative Binomial.</p>
+<hr>
+</section>
+<section id="monte-carlo-sampling-from-the-posterior-predictive-distribution" class="level3" data-number="4.6.4">
+<h3 data-number="4.6.4" class="anchored" data-anchor-id="monte-carlo-sampling-from-the-posterior-predictive-distribution"><span class="header-section-number">4.6.4</span> Monte Carlo Sampling from the Posterior Predictive Distribution</h3>
+<p>In many models, the posterior predictive distribution cannot be evaluated analytically. However, it can often be <strong>sampled using Monte Carlo methods</strong>.</p>
+<p>The idea is simple:</p>
+<ol type="1">
+<li>Draw <span class="math inline">\(\theta^{(s)} \sim p(\theta \mid y_1,\ldots,y_n)\)</span><br>
+</li>
+<li>Draw <span class="math inline">\(\tilde Y^{(s)} \sim p(\tilde y \mid \theta^{(s)})\)</span><br>
+</li>
+<li>Repeat for <span class="math inline">\(s = 1,\ldots,S\)</span></li>
+</ol>
+<p>This produces samples <span class="math display">\[
+\tilde Y^{(1)}, \ldots, \tilde Y^{(S)}
+\sim p(\tilde y \mid y_1,\ldots,y_n),
+\]</span> which approximate the posterior predictive distribution.</p>
+<hr>
+</section>
+<section id="example-comparing-two-groups-poisson-model" class="level3" data-number="4.6.5">
+<h3 data-number="4.6.5" class="anchored" data-anchor-id="example-comparing-two-groups-poisson-model"><span class="header-section-number">4.6.5</span> Example: Comparing Two Groups (Poisson Model)</h3>
+<p>Suppose we observe two independent groups with Poisson data:</p>
+<ul>
+<li>Group 1: <span class="math inline">\(\sum Y_{i,1} = 217\)</span>, <span class="math inline">\(n_1 = 111\)</span><br>
+</li>
+<li>Group 2: <span class="math inline">\(\sum Y_{i,2} = 66\)</span>, <span class="math inline">\(n_2 = 44\)</span></li>
+</ul>
+<p>With a common prior <span class="math display">\[
+\theta_k \sim \text{Gamma}(a,b), \quad k=1,2,
+\]</span> the posterior distributions are <span class="math display">\[
+\theta_1 \mid \mathbf y_1 \sim \text{Gamma}(a+217,\; b+111),
+\]</span> <span class="math display">\[
+\theta_2 \mid \mathbf y_2 \sim \text{Gamma}(a+66,\; b+44).
+\]</span></p>
+<p>Because <span class="math inline">\(\theta_1\)</span> and <span class="math inline">\(\theta_2\)</span> are <strong>posterior independent</strong>, posterior predictive sampling proceeds independently for each group:</p>
+<p><span class="math display">\[
+\theta_1^{(s)} \sim p(\theta_1 \mid \mathbf y_1), \quad
+\tilde Y_1^{(s)} \sim \text{Poisson}(\theta_1^{(s)}),
+\]</span> <span class="math display">\[
+\theta_2^{(s)} \sim p(\theta_2 \mid \mathbf y_2), \quad
+\tilde Y_2^{(s)} \sim \text{Poisson}(\theta_2^{(s)}).
+\]</span></p>
+<hr>
+</section>
+<section id="monte-carlo-approximation-of-predictive-quantities" class="level3" data-number="4.6.6">
+<h3 data-number="4.6.6" class="anchored" data-anchor-id="monte-carlo-approximation-of-predictive-quantities"><span class="header-section-number">4.6.6</span> Monte Carlo Approximation of Predictive Quantities</h3>
+<p>Using Monte Carlo samples <span class="math inline">\(\{\tilde Y_1^{(s)}, \tilde Y_2^{(s)}\}\)</span>, we can approximate quantities such as <span class="math display">\[
+\Pr(\tilde Y_1 &gt; \tilde Y_2 \mid \text{data})
+\approx
+\frac{1}{S} \sum_{s=1}^S
+\mathbb{I}\bigl(\tilde Y_1^{(s)} &gt; \tilde Y_2^{(s)}\bigr).
+\]</span></p>
+<p>More generally, Monte Carlo samples from the posterior predictive distribution allow us to approximate:</p>
+<ul>
+<li>predictive probabilities,</li>
+<li>predictive expectations,</li>
+<li>quantiles and credible intervals,</li>
+<li>functions of future observations.</li>
+</ul>
+<p>This flexibility is one of the main strengths of Monte Carlo methods in Bayesian analysis.</p>
+</section>
+<section id="checking" class="level3" data-number="4.6.7">
+<h3 data-number="4.6.7" class="anchored" data-anchor-id="checking"><span class="header-section-number">4.6.7</span> Checking</h3>
+<p>4.4 Posterior Predictive Model Checking</p>
+<p>Posterior predictive model checking assesses whether a fitted Bayesian model can plausibly reproduce key features of the observed data.</p>
+<p>We focus on women aged 40 without a college degree. The empirical distribution of the number of children for these women, together with the corresponding posterior predictive distribution, is shown in Figure 4.6.</p>
+<p>In this sample of size <span class="math display">\[
+n = 111,
+\]</span> the number of women with exactly two children is <span class="math display">\[
+y_{\text{obs}} = 38,
+\]</span> which is twice the number of women with exactly one child.</p>
+<p>In contrast, the posterior predictive distribution (shown in gray) suggests that sampling a woman with two children is slightly less likely than sampling a woman with one child, with probabilities approximately <span class="math display">\[
+0.27 \quad \text{vs.} \quad 0.28.
+\]</span></p>
+<p>These two distributions appear to be in conflict: if the observed data contain twice as many women with two children as with one child, why does the model predict otherwise?</p>
+<p>Possible Explanations</p>
+<p>One explanation is sampling variability. The empirical distribution of a finite sample does not necessarily match the true population distribution, and with moderate sample sizes, random fluctuations can be substantial. A smooth population distribution can easily produce a bumpy empirical histogram.</p>
+<p>An alternative explanation is model misspecification. In particular, the Poisson model cannot capture certain features of the data. There is no Poisson distribution with a sharp peak at <span class="math inline">\(y = 2\)</span>, whereas the empirical distribution shows exactly such behavior.</p>
+<p>These explanations can be investigated systematically using Monte Carlo simulation.</p>
+<p>A Posterior Predictive Discrepancy Statistic</p>
+<p>Define the discrepancy statistic <span class="math display">\[
+t(y) = \frac{\#{y_i = 2}}{\#{y_i = 1}},
+\]</span> the ratio of the number of women with two children to the number with one child.</p>
+<p>For the observed data, <span class="math display">\[
+t(y_{\text{obs}}) = 2.
+\]</span></p>
+<p>To assess whether this value is surprising under the model, we examine the posterior predictive distribution of <span class="math inline">\(t(\tilde{Y})\)</span>.</p>
+<p>Posterior Predictive Monte Carlo Procedure</p>
+<p>For each Monte Carlo iteration <span class="math inline">\(s = 1, \dots, S\)</span>: 1. Sample from the posterior <span class="math display">\[
+\theta^{(s)} \sim p(\theta \mid y_{\text{obs}})
+\]</span> 2. Generate a posterior predictive dataset <span class="math display">\[
+\tilde{Y}^{(s)} = (\tilde{y}_1^{(s)}, \dots, \tilde{y}_n^{(s)}),
+\quad
+\tilde{y}_i^{(s)} \stackrel{\text{i.i.d.}}{\sim} \text{Poisson}(\theta^{(s)})
+\]</span> 3. Compute the discrepancy <span class="math display">\[
+t^{(s)} = t(\tilde{Y}^{(s)})
+\]</span></p>
+<p>This yields samples <span class="math display">\[
+{ t^{(1)}, \dots, t^{(S)} }
+\]</span> from the posterior predictive distribution of <span class="math inline">\(t(\tilde{Y})\)</span>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Prior parameters</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>b <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="do">## Data summary (no bachelor's degree group)</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>n  <span class="ot">&lt;-</span> <span class="dv">111</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>sy <span class="ot">&lt;-</span> <span class="dv">217</span>   <span class="co"># sum(y_i)</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="do">## Storage</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>t_mc <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="dv">10000</span>)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (s <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10000</span>) {</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Draw from posterior</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  theta <span class="ot">&lt;-</span> <span class="fu">rgamma</span>(<span class="dv">1</span>, <span class="at">shape =</span> a <span class="sc">+</span> sy, <span class="at">rate =</span> b <span class="sc">+</span> n)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Posterior predictive sample</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  y_mc <span class="ot">&lt;-</span> <span class="fu">rpois</span>(n, theta)</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Discrepancy statistic</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  n1 <span class="ot">&lt;-</span> <span class="fu">sum</span>(y_mc <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  n2 <span class="ot">&lt;-</span> <span class="fu">sum</span>(y_mc <span class="sc">==</span> <span class="dv">2</span>)</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Avoid division by zero</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>  t_mc[s] <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(n1 <span class="sc">&gt;</span> <span class="dv">0</span>, n2 <span class="sc">/</span> n1, <span class="cn">NA</span>)</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="do">## Remove undefined values</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>t_mc <span class="ot">&lt;-</span> t_mc[<span class="sc">!</span><span class="fu">is.na</span>(t_mc)]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Interpretation</p>
+<p>Figure 4.6 shows the posterior predictive distribution of <span class="math inline">\(t(\tilde{Y})\)</span>, with the observed value <span class="math inline">\(t(y_{\text{obs}})\)</span> indicated by a vertical line.</p>
+<p>Out of 10,000 Monte Carlo samples, only about 0.5% produce values of <span class="math display">\[
+t(\tilde{Y}) \ge t(y_{\text{obs}}).
+\]</span></p>
+<p>This indicates that the observed discrepancy is extremely unlikely under the fitted Poisson model.</p>
+<p>Conclusion</p>
+<p>The posterior predictive check suggests that the Poisson model is inadequate for these data. Although it matches the posterior mean reasonably well, it fails to reproduce important distributional features.</p>
+<p>This does not imply that the model is useless for all inferential goals. However, if our goal is to accurately describe the distribution of family sizes, a more flexible model is needed.</p>
+<p>Posterior predictive checks provide a principled, simulation-based tool for diagnosing such failures and guiding model refinement.</p>
+</section>
+</section>
+<section id="markov-chain-monte-carlo-mcmc-1" class="level2" data-number="4.7">
+<h2 data-number="4.7" class="anchored" data-anchor-id="markov-chain-monte-carlo-mcmc-1"><span class="header-section-number">4.7</span> Markov Chain Monte Carlo (MCMC)</h2>
 <hr>
 <p>This Chapter borrows materials from Chapter 4 in Hoff (2009) and <a href="https://chikuang.github.io/course/stat8670/04-monte-carlo.html#other-methods">Chapter 4 in Computational Methods in Statistics Course</a></p>
 
