@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>10&nbsp; \chi^2 Goodness of Fit Test – STAT 8678 - SAS Programming &amp; Data Analysis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./part2_7_power.html" rel="next">
+<link href="./part2_5_sas_marco.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-22e83d4e5eff2a99ccc45532742ac980.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT 8678 - SAS Programming &amp; Data Analysis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8678"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="././STAT-8678---SAS-Programming---Data-Analysis.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./part2_1_intro_inference1.html">Statistical Analysis</a></li><li class="breadcrumb-item"><a href="./part2_6_chi-square.html"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title"><span class="math inline">\(\chi^2\)</span> Goodness of Fit Test</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Introduction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_1_intro_operation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction to Basic SAS Operation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_2_sas_syntax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Working with SAS Syntax</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_3_import_export.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Import and Export Dataset</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_4_rv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Random Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Statistical Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_1_intro_inference1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Introduction to Statistical Inference I</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_2_intro_inference2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Introduction to Statistical Inference II</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_3_1sample_nonparametric_test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">One Sample Nonparametric Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_4_1sample_proportion_test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">One Sample Proportion Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_5_sas_marco.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">SAS Macro Program in One Sample Variance Problem</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_6_chi-square.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title"><span class="math inline">\(\chi^2\)</span> Goodness of Fit Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_7_power.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Power Analysis with application in one sample <span class="math inline">\(t\)</span>-test</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#motivation-what-is-a-goodness-of-fit-test" id="toc-motivation-what-is-a-goodness-of-fit-test" class="nav-link active" data-scroll-target="#motivation-what-is-a-goodness-of-fit-test"><span class="header-section-number">10.1</span> Motivation: What Is a Goodness-of-Fit Test?</a></li>
+  <li><a href="#hypotheses-for-a-goodness-of-fit-test" id="toc-hypotheses-for-a-goodness-of-fit-test" class="nav-link" data-scroll-target="#hypotheses-for-a-goodness-of-fit-test"><span class="header-section-number">10.2</span> Hypotheses for a Goodness-of-Fit Test</a></li>
+  <li><a href="#example-categorical-data-dice-example" id="toc-example-categorical-data-dice-example" class="nav-link" data-scroll-target="#example-categorical-data-dice-example"><span class="header-section-number">10.3</span> Example: Categorical Data (Dice Example)</a></li>
+  <li><a href="#hypotheses-in-probability-vector-form" id="toc-hypotheses-in-probability-vector-form" class="nav-link" data-scroll-target="#hypotheses-in-probability-vector-form"><span class="header-section-number">10.4</span> Hypotheses in Probability Vector Form</a></li>
+  <li><a href="#one-way-contingency-table" id="toc-one-way-contingency-table" class="nav-link" data-scroll-target="#one-way-contingency-table"><span class="header-section-number">10.5</span> One-Way Contingency Table</a></li>
+  <li><a href="#one-way-contingency-table-and-model-fit" id="toc-one-way-contingency-table-and-model-fit" class="nav-link" data-scroll-target="#one-way-contingency-table-and-model-fit"><span class="header-section-number">10.6</span> One-Way Contingency Table and Model Fit</a></li>
+  <li><a href="#test-statistics" id="toc-test-statistics" class="nav-link" data-scroll-target="#test-statistics"><span class="header-section-number">10.7</span> 1. Test Statistics</a>
+  <ul class="collapse">
+  <li><a href="#pearson-goodness-of-fit-test-statistic" id="toc-pearson-goodness-of-fit-test-statistic" class="nav-link" data-scroll-target="#pearson-goodness-of-fit-test-statistic"><span class="header-section-number">10.7.1</span> 1.1 Pearson Goodness-of-Fit Test Statistic</a></li>
+  <li><a href="#deviance-test-statistic" id="toc-deviance-test-statistic" class="nav-link" data-scroll-target="#deviance-test-statistic"><span class="header-section-number">10.7.2</span> 1.2 Deviance Test Statistic</a></li>
+  </ul></li>
+  <li><a href="#how-do-they-work" id="toc-how-do-they-work" class="nav-link" data-scroll-target="#how-do-they-work"><span class="header-section-number">10.8</span> 2. How Do They Work?</a></li>
+  <li><a href="#dice-rolls-example" id="toc-dice-rolls-example" class="nav-link" data-scroll-target="#dice-rolls-example"><span class="header-section-number">10.9</span> Dice Rolls Example</a></li>
+  <li><a href="#tomato-phenotypes-example" id="toc-tomato-phenotypes-example" class="nav-link" data-scroll-target="#tomato-phenotypes-example"><span class="header-section-number">10.10</span> Tomato Phenotypes Example</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./part2_1_intro_inference1.html">Statistical Analysis</a></li><li class="breadcrumb-item"><a href="./part2_6_chi-square.html"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title"><span class="math inline">\(\chi^2\)</span> Goodness of Fit Test</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title"><span class="math inline">\(\chi^2\)</span> Goodness of Fit Test</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<blockquote class="blockquote">
+<p>Learning Objectives</p>
+<ol type="1">
+<li>Explain what is a diagnostic test.<br>
+</li>
+<li>Explain what is a one-way contingency table. &gt; 3. Apply the diagnostic test to perform inference for analyzing a one-way contingency table.</li>
+</ol>
+</blockquote>
+<section id="motivation-what-is-a-goodness-of-fit-test" class="level2" data-number="10.1">
+<h2 data-number="10.1" class="anchored" data-anchor-id="motivation-what-is-a-goodness-of-fit-test"><span class="header-section-number">10.1</span> Motivation: What Is a Goodness-of-Fit Test?</h2>
+<p>A <strong>goodness-of-fit test</strong>, in general, refers to measuring how well the observed data correspond to a fitted (assumed) model.</p>
+<p>We will use this concept throughout the course as a way of checking model fit.<br>
+Similar to linear regression, in essence, a goodness-of-fit test compares:</p>
+<ul>
+<li><strong>Observed values</strong>, and<br>
+</li>
+<li><strong>Expected (fitted or predicted) values</strong> under a specified model.</li>
+</ul>
+<hr>
+</section>
+<section id="hypotheses-for-a-goodness-of-fit-test" class="level2" data-number="10.2">
+<h2 data-number="10.2" class="anchored" data-anchor-id="hypotheses-for-a-goodness-of-fit-test"><span class="header-section-number">10.2</span> Hypotheses for a Goodness-of-Fit Test</h2>
+<p>A goodness-of-fit test examines the following hypotheses:</p>
+<p><span class="math display">\[
+H_0 : \text{the model } M_0 \text{ fits}
+\]</span></p>
+<p>versus</p>
+<p><span class="math display">\[
+H_1 : \text{the model } M_0 \text{ does not fit}.
+\]</span></p>
+<hr>
+</section>
+<section id="example-categorical-data-dice-example" class="level2" data-number="10.3">
+<h2 data-number="10.3" class="anchored" data-anchor-id="example-categorical-data-dice-example"><span class="header-section-number">10.3</span> Example: Categorical Data (Dice Example)</h2>
+<p>Consider the simplest example of a goodness-of-fit test with <strong>categorical data</strong>.</p>
+<p>Suppose we want to test whether a fair six-sided die has <strong>equal probability</strong> for each face.<br>
+We compare the observed frequencies to those expected under the assumed model:</p>
+<p><span class="math display">\[
+X \sim \text{Multinomial}\left(n = 30,\; \pi_0 = \left(\tfrac{1}{6}, \tfrac{1}{6}, \tfrac{1}{6}, \tfrac{1}{6}, \tfrac{1}{6}, \tfrac{1}{6}\right)\right).
+\]</span></p>
+<p>In this setting, the goodness-of-fit test asks whether the probability in each cell is equal to the specified value <span class="math inline">\(\pi_0\)</span>.</p>
+<hr>
+</section>
+<section id="hypotheses-in-probability-vector-form" class="level2" data-number="10.4">
+<h2 data-number="10.4" class="anchored" data-anchor-id="hypotheses-in-probability-vector-form"><span class="header-section-number">10.4</span> Hypotheses in Probability Vector Form</h2>
+<p>The hypotheses can be written as:</p>
+<p><span class="math display">\[
+H_0 : \boldsymbol{\pi} = \boldsymbol{\pi}_0
+\]</span></p>
+<p>versus</p>
+<p><span class="math display">\[
+H_1 : \boldsymbol{\pi} \neq \boldsymbol{\pi}_0.
+\]</span></p>
+<hr>
+</section>
+<section id="one-way-contingency-table" class="level2" data-number="10.5">
+<h2 data-number="10.5" class="anchored" data-anchor-id="one-way-contingency-table"><span class="header-section-number">10.5</span> One-Way Contingency Table</h2>
+<p>In such problems, the data can be summarized using a <strong>one-way contingency table</strong>:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 37%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Categories</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Number of Observations</td>
+<td><span class="math inline">\(O_1\)</span></td>
+<td><span class="math inline">\(O_2\)</span></td>
+<td><span class="math inline">\(O_3\)</span></td>
+<td><span class="math inline">\(O_4\)</span></td>
+<td><span class="math inline">\(O_5\)</span></td>
+<td><span class="math inline">\(O_6\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>Here,</p>
+<ul>
+<li><span class="math inline">\(O_1, O_2, \dots, O_6\)</span> are <strong>observed counts</strong> from your dataset.</li>
+<li>The expected counts are computed from the assumed probability model.</li>
+</ul>
+<p>These observed and expected counts form the basis of the <span class="math inline">\(\chi^2\)</span> goodness-of-fit test.</p>
+</section>
+<section id="one-way-contingency-table-and-model-fit" class="level2" data-number="10.6">
+<h2 data-number="10.6" class="anchored" data-anchor-id="one-way-contingency-table-and-model-fit"><span class="header-section-number">10.6</span> One-Way Contingency Table and Model Fit</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 37%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Categories</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Number of Observations</td>
+<td><span class="math inline">\(O_1\)</span></td>
+<td><span class="math inline">\(O_2\)</span></td>
+<td><span class="math inline">\(O_3\)</span></td>
+<td><span class="math inline">\(O_4\)</span></td>
+<td><span class="math inline">\(O_5\)</span></td>
+<td><span class="math inline">\(O_6\)</span></td>
+</tr>
+<tr class="even">
+<td>Expected Observations</td>
+<td><span class="math inline">\(n\pi_1 = 5\)</span></td>
+<td><span class="math inline">\(5\)</span></td>
+<td><span class="math inline">\(5\)</span></td>
+<td><span class="math inline">\(5\)</span></td>
+<td><span class="math inline">\(5\)</span></td>
+<td><span class="math inline">\(5\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>In the setting of one-way contingency tables, we measure how well an observed variable <span class="math inline">\(X\)</span> corresponds to a model specified by a vector of cell probabilities.</p>
+<p>In other words, under the null hypothesis, we assume the data come from a particular distribution, and we test whether this assumed model fits the data well when compared with the <strong>saturated model</strong> (the model that fits the data perfectly).</p>
+<p>The rationale behind model fitting is the assumption that a complex data-generating mechanism can be reasonably approximated by a simpler model. The goodness-of-fit test is applied to assess whether this assumption is supported by the data.</p>
+</section>
+<section id="test-statistics" class="level2" data-number="10.7">
+<h2 data-number="10.7" class="anchored" data-anchor-id="test-statistics"><span class="header-section-number">10.7</span> 1. Test Statistics</h2>
+<p>There are two commonly used test statistics for the <span class="math inline">\(\chi^2\)</span> goodness-of-fit test.</p>
+<section id="pearson-goodness-of-fit-test-statistic" class="level3" data-number="10.7.1">
+<h3 data-number="10.7.1" class="anchored" data-anchor-id="pearson-goodness-of-fit-test-statistic"><span class="header-section-number">10.7.1</span> 1.1 Pearson Goodness-of-Fit Test Statistic</h3>
+<p>The Pearson goodness-of-fit statistic is defined as</p>
+<p><span class="math display">\[
+X^2 = \sum_{j=1}^{k} \frac{(X_j - n\pi_{0j})^2}{n\pi_{0j}}.
+\]</span></p>
+<p>An easy way to remember this formula is</p>
+<p><span class="math display">\[
+X^2 = \sum_{j=1}^{k} \frac{(O_j - E_j)^2}{E_j},
+\]</span></p>
+<p>where</p>
+<ul>
+<li><span class="math inline">\(O_j = X_j\)</span> is the observed count in cell <span class="math inline">\(j\)</span>, and<br>
+</li>
+<li><span class="math inline">\(E_j = \mathbb{E}(X_j) = n\pi_{0j}\)</span> is the expected count in cell <span class="math inline">\(j\)</span> under the null hypothesis.</li>
+</ul>
+</section>
+<section id="deviance-test-statistic" class="level3" data-number="10.7.2">
+<h3 data-number="10.7.2" class="anchored" data-anchor-id="deviance-test-statistic"><span class="header-section-number">10.7.2</span> 1.2 Deviance Test Statistic</h3>
+<p>The deviance statistic is defined as</p>
+<p><span class="math display">\[
+G^2
+= 2 \sum_{j=1}^{k} X_j \log\!\left(\frac{X_j}{n\pi_{0j}}\right)
+= 2 \sum_{j=1}^{k} O_j \log\!\left(\frac{O_j}{E_j}\right).
+\]</span></p>
+<p>In some texts, <span class="math inline">\(G^2\)</span> is also referred to as the <strong>likelihood ratio test (LRT) statistic</strong>, which compares the log-likelihoods of two models:</p>
+<ul>
+<li><span class="math inline">\(L_0\)</span>: the reduced model under <span class="math inline">\(H_0\)</span>, and<br>
+</li>
+<li><span class="math inline">\(L_1\)</span>: the full (saturated) model under <span class="math inline">\(H_A\)</span>.</li>
+</ul>
+<p><span class="math display">\[
+G^2
+=
+-2 \log\!\left(\frac{\ell_0}{\ell_1}\right)
+=
+-2 \left( L_0 - L_1 \right)
+\]</span></p>
+<p>Note that <span class="math inline">\(X^2\)</span> and <span class="math inline">\(G^2\)</span> are both functions of the observed data <span class="math inline">\(X\)</span> and a vector of cell probabilities <span class="math inline">\(\pi_0\)</span>. For this reason, we will sometimes write them as <span class="math inline">\(X^2(x, \pi_0)\)</span> and <span class="math inline">\(G^2(x, \pi_0)\)</span>, respectively. When there is no ambiguity, we will simply use <span class="math inline">\(X^2\)</span> and <span class="math inline">\(G^2\)</span>.</p>
+<p>We will encounter these statistics repeatedly throughout the course, particularly in the analysis of two-way and <span class="math inline">\(k\)</span>-way contingency tables, and when assessing the fit of log-linear and logistic regression models.</p>
+</section>
+</section>
+<section id="how-do-they-work" class="level2" data-number="10.8">
+<h2 data-number="10.8" class="anchored" data-anchor-id="how-do-they-work"><span class="header-section-number">10.8</span> 2. How Do They Work?</h2>
+<p>Both <span class="math inline">\(X^2\)</span> and <span class="math inline">\(G^2\)</span> measure how closely the assumed model—here, a multinomial model <span class="math inline">\(\text{Mult}(n, \pi_0)\)</span>—fits the observed data.</p>
+<p>When the null hypothesis <span class="math inline">\(H_0\)</span> is true, both statistics have an approximate chi-square distribution with <span class="math inline">\(k - 1\)</span> degrees of freedom. This allows us to use the chi-square distribution to obtain critical values and <span class="math inline">\(p\)</span>-values for hypothesis testing.</p>
+<ul>
+<li><p>If the sample proportions <span class="math inline">\(\hat{\pi}_j\)</span> (i.e., the saturated model) are exactly equal to the model probabilities <span class="math inline">\(\pi_{0j}\)</span> for all cells <span class="math inline">\(j = 1, 2, \ldots, k\)</span>, then <span class="math inline">\(O_j = E_j\)</span> for all <span class="math inline">\(j\)</span>, and both <span class="math inline">\(X^2\)</span> and <span class="math inline">\(G^2\)</span> are equal to zero. In this case, the model fits the data perfectly.</p></li>
+<li><p>If the sample proportions <span class="math inline">\(\hat{\pi}_j\)</span> deviate from the model probabilities <span class="math inline">\(\pi_{0j}\)</span>, then both <span class="math inline">\(X^2\)</span> and <span class="math inline">\(G^2\)</span> are positive. Large values of <span class="math inline">\(X^2\)</span> and <span class="math inline">\(G^2\)</span> indicate that the data do not agree well with the assumed model <span class="math inline">\(M_0\)</span>.</p></li>
+</ul>
+</section>
+<section id="dice-rolls-example" class="level2" data-number="10.9">
+<h2 data-number="10.9" class="anchored" data-anchor-id="dice-rolls-example"><span class="header-section-number">10.9</span> Dice Rolls Example</h2>
+<div class="callout-example" title="Dice Roll">
+<p>Suppose that we roll a die 30 times and observe the following table showing the number of times each face appears.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 37%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Categories</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Number of Observations</td>
+<td><span class="math inline">\(O_1 = 3\)</span></td>
+<td><span class="math inline">\(O_2 = 7\)</span></td>
+<td><span class="math inline">\(O_3 = 5\)</span></td>
+<td><span class="math inline">\(O_4 = 10\)</span></td>
+<td><span class="math inline">\(O_5 = 2\)</span></td>
+<td><span class="math inline">\(O_6 = 3\)</span></td>
+</tr>
+<tr class="even">
+<td>Expected Observations</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>We want to test the null hypothesis that the die is fair.</p>
+<p>Under this hypothesis, <span class="math display">\[
+X \sim \text{Mult}(n = 30, \pi_0),
+\]</span> where <span class="math display">\[
+\pi_{0j} = \frac{1}{6}, \quad j = 1, \ldots, 6.
+\]</span></p>
+<p>This is our assumed model. Under <span class="math inline">\(H_0\)</span>, the expected counts are <span class="math display">\[
+E_j = \frac{30}{6} = 5 \quad \text{for each cell}.
+\]</span></p>
+<p>We now have all the quantities needed to compute the goodness-of-fit statistics.</p>
+<p>We now compute the two goodness-of-fit statistics explicitly.</p>
+<section id="pearson-chi-square-statistic" class="level3" data-number="10.9.1">
+<h3 data-number="10.9.1" class="anchored" data-anchor-id="pearson-chi-square-statistic"><span class="header-section-number">10.9.1</span> Pearson chi-square statistic</h3>
+<p><span class="math display">\[
+\begin{aligned}
+X^2
+&amp;= \frac{(3-5)^2}{5}
++ \frac{(7-5)^2}{5}
++ \frac{(5-5)^2}{5}
++ \frac{(10-5)^2}{5}
++ \frac{(2-5)^2}{5}
++ \frac{(3-5)^2}{5} \\
+&amp;= 9.2
+\end{aligned}
+\]</span></p>
+</section>
+<section id="deviance-likelihood-ratio-statistic" class="level3" data-number="10.9.2">
+<h3 data-number="10.9.2" class="anchored" data-anchor-id="deviance-likelihood-ratio-statistic"><span class="header-section-number">10.9.2</span> Deviance (likelihood-ratio) statistic</h3>
+<p><span class="math display">\[
+\begin{aligned}
+G^2
+&amp;= 2\Bigg(
+3 \log\frac{3}{5}
++ 7 \log\frac{7}{5}
++ 5 \log\frac{5}{5} \\
+&amp;\qquad\quad
++ 10 \log\frac{10}{5}
++ 2 \log\frac{2}{5}
++ 3 \log\frac{3}{5}
+\Bigg) \\
+&amp;= 8.8
+\end{aligned}
+\]</span></p>
+<p>Note that although <span class="math inline">\(X^2\)</span> and <span class="math inline">\(G^2\)</span> have the same approximate chi-square distribution, their realized numerical values need not be identical.</p>
+<p>The corresponding <span class="math inline">\(p\)</span>-values are</p>
+<p><span class="math display">\[
+P(\chi^2_5 \ge 9.2) = 0.10,
+\qquad
+P(\chi^2_5 \ge 8.8) = 0.12.
+\]</span></p>
+<p>Given a significance level of <span class="math inline">\(\alpha = 0.05\)</span>, we <strong>fail to reject</strong> the null hypothesis.</p>
+<p>Importantly, failing to reject <span class="math inline">\(H_0\)</span> does <strong>not</strong> mean that the null hypothesis is true. Rather, it means that we do not have sufficient evidence to conclude that it is false.</p>
+<p>In this example, the fair-die model does not fit the data exactly, but the lack of fit is not large enough to conclude that the die is unfair at the 5% significance level.</p>
+<p>The following SAS code implements the chi-square goodness-of-fit test for the dice example.</p>
+</section>
+<section id="sas-code-chi-square-goodness-of-fit-test" class="level3" data-number="10.9.3">
+<h3 data-number="10.9.3" class="anchored" data-anchor-id="sas-code-chi-square-goodness-of-fit-test"><span class="header-section-number">10.9.3</span> SAS code: Chi-square goodness-of-fit test</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>DATA DIE;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    INPUT FACE <span class="sc">$</span> COUNT;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    DATALINES;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="dv">3</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span> <span class="dv">7</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span> <span class="dv">5</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="dv">4</span> <span class="dv">10</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="dv">5</span> <span class="dv">2</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="dv">6</span> <span class="dv">3</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>PROC FREQ DATA<span class="ot">=</span>DIE;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    WEIGHT COUNT;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    TABLES FACE <span class="sc">/</span> CHISQ;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="sc">/</span><span class="er">*</span> </span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    TABLES FACE <span class="sc">/</span> NOCUM ALL </span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        CHISQ TESTP<span class="ot">=</span>(<span class="fl">16.67</span> <span class="fl">16.67</span> <span class="fl">16.67</span> <span class="fl">16.67</span> <span class="fl">16.67</span> <span class="fl">16.67</span>);</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="sc">*</span><span class="er">/</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><img src="figs/part2/L11_chi-square/dice_1.png" class="img-fluid"> <img src="figs/part2/L11_chi-square/dice_2.png" class="img-fluid"></p>
+<p>The PROC FREQ step computes the Pearson chi-square statistic for testing whether the die is fair. The commented TESTP= option shows how expected probabilities can be specified explicitly.</p>
+<p>Computing residuals and goodness-of-fit statistics manually</p>
+<p>We now compute Pearson residuals, deviance residuals, and the test statistics <span class="math inline">\(X^2\)</span> and <span class="math inline">\(G^2\)</span> directly from the data.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>DATA CAL;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    SET DIE;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    PI <span class="ot">=</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">6</span>;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    ECOUNT <span class="ot">=</span> <span class="dv">30</span> <span class="sc">*</span> PI;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="sc">/</span><span class="er">*</span> Pearson residual <span class="sc">*</span><span class="er">/</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    RES <span class="ot">=</span> (COUNT <span class="sc">-</span> ECOUNT) <span class="sc">/</span> <span class="fu">SQRT</span>(ECOUNT);</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="sc">/</span><span class="er">*</span> Deviance residual <span class="sc">*</span><span class="er">/</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    DEVRES <span class="ot">=</span> <span class="fu">SQRT</span>(<span class="fu">ABS</span>(<span class="dv">2</span> <span class="sc">*</span> COUNT <span class="sc">*</span> <span class="fu">LOG</span>(COUNT <span class="sc">/</span> ECOUNT)))</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>             <span class="sc">*</span> <span class="fu">SIGN</span>(COUNT <span class="sc">-</span> ECOUNT);</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>PROC PRINT DATA<span class="ot">=</span>CAL;</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><img src="figs/part2/L11_chi-square/dice_3.png" class="img-fluid"> <img src="figs/part2/L11_chi-square/dice_4.png" class="img-fluid"></p>
+<p>Computing test statistics and p-values</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>PROC SQL;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    SELECT </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">SUM</span>((COUNT <span class="sc">-</span> ECOUNT)<span class="sc">**</span><span class="dv">2</span> <span class="sc">/</span> ECOUNT) AS X2,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="dv">1</span> <span class="sc">-</span> <span class="fu">PROBCHI</span>(CALCULATED X2, <span class="dv">5</span>)     AS PVALUE_X2,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="dv">2</span> <span class="sc">*</span> <span class="fu">SUM</span>(COUNT <span class="sc">*</span> <span class="fu">LOG</span>(COUNT <span class="sc">/</span> ECOUNT)) AS G2,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        <span class="dv">1</span> <span class="sc">-</span> <span class="fu">PROBCHI</span>(CALCULATED G2, <span class="dv">5</span>)     AS PVALUE_G2</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    FROM CAL;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>QUIT;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><img src="figs/part2/L11_chi-square/dice_5.png" class="img-fluid"></p>
+<p>Note that PROC FREQ automatically reports the Pearson chi-square statistic, but does not directly report the deviance statistic. The deviance statistic <span class="math inline">\(G^2\)</span> must be computed manually as shown above.</p>
+</section>
+</div>
+</section>
+<section id="tomato-phenotypes-example" class="level2" data-number="10.10">
+<h2 data-number="10.10" class="anchored" data-anchor-id="tomato-phenotypes-example"><span class="header-section-number">10.10</span> Tomato Phenotypes Example</h2>
+<div class="callout-example" title="Tomato Phenotypes">
+<p>Tall cut-leaf tomatoes were crossed with dwarf potato-leaf tomatoes, and<br>
+<span class="math inline">\(n = 1611\)</span> offspring were classified by their phenotypes as summarized in the table below.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 16%">
+<col style="width: 19%">
+<col style="width: 17%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Categories</th>
+<th>tall cut-leaf</th>
+<th>tall potato-leaf</th>
+<th>dwarf cut-leaf</th>
+<th>dwarf potato-leaf</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Number of Observations</td>
+<td><span class="math inline">\(O_1 = 926\)</span></td>
+<td><span class="math inline">\(O_2 = 288\)</span></td>
+<td><span class="math inline">\(O_3 = 293\)</span></td>
+<td><span class="math inline">\(O_4 = 104\)</span></td>
+</tr>
+<tr class="even">
+<td>Expected Observation</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Genetic theory predicts that the four phenotypes should occur with relative frequencies<br>
+<span class="math display">\[
+9 : 3 : 3 : 1,
+\]</span> which implies that the phenotypes are <strong>not equally likely</strong>. In particular, the dwarf potato-leaf phenotype is expected to be the least frequent.</p>
+<p>We would like to test whether the observed data are consistent with this genetic theory.</p>
+<section id="null-hypothesis" class="level3" data-number="10.10.1">
+<h3 data-number="10.10.1" class="anchored" data-anchor-id="null-hypothesis"><span class="header-section-number">10.10.1</span> Null hypothesis</h3>
+<p>Under the null hypothesis, the cell probabilities are</p>
+<p><span class="math display">\[
+\pi_1 = \frac{9}{16}, \quad
+\pi_2 = \pi_3 = \frac{3}{16}, \quad
+\pi_4 = \frac{1}{16}.
+\]</span></p>
+</section>
+<section id="expected-frequencies" class="level3" data-number="10.10.2">
+<h3 data-number="10.10.2" class="anchored" data-anchor-id="expected-frequencies"><span class="header-section-number">10.10.2</span> Expected frequencies</h3>
+<p>The expected counts under <span class="math inline">\(H_0\)</span> are</p>
+<p><span class="math display">\[
+\begin{aligned}
+E_1 &amp;= 1611 \times \frac{9}{16} = 906.2, \\
+E_2 &amp;= E_3 = 1611 \times \frac{3}{16} = 302.1, \\
+E_4 &amp;= 1611 \times \frac{1}{16} = 100.7.
+\end{aligned}
+\]</span></p>
+<hr>
+</section>
+<section id="goodness-of-fit-results" class="level3" data-number="10.10.3">
+<h3 data-number="10.10.3" class="anchored" data-anchor-id="goodness-of-fit-results"><span class="header-section-number">10.10.3</span> Goodness-of-fit results</h3>
+<p>Using these expected counts, we compute the goodness-of-fit statistics and obtain</p>
+<p><span class="math display">\[
+X^2 = 1.47, \qquad G^2 = 1.48.
+\]</span></p>
+<p>The two statistics are nearly identical. Under the chi-square distribution with<br>
+<span class="math inline">\(k - 1 = 3\)</span> degrees of freedom, the corresponding <span class="math inline">\(p\)</span>-values are approximately</p>
+<p><span class="math display">\[
+p \approx 0.69.
+\]</span></p>
+</section>
+<section id="conclusion" class="level3" data-number="10.10.4">
+<h3 data-number="10.10.4" class="anchored" data-anchor-id="conclusion"><span class="header-section-number">10.10.4</span> Conclusion</h3>
+<p>Since the <span class="math inline">\(p\)</span>-value is much larger than the significance level <span class="math inline">\(\alpha = 0.05\)</span>, we <strong>fail to reject</strong> the null hypothesis. The observed data are therefore <strong>consistent with the genetic theory</strong> predicting a <span class="math inline">\(9:3:3:1\)</span> ratio.</p>
+</section>
+<section id="sas-code-goodness-of-fit-test" class="level3" data-number="10.10.5">
+<h3 data-number="10.10.5" class="anchored" data-anchor-id="sas-code-goodness-of-fit-test"><span class="header-section-number">10.10.5</span> SAS Code: Goodness-of-Fit Test</h3>
+<p><strong>Step 1: Enter the observed counts</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>DATA LEAF;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    INPUT TYPE <span class="sc">$</span> COUNT;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    DATALINES;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>tallc   <span class="dv">926</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>tallp   <span class="dv">288</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>dwarfc  <span class="dv">293</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>dwarfp  <span class="dv">104</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>;</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><img src="figs/part2/L11_chi-square/tomato_1.png" class="img-fluid"></p>
+<p><strong>Step 2: Pearson chi-square goodness-of-fit test</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>PROC FREQ DATA<span class="ot">=</span>LEAF ORDER<span class="ot">=</span>DATA;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    WEIGHT COUNT;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    TABLES TYPE <span class="sc">/</span> ALL CHISQ</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        TESTP<span class="ot">=</span>(<span class="fl">56.25</span> <span class="fl">18.75</span> <span class="fl">18.75</span> <span class="fl">6.25</span>);</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The proportions (56.25, 18.75, 18.75, 6.25) correspond to the theoretical probabilities <span class="math inline">\((9,3,3,1)/16\)</span>.</p>
+<p>Manual Computation of Residuals, <span class="math inline">\(X^2\)</span>, and <span class="math inline">\(G^2\)</span></p>
+<p><img src="figs/part2/L11_chi-square/tomato_2.png" class="img-fluid"></p>
+<p><strong>Step 3: Define theoretical probabilities</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>DATA PI;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    INPUT PI;</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    PI <span class="ot">=</span> PI <span class="sc">/</span> <span class="dv">16</span>;</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>CARDS;</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="dv">9</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>;</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><img src="figs/part2/L11_chi-square/tomato_3.png" class="img-fluid"></p>
+<p><strong>Step 4: Compute expected counts and residuals</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>DATA CAL;</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    MERGE LEAF PI;</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    ECOUNT <span class="ot">=</span> <span class="dv">1611</span> <span class="sc">*</span> PI;</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="sc">/</span><span class="er">*</span> Pearson residual <span class="sc">*</span><span class="er">/</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    RES <span class="ot">=</span> (COUNT <span class="sc">-</span> ECOUNT) <span class="sc">/</span> <span class="fu">SQRT</span>(ECOUNT);</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="sc">/</span><span class="er">*</span> Deviance residual <span class="sc">*</span><span class="er">/</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    DEVRES <span class="ot">=</span> <span class="fu">SQRT</span>(<span class="fu">ABS</span>(<span class="dv">2</span> <span class="sc">*</span> COUNT <span class="sc">*</span> <span class="fu">LOG</span>(COUNT <span class="sc">/</span> ECOUNT)))</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>             <span class="sc">*</span> <span class="fu">SIGN</span>(COUNT <span class="sc">-</span> ECOUNT);</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>PROC PRINT DATA<span class="ot">=</span>CAL;</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><img src="figs/part2/L11_chi-square/tomato_4.png" class="img-fluid"></p>
+<p><strong>Step 5: Compute <span class="math inline">\(X^2\)</span> and <span class="math inline">\(G^2\)</span> explicitly</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>PROC SQL;</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    SELECT</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">SUM</span>((COUNT <span class="sc">-</span> ECOUNT)<span class="sc">**</span><span class="dv">2</span> <span class="sc">/</span> ECOUNT) AS X2,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        <span class="dv">1</span> <span class="sc">-</span> <span class="fu">PROBCHI</span>(CALCULATED X2, <span class="dv">3</span>)     AS PVAL1,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        <span class="dv">2</span> <span class="sc">*</span> <span class="fu">SUM</span>(COUNT <span class="sc">*</span> <span class="fu">LOG</span>(COUNT <span class="sc">/</span> ECOUNT)) AS G2,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        <span class="dv">1</span> <span class="sc">-</span> <span class="fu">PROBCHI</span>(CALCULATED G2, <span class="dv">3</span>)     AS PVAL2</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    FROM CAL;</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>QUIT;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><img src="figs/part2/L11_chi-square/tomato_5.png" class="img-fluid"></p>
+<p>Visualization: Observed vs Expected Counts</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>GOPTIONS RESET<span class="ot">=</span>ALL;</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>SYMBOL1 V<span class="ot">=</span>CIRCLE C<span class="ot">=</span>BLUE I<span class="ot">=</span>NONE;</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>SYMBOL2 V<span class="ot">=</span>CIRCLE C<span class="ot">=</span>RED  I<span class="ot">=</span>NONE;</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>LEGEND1 LABEL<span class="ot">=</span>NONE</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        VALUE<span class="ot">=</span>(<span class="st">'Observed Count'</span> <span class="st">'Expected Count'</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        ACROSS<span class="ot">=</span><span class="dv">1</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        POSITION<span class="ot">=</span>(TOP RIGHT INSIDE)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        MODE<span class="ot">=</span>PROTECT;</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>TITLE <span class="st">"Tomato Phenotypes"</span>;</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>PROC GPLOT DATA<span class="ot">=</span>CAL;</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    PLOT COUNT<span class="sc">*</span>TYPE ECOUNT<span class="sc">*</span>TYPE <span class="sc">/</span> OVERLAY LEGEND<span class="ot">=</span>LEGEND1;</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>QUIT;</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>TITLE;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><img src="figs/part2/L11_chi-square/tomato_6.png" class="img-fluid"></p>
+<p>Interpretation</p>
+<ul>
+<li>Small values of <span class="math inline">\(X^2\)</span> and <span class="math inline">\(G^2\)</span> indicate good agreement with the model</li>
+<li>Large <span class="math inline">\(p\)</span>-values confirm no strong evidence against the <span class="math inline">\(9:3:3:1\)</span> ratio</li>
+<li>Both Pearson and deviance statistics lead to the same conclusion</li>
+</ul>
+<p>This example illustrates how goodness-of-fit testing connects theory, computation, and visualization in categorical data analysis.</p>
+</section>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./part2_5_sas_marco.html" class="pagination-link" aria-label="SAS Macro Program in One Sample Variance Problem">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">SAS Macro Program in One Sample Variance Problem</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./part2_7_power.html" class="pagination-link" aria-label="Power Analysis with application in one sample $t$-test">
+        <span class="nav-page-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Power Analysis with application in one sample <span class="math inline">\(t\)</span>-test</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

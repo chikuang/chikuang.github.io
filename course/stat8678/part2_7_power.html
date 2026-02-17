@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>11&nbsp; Power Analysis with application in one sample t-test – STAT 8678 - SAS Programming &amp; Data Analysis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./references.html" rel="next">
+<link href="./part2_6_chi-square.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-22e83d4e5eff2a99ccc45532742ac980.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT 8678 - SAS Programming &amp; Data Analysis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8678"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="././STAT-8678---SAS-Programming---Data-Analysis.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./part2_1_intro_inference1.html">Statistical Analysis</a></li><li class="breadcrumb-item"><a href="./part2_7_power.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Power Analysis with application in one sample <span class="math inline">\(t\)</span>-test</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Introduction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_1_intro_operation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction to Basic SAS Operation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_2_sas_syntax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Working with SAS Syntax</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_3_import_export.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Import and Export Dataset</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_4_rv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Random Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Statistical Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_1_intro_inference1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Introduction to Statistical Inference I</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_2_intro_inference2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Introduction to Statistical Inference II</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_3_1sample_nonparametric_test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">One Sample Nonparametric Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_4_1sample_proportion_test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">One Sample Proportion Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_5_sas_marco.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">SAS Macro Program in One Sample Variance Problem</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_6_chi-square.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title"><span class="math inline">\(\chi^2\)</span> Goodness of Fit Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_7_power.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Power Analysis with application in one sample <span class="math inline">\(t\)</span>-test</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">11.1</span> 1 Introduction</a>
+  <ul class="collapse">
+  <li><a href="#key-components-of-power-analysis" id="toc-key-components-of-power-analysis" class="nav-link" data-scroll-target="#key-components-of-power-analysis"><span class="header-section-number">11.1.1</span> Key Components of Power Analysis</a></li>
+  </ul></li>
+  <li><a href="#motivation-examples" id="toc-motivation-examples" class="nav-link" data-scroll-target="#motivation-examples"><span class="header-section-number">11.2</span> Motivation Examples</a></li>
+  <li><a href="#before-we-start-the-analysis" id="toc-before-we-start-the-analysis" class="nav-link" data-scroll-target="#before-we-start-the-analysis"><span class="header-section-number">11.3</span> Before We Start the Analysis</a></li>
+  <li><a href="#power-analysis-in-sas" id="toc-power-analysis-in-sas" class="nav-link" data-scroll-target="#power-analysis-in-sas"><span class="header-section-number">11.4</span> Power Analysis in SAS</a></li>
+  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion"><span class="header-section-number">11.5</span> Discussion</a></li>
+  <li><a href="#math-behind-the-power-analysis" id="toc-math-behind-the-power-analysis" class="nav-link" data-scroll-target="#math-behind-the-power-analysis"><span class="header-section-number">11.6</span> Math behind the power analysis</a></li>
+  <li><a href="#a-visualization-example" id="toc-a-visualization-example" class="nav-link" data-scroll-target="#a-visualization-example"><span class="header-section-number">11.7</span> A Visualization Example</a>
+  <ul class="collapse">
+  <li><a href="#interpretation-of-the-power-visualization" id="toc-interpretation-of-the-power-visualization" class="nav-link" data-scroll-target="#interpretation-of-the-power-visualization"><span class="header-section-number">11.7.1</span> Interpretation of the Power Visualization</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./part2_1_intro_inference1.html">Statistical Analysis</a></li><li class="breadcrumb-item"><a href="./part2_7_power.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Power Analysis with application in one sample <span class="math inline">\(t\)</span>-test</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Power Analysis with application in one sample <span class="math inline">\(t\)</span>-test</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<blockquote class="blockquote">
+<p>Learning Objectives</p>
+<ol type="1">
+<li>Understand what power analysis is.</li>
+<li>Explain why and when we need power analysis.</li>
+</ol>
+</blockquote>
+<section id="introduction" class="level2" data-number="11.1">
+<h2 data-number="11.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">11.1</span> 1 Introduction</h2>
+<p>A <strong>power analysis</strong> is a calculation that helps you determine the <strong>minimum sample size</strong> required for a study to reliably detect an effect of interest.</p>
+<p>A power analysis is built around <strong>four main components</strong>.<br>
+If you know (or can reasonably estimate) <strong>any three</strong> of them, you can solve for the <strong>fourth</strong>.</p>
+<section id="key-components-of-power-analysis" class="level3" data-number="11.1.1">
+<h3 data-number="11.1.1" class="anchored" data-anchor-id="key-components-of-power-analysis"><span class="header-section-number">11.1.1</span> Key Components of Power Analysis</h3>
+<ul>
+<li><p><strong>Statistical power</strong><br>
+The probability that a statistical test will correctly detect an effect of a certain size <em>when the effect truly exists</em>.<br>
+Power is commonly set at <strong>80% (0.8)</strong> or higher.</p></li>
+<li><p><strong>Sample size</strong><br>
+The minimum number of observations needed to detect an effect of a given size with a specified power level.</p></li>
+<li><p><strong>Significance level (<span class="math inline">\(\alpha\)</span>)</strong><br>
+The maximum probability of rejecting a true null hypothesis (Type I error).<br>
+Typically set at <strong><span class="math inline">\(\alpha = 0.05\)</span></strong>.</p></li>
+<li><p><strong>Expected effect size</strong><br>
+A standardized measure that quantifies the magnitude of the expected effect.<br>
+This is often based on:</p>
+<ul>
+<li>prior studies,</li>
+<li>pilot data, or</li>
+<li>subject-matter considerations.</li>
+</ul></li>
+</ul>
+</section>
+</section>
+<section id="motivation-examples" class="level2" data-number="11.2">
+<h2 data-number="11.2" class="anchored" data-anchor-id="motivation-examples"><span class="header-section-number">11.2</span> Motivation Examples</h2>
+<div class="callout-example" title="Light Bulb Lifetime">
+<p>A company that manufactures light bulbs claims that a particular type of light bulb lasts <strong>850 hours on average</strong>, with a <strong>standard deviation of 50 hours</strong>.</p>
+<p>A consumer protection group believes that the manufacturer has <strong>overestimated the average lifespan by about 40 hours</strong>.</p>
+<p><strong>Question:</strong><br>
+How many light bulbs does the consumer protection group need to test in order to demonstrate this discrepancy with reasonable confidence?</p>
+<p>This is a classic <strong>sample size determination problem</strong>, where:</p>
+<ul>
+<li>the effect size is the difference between the claimed mean and the suspected true mean,</li>
+<li>the variability is known or estimated,</li>
+<li>and power and significance level must be specified.</li>
+</ul>
+</div>
+<div class="callout-example" title="Height of Graduate Students">
+<p>It has been estimated that the average height of <strong>American white male adults</strong> is <strong>70 inches</strong>.</p>
+<p>Suppose it is postulated that there is a <strong>positive correlation between height and intelligence</strong>.<br>
+If this is true, then the average height of <strong>white male graduate students</strong> on campus should be <strong>greater than 70 inches</strong>.</p>
+<p>You plan to test this hypothesis by randomly sampling a group of white male graduate students.</p>
+<p><strong>Key question:</strong><br>
+How small can the sample be (or how few individuals do you need to measure) and still have enough power to detect a meaningful difference?</p>
+<p>This motivates power analysis for a <strong>one-sided one-sample <em>t</em>-test</strong>, where:</p>
+<ul>
+<li>the null hypothesis specifies a reference mean,</li>
+<li>the alternative hypothesis specifies a directional effect,</li>
+<li>and the goal is to balance feasibility (small sample size) with statistical reliability (adequate power).</li>
+</ul>
+</div>
+<p><em>In the remainder of this lecture, we will formalize these ideas and use the one-sample</em> <span class="math inline">\(t\)</span>-<em>test to illustrate how power, sample size, effect size, and significance level are mathematically connected.</em></p>
+</section>
+<section id="before-we-start-the-analysis" class="level2" data-number="11.3">
+<h2 data-number="11.3" class="anchored" data-anchor-id="before-we-start-the-analysis"><span class="header-section-number">11.3</span> Before We Start the Analysis</h2>
+<p>For the power analysis in this lecture, we focus on the first example, which concerns testing the <em>average lifespan of a light bulb</em>. Our <strong>first goal</strong> is to determine the <strong>number of light bulbs that must be tested</strong>. That is, we want to find the <strong>sample size</strong> for a given significance level and power. Next, we will reverse the process and determine the <strong>power</strong>, given a sample size and significance level.</p>
+<p>We know that the manufacturer claims the average lifespan of the light bulb is <strong>850 hours</strong>, with a <strong>standard deviation of 50 hours</strong>, while the consumer protection group believes that the manufacturer has overestimated the lifespan by about <strong>40 hours</strong>.</p>
+<p>In terms of hypotheses:</p>
+<ul>
+<li>Null hypothesis: <span class="math inline">\(H_0: \mu = 850\)</span></li>
+<li>Alternative hypothesis: <span class="math inline">\(H_A: \mu = 810\)</span></li>
+</ul>
+<p>The <strong>significance level</strong> is the probability of a <strong>Type I error</strong>, that is, rejecting <span class="math inline">\(H_0\)</span> when it is actually true. We will set <span class="math inline">\(\alpha = 0.05.\)</span></p>
+<p>The <strong>power of the test</strong> against <span class="math inline">\(H_A\)</span> is the probability that the test <strong>rejects <span class="math inline">\(H_0\)</span> when <span class="math inline">\(H_A\)</span> is true</strong>. We will set the desired power level to <span class="math inline">\(\text{Power} = 0.90.\)</span></p>
+<p>Before proceeding with the power analysis, let us briefly discuss the role of the <strong>standard deviation</strong>. Intuitively, the number of light bulbs required for testing depends on the <strong>variability</strong> of their lifespans:</p>
+<ul>
+<li>If all light bulbs had exactly the same lifespan, then testing a single bulb would suffice.</li>
+<li>In reality, lifespans vary substantially. For example, some bulbs may last 1000 hours, while others may last 500 hours.</li>
+</ul>
+<p>Therefore, the <strong>standard deviation of the lifespan distribution</strong> plays a critical role in determining the required sample size.</p>
+</section>
+<section id="power-analysis-in-sas" class="level2" data-number="11.4">
+<h2 data-number="11.4" class="anchored" data-anchor-id="power-analysis-in-sas"><span class="header-section-number">11.4</span> Power Analysis in SAS</h2>
+<p>In SAS, it is straightforward to perform a power analysis for <strong>comparing means</strong> using <code>PROC POWER</code>.</p>
+<p>To compute the required sample size:</p>
+<ol type="1">
+<li>Specify the mean under the null hypothesis.</li>
+<li>Specify the mean under the alternative hypothesis.</li>
+<li>Specify the population standard deviation.</li>
+<li>Set the significance level <span class="math inline">\(\alpha\)</span> (default is 0.05).</li>
+<li>Specify the desired power level. Here we set <span class="math inline">\(\text{Power}=0.90\)</span>.</li>
+<li>Indicate that the test is a <strong>one-sample <em>t</em>-test</strong>.</li>
+</ol>
+<p>The following SAS code performs a power analysis for <strong>Example 1</strong>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>PROC POWER;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    ONESAMPLEMEANS TEST<span class="ot">=</span>t</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        NULLMEAN <span class="ot">=</span> <span class="dv">850</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        MEAN     <span class="ot">=</span> <span class="dv">810</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        STDDEV   <span class="ot">=</span> <span class="dv">50</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        POWER    <span class="ot">=</span> <span class="fl">0.9</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        NTOTAL   <span class="ot">=</span> .;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This code tells SAS to solve for the total sample size (ntotal) needed to achieve 90% power for a one-sample <span class="math inline">\(t\)</span>-test at significance level (<span class="math inline">\(\alpha\)</span> = 0.05).</p>
+<p><img src="figs/part2/L12_power/power_1.png" class="img-fluid"></p>
+<p>The result tells us that we need a <strong>sample size of at least 19 light bulbs</strong> in order to reject <span class="math inline">\(H_0\)</span> under the alternative hypothesis <span class="math inline">\(H_A\)</span> with a <strong>power of 0.9</strong>.</p>
+<p>Next, suppose we have a sample of size <span class="math inline">\(n = 10\)</span>. How much power do we have if we keep all other quantities the same? We can use the same SAS program to calculate the power.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>PROC POWER;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    ONESAMPLEMEANS TEST<span class="ot">=</span>t</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        NULLMEAN <span class="ot">=</span> <span class="dv">850</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        MEAN     <span class="ot">=</span> <span class="dv">810</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        STDDEV   <span class="ot">=</span> <span class="dv">50</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        POWER    <span class="ot">=</span> .</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        NTOTAL   <span class="ot">=</span> <span class="dv">10</span>;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><img src="figs/part2/L12_power/power_2.png" class="img-fluid"></p>
+<p>You can see that the power is about 0.616 for a sample size of 10.</p>
+<blockquote class="blockquote">
+<p>This means that if we only test 10 light bulbs, we have about a 61.6% chance of correctly rejecting the null hypothesis when the true mean is 810 hours. This is below the commonly desired power level of 0.8, indicating that a sample size of 10 may not be sufficient to reliably detect the effect size of interest.</p>
+</blockquote>
+<p>What if we have sample size of 15 or 20? We can use ta list of sample sizes as input to <code>PROC POWER</code>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>PROC POWER;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    ONESAMPLEMEANS TEST<span class="ot">=</span>t</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        NULLMEAN <span class="ot">=</span> <span class="dv">850</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        MEAN     <span class="ot">=</span> <span class="dv">810</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        STDDEV   <span class="ot">=</span> <span class="dv">50</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        POWER    <span class="ot">=</span> .</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>        NTOTAL   <span class="ot">=</span> <span class="dv">10</span> to <span class="dv">45</span> by <span class="dv">5</span>;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><img src="figs/part2/L12_power/power_3.png" class="img-fluid"></p>
+<p>We can also expect that if we actually know the standard deviation is samller,</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>PROC POWER;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    ONESAMPLEMEANS TEST<span class="ot">=</span>t</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>        NULLMEAN <span class="ot">=</span> <span class="dv">850</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        MEAN     <span class="ot">=</span> <span class="dv">810</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        STDDEV   <span class="ot">=</span> <span class="dv">30</span> to <span class="dv">100</span> by <span class="dv">10</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        POWER    <span class="ot">=</span> <span class="fl">0.8</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        NTOTAL   <span class="ot">=</span> . ;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><img src="figs/part2/L12_power/power_4.png" class="img-fluid"></p>
+<p>Here, varying `<code>STDDEV</code> to show how reduced variability lowers required sample size, while keeping the hypothesis, effect size, and power fixed.</p>
+</section>
+<section id="discussion" class="level2" data-number="11.5">
+<h2 data-number="11.5" class="anchored" data-anchor-id="discussion"><span class="header-section-number">11.5</span> Discussion</h2>
+<p><strong>Normality assumption</strong></p>
+<p>One technical assumption underlying the power analysis: the <strong>normality assumption</strong>. If the variable of interest is not normally distributed, a small sample size will usually <em>not</em> achieve the power indicated by the theoretical results, because those results are derived under normality. In such cases, it may not even be appropriate to conduct a one-sample <em>t</em>-test with a very small sample size when the normality assumption is questionable.</p>
+<p><strong>Relative difference</strong></p>
+<p>There is another important technical point. What truly matters for power analysis is <strong>not the individual values</strong>, but the <strong>difference between the two means</strong>, relative to the variability of the data. In fact, what really determines the power is the ratio</p>
+<p><span class="math display">\[
+\frac{\text{difference in means}}{\text{standard deviation}},
+\]</span></p>
+<p>which is referred to as the <strong>effect size</strong>.</p>
+<p>For example, we would obtain the same power if we subtracted 800 from both means, changing 850 to 50 and 810 to 10. The absolute scale of the data does not affect the power, only the standardized difference does.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>PROC POWER;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    ONESAMPLEMEANS TEST<span class="ot">=</span>t</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        NULLMEAN <span class="ot">=</span> <span class="dv">50</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        MEAN     <span class="ot">=</span> <span class="dv">10</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        STDDEV   <span class="ot">=</span> <span class="dv">50</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        POWER    <span class="ot">=</span> <span class="fl">0.9</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>        NTOTAL   <span class="ot">=</span> . ;</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>If we standardize our variable, we can calculate the means in terms of change in standard deviation.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>PROC POWER;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    ONESAMPLEMEANS TEST<span class="ot">=</span>t</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        NULLMEAN <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        MEAN     <span class="ot">=</span> <span class="fl">0.2</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        STDDEV   <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>        POWER    <span class="ot">=</span> <span class="fl">0.9</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        NTOTAL   <span class="ot">=</span> . ;</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="callout-1" class="callout callout-style-default callout-note callout-titled" title="Key Takeaway">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Key Takeaway
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>It is usually not an easy task to determine the <strong>“true” effect size</strong>. In practice, we make our best guess based on existing literature or evidence from a pilot study. A good estimate of the effect size is <strong>crucial</strong> for a successful power analysis.</p>
+</div>
+</div>
+</section>
+<section id="math-behind-the-power-analysis" class="level2" data-number="11.6">
+<h2 data-number="11.6" class="anchored" data-anchor-id="math-behind-the-power-analysis"><span class="header-section-number">11.6</span> Math behind the power analysis</h2>
+<ul>
+<li><p>We saw earlier that in tests of significance there are two types of errors.<br>
+Each error has a given probability of occurring.</p>
+<ul>
+<li><p>The <strong>significance level</strong> (Type I error) is<br>
+<span class="math display">\[
+\alpha = P(\text{reject } H_0 \mid H_0 \text{ is true}).
+\]</span></p></li>
+<li><p>The probability of a <strong>Type II error</strong> is<br>
+<span class="math display">\[
+\beta = P(\text{fail to reject } H_0 \mid H_0 \text{ is false}).
+\]</span></p></li>
+</ul></li>
+<li><p>The <strong>power of a test</strong> is related to the probability of a Type II error.<br>
+It is defined as <span class="math display">\[
+\begin{aligned}
+1 - \beta&amp;= 1 - P(\text{fail to reject } H_0 \mid H_0 \text{ is false})\\
+&amp;= P(\text{reject } H_0 \mid H_0 \text{ is false}).
+\end{aligned}
+\]</span></p></li>
+<li><p>Therefore, to define power, we must be specific about what<br>
+<strong>“when <span class="math inline">\(H_0\)</span> is false”</strong> means.</p></li>
+</ul>
+</section>
+<section id="a-visualization-example" class="level2" data-number="11.7">
+<h2 data-number="11.7" class="anchored" data-anchor-id="a-visualization-example"><span class="header-section-number">11.7</span> A Visualization Example</h2>
+<p>Bottles of a popular cola drink are supposed to contain 300 ml of cola.<br>
+There is some variation from bottle to bottle because the filling machine is not perfectly precise.</p>
+<p>Suppose the distribution of the contents is normal with standard deviation<br>
+<span class="math display">\[
+\sigma = 3 \text{ ml}.
+\]</span></p>
+<p>We want to carry out the following hypothesis test at significance level <span class="math inline">\(\alpha = 0.05\)</span>,<br>
+based on a sample of six bottles of cola: <span class="math display">\[
+H_0 : \mu = 300
+\quad \text{versus} \quad
+H_1 : \mu &lt; 300.
+\]</span></p>
+<p>If the power is calculated under the alternative hypothesis with <span class="math display">\[
+\mu = 297,
+\]</span> then we can visualize <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> as follows.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part2_7_power_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="interpretation-of-the-power-visualization" class="level3" data-number="11.7.1">
+<h3 data-number="11.7.1" class="anchored" data-anchor-id="interpretation-of-the-power-visualization"><span class="header-section-number">11.7.1</span> Interpretation of the Power Visualization</h3>
+<p>The figure above illustrates the concepts of <strong>Type I error (<span class="math inline">\(\alpha\)</span>)</strong>,<br>
+<strong>Type II error (<span class="math inline">\(\beta\)</span>)</strong>, and <strong>power (<span class="math inline">\(1-\beta\)</span>)</strong> for a <strong>left-tailed one-sample <span class="math inline">\(t\)</span>-test</strong>.</p>
+<ul>
+<li><p>The <strong>red curve</strong> represents the sampling distribution of the test statistic under the <strong>null hypothesis</strong><br>
+<span class="math display">\[
+H_0 : \mu = 300.
+\]</span></p></li>
+<li><p>The <strong>blue curve</strong> represents the sampling distribution under the <strong>alternative hypothesis</strong><br>
+<span class="math display">\[
+H_1 : \mu = 297.
+\]</span></p></li>
+<li><p>The <strong>vertical cutoff line</strong> corresponds to the critical value determined by the significance level <span class="math inline">\(\alpha = 0.05\)</span>.</p></li>
+</ul>
+<p><strong>Type I Error (<span class="math inline">\(\alpha\)</span>)</strong></p>
+<ul>
+<li>The <strong>red shaded region</strong> to the left of the cutoff is <span class="math display">\[
+\alpha = P(\text{reject } H_0 \mid H_0 \text{ is true}).
+\]</span></li>
+<li>This is the probability of incorrectly rejecting the null hypothesis.</li>
+</ul>
+<p><strong>Type II Error (<span class="math inline">\(\beta\)</span>)</strong></p>
+<ul>
+<li>The <strong>blue shaded region</strong> to the right of the cutoff is <span class="math display">\[
+\beta = P(\text{fail to reject } H_0 \mid H_0 \text{ is false}).
+\]</span></li>
+<li>This is the probability of failing to detect the true mean <span class="math inline">\(\mu = 297\)</span>.</li>
+</ul>
+<p><strong>Power (<span class="math inline">\(1 - \beta\)</span>)</strong></p>
+<ul>
+<li>Power increases when:
+<ul>
+<li>the true mean moves farther away from <span class="math inline">\(300\)</span>,</li>
+<li>the sample size increases,</li>
+<li>or the variability (<span class="math inline">\(\sigma\)</span>) decreases.</li>
+</ul></li>
+</ul>
+<p>This visualization highlights that <strong>power is not a single number</strong>, but depends on <em>which alternative value</em> of <span class="math inline">\(\mu\)</span> we consider when <span class="math inline">\(H_0\)</span> is false.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./part2_6_chi-square.html" class="pagination-link" aria-label="$\chi^2$ Goodness of Fit Test">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title"><span class="math inline">\(\chi^2\)</span> Goodness of Fit Test</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./references.html" class="pagination-link" aria-label="References">
+        <span class="nav-page-text">References</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
