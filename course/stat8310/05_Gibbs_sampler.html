@@ -267,7 +267,11 @@ window.Quarto = {
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">5.1</span> Introduction</a></li>
   <li><a href="#a-semi-conjugate-prior-distribution" id="toc-a-semi-conjugate-prior-distribution" class="nav-link" data-scroll-target="#a-semi-conjugate-prior-distribution"><span class="header-section-number">5.2</span> A Semi-conjugate Prior Distribution</a></li>
   <li><a href="#discrete-approximations" id="toc-discrete-approximations" class="nav-link" data-scroll-target="#discrete-approximations"><span class="header-section-number">5.3</span> Discrete Approximations</a></li>
-  <li><a href="#sampling-from-the-conditional-distribution" id="toc-sampling-from-the-conditional-distribution" class="nav-link" data-scroll-target="#sampling-from-the-conditional-distribution"><span class="header-section-number">5.4</span> Sampling from the Conditional Distribution</a></li>
+  <li><a href="#sampling-from-the-conditional-distribution" id="toc-sampling-from-the-conditional-distribution" class="nav-link" data-scroll-target="#sampling-from-the-conditional-distribution"><span class="header-section-number">5.4</span> Sampling from the Conditional Distribution</a>
+  <ul class="collapse">
+  <li><a href="#motivation-for-gibbs-sampling" id="toc-motivation-for-gibbs-sampling" class="nav-link" data-scroll-target="#motivation-for-gibbs-sampling"><span class="header-section-number">5.4.1</span> Motivation for Gibbs sampling</a></li>
+  </ul></li>
+  <li><a href="#gibbs-sampler" id="toc-gibbs-sampler" class="nav-link" data-scroll-target="#gibbs-sampler"><span class="header-section-number">5.5</span> Gibbs Sampler</a></li>
   </ul>
 </nav>
     </div>
@@ -595,9 +599,128 @@ p_D(\theta_k \mid y_1,\ldots,y_n)
 </section>
 <section id="sampling-from-the-conditional-distribution" class="level2" data-number="5.4">
 <h2 data-number="5.4" class="anchored" data-anchor-id="sampling-from-the-conditional-distribution"><span class="header-section-number">5.4</span> Sampling from the Conditional Distribution</h2>
-<p>Before discussing about the Gibbs sampler,</p>
+<p>Suppose, for the moment, that the value of <span class="math inline">\(\theta\)</span> were known. The conditional distribution of <span class="math inline">\(\tilde{\sigma}^2\)</span> given <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\{y_1,\ldots,y_n\}\)</span> satisfies <span class="math display">\[
+\begin{aligned}
+p(\tilde{\sigma}^2 \mid \theta, y_1,\ldots,y_n)
+&amp; \;\propto\; p\left(y_1, \ldots, y_n, \theta, \tilde{\sigma}^2\right) \\
+&amp;=
+p(y_1,\ldots,y_n \mid \theta, \tilde{\sigma}^2)\, p(\tilde{\sigma}^2) p(\theta \mid \tilde{\sigma}^2)
+\end{aligned}
+\]</span></p>
+<p>If <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\sigma^2\)</span> are independent <em>a priori</em>, then <span class="math inline">\(p(\theta,\tilde{\sigma}^2)=p(\theta)p(\tilde{\sigma}^2)\)</span> and <span class="math inline">\(p\left(\theta \mid \tilde{\sigma}^2\right)=p(\theta)\)</span>. Note that, now, since <span class="math inline">\(p(\theta)\)</span> does have have <span class="math inline">\(\tilde{\sigma}^2\)</span> involved, so it can be treated like a constant in calculating the posterior for <span class="math inline">\(\tilde{\sigma}^2\)</span>. Then</p>
+<p><span class="math display">\[
+\begin{aligned}
+p\left(\tilde{\sigma}^2 \mid \theta, y_1, \ldots, y_n\right) \propto &amp; p\left(y_1, \ldots, y_n \mid \theta, \tilde{\sigma}^2\right) p\left(\tilde{\sigma}^2\right) \\
+\propto &amp; \left(\left(\tilde{\sigma}^2\right)^{n / 2} \exp \left\{-\tilde{\sigma}^2 \sum_{i=1}^n\left(y_i-\theta\right)^2 / 2\right\}\right) \times \\
+&amp; \left(\left(\tilde{\sigma}^2\right)^{\nu_0 / 2-1} \exp \left\{-\tilde{\sigma}^2 \nu_0 \sigma_0^2 / 2\right\}\right) \\
+= &amp; \left(\tilde{\sigma}^2\right)^{\left(\nu_0+n\right) / 2-1} \times \exp \left\{-\tilde{\sigma}^2 \times\left[\nu_0 \sigma_0^2+\sum\left(y_i-\theta\right)^2\right] / 2\right\} .
+\end{aligned}
+\]</span></p>
+<p>Alternatively, if one want to use <span class="math inline">\(\sigma^2\)</span> instead, the normal sampling model and the semi-conjugate prior, <span class="math display">\[
+\begin{aligned}
+p(\sigma^2 \mid \theta, y_1,\ldots,y_n)
+&amp;\propto
+(\sigma^2)^{-n/2}
+\exp\!\left\{-\frac{1}{2\sigma^2}\sum_{i=1}^n (y_i-\theta)^2 \right\}
+\times
+(\sigma^2)^{-\nu_0/2-1}
+\exp\!\left\{-\frac{\nu_0\sigma_0^2}{2\sigma^2}\right\} \\
+&amp;=
+(\sigma^2)^{-(\nu_0+n)/2-1}
+\exp\!\left\{
+-\frac{1}{2\sigma^2}
+\left[\nu_0\sigma_0^2 + \sum_{i=1}^n (y_i-\theta)^2\right]
+\right\}.
+\end{aligned}
+\]</span></p>
+<p>This is the kernel of an inverse-gamma distribution. Therefore, <span class="math display">\[
+\sigma^2 \mid \theta, y_1,\ldots,y_n
+\sim
+\text{Inverse-Gamma}\!\left(\frac{\nu_n}{2}, \frac{\nu_n\sigma_n^2(\theta)}{2}\right),
+\]</span> where <span class="math display">\[
+\nu_n = \nu_0 + n,
+\qquad
+\sigma_n^2(\theta)
+=
+\frac{1}{\nu_n}
+\left[
+\nu_0\sigma_0^2 + \sum_{i=1}^n (y_i-\theta)^2
+\right].
+\]</span></p>
+<p>Here, <span class="math display">\[
+s_n^2(\theta) = \frac{1}{n}\sum_{i=1}^n (y_i-\theta)^2
+\]</span> is the unbiased estimator of <span class="math inline">\(\sigma^2\)</span> when <span class="math inline">\(\theta\)</span> is known.</p>
+<p>This result shows that we can easily sample from <span class="math inline">\(p(\sigma^2 \mid \theta, y_1,\ldots,y_n)\)</span>.<br>
+Similarly, as shown earlier, we can sample from <span class="math inline">\(p(\theta \mid \sigma^2, y_1,\ldots,y_n)\)</span>. But so far, we have not shown how to sample from the joint posterior distribution of <span class="math inline">\((\theta, \sigma^2)\)</span>, which is our ultimate goal, i.e., sampling from <span class="math inline">\(p(\theta,\sigma^2 \mid \sigma^2, y_1,\ldots,y_n)\)</span>.</p>
+<section id="motivation-for-gibbs-sampling" class="level3" data-number="5.4.1">
+<h3 data-number="5.4.1" class="anchored" data-anchor-id="motivation-for-gibbs-sampling"><span class="header-section-number">5.4.1</span> Motivation for Gibbs sampling</h3>
+<p>Suppose we were given a single draw <span class="math inline">\(\sigma^{2(1)}\)</span> from the marginal posterior <span class="math inline">\(p(\sigma^2 \mid y_1,\ldots,y_n)\)</span>.<br>
+We could then sample <span class="math display">\[
+\theta^{(1)} \sim p(\theta \mid \sigma^{2(1)}, y_1,\ldots,y_n),
+\]</span> and the pair <span class="math inline">\((\theta^{(1)}, \sigma^{2(1)})\)</span> would be a draw from the joint posterior distribution of <span class="math inline">\((\theta,\sigma^2)\)</span>.</p>
+<p>Moreover, <span class="math inline">\(\theta^{(1)}\)</span> can be regarded as a draw from the marginal posterior <span class="math inline">\(p(\theta \mid y_1,\ldots,y_n)\)</span>.<br>
+From this value, we can generate <span class="math display">\[
+\sigma^{2(2)} \sim p(\sigma^2 \mid \theta^{(1)}, y_1,\ldots,y_n).
+\]</span></p>
+<p>Since <span class="math inline">\(\theta^{(1)}\)</span> is drawn from the marginal distribution of <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\sigma^{2(2)}\)</span> is drawn from the conditional distribution of <span class="math inline">\(\sigma^2\)</span> given <span class="math inline">\(\theta^{(1)}\)</span>, the pair <span class="math inline">\((\theta^{(1)}, \sigma^{2(2)})\)</span> is again a draw from the joint posterior distribution.</p>
+<p>Repeating this alternating procedure suggests that the two full conditional distributions, <span class="math display">\[
+p(\theta \mid \sigma^2, y_1,\ldots,y_n)
+\quad\text{and}\quad
+p(\sigma^2 \mid \theta, y_1,\ldots,y_n),
+\]</span> can be used to generate samples from the joint posterior distribution.<br>
+This iterative sampling scheme is the basis of the <strong>Gibbs sampler</strong>, introduced in the next section, as long as we have the <span class="math inline">\(\sigma^{2(1)}\)</span> to start the process.</p>
+</section>
+</section>
+<section id="gibbs-sampler" class="level2" data-number="5.5">
+<h2 data-number="5.5" class="anchored" data-anchor-id="gibbs-sampler"><span class="header-section-number">5.5</span> Gibbs Sampler</h2>
+<p>The distributions <span class="math display">\[
+p(\theta \mid \sigma^2, y_1,\ldots,y_n)
+\quad \text{and} \quad
+p(\sigma^2 \mid \theta, y_1,\ldots,y_n)
+\]</span> are called the <strong>full conditional distributions</strong> of <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\sigma^2\)</span>, respectively.<br>
+Each is the conditional distribution of one parameter given all the other parameters and the data.</p>
+<p>We now formalize the iterative sampling idea introduced in the previous section.<br>
+Let <span class="math display">\[
+\phi^{(s)} = \bigl\{ \theta^{(s)}, \sigma^{2(s)} \bigr\}
+\]</span> denote the current state of the parameters at iteration <span class="math inline">\(s\)</span>.</p>
+<p>Given <span class="math inline">\(\phi^{(s)}\)</span>, a new state <span class="math inline">\(\phi^{(s+1)}\)</span> is generated by alternately sampling from the full conditional distributions:</p>
+<ol type="1">
+<li><p><strong>Update <span class="math inline">\(\theta\)</span></strong>: <span class="math display">\[
+\theta^{(s+1)} \sim p\!\left(\theta \mid \sigma^{2(s)}, y_1,\ldots,y_n\right).
+\]</span></p></li>
+<li><p><strong>Update <span class="math inline">\(\sigma^2\)</span></strong>: <span class="math display">\[
+\sigma^{2(s+1)} \sim p\!\left(\sigma^2 \mid \theta^{(s+1)}, y_1,\ldots,y_n\right).
+\]</span></p></li>
+</ol>
+<p>Repeating these two steps produces a sequence <span class="math display">\[
+\phi^{(1)}, \phi^{(2)}, \ldots
+\]</span> that forms a <strong>Markov chain</strong>, since each new state depends only on the immediately preceding state.</p>
+<p>Under mild regularity conditions, the distribution of <span class="math inline">\(\phi^{(s)}\)</span> converges to the joint posterior distribution <span class="math display">\[
+p(\theta,\sigma^2 \mid y_1,\ldots,y_n)
+\]</span> as <span class="math inline">\(s \to \infty\)</span>.<br>
+This iterative procedure is known as the <strong>Gibbs sampler</strong>, a special case of Markov chain Monte Carlo (MCMC) methods.</p>
+<div class="callout-algorithm" title="Gibbs Sampler">
+<ol type="1">
+<li><p>Sample <span class="math display">\[
+\theta^{(s+1)} \sim p\!\left(\theta \mid \tilde{\sigma}^{2(s)}, y_1,\ldots,y_n\right).
+\]</span></p></li>
+<li><p>Sample <span class="math display">\[
+\tilde{\sigma}^{2(s+1)} \sim p\!\left(\tilde{\sigma}^2 \mid \theta^{(s+1)}, y_1,\ldots,y_n\right).
+\]</span></p></li>
+<li><p>Set <span class="math display">\[
+\phi^{(s+1)} = \bigl\{ \theta^{(s+1)}, \tilde{\sigma}^{2(s+1)} \bigr\}.
+\]</span></p></li>
+</ol>
+<p>This algorithm is called the <strong>Gibbs sampler</strong>. It generates a <em>dependent</em> sequence of parameter values <span class="math display">\[
+\bigl\{ \phi^{(1)}, \phi^{(2)}, \ldots, \phi^{(S)} \bigr\}.
+\]</span></p>
+</div>
+<p>Below we give R code for implementing this Gibbs sampling scheme for the normal model with a semiconjugate prior distribution.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># TBA</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 <hr>
-<p>This Chapter borrows materials from Chapter 4 in Hoff (2009) and <a href="https://chikuang.github.io/course/stat8670/04-monte-carlo.html#other-methods">Chapter 4 in Computational Methods in Statistics Course</a></p>
+<p>This Chapter borrows materials from Chapter 6 in Hoff (2009).</p>
 
 
 </section>
