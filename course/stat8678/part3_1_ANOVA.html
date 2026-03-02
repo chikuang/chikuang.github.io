@@ -30,7 +30,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./references.html" rel="next">
+<link href="./exercise_1_macro.html" rel="next">
 <link href="./part2_8_2sample_t.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -271,6 +271,23 @@ window.Quarto = {
 </li>
       </ul>
   </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Hands on Class</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_1_macro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Writing Macro in SAS</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./references.html" class="sidebar-item-text sidebar-link">
@@ -282,8 +299,19 @@ window.Quarto = {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">13.1</span> Introduction</a></li>
+  <li><a href="#from-two-sample-t-test-to-anova" id="toc-from-two-sample-t-test-to-anova" class="nav-link" data-scroll-target="#from-two-sample-t-test-to-anova"><span class="header-section-number">13.2</span> From Two-Sample t-Test to ANOVA</a></li>
+  <li><a href="#anova-as-a-generalization-of-the-two-sample-t-test" id="toc-anova-as-a-generalization-of-the-two-sample-t-test" class="nav-link" data-scroll-target="#anova-as-a-generalization-of-the-two-sample-t-test"><span class="header-section-number">13.3</span> ANOVA as a Generalization of the Two-Sample t-Test</a></li>
+  <li><a href="#extending-to-multiple-groups" id="toc-extending-to-multiple-groups" class="nav-link" data-scroll-target="#extending-to-multiple-groups"><span class="header-section-number">13.4</span> Extending to Multiple Groups</a></li>
+  <li><a href="#why-anova-works" id="toc-why-anova-works" class="nav-link" data-scroll-target="#why-anova-works"><span class="header-section-number">13.5</span> Why ANOVA Works</a></li>
+  <li><a href="#whats-next" id="toc-whats-next" class="nav-link" data-scroll-target="#whats-next"><span class="header-section-number">13.6</span> What’s Next</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -310,11 +338,110 @@ window.Quarto = {
 <blockquote class="blockquote">
 <p>Learning Objectives</p>
 <ol type="1">
-<li>TBA</li>
+<li>Understand what <strong>ANOVA (Analysis of Variance)</strong> is.</li>
+<li>Explain <strong>why and when</strong> ANOVA is needed.</li>
+<li>Recognize the connection between <strong>two-sample t-tests</strong> and <strong>one-way ANOVA</strong>.</li>
+<li>Formulate ANOVA models and hypotheses.</li>
+<li>Perform one-way ANOVA in <strong>SAS</strong> and interpret the output.</li>
 </ol>
+</blockquote>
+<section id="introduction" class="level2" data-number="13.1">
+<h2 data-number="13.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">13.1</span> Introduction</h2>
+<p>In the previous lecture, we studied the <strong>two-sample t-test</strong>, where the goal was to compare the means of <strong>two independent populations</strong>.</p>
+<p>Recall the equal-variance two-sample model: <span class="math display">\[
+X_{1i} \stackrel{iid}{\sim} N(\mu_1, \sigma^2), \quad i = 1, \ldots, n_1,
+\]</span> <span class="math display">\[
+X_{2j} \stackrel{iid}{\sim} N(\mu_2, \sigma^2), \quad j = 1, \ldots, n_2,
+\]</span> with inference focused on the mean difference <span class="math display">\[
+\mu_1 - \mu_2.
+\]</span></p>
+<p>The corresponding hypothesis test was: <span class="math display">\[
+H_0: \mu_1 = \mu_2.
+\]</span></p>
+</section>
+<section id="from-two-sample-t-test-to-anova" class="level2" data-number="13.2">
+<h2 data-number="13.2" class="anchored" data-anchor-id="from-two-sample-t-test-to-anova"><span class="header-section-number">13.2</span> From Two-Sample t-Test to ANOVA</h2>
+<p>A natural question arises:</p>
+<blockquote class="blockquote">
+<p><strong>What if we want to compare more than two population means?</strong></p>
+</blockquote>
+<p>For example: - Comparing test scores across <strong>three or more teaching methods</strong> - Comparing average yields across <strong>multiple fertilizer types</strong> - Comparing mean response times across <strong>several algorithms</strong></p>
+<p>Running multiple pairwise t-tests is <strong>not appropriate</strong>, because: - It inflates the <strong>Type I error rate</strong> - It leads to inconsistent inference</p>
+<p>This motivates the need for <strong>ANOVA</strong>.</p>
+</section>
+<section id="anova-as-a-generalization-of-the-two-sample-t-test" class="level2" data-number="13.3">
+<h2 data-number="13.3" class="anchored" data-anchor-id="anova-as-a-generalization-of-the-two-sample-t-test"><span class="header-section-number">13.3</span> ANOVA as a Generalization of the Two-Sample t-Test</h2>
+<p>To unify the two-sample setting, we can rewrite the data using an <strong>indicator variable</strong>.</p>
+<p>Let the combined data be: <span class="math display">\[
+\{(I_{i,2}, Y_i)\}_{i=1}^{n_1+n_2},
+\]</span> where <span class="math display">\[
+I_{i,2} =
+\begin{cases}
+1, &amp; \text{if observation } i \text{ comes from group 2}, \\
+0, &amp; \text{otherwise}.
+\end{cases}
+\]</span></p>
+<p>Then the two-sample model can be written as a <strong>linear model</strong>: <span class="math display">\[
+Y_i = \alpha + \beta_1 I_{i,2} + \varepsilon_i,
+\]</span> where <span class="math display">\[
+\varepsilon_i \stackrel{iid}{\sim} N(0, \sigma^2).
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\alpha\)</span> represents the mean of group 1</li>
+<li><span class="math inline">\(\beta_1 = \mu_2 - \mu_1\)</span></li>
+<li>Testing <span class="math inline">\(\mu_1 = \mu_2\)</span> is equivalent to testing: <span class="math display">\[
+H_0: \beta_1 = 0
+\]</span></li>
+</ul>
+</section>
+<section id="extending-to-multiple-groups" class="level2" data-number="13.4">
+<h2 data-number="13.4" class="anchored" data-anchor-id="extending-to-multiple-groups"><span class="header-section-number">13.4</span> Extending to Multiple Groups</h2>
+<p>Suppose now we have <strong><span class="math inline">\(K &gt; 2\)</span></strong> groups.</p>
+<p>ANOVA extends this idea by modeling: <span class="math display">\[
+Y_{ij} = \mu + \tau_j + \varepsilon_{ij},
+\]</span> where: - <span class="math inline">\(\mu\)</span> is the overall mean - <span class="math inline">\(\tau_j\)</span> is the effect of group (j) - <span class="math inline">\(\varepsilon_{ij} \stackrel{iid}{\sim} N(0, \sigma^2)\)</span></p>
+<p>The <strong>ANOVA null hypothesis</strong> is: <span class="math display">\[
+H_0: \mu_1 = \mu_2 = \cdots = \mu_K,
+\]</span> or equivalently, <span class="math display">\[
+H_0: \tau_1 = \tau_2 = \cdots = \tau_K = 0.
+\]</span></p>
+</section>
+<section id="why-anova-works" class="level2" data-number="13.5">
+<h2 data-number="13.5" class="anchored" data-anchor-id="why-anova-works"><span class="header-section-number">13.5</span> Why ANOVA Works</h2>
+<p>ANOVA answers a single question:</p>
+<blockquote class="blockquote">
+<p><strong>Is the variability <em>between</em> group means larger than the variability <em>within</em> groups?</strong></p>
+</blockquote>
+<p>This is formalized using the <strong>F-statistic</strong>, which compares:</p>
+<ul>
+<li><strong>Between-group variation</strong></li>
+<li><strong>Within-group variation</strong></li>
+</ul>
+<p>If between-group variation is sufficiently large relative to within-group variation, we reject <span class="math inline">\(H_0\)</span>.</p>
+</section>
+<section id="whats-next" class="level2" data-number="13.6">
+<h2 data-number="13.6" class="anchored" data-anchor-id="whats-next"><span class="header-section-number">13.6</span> What’s Next</h2>
+<p>In the remainder of this lecture, we will cover:</p>
+<ul>
+<li>The ANOVA decomposition:
+<ul>
+<li>Total Sum of Squares</li>
+<li>Between-Group Sum of Squares</li>
+<li>Within-Group Sum of Squares</li>
+</ul></li>
+<li>The ANOVA table</li>
+<li>One-way ANOVA in <strong>SAS</strong> using <code>PROC ANOVA</code> and <code>PROC GLM</code></li>
+<li>Post-hoc comparisons (Tukey, Bonferroni)</li>
+</ul>
+<hr>
+<blockquote class="blockquote">
+<p><strong>Key takeaway:</strong><br>
+The two-sample t-test is a <em>special case</em> of ANOVA.<br>
+ANOVA provides a unified framework for comparing <strong>multiple means simultaneously</strong> while controlling error rates.</p>
 </blockquote>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -724,8 +851,8 @@ window.Quarto = {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./references.html" class="pagination-link" aria-label="References">
-        <span class="nav-page-text">References</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./exercise_1_macro.html" class="pagination-link" aria-label="Writing Macro in SAS">
+        <span class="nav-page-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Writing Macro in SAS</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

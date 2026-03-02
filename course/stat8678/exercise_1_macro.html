@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>14&nbsp; Writing Macro in SAS – STAT 8678 - SAS Programming &amp; Data Analysis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./references.html" rel="next">
+<link href="./part3_1_ANOVA.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-22e83d4e5eff2a99ccc45532742ac980.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT 8678 - SAS Programming &amp; Data Analysis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8678"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="././STAT-8678---SAS-Programming---Data-Analysis.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./exercise_1_macro.html">Hands on Class</a></li><li class="breadcrumb-item"><a href="./exercise_1_macro.html"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Writing Macro in SAS</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Introduction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_1_intro_operation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction to Basic SAS Operation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_2_sas_syntax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Working with SAS Syntax</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_3_import_export.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Import and Export Dataset</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_4_rv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Random Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Statistical Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_1_intro_inference1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Introduction to Statistical Inference I</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_2_intro_inference2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Introduction to Statistical Inference II</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_3_1sample_nonparametric_test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">One Sample Nonparametric Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_4_1sample_proportion_test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">One Sample Proportion Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_5_sas_marco.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">SAS Macro Program in One Sample Variance Problem</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_6_chi-square.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title"><span class="math inline">\(\chi^2\)</span> Goodness of Fit Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_7_power.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Power Analysis with application in one sample <span class="math inline">\(t\)</span>-test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_8_2sample_t.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Two Sample <span class="math inline">\(t\)</span>-test for Independent and Paired Data</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Regression Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_1_ANOVA.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Aanalysis of Variance</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Hands on Class</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_1_macro.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Writing Macro in SAS</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#guideline-how-to-write-sas-macros" id="toc-guideline-how-to-write-sas-macros" class="nav-link active" data-scroll-target="#guideline-how-to-write-sas-macros"><span class="header-section-number">14.1</span> Guideline: How to Write SAS Macros</a></li>
+  <li><a href="#practice-examples-in-this-activity" id="toc-practice-examples-in-this-activity" class="nav-link" data-scroll-target="#practice-examples-in-this-activity"><span class="header-section-number">14.2</span> Practice Examples in this activity</a>
+  <ul class="collapse">
+  <li><a href="#dataset-for-this-exercise-court-length-data" id="toc-dataset-for-this-exercise-court-length-data" class="nav-link" data-scroll-target="#dataset-for-this-exercise-court-length-data"><span class="header-section-number">14.2.1</span> Dataset for this exercise: Court Length Data</a></li>
+  </ul></li>
+  <li><a href="#first-sas-macro-for-reporting-mean-and-standard-deviation" id="toc-first-sas-macro-for-reporting-mean-and-standard-deviation" class="nav-link" data-scroll-target="#first-sas-macro-for-reporting-mean-and-standard-deviation"><span class="header-section-number">14.3</span> First SAS Macro for Reporting Mean and Standard Deviation</a></li>
+  <li><a href="#second-sas-macro-for-creating-confidence-interval-and-p-value-from-a-z-test" id="toc-second-sas-macro-for-creating-confidence-interval-and-p-value-from-a-z-test" class="nav-link" data-scroll-target="#second-sas-macro-for-creating-confidence-interval-and-p-value-from-a-z-test"><span class="header-section-number">14.4</span> Second SAS Macro for creating confidence interval and p-value from a Z-test</a></li>
+  <li><a href="#convert-everything-into-a-macro" id="toc-convert-everything-into-a-macro" class="nav-link" data-scroll-target="#convert-everything-into-a-macro"><span class="header-section-number">14.5</span> Convert Everything into a Macro</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./exercise_1_macro.html">Hands on Class</a></li><li class="breadcrumb-item"><a href="./exercise_1_macro.html"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Writing Macro in SAS</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Writing Macro in SAS</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<blockquote class="blockquote">
+<p>Learning Objectives</p>
+<p>In this hands-on session, we will practice writing <strong>SAS macros</strong> through a concrete example.<br>
+The goal is to help you develop a <strong>systematic workflow</strong> for turning regular SAS code into reusable and flexible macro functions.</p>
+<p>By the end of this activity, you should be able to:</p>
+<ol type="1">
+<li>Understand the logic behind SAS macro programming.</li>
+<li>Identify macro inputs and outputs.</li>
+<li>Write simple SAS macros for statistical analysis.</li>
+<li>Apply macros to automate repetitive tasks.</li>
+</ol>
+</blockquote>
+<section id="guideline-how-to-write-sas-macros" class="level2" data-number="14.1">
+<h2 data-number="14.1" class="anchored" data-anchor-id="guideline-how-to-write-sas-macros"><span class="header-section-number">14.1</span> Guideline: How to Write SAS Macros</h2>
+<p>Based on experience, a reliable way to write SAS macros is to follow <strong>three steps</strong>:</p>
+<p><strong>Step 1: Write Regular SAS Code First</strong></p>
+<ul>
+<li>Write SAS code that produces the desired result <strong>without using macros</strong>.</li>
+<li>Clearly identify:
+<ul>
+<li>What the code does</li>
+<li>Which values may change (dataset name, variable name, parameters, etc.)</li>
+</ul></li>
+</ul>
+<p><strong>Step 2: Introduce Macro Variables Using <code>%LET</code></strong></p>
+<ul>
+<li>Replace hard-coded values with <strong>macro variables</strong> using <code>%LET</code>.</li>
+<li>This makes the code flexible and easier to generalize.</li>
+</ul>
+<p><strong>Step 3: Wrap the Code into a Macro</strong></p>
+<ul>
+<li>Convert the <code>%LET</code> variables into <strong>macro arguments</strong>.</li>
+<li>Place the code inside <code>%MACRO ... %MEND</code>.</li>
+<li>Remove the <code>%LET</code> statements.</li>
+<li>Your macro now behaves like a function.</li>
+</ul>
+<blockquote class="blockquote">
+<p>💡 This three-step strategy is also useful when writing functions in <strong>R</strong> or <strong>Python</strong>.</p>
+</blockquote>
+</section>
+<section id="practice-examples-in-this-activity" class="level2" data-number="14.2">
+<h2 data-number="14.2" class="anchored" data-anchor-id="practice-examples-in-this-activity"><span class="header-section-number">14.2</span> Practice Examples in this activity</h2>
+<p>To practice these steps, in this activity, we will:</p>
+<ol type="1">
+<li>Write the first macro to compute the <strong>sample mean</strong>, <strong>standard deviation</strong> as well as the <span class="math inline">\(p\)</span>-value</li>
+<li>Write the second macro to conduct a <strong>one-sample Z-test</strong></li>
+</ol>
+<p>Eventually, you will practice the three-step workflow <strong>twice</strong> through those two macros</p>
+<section id="dataset-for-this-exercise-court-length-data" class="level3" data-number="14.2.1">
+<h3 data-number="14.2.1" class="anchored" data-anchor-id="dataset-for-this-exercise-court-length-data"><span class="header-section-number">14.2.1</span> Dataset for this exercise: Court Length Data</h3>
+<p>We reuse the court length example from previous lecture.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>DATA time;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    INPUT time <span class="sc">@</span><span class="er">@</span>;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    DATALINES;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>     <span class="dv">43</span> <span class="dv">90</span> <span class="dv">84</span> <span class="dv">87</span> <span class="dv">116</span>  <span class="dv">95</span> <span class="dv">86</span>  <span class="dv">99</span>  <span class="dv">93</span> <span class="dv">92</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="dv">121</span> <span class="dv">71</span> <span class="dv">66</span> <span class="dv">98</span>  <span class="dv">79</span> <span class="dv">102</span> <span class="dv">60</span> <span class="dv">112</span> <span class="dv">105</span> <span class="dv">98</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+<section id="first-sas-macro-for-reporting-mean-and-standard-deviation" class="level2" data-number="14.3">
+<h2 data-number="14.3" class="anchored" data-anchor-id="first-sas-macro-for-reporting-mean-and-standard-deviation"><span class="header-section-number">14.3</span> First SAS Macro for Reporting Mean and Standard Deviation</h2>
+<p><strong>Step 1: Write Regular SAS Code (No Macros)</strong></p>
+<p>First, write SAS code that computes the <code>sample mean</code>, <code>sample size</code>, and <code>standard deviation</code> from a dataset.</p>
+<p>Key: Replace <code>?</code> and <code>??</code> with the dataset name and variable name.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>PROC MEANS DATA<span class="ot">=</span>?;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    VAR ??;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    OUTPUT OUT<span class="ot">=</span>zdata</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>           MEAN<span class="ot">=</span>Mean</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>           N<span class="ot">=</span>n</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>           STDDEV<span class="ot">=</span>Std_Dev;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>At this stage:</p>
+<ul>
+<li>Do not worry about macros.</li>
+<li>Focus only on producing the correct output.</li>
+</ul>
+<p><strong>Step 2: Introduce Flexibility Using <code>%LET</code></strong></p>
+<p>Next, make the code flexible by replacing hard-coded values with macro variables.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>%LET D <span class="ot">=</span> time;   <span class="sc">/</span><span class="er">*</span> dataset name <span class="sc">*</span><span class="er">/</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>%LET V <span class="ot">=</span> time;   <span class="sc">/</span><span class="er">*</span> variable name <span class="sc">*</span><span class="er">/</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>PROC MEANS DATA<span class="ot">=</span><span class="er">&amp;</span>D;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    VAR <span class="sc">&amp;</span>V;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    OUTPUT OUT<span class="ot">=</span>zdata</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>           MEAN<span class="ot">=</span>Mean</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>           N<span class="ot">=</span>n</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>           STDDEV<span class="ot">=</span>Std_Dev;</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Key idea:</p>
+<ul>
+<li>%LET creates macro variables D and V</li>
+<li>&amp;D controls which dataset is used</li>
+<li>&amp;V controls which variable is analyzed</li>
+</ul>
+<p>This allows the same code to work for any dataset and variable.</p>
+<p><strong>Step 3: Change everything to a MACRO syntax</strong></p>
+<p>Finally, wrap the code into a macro function, that is, replace <code>%LET</code> variables with macro arguments and place the code inside <code>%MACRO ... %MEND</code>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>%MACRO <span class="fu">myFunction</span>(input1, input2);</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>...</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>%MEND myFunction;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>%<span class="fu">myFunction</span>(input1, input2);</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="second-sas-macro-for-creating-confidence-interval-and-p-value-from-a-z-test" class="level2" data-number="14.4">
+<h2 data-number="14.4" class="anchored" data-anchor-id="second-sas-macro-for-creating-confidence-interval-and-p-value-from-a-z-test"><span class="header-section-number">14.4</span> Second SAS Macro for creating confidence interval and p-value from a Z-test</h2>
+<p>In this section, we apply the <strong>three-step macro writing strategy</strong> again to build a SAS macro that computes:</p>
+<ul>
+<li>a <strong><span class="math inline">\((1-\alpha)100\)</span>% confidence interval</strong> for the population mean, and<br>
+</li>
+<li>the <strong>Z-test statistic and p-value</strong> for testing<br>
+<span class="math display">\[
+H_0: \mu = \mu_0.
+\]</span></li>
+</ul>
+<p>You should <strong>think carefully through each step</strong> before combining everything into a macro.</p>
+<p>You may need to utilize the following SAS functions:</p>
+<p><strong>Code chunk 1: Dataset</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>DATA time;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    INPUT time <span class="sc">@</span><span class="er">@</span>;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    DATALINES;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>     <span class="dv">43</span> <span class="dv">90</span> <span class="dv">84</span> <span class="dv">87</span> <span class="dv">116</span>  <span class="dv">95</span> <span class="dv">86</span>  <span class="dv">99</span>  <span class="dv">93</span> <span class="dv">92</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="dv">121</span> <span class="dv">71</span> <span class="dv">66</span> <span class="dv">98</span>  <span class="dv">79</span> <span class="dv">102</span> <span class="dv">60</span> <span class="dv">112</span> <span class="dv">105</span> <span class="dv">98</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>;</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Code chunk 2: Mean, standard deviation, and sample size calculation</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>PROC MEANS DATA<span class="ot">=</span>time;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    VAR time;</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    OUTPUT OUT<span class="ot">=</span>zdata</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>           MEAN<span class="ot">=</span>Mean</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>           N<span class="ot">=</span>n</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>           STDDEV<span class="ot">=</span>Std_Dev;</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>For this code chunk, you may verify that:</p>
+<ul>
+<li>Mean, Std_Dev, and n are correctly stored in the dataset zdata.</li>
+</ul>
+<p><strong>Code chunk 3: CI and Z-test Quantities</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>DATA ztest;</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    SET zdata;</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="sc">/</span><span class="er">*</span> Confidence level <span class="sc">*</span><span class="er">/</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    CL <span class="ot">=</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="er">&amp;</span>alpha) <span class="sc">*</span> <span class="dv">100</span>;</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="sc">/</span><span class="er">*</span> Confidence interval <span class="sc">*</span><span class="er">/</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    ZLower <span class="ot">=</span> Mean <span class="sc">-</span> <span class="fu">probit</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="er">&amp;</span>alpha<span class="sc">/</span><span class="dv">2</span>) <span class="sc">*</span> Std_Dev <span class="sc">/</span> <span class="fu">sqrt</span>(n);</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    ZUpper <span class="ot">=</span> Mean <span class="sc">+</span> <span class="fu">probit</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="er">&amp;</span>alpha<span class="sc">/</span><span class="dv">2</span>) <span class="sc">*</span> Std_Dev <span class="sc">/</span> <span class="fu">sqrt</span>(n);</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="sc">/</span><span class="er">*</span> Z<span class="sc">-</span>test statistic <span class="sc">*</span><span class="er">/</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    zts <span class="ot">=</span> (Mean <span class="sc">-</span> <span class="er">&amp;</span>muzero) <span class="sc">/</span> (Std_Dev <span class="sc">/</span> <span class="fu">sqrt</span>(n));</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This code chunk creates:</p>
+<ul>
+<li>confidence level,</li>
+<li>confidence interval bounds,</li>
+<li>Z-test statistic.</li>
+</ul>
+<p>Notes:</p>
+<ul>
+<li><code>&amp;alpha</code> is the significance level</li>
+<li><code>&amp;muzero</code> is the hypothesized mean under <span class="math inline">\(H_0\)</span></li>
+<li><code>probit()</code> returns the standard normal quantile</li>
+</ul>
+<p>Step 3: Introduce Macro Variables for Flexibility</p>
+<p>Now, think about what should be user-controlled inputs:</p>
+<ul>
+<li>dataset name</li>
+<li>variable name</li>
+<li>significance level <span class="math inline">\(\alpha\)</span></li>
+<li>null mean <span class="math inline">\(\mu_0\)</span></li>
+</ul>
+<p>Example macro variables:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>%let D <span class="ot">=</span> time;</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>%let V <span class="ot">=</span> time;</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>%let alpha <span class="ot">=</span> <span class="fl">0.05</span>;</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>%let muzero <span class="ot">=</span> <span class="dv">90</span>;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Update your code by replacing fixed values with macro variables.</p>
+</section>
+<section id="convert-everything-into-a-macro" class="level2" data-number="14.5">
+<h2 data-number="14.5" class="anchored" data-anchor-id="convert-everything-into-a-macro"><span class="header-section-number">14.5</span> Convert Everything into a Macro</h2>
+<p>Finally, combine everything we learned from this activity into a reusable SAS macro.</p>
+<p><strong>Step 1</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>DATA TIME;</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    INPUT TIME <span class="sc">@</span><span class="er">@</span>;</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    DATALINES;</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="dv">43</span> <span class="dv">90</span> <span class="dv">84</span> <span class="dv">87</span> <span class="dv">116</span> <span class="dv">95</span> <span class="dv">86</span> <span class="dv">99</span> <span class="dv">93</span> <span class="dv">92</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="dv">121</span> <span class="dv">71</span> <span class="dv">66</span> <span class="dv">98</span> <span class="dv">79</span> <span class="dv">102</span> <span class="dv">60</span> <span class="dv">112</span> <span class="dv">105</span> <span class="dv">98</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>;</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>PROC MEANS DATA<span class="ot">=</span>TIME;</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    VAR TIME;</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    OUTPUT OUT<span class="ot">=</span>ZDATA MEAN<span class="ot">=</span>MEAN N<span class="ot">=</span>N STDDEV<span class="ot">=</span>STD_DEV;</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>DATA ZTEST;</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    SET ZDATA;</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    CL <span class="ot">=</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="er">&amp;</span>ALPHA) <span class="sc">*</span> <span class="dv">100</span>;</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    ZLOWER <span class="ot">=</span> MEAN <span class="sc">-</span> <span class="fu">PROBIT</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="er">&amp;</span>ALPHA <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> STD_DEV <span class="sc">/</span> <span class="fu">SQRT</span>(N);</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    ZUPPER <span class="ot">=</span> MEAN <span class="sc">+</span> <span class="fu">PROBIT</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="er">&amp;</span>ALPHA <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> STD_DEV <span class="sc">/</span> <span class="fu">SQRT</span>(N);</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    ZTS <span class="ot">=</span> (MEAN <span class="sc">-</span> <span class="er">&amp;</span>MUZERO) <span class="sc">/</span> (STD_DEV <span class="sc">/</span> <span class="fu">SQRT</span>(N));</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    IF <span class="sc">&amp;</span>SIDE <span class="ot">=</span> <span class="st">'L'</span> THEN ZPVALUE <span class="ot">=</span> <span class="fu">PROBNORM</span>(ZTS);</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    IF <span class="sc">&amp;</span>SIDE <span class="ot">=</span> <span class="st">'U'</span> THEN ZPVALUE <span class="ot">=</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">PROBNORM</span>(ZTS);</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    IF <span class="sc">&amp;</span>SIDE <span class="ot">=</span> <span class="st">'B'</span> THEN ZPVALUE <span class="ot">=</span> <span class="dv">2</span> <span class="sc">*</span> <span class="fu">MIN</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="fu">PROBNORM</span>(ZTS), <span class="fu">PROBNORM</span>(ZTS));</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>PROC PRINT DATA<span class="ot">=</span>ZTEST NOOBS;</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>    VAR N MEAN STD_DEV ZLOWER ZUPPER ZPVALUE;</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    TITLE <span class="st">'Z-INTERVALS AND Z-TEST'</span>;</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Step 2</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>%LET ALPHA <span class="ot">=</span> <span class="fl">0.05</span>;   <span class="sc">*</span>VALUE OF ALPHA;</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>%LET MUZERO <span class="ot">=</span> <span class="dv">80</span>;</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>%LET SIDE <span class="ot">=</span> <span class="st">'B'</span>;</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>PROC MEANS DATA<span class="ot">=</span>TIME;</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    VAR TIME;</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    OUTPUT OUT<span class="ot">=</span>ZDATA MEAN<span class="ot">=</span>MEAN N<span class="ot">=</span>N STDDEV<span class="ot">=</span>STD_DEV;</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>DATA ZTEST;</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    SET ZDATA;</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    CL <span class="ot">=</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="er">&amp;</span>ALPHA) <span class="sc">*</span> <span class="dv">100</span>;</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    ZLOWER <span class="ot">=</span> MEAN <span class="sc">-</span> <span class="fu">PROBIT</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="er">&amp;</span>ALPHA <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> STD_DEV <span class="sc">/</span> <span class="fu">SQRT</span>(N);</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    ZUPPER <span class="ot">=</span> MEAN <span class="sc">+</span> <span class="fu">PROBIT</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="er">&amp;</span>ALPHA <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> STD_DEV <span class="sc">/</span> <span class="fu">SQRT</span>(N);</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    ZTS <span class="ot">=</span> (MEAN <span class="sc">-</span> <span class="er">&amp;</span>MUZERO) <span class="sc">/</span> (STD_DEV <span class="sc">/</span> <span class="fu">SQRT</span>(N));</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    IF <span class="sc">&amp;</span>SIDE <span class="ot">=</span> <span class="st">'L'</span> THEN ZPVALUE <span class="ot">=</span> <span class="fu">PROBNORM</span>(ZTS);</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    IF <span class="sc">&amp;</span>SIDE <span class="ot">=</span> <span class="st">'U'</span> THEN ZPVALUE <span class="ot">=</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">PROBNORM</span>(ZTS);</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    IF <span class="sc">&amp;</span>SIDE <span class="ot">=</span> <span class="st">'B'</span> THEN ZPVALUE <span class="ot">=</span> <span class="dv">2</span> <span class="sc">*</span> <span class="fu">MIN</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="fu">PROBNORM</span>(ZTS), <span class="fu">PROBNORM</span>(ZTS));</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>PROC PRINT DATA<span class="ot">=</span>ZTEST NOOBS;</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>    VAR N MEAN STD_DEV ZLOWER ZUPPER ZPVALUE;</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>    TITLE <span class="st">'Z-INTERVALS'</span>;</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Step 3</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>DATA TIME;</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    INPUT TIME <span class="sc">@</span><span class="er">@</span>;</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    DATALINES;</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="dv">43</span>  <span class="dv">90</span>  <span class="dv">84</span>  <span class="dv">87</span>  <span class="dv">116</span>  <span class="dv">95</span>  <span class="dv">86</span>  <span class="dv">99</span>  <span class="dv">93</span>  <span class="dv">92</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="dv">121</span> <span class="dv">71</span>  <span class="dv">66</span>  <span class="dv">98</span>  <span class="dv">79</span>   <span class="dv">102</span> <span class="dv">60</span>  <span class="dv">112</span> <span class="dv">105</span> <span class="dv">98</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    ;</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>%MACRO <span class="fu">ZTEST_SELF</span>(D, V, ALPHA, MUZERO, SIDE);</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>PROC MEANS DATA<span class="ot">=</span><span class="er">&amp;</span>D;</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    VAR <span class="sc">&amp;</span>V;</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    OUTPUT OUT<span class="ot">=</span>ZDATA MEAN<span class="ot">=</span>MEAN N<span class="ot">=</span>N STDDEV<span class="ot">=</span>STD_DEV;</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>DATA ZTEST;</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    SET ZDATA;</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    CL <span class="ot">=</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="er">&amp;</span>ALPHA) <span class="sc">*</span> <span class="dv">100</span>;</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    ZLOWER <span class="ot">=</span> MEAN <span class="sc">-</span> <span class="fu">PROBIT</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="er">&amp;</span>ALPHA <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> STD_DEV <span class="sc">/</span> <span class="fu">SQRT</span>(N);</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    ZUPPER <span class="ot">=</span> MEAN <span class="sc">+</span> <span class="fu">PROBIT</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="er">&amp;</span>ALPHA <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> STD_DEV <span class="sc">/</span> <span class="fu">SQRT</span>(N);</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    ZTS <span class="ot">=</span> (MEAN <span class="sc">-</span> <span class="er">&amp;</span>MUZERO) <span class="sc">/</span> (STD_DEV <span class="sc">/</span> <span class="fu">SQRT</span>(N));</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>    IF <span class="sc">&amp;</span>SIDE <span class="ot">=</span> <span class="st">'L'</span> THEN ZPVALUE <span class="ot">=</span> <span class="fu">PROBNORM</span>(ZTS);</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>    IF <span class="sc">&amp;</span>SIDE <span class="ot">=</span> <span class="st">'U'</span> THEN ZPVALUE <span class="ot">=</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">PROBNORM</span>(ZTS);</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>    IF <span class="sc">&amp;</span>SIDE <span class="ot">=</span> <span class="st">'B'</span> THEN ZPVALUE <span class="ot">=</span> <span class="dv">2</span> <span class="sc">*</span> <span class="fu">MIN</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="fu">PROBNORM</span>(ZTS), <span class="fu">PROBNORM</span>(ZTS));</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>PROC PRINT DATA<span class="ot">=</span>ZTEST NOOBS;</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>    VAR N MEAN STD_DEV CL ZLOWER ZUPPER ZPVALUE;</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>    TITLE <span class="st">'Z-INTERVALS &amp; TESTS'</span>;</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>%MEND ZTEST_SELF;</span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>%<span class="fu">ZTEST_SELF</span>(TIME, TIME, <span class="fl">0.05</span>, <span class="dv">80</span>, <span class="st">'B'</span>);</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Example Macro Call</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>%<span class="fu">ZTEST_SELF</span>(TIME, TIME, <span class="fl">0.05</span>, <span class="dv">80</span>, <span class="st">'B'</span>);</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>TIME (first): input dataset</li>
+<li>TIME (second): variable of interest</li>
+<li>0.05: significance level α</li>
+<li>80: hypothesized mean μ₀</li>
+<li>‘B’: two-sided Z-test</li>
+<li>‘L’ = left-tailed</li>
+<li>‘U’ = right-tailed</li>
+<li>‘B’ = two-tailed</li>
+</ul>
+<p><strong>Summary</strong></p>
+<p>By following the three-step macro workflow, you have:</p>
+<ol type="1">
+<li>Written correct and verifiable SAS code,</li>
+<li>Introduced flexibility using macro parameters,</li>
+<li>Built a reusable SAS macro for Z-test inference.</li>
+</ol>
+<p>This same workflow applies directly to:</p>
+<ul>
+<li>t-tests,</li>
+<li>confidence intervals,</li>
+<li>ANOVA summaries,</li>
+<li>regression diagnostics.</li>
+</ul>
+<p>Once you master this pattern, writing SAS macros becomes systematic, reusable, and scalable, just like functions in R or Python.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./part3_1_ANOVA.html" class="pagination-link" aria-label="Aanalysis of Variance">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Aanalysis of Variance</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./references.html" class="pagination-link" aria-label="References">
+        <span class="nav-page-text">References</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
