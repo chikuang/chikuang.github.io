@@ -20,6 +20,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -316,7 +351,16 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">15.1</span> Introduction</a></li>
+  <li><a href="#main-effects-versus-interaction-effects-in-regression" id="toc-main-effects-versus-interaction-effects-in-regression" class="nav-link active" data-scroll-target="#main-effects-versus-interaction-effects-in-regression"><span class="header-section-number">15.1</span> Main Effects Versus Interaction Effects in Regression</a></li>
+  <li><a href="#regression-equation-for-males" id="toc-regression-equation-for-males" class="nav-link" data-scroll-target="#regression-equation-for-males"><span class="header-section-number">15.2</span> Regression Equation for Males</a>
+  <ul class="collapse">
+  <li><a href="#interpreting-the-interaction-coefficient" id="toc-interpreting-the-interaction-coefficient" class="nav-link" data-scroll-target="#interpreting-the-interaction-coefficient"><span class="header-section-number">15.2.1</span> Interpreting the Interaction Coefficient</a></li>
+  <li><a href="#example-checking-regression-assumptions-in-sas" id="toc-example-checking-regression-assumptions-in-sas" class="nav-link" data-scroll-target="#example-checking-regression-assumptions-in-sas"><span class="header-section-number">15.2.2</span> Example: Checking Regression Assumptions in SAS</a></li>
+  </ul></li>
+  <li><a href="#proc-plm" id="toc-proc-plm" class="nav-link" data-scroll-target="#proc-plm"><span class="header-section-number">16</span> PROC PLM</a>
+  <ul class="collapse">
+  <li><a href="#common-proc-plm-statements" id="toc-common-proc-plm-statements" class="nav-link" data-scroll-target="#common-proc-plm-statements"><span class="header-section-number">16.1</span> Common PROC PLM Statements</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -351,79 +395,212 @@ window.Quarto = {
 <li>Compute and interpret simple slopes</li>
 </ol>
 </blockquote>
-<section id="introduction" class="level2" data-number="15.1">
-<h2 data-number="15.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">15.1</span> Introduction</h2>
-<p><strong>Main Effects vs Interaction Effects</strong></p>
-<p>In a main-effects regression model, each predictor affects the response independently.</p>
-<p>For example, suppose we want to predict weight using sex and height:</p>
+<section id="main-effects-versus-interaction-effects-in-regression" class="level2" data-number="15.1">
+<h2 data-number="15.1" class="anchored" data-anchor-id="main-effects-versus-interaction-effects-in-regression"><span class="header-section-number">15.1</span> Main Effects Versus Interaction Effects in Regression</h2>
+<p>In a <em>main-effects model</em>, each input variable’s effect on the response variable is estimated as the <strong>average effect across levels of all other input variables</strong>.<br>
+This means the effect of each predictor is <strong>assumed to be constant</strong> regardless of the values of the other predictors.</p>
+<p>For example, suppose we want to predict *weight** using a person’s <em>sex</em> and <em>height</em>. A regression model with only main effects can be written as</p>
 <p><span class="math display">\[
-\text{Weight} = \beta_0 + \beta_s \text{SEX} + \beta_h \text{HEIGHT}
+\text{weight} = \beta_0 + \beta_s \text{SEX} + \beta_h \text{HEIGHT}
 \]</span></p>
-<p>Here:</p>
-<ul>
-<li><span class="math inline">\(\beta_s\)</span> represents the effect of sex</li>
-<li><span class="math inline">\(\beta_h\)</span> represents the effect of height</li>
-</ul>
-<p>In this model, the effect of height is assumed to be the same for males and females.</p>
-<p>However, this assumption may not be realistic. It is possible that height affects weight differently for males and females.</p>
-<p>To allow the relationship to vary, we add an interaction term.</p>
-<p>Interaction Model</p>
-<p>The regression model with interaction becomes</p>
-<p><span class="math display">\[
-\text{Weight} =
+<p>The coefficient describing the effect of <strong>height on weight</strong>, <span class="math inline">\(\beta_h\)</span>, represents a <strong>weighted average of the height effects for males and females</strong>, had we modeled them separately.</p>
+<p>Thus, the resulting main effect of height is <strong>assumed to be the same for both males and females</strong>. However, it may be reasonable to suspect that <strong>the effect of height differs by sex</strong>. To allow the effect of height to vary across groups, we add an <strong>interaction term</strong>.</p>
+<p>The regression model with interaction becomes <span class="math display">\[
+\text{weight} =
 \beta_0
 +
 \beta_s \text{SEX}
 +
 \beta_h \text{HEIGHT}
 +
-\beta_{sh} (\text{SEX} \times \text{HEIGHT})
+\beta_{sh}(\text{SEX} \times \text{HEIGHT})
 \]</span></p>
-<p>Important interpretation rule:</p>
-<div id="callout-1" class="callout callout-style-default callout-note callout-titled" title="Warning: Important">
+<div id="callout-1" class="callout callout-style-default callout-warning callout-titled" title="Important">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Warning: Important
+<span class="screen-reader-only">Warning</span>Important
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>When an interaction is included, the coefficients of the individual variables are no longer overall main effects.</p>
-<p>Instead, they represent the effect when the interacting variable equals 0.</p>
+<p>In a regression model that includes <strong>interaction terms</strong>, the coefficients of the individual variables (often called <strong>main effects</strong>) are <strong>no longer interpreted as overall main effects</strong>.</p>
+<p>Instead, they represent the effect <strong>when the interacting variable equals 0</strong>.</p>
 </div>
 </div>
-<p>Interpreting the Interaction Model</p>
-<p>Assume</p>
+<p>Thus:</p>
 <ul>
-<li>SEX = 0 for males</li>
-<li>SEX = 1 for females</li>
+<li><span class="math inline">\(\beta_h\)</span> represents the effect of <strong>HEIGHT when SEX = 0</strong><br>
+</li>
+<li><span class="math inline">\(\beta_s\)</span> represents the effect of <strong>SEX when HEIGHT = 0</strong></li>
 </ul>
-<p>Model for males</p>
-<p>Substitute <span class="math inline">\(SEX = 0\)</span></p>
-<p><span class="math display">\[
-\text{Weight}_{male} =
-\beta_0 + \beta_h \text{HEIGHT}
-\]</span></p>
-<p>Model for females</p>
-<p>Substitute <span class="math inline">\(SEX = 1\)</span></p>
-<p><span class="math display">\[
-\text{Weight}_{female} =
-\beta_0 + \beta_s + (\beta_h + \beta{sh}) \text{HEIGHT}
-\]</span></p>
-<p>Interpretation:</p>
+<p>If we code</p>
 <ul>
-<li>Male slope = <span class="math inline">\(\beta_h\)</span></li>
+<li>SEX = 0 → male<br>
+</li>
+<li>SEX = 1 → female</li>
+</ul>
+<p>then we can construct the regression equations for <strong>males and females</strong> separately.</p>
+</section>
+<section id="regression-equation-for-males" class="level2" data-number="15.2">
+<h2 data-number="15.2" class="anchored" data-anchor-id="regression-equation-for-males"><span class="header-section-number">15.2</span> Regression Equation for Males</h2>
+<p>Substitute <span class="math inline">\(SEX = 0\)</span> into the interaction model:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\text{weight}_{male}
+&amp;= \beta_0 + \beta_s(0) + \beta_h \text{HEIGHT} + \beta_{sh}(0)\text{HEIGHT} \\
+&amp;= \beta_0 + \beta_h \text{HEIGHT}
+\end{aligned}
+\]</span></p>
+<p>Substitute <span class="math inline">\(SEX = 1\)</span>:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\text{weight}_{female}
+&amp;= \beta_0 + \beta_s(1) + \beta_h \text{HEIGHT} + \beta_{sh}(1)\text{HEIGHT} \\
+&amp;= \beta_0 + \beta_s + \beta_h \text{HEIGHT} + \beta_{sh}\text{HEIGHT} \\
+&amp;= \beta_0 + \beta_s + (\beta_h + \beta_{sh})\text{HEIGHT}
+\end{aligned}
+\]</span></p>
+<p>Thus, <strong>slope for males</strong> is <span class="math inline">\(\beta_h\)</span> and the <strong>slope for females</strong> is <span class="math inline">\(\beta_h + \beta_{sh}\)</span>.</p>
+<p><strong>Interpretation</strong></p>
+<p>The interaction coefficient <span class="math inline">\(\beta_{sh}\)</span> represents <strong>how much the slope of height changes between males and females</strong>.</p>
+<ul>
+<li>Male slope = <span class="math inline">\(\beta_h\)</span><br>
+</li>
 <li>Female slope = <span class="math inline">\(\beta_h + \beta_{sh}\)</span></li>
 </ul>
-<p>Thus,</p>
+<p>Therefore, if <span class="math inline">\(\beta_{sh} \neq 0\)</span>, the <strong>effect of height on weight differs by sex</strong>.</p>
+<section id="interpreting-the-interaction-coefficient" class="level3" data-number="15.2.1">
+<h3 data-number="15.2.1" class="anchored" data-anchor-id="interpreting-the-interaction-coefficient"><span class="header-section-number">15.2.1</span> Interpreting the Interaction Coefficient</h3>
+<p>From the previous equations, we can see that the effect of <strong>HEIGHT</strong> differs for males and females.</p>
+<ul>
+<li><p>For males (SEX = 0), the slope of height is<br>
+<span class="math display">\[
+\beta_h
+\]</span></p></li>
+<li><p>For females (SEX = 1), the slope of height is<br>
+<span class="math display">\[
+\beta_h + \beta_{sh}
+\]</span></p></li>
+</ul>
+<p>Thus, <strong>HEIGHT has a different effect for males and females</strong>.</p>
+<p>The interaction coefficient</p>
 <p><span class="math display">\[
 \beta_{sh}
 \]</span></p>
-<p>measures how the slope changes between males and females.</p>
+<p>represents the <strong>difference between the height effects for males and females</strong>.</p>
+<p>In other words, a one-unit increase in <strong>SEX</strong> (changing from male to female) changes the slope of <strong>HEIGHT</strong> by <span class="math inline">\(\beta_{sh}\)</span>.</p>
+<p>It is important to note that this interpretation holds when the <strong>main effects are included in the model together with the interaction term</strong>.<br>
+If the interaction term were entered <strong>without the corresponding main effects</strong>, the interpretation of the coefficient would change.</p>
+<hr>
+</section>
+<section id="example-checking-regression-assumptions-in-sas" class="level3" data-number="15.2.2">
+<h3 data-number="15.2.2" class="anchored" data-anchor-id="example-checking-regression-assumptions-in-sas"><span class="header-section-number">15.2.2</span> Example: Checking Regression Assumptions in SAS</h3>
+<p>The following SAS code fits a regression model and produces diagnostic plots for checking model assumptions.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>PROC REG DATA<span class="ot">=</span>MEASUREMENT;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    TITLE <span class="st">"Regression and Residual Plots"</span>;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    MODEL WEIGHT <span class="ot">=</span> HEIGHT;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    OUTPUT OUT<span class="ot">=</span>MYOUT R<span class="ot">=</span>RESID;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>PROC UNIVARIATE DATA<span class="ot">=</span>MYOUT NORMAL;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    QQPLOT RESID <span class="sc">/</span> <span class="fu">NORMAL</span>(<span class="at">MU=</span>EST <span class="at">SIGMA=</span>EST <span class="at">COLOR=</span>RED <span class="at">L=</span><span class="dv">1</span>);</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Description of the Code</p>
+<ul>
+<li>PROC REG fits the linear regression model relating weight to height.</li>
+<li>OUTPUT OUT=myout R=resid saves the residual values from the regression model into a new dataset called myout.</li>
+<li>PROC UNIVARIATE is used to examine the distribution of the residuals.</li>
+<li>QQPLOT resid produces a Q–Q plot to visually assess whether the residuals follow a normal distribution.</li>
+</ul>
+</section>
+</section>
+<section id="proc-plm" class="level1" data-number="16">
+<h1 data-number="16"><span class="header-section-number">16</span> PROC PLM</h1>
+<p>This section relies heavily on <strong>PROC PLM</strong> to estimate, compare, and visualize the <strong>conditional effects of interactions</strong>.<br>
+Before applying it to interaction models, we briefly introduce <strong>PROC PLM</strong> in general.</p>
+<p><code>PROC PLM</code> performs various analyses and plotting functions <strong>after a regression model has been fitted</strong>.<br>
+It can be used for:</p>
+<ul>
+<li>testing <strong>custom hypotheses</strong> about model parameters,</li>
+<li>computing <strong>predicted values</strong>,</li>
+<li>estimating <strong>simple effects and contrasts</strong>, and</li>
+<li>creating <strong>visualizations of predicted values</strong>.</li>
+</ul>
+<p>Unlike most SAS procedures, <strong>PROC PLM does not directly use a dataset as input</strong>.<br>
+Instead, it reads from an <strong>item store</strong>, which contains information about a previously fitted model.</p>
+<p>An item store can be created by several SAS modeling procedures, including:</p>
+<ul>
+<li><code>PROC GLM</code></li>
+<li><code>PROC GENMOD</code></li>
+<li><code>PROC LOGISTIC</code></li>
+<li><code>PROC PHREG</code></li>
+<li><code>PROC MIXED</code></li>
+<li><code>PROC GLIMMIX</code></li>
+</ul>
+<p>These procedures create the item store using a <code>STORE</code> statement.<br>
+Later, <code>PROC PLM</code> accesses this stored model using the <code>RESTORE=</code> option.</p>
+<hr>
+<section id="common-proc-plm-statements" class="level2" data-number="16.1">
+<h2 data-number="16.1" class="anchored" data-anchor-id="common-proc-plm-statements"><span class="header-section-number">16.1</span> Common PROC PLM Statements</h2>
+<p>The following statements are commonly used when analyzing interaction models:</p>
+<ul>
+<li><p><strong><code>ESTIMATE</code></strong></p>
+<p>Used to estimate <strong>linear combinations of model coefficients</strong>, including:</p>
+<ul>
+<li>predicted means</li>
+<li>contrasts</li>
+<li><strong>simple slopes</strong></li>
+<li>conditional effects</li>
+</ul>
+<p>This statement is very flexible but may require more coding.</p></li>
+</ul>
+<hr>
+<ul>
+<li><p><strong><code>SLICE</code></strong></p>
+<p>Used to estimate <strong>simple effects</strong> by comparing <strong>marginal means</strong> within levels of another factor.</p></li>
+</ul>
+<hr>
+<ul>
+<li><p><strong><code>LSMESTIMATE</code></strong></p>
+<p>A hybrid of <code>ESTIMATE</code> and <code>LSMEANS</code>.<br>
+It estimates <strong>differences between marginal means</strong> and is commonly used for <strong>simple effect comparisons</strong>.</p></li>
+</ul>
+<hr>
+<ul>
+<li><p><strong><code>LSMEANS</code></strong></p>
+<p>Used to compute <strong>least squares means (marginal means)</strong> and test <strong>differences between them</strong>.</p></li>
+</ul>
+<hr>
+<ul>
+<li><p><strong><code>EFFECTPLOT</code></strong></p>
+<p>Used to plot <strong>predicted values of the response variable</strong> across a range of values for one or two predictors.</p>
+<p>This is particularly useful for visualizing:</p>
+<ul>
+<li>interaction effects<br>
+</li>
+<li>simple slopes<br>
+</li>
+<li>conditional relationships</li>
+</ul></li>
+</ul>
+<p>If additional predictors are included in the model, <code>EFFECTPLOT</code> will <strong>fix their values automatically</strong>:</p>
+<ul>
+<li>at the <strong>mean</strong> for continuous predictors</li>
+<li>at the <strong>reference category</strong> for categorical predictors.</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>PROC GLM DATA<span class="ot">=</span>EXERCISE;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>MODEL LOSS <span class="ot">=</span> HOURS<span class="sc">|</span>EFFORT;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>STORE CONTCONT;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>PROC PLM RESTORE<span class="ot">=</span>CONTCONT;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>EFFECTPLOT <span class="fu">INTERACTION</span>(<span class="at">X=</span>HOURS <span class="at">SLICEBY=</span>EFFORT);</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
