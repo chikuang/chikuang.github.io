@@ -333,6 +333,12 @@ window.Quarto = {
  <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Writing Macro in SAS</span></span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_2_t_ANOVA.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Two-Sample t-Test and ANOVA in SAS</span></span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item">
@@ -357,10 +363,7 @@ window.Quarto = {
   <li><a href="#interpreting-the-interaction-coefficient" id="toc-interpreting-the-interaction-coefficient" class="nav-link" data-scroll-target="#interpreting-the-interaction-coefficient"><span class="header-section-number">15.2.1</span> Interpreting the Interaction Coefficient</a></li>
   <li><a href="#example-checking-regression-assumptions-in-sas" id="toc-example-checking-regression-assumptions-in-sas" class="nav-link" data-scroll-target="#example-checking-regression-assumptions-in-sas"><span class="header-section-number">15.2.2</span> Example: Checking Regression Assumptions in SAS</a></li>
   </ul></li>
-  <li><a href="#proc-plm" id="toc-proc-plm" class="nav-link" data-scroll-target="#proc-plm"><span class="header-section-number">16</span> PROC PLM</a>
-  <ul class="collapse">
-  <li><a href="#common-proc-plm-statements" id="toc-common-proc-plm-statements" class="nav-link" data-scroll-target="#common-proc-plm-statements"><span class="header-section-number">16.1</span> Common PROC PLM Statements</a></li>
-  </ul></li>
+  <li><a href="#proc-plm" id="toc-proc-plm" class="nav-link" data-scroll-target="#proc-plm"><span class="header-section-number">15.3</span> PROC PLM</a></li>
   </ul>
 </nav>
     </div>
@@ -509,19 +512,17 @@ If the interaction term were entered <strong>without the corresponding main effe
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Description of the Code</p>
 <ul>
-<li>PROC REG fits the linear regression model relating weight to height.</li>
-<li>OUTPUT OUT=myout R=resid saves the residual values from the regression model into a new dataset called myout.</li>
-<li>PROC UNIVARIATE is used to examine the distribution of the residuals.</li>
-<li>QQPLOT resid produces a Q–Q plot to visually assess whether the residuals follow a normal distribution.</li>
+<li><code>PROC REG</code> fits the linear regression model relating weight to height.</li>
+<li><code>OUTPUT OUT=myout R=resid</code> saves the residual values from the regression model into a new dataset called myout.</li>
+<li><code>PROC UNIVARIATE</code> is used to examine the distribution of the residuals.</li>
+<li><code>QQPLOT RESID</code> produces a Q–Q plot to visually assess whether the residuals follow a normal distribution.</li>
 </ul>
 </section>
 </section>
-<section id="proc-plm" class="level1" data-number="16">
-<h1 data-number="16"><span class="header-section-number">16</span> PROC PLM</h1>
-<p>This section relies heavily on <strong>PROC PLM</strong> to estimate, compare, and visualize the <strong>conditional effects of interactions</strong>.<br>
-Before applying it to interaction models, we briefly introduce <strong>PROC PLM</strong> in general.</p>
-<p><code>PROC PLM</code> performs various analyses and plotting functions <strong>after a regression model has been fitted</strong>.<br>
-It can be used for:</p>
+<section id="proc-plm" class="level2" data-number="15.3">
+<h2 data-number="15.3" class="anchored" data-anchor-id="proc-plm"><span class="header-section-number">15.3</span> PROC PLM</h2>
+<p>This section relies heavily on <strong>PROC PLM</strong> to estimate, compare, and visualize the <strong>conditional effects of interactions</strong>. Before applying it to interaction models, we briefly introduce <strong>PROC PLM</strong> in general.</p>
+<p><code>PROC PLM</code> performs various analyses and plotting functions <strong>after a regression model has been fitted</strong>. It can be used for:</p>
 <ul>
 <li>testing <strong>custom hypotheses</strong> about model parameters,</li>
 <li>computing <strong>predicted values</strong>,</li>
@@ -541,13 +542,10 @@ Instead, it reads from an <strong>item store</strong>, which contains informatio
 </ul>
 <p>These procedures create the item store using a <code>STORE</code> statement.<br>
 Later, <code>PROC PLM</code> accesses this stored model using the <code>RESTORE=</code> option.</p>
-<hr>
-<section id="common-proc-plm-statements" class="level2" data-number="16.1">
-<h2 data-number="16.1" class="anchored" data-anchor-id="common-proc-plm-statements"><span class="header-section-number">16.1</span> Common PROC PLM Statements</h2>
+<p><strong>Common PROC PLM Statements</strong></p>
 <p>The following statements are commonly used when analyzing interaction models:</p>
 <ul>
-<li><p><strong><code>ESTIMATE</code></strong></p>
-<p>Used to estimate <strong>linear combinations of model coefficients</strong>, including:</p>
+<li><p><strong><code>ESTIMATE</code></strong>L Used to estimate <strong>linear combinations of model coefficients</strong>, including:</p>
 <ul>
 <li>predicted means</li>
 <li>contrasts</li>
@@ -555,28 +553,10 @@ Later, <code>PROC PLM</code> accesses this stored model using the <code>RESTORE=
 <li>conditional effects</li>
 </ul>
 <p>This statement is very flexible but may require more coding.</p></li>
-</ul>
-<hr>
-<ul>
-<li><p><strong><code>SLICE</code></strong></p>
-<p>Used to estimate <strong>simple effects</strong> by comparing <strong>marginal means</strong> within levels of another factor.</p></li>
-</ul>
-<hr>
-<ul>
-<li><p><strong><code>LSMESTIMATE</code></strong></p>
-<p>A hybrid of <code>ESTIMATE</code> and <code>LSMEANS</code>.<br>
-It estimates <strong>differences between marginal means</strong> and is commonly used for <strong>simple effect comparisons</strong>.</p></li>
-</ul>
-<hr>
-<ul>
-<li><p><strong><code>LSMEANS</code></strong></p>
-<p>Used to compute <strong>least squares means (marginal means)</strong> and test <strong>differences between them</strong>.</p></li>
-</ul>
-<hr>
-<ul>
-<li><p><strong><code>EFFECTPLOT</code></strong></p>
-<p>Used to plot <strong>predicted values of the response variable</strong> across a range of values for one or two predictors.</p>
-<p>This is particularly useful for visualizing:</p>
+<li><p><strong><code>SLICE</code></strong>: Used to estimate <strong>simple effects</strong> by comparing <strong>marginal means</strong> within levels of another factor.</p></li>
+<li><p><strong><code>LSMESTIMATE</code></strong>: A hybrid of <code>ESTIMATE</code> and <code>LSMEANS</code>. It estimates <strong>differences between marginal means</strong> and is commonly used for <strong>simple effect comparisons</strong>.</p></li>
+<li><p><strong><code>LSMEANS</code></strong>: Used to compute <strong>least squares means (marginal means)</strong> and test <strong>differences between them</strong>.</p></li>
+<li><p><strong><code>EFFECTPLOT</code></strong>: Used to plot <strong>predicted values of the response variable</strong> across a range of values for one or two predictors. This is particularly useful for visualizing:</p>
 <ul>
 <li>interaction effects<br>
 </li>
@@ -600,7 +580,6 @@ It estimates <strong>differences between marginal means</strong> and is commonly
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->
