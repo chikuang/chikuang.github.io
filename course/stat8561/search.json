@@ -254,7 +254,7 @@
     "href": "01_intro.html#summary",
     "title": "2  Week 1 Overview",
     "section": "6.2 Summary",
-    "text": "6.2 Summary\nThis week introduced the notation and basic probabilistic tools needed for the rest of the course. We defined random vectors, mean vectors, covariance matrices, and the matrix form of the linear regression model. These ideas will support everything that follows.\nNext week, we will study least squares estimation and the geometry of projection in more detail.\nFor some optional review of the matrix algebra, see Chapter 9",
+    "text": "6.2 Summary\nThis week introduced the notation and basic probabilistic tools needed for the rest of the course. We defined random vectors, mean vectors, covariance matrices, and the matrix form of the linear regression model. These ideas will support everything that follows.\nNext week, we will study least squares estimation and the geometry of projection in more detail.\nFor some optional review of the matrix algebra, see Chapter 12",
     "crumbs": [
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>Week 1 Overview</span>"
     ]
@@ -1940,13 +1940,1543 @@
     ]
   },
   {
+    "objectID": "07.html",
+    "href": "07.html",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "",
+    "text": "8.1 Learning Objectives\nIn this week, we study what to do when the assumptions of the ordinary linear model are not adequate. Building on residual analysis and diagnostics from the previous week, we now consider practical remedies for nonlinearity, nonconstant variance, and other violations of model assumptions. The emphasis is on understanding when transformations help, how weighted least squares works, and how to think systematically about model improvement.\nBy the end of this week, students should be able to:",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#learning-objectives",
+    "href": "07.html#learning-objectives",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "",
+    "text": "explain why transformations are used in regression analysis;\ndistinguish between transforming the response and transforming predictors;\ninterpret common response transformations such as logarithms and square roots;\nexplain the basic idea of weighted least squares;\nderive the weighted least squares estimator;\nrecognize situations where weighted least squares is appropriate;\ncompare model improvement strategies based on diagnostics and scientific context.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#reading",
+    "href": "07.html#reading",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.2 Reading",
+    "text": "8.2 Reading\nRecommended reading for this week:\n\nSeber and Lee (2003) :\n\nsections on transformations\nweighted least squares\nremedial measures for model inadequacy\n\nMontgomery et al. (2021) :\n\nsections on transformations and model adequacy\nweighted least squares\nvariance stabilization and practical remedies",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#why-remedies-are-needed",
+    "href": "07.html#why-remedies-are-needed",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.3 Why Remedies Are Needed",
+    "text": "8.3 Why Remedies Are Needed\nDiagnostics often reveal that a fitted linear model is inadequate.\nCommon problems include:\n\ncurvature in the mean structure;\nnonconstant error variance;\nskewed response distributions;\ninfluential observations;\nomitted interactions or nonlinear effects.\n\nWhen this happens, we should not stop at saying the model is flawed. We should also ask how the model might be improved.\nSome common remedies are:\n\ntransforming the response;\ntransforming predictors;\nadding polynomial or interaction terms;\nusing weighted least squares;\nreconsidering the scope of the scientific question.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#review-of-the-ordinary-linear-model",
+    "href": "07.html#review-of-the-ordinary-linear-model",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.4 Review of the Ordinary Linear Model",
+    "text": "8.4 Review of the Ordinary Linear Model\nThe ordinary linear regression model is\n\\[\n\\mathbf{Y} = \\mathbf{X}\\boldsymbol{\\beta} + \\boldsymbol{\\varepsilon},\n\\qquad\n\\mathbb{E}[\\boldsymbol{\\varepsilon}] = \\mathbf{0},\n\\qquad\n\\mathrm{Var}(\\boldsymbol{\\varepsilon}) = \\sigma^2 \\mathbf{I}_n.\n\\]\nThe ordinary least squares estimator is\n\\[\n\\hat{\\boldsymbol{\\beta}}\n=\n(\\mathbf{X}^\\top \\mathbf{X})^{-1}\\mathbf{X}^\\top \\mathbf{Y},\n\\]\nprovided that \\(\\mathbf{X}\\) has full column rank.\nWhen the variance is not constant, or when the mean structure is poorly represented by a linear form, OLS may still be computable, but its interpretation and inferential properties can become unsatisfactory.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#transformations-in-regression",
+    "href": "07.html#transformations-in-regression",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.5 Transformations in Regression",
+    "text": "8.5 Transformations in Regression\nA transformation changes the scale on which a variable is analysed.\nFor example:\n\nlogarithm;\nsquare root;\nreciprocal;\npower transformation.\n\nTransformations are often used for one or more of the following reasons:\n\nto improve linearity;\nto stabilize variance;\nto reduce skewness;\nto make the model more scientifically interpretable;\nto reduce the impact of extreme values.\n\nTransformations should not be viewed as purely mechanical. They should be guided by diagnostics and by substantive understanding of the problem.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#transforming-the-response",
+    "href": "07.html#transforming-the-response",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.6 Transforming the Response",
+    "text": "8.6 Transforming the Response\nSuppose the original response is \\(Y\\), but instead of modelling \\(Y\\) directly, we model\n\\[\ng(Y)\n\\]\nfor some transformation \\(g\\).\nThen the model becomes\n\\[\ng(Y_i) = \\beta_0 + \\beta_1 x_{i1} + \\cdots + \\beta_p x_{ip} + \\varepsilon_i.\n\\]\nThis can help if the original relationship between the mean and the predictors is nonlinear, or if the variability of \\(Y\\) changes with its level.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#log-transformation-of-the-response",
+    "href": "07.html#log-transformation-of-the-response",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.7 Log Transformation of the Response",
+    "text": "8.7 Log Transformation of the Response\nA very common choice is the logarithm:\n\\[\n\\log(Y_i) = \\beta_0 + \\beta_1 x_i + \\varepsilon_i.\n\\]\nThis is often useful when:\n\nthe response is positive;\nthe variance increases with the mean;\nthe relationship is multiplicative rather than additive;\nthe response distribution is right-skewed.\n\nIn this model, the interpretation of coefficients changes.\nIf \\(x\\) increases by one unit, then the expected log response changes by \\(\\beta_1\\). On the original scale, this corresponds approximately to a multiplicative change.\nMore precisely, if\n\\[\n\\log(Y_i) = \\beta_0 + \\beta_1 x_i + \\varepsilon_i,\n\\]\nthen increasing \\(x\\) by one unit multiplies the fitted median response approximately by\n\\[\ne^{\\beta_1}.\n\\]",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#square-root-transformation",
+    "href": "07.html#square-root-transformation",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.8 Square-Root Transformation",
+    "text": "8.8 Square-Root Transformation\nAnother common response transformation is the square root:\n\\[\n\\sqrt{Y_i} = \\beta_0 + \\beta_1 x_i + \\varepsilon_i.\n\\]\nThis is often used for count-like responses or responses whose variance tends to increase with the mean.\nCompared with the log transformation, the square-root transformation is milder and can still be used when the response includes zeros.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#reciprocal-and-other-power-transformations",
+    "href": "07.html#reciprocal-and-other-power-transformations",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.9 Reciprocal and Other Power Transformations",
+    "text": "8.9 Reciprocal and Other Power Transformations\nIn some settings, transformations such as\n\\[\n\\frac{1}{Y}, \\qquad Y^\\lambda\n\\]\nor more general Box-Cox type power transformations may be useful.\nThese transformations can sometimes help linearize relationships or stabilize variance, but they may make interpretation more difficult. So one should balance statistical convenience and interpretability.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#transforming-predictors",
+    "href": "07.html#transforming-predictors",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.10 Transforming Predictors",
+    "text": "8.10 Transforming Predictors\nInstead of transforming the response, we may transform one or more predictors.\nFor example, if the relationship between \\(Y\\) and \\(x\\) is curved, we might consider\n\n\\(\\log(x)\\);\n\\(\\sqrt{x}\\);\n\\(x^2\\) or higher-order polynomial terms.\n\nA model such as\n\\[\nY_i = \\beta_0 + \\beta_1 \\log(x_i) + \\varepsilon_i\n\\]\nis still linear in the parameters, even though it is nonlinear in the original predictor.\nThis is an important distinction: the model remains a linear model as long as it is linear in the coefficients.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#polynomial-terms-as-a-remedy",
+    "href": "07.html#polynomial-terms-as-a-remedy",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.11 Polynomial Terms as a Remedy",
+    "text": "8.11 Polynomial Terms as a Remedy\nSuppose residual plots suggest curvature in the relationship between \\(Y\\) and \\(x\\).\nA common remedy is to add a quadratic term:\n\\[\nY_i = \\beta_0 + \\beta_1 x_i + \\beta_2 x_i^2 + \\varepsilon_i.\n\\]\nThis is still a linear model because it is linear in \\(\\beta_0\\), \\(\\beta_1\\), and \\(\\beta_2\\).\nPolynomial terms often provide a more interpretable remedy than transforming the response, depending on the scientific context.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#choosing-between-transformations-and-added-terms",
+    "href": "07.html#choosing-between-transformations-and-added-terms",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.12 Choosing Between Transformations and Added Terms",
+    "text": "8.12 Choosing Between Transformations and Added Terms\nSuppose diagnostics show nonlinearity.\nThen several remedies may be reasonable:\n\ntransform the predictor;\ntransform the response;\nadd polynomial terms;\ninclude an interaction;\nrestrict attention to a smaller range of the data.\n\nThere is often no single automatic answer. Choice depends on:\n\nwhat shape is suggested by diagnostics;\nwhich form is scientifically meaningful;\nhow easy the resulting model is to explain;\nwhether inference or prediction is the main goal.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#heteroscedasticity-and-variance-stabilization",
+    "href": "07.html#heteroscedasticity-and-variance-stabilization",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.13 Heteroscedasticity and Variance Stabilization",
+    "text": "8.13 Heteroscedasticity and Variance Stabilization\nA common problem in regression is heteroscedasticity, meaning that\n\\[\n\\mathrm{Var}(\\varepsilon_i)\n\\]\nis not constant across observations.\nResidual plots may reveal a funnel shape or changing spread.\nSometimes a response transformation can reduce this problem.\nFor example:\n\na log transformation often helps when the standard deviation is roughly proportional to the mean;\na square-root transformation often helps for count-like data.\n\nBut in other cases, it is better to model the unequal variance directly. This leads to weighted least squares.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#weighted-least-squares",
+    "href": "07.html#weighted-least-squares",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.14 Weighted Least Squares",
+    "text": "8.14 Weighted Least Squares\nSuppose the observations still satisfy\n\\[\n\\mathbb{E}[\\mathbf{Y}] = \\mathbf{X}\\boldsymbol{\\beta},\n\\]\nbut now the variance is\n\\[\n\\mathrm{Var}(\\mathbf{Y}) = \\sigma^2 \\mathbf{V},\n\\]\nwhere \\(\\mathbf{V}\\) is not the identity matrix.\nA particularly common case is when the errors are uncorrelated but have unequal variances:\n\\[\n\\mathrm{Var}(\\varepsilon_i) = \\sigma^2 v_i.\n\\]\nThen observations have different levels of reliability.\nOrdinary least squares treats all observations equally. Weighted least squares gives more weight to observations with smaller variance.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#basic-idea-of-weights",
+    "href": "07.html#basic-idea-of-weights",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.15 Basic Idea of Weights",
+    "text": "8.15 Basic Idea of Weights\nIf an observation has high variance, it contains less precise information about the mean.\nIf an observation has low variance, it contains more precise information.\nSo a sensible idea is to weight observations inversely to their variance.\nIf\n\\[\n\\mathrm{Var}(\\varepsilon_i) = \\sigma^2 v_i,\n\\]\nthen we often use weights\n\\[\nw_i = \\frac{1}{v_i}.\n\\]\nLarger weights correspond to more precise observations.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#weighted-least-squares-criterion",
+    "href": "07.html#weighted-least-squares-criterion",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.16 Weighted Least Squares Criterion",
+    "text": "8.16 Weighted Least Squares Criterion\nIn weighted least squares, we minimize\n\\[\nQ(\\boldsymbol{\\beta})\n=\n\\sum_{i=1}^n w_i (Y_i - x_i^\\top \\boldsymbol{\\beta})^2.\n\\]\nIn matrix form, if\n\\[\n\\mathbf{W} = \\mathrm{diag}(w_1,\\dots,w_n),\n\\]\nthen the criterion is\n\\[\nQ(\\boldsymbol{\\beta})\n=\n(\\mathbf{Y} - \\mathbf{X}\\boldsymbol{\\beta})^\\top\n\\mathbf{W}\n(\\mathbf{Y} - \\mathbf{X}\\boldsymbol{\\beta}).\n\\]\nThis is the weighted analogue of the ordinary residual sum of squares.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#derivation-of-the-weighted-least-squares-estimator",
+    "href": "07.html#derivation-of-the-weighted-least-squares-estimator",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.17 Derivation of the Weighted Least Squares Estimator",
+    "text": "8.17 Derivation of the Weighted Least Squares Estimator\nDifferentiate the weighted criterion with respect to \\(\\boldsymbol{\\beta}\\) and set the derivative equal to zero.\nThe weighted normal equations are\n\\[\n\\mathbf{X}^\\top \\mathbf{W}\\mathbf{X}\\,\\hat{\\boldsymbol{\\beta}}_{WLS}\n=\n\\mathbf{X}^\\top \\mathbf{W}\\mathbf{Y}.\n\\]\nAssuming invertibility, the weighted least squares estimator is\n\\[\n\\hat{\\boldsymbol{\\beta}}_{WLS}\n=\n(\\mathbf{X}^\\top \\mathbf{W}\\mathbf{X})^{-1}\\mathbf{X}^\\top \\mathbf{W}\\mathbf{Y}.\n\\]\nThis has exactly the same structural form as OLS, but with \\(\\mathbf{W}\\) inserted to reflect unequal precision.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#transformation-view-of-weighted-least-squares",
+    "href": "07.html#transformation-view-of-weighted-least-squares",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.18 Transformation View of Weighted Least Squares",
+    "text": "8.18 Transformation View of Weighted Least Squares\nWeighted least squares can also be understood as transforming the model.\nIf \\(\\mathbf{W}^{1/2}\\) is the diagonal matrix with entries \\(\\sqrt{w_i}\\), then multiplying the model by \\(\\mathbf{W}^{1/2}\\) gives\n\\[\n\\mathbf{W}^{1/2}\\mathbf{Y}\n=\n\\mathbf{W}^{1/2}\\mathbf{X}\\boldsymbol{\\beta}\n+\n\\mathbf{W}^{1/2}\\boldsymbol{\\varepsilon}.\n\\]\nIf the weights are chosen appropriately, the transformed errors have constant variance, and ordinary least squares on the transformed system becomes appropriate.\nThis is a very useful conceptual link between WLS and OLS.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#interpreting-weighted-least-squares",
+    "href": "07.html#interpreting-weighted-least-squares",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.19 Interpreting Weighted Least Squares",
+    "text": "8.19 Interpreting Weighted Least Squares\nWeighted least squares does not change the target mean model\n\\[\n\\mathbb{E}[\\mathbf{Y}] = \\mathbf{X}\\boldsymbol{\\beta}.\n\\]\nInstead, it changes how observations are used in estimation.\nObservations with smaller variance have more influence on the fitted coefficients.\nThus WLS is often best viewed as a remedy for unequal precision rather than a new mean model.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#when-weighted-least-squares-is-appropriate",
+    "href": "07.html#when-weighted-least-squares-is-appropriate",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.20 When Weighted Least Squares Is Appropriate",
+    "text": "8.20 When Weighted Least Squares Is Appropriate\nWeighted least squares is particularly useful when:\n\nvariance is known up to a proportional constant;\nvariance can be reasonably modelled as a function of the mean or a predictor;\nobservations are averages based on different sample sizes;\nsome observations are measured more precisely than others.\n\nFor example, if each response is an average based on \\(m_i\\) repeated measurements, then the variance may be proportional to \\(1/m_i\\), so weights proportional to \\(m_i\\) are natural.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#feasible-weighted-least-squares",
+    "href": "07.html#feasible-weighted-least-squares",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.21 Feasible Weighted Least Squares",
+    "text": "8.21 Feasible Weighted Least Squares\nIn many applications, the variances are not known exactly.\nInstead, we estimate the variance pattern from the data and then use estimated weights. This is often called feasible weighted least squares.\nTypical workflow:\n\nfit an initial OLS model;\ninspect residuals to understand how variance changes;\npropose a variance model;\ncompute estimated weights;\nrefit using WLS.\n\nThis approach is practical, though it introduces additional modelling decisions.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#example-of-a-mean-variance-relationship",
+    "href": "07.html#example-of-a-mean-variance-relationship",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.22 Example of a Mean-Variance Relationship",
+    "text": "8.22 Example of a Mean-Variance Relationship\nSuppose residual plots suggest\n\\[\n\\mathrm{Var}(Y_i) \\propto x_i^2.\n\\]\nThen it may be appropriate to use weights\n\\[\nw_i = \\frac{1}{x_i^2}.\n\\]\nAlternatively, dividing the model through by \\(x_i\\) may also lead to a transformed model with approximately constant variance.\nThis illustrates the close connection between variance modelling and transformation.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#response-transformation-versus-wls",
+    "href": "07.html#response-transformation-versus-wls",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.23 Response Transformation Versus WLS",
+    "text": "8.23 Response Transformation Versus WLS\nBoth response transformation and WLS can address heteroscedasticity, but they do so differently.\nA response transformation changes the scale of the response and often changes interpretation.\nWeighted least squares keeps the response on its original scale, but changes the estimation procedure.\nWhich is better depends on the context.\nStudents should compare:\n\ninterpretability;\nadequacy of the residual plots after refitting;\nscientific plausibility of the variance model.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#practical-caveats",
+    "href": "07.html#practical-caveats",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.24 Practical Caveats",
+    "text": "8.24 Practical Caveats\nNo remedy should be applied blindly.\nQuestions to ask include:\n\nDoes the transformed model make scientific sense?\nDoes the transformed scale improve diagnostics meaningfully?\nAre the chosen weights justified?\nDoes a more flexible mean model explain the apparent variance pattern?\nWould a different modelling framework be more appropriate?\n\nModel repair is not merely technical. It should remain connected to the original scientific problem.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#worked-example-with-a-log-transformation",
+    "href": "07.html#worked-example-with-a-log-transformation",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.25 Worked Example With a Log Transformation",
+    "text": "8.25 Worked Example With a Log Transformation\nSuppose the response increases rapidly with the predictor and residual plots show larger spread for larger fitted values.\nA model for the original scale may look like\n\\[\nY_i = \\beta_0 + \\beta_1 x_i + \\varepsilon_i,\n\\]\nbut the diagnostics suggest increasing variance and curvature.\nWe might instead fit\n\\[\n\\log(Y_i) = \\beta_0 + \\beta_1 x_i + \\varepsilon_i.\n\\]\nIf the transformed residual plots look more stable and more linear, then the log model may be preferable.\nInterpretation then becomes multiplicative rather than additive.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#worked-example-with-weighted-least-squares",
+    "href": "07.html#worked-example-with-weighted-least-squares",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.26 Worked Example With Weighted Least Squares",
+    "text": "8.26 Worked Example With Weighted Least Squares\nSuppose we observe responses with variance increasing as the predictor grows.\nIf residual analysis suggests\n\\[\n\\mathrm{Var}(Y_i) \\propto x_i^2,\n\\]\nthen we may fit a weighted model with weights\n\\[\nw_i = \\frac{1}{x_i^2}.\n\\]\nThis gives lower weight to high-variance observations and can produce more stable coefficient estimates and more appropriate standard errors.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#r-demonstration-with-a-log-transformation",
+    "href": "07.html#r-demonstration-with-a-log-transformation",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.27 R Demonstration With a Log Transformation",
+    "text": "8.27 R Demonstration With a Log Transformation",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#generate-heteroscedastic-data",
+    "href": "07.html#generate-heteroscedastic-data",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.28 Generate heteroscedastic data",
+    "text": "8.28 Generate heteroscedastic data\n\nset.seed(123)\nx &lt;- seq(1, 20, by = 1)\ny &lt;- exp(1 + 0.12 * x + rnorm(length(x), sd = 0.25))\n\ndat &lt;- data.frame(x = x, y = y)\n\nfit_raw &lt;- lm(y ~ x, data = dat)\nfit_log &lt;- lm(log(y) ~ x, data = dat)",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#compare-the-fitted-models",
+    "href": "07.html#compare-the-fitted-models",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.29 Compare the fitted models",
+    "text": "8.29 Compare the fitted models\n\nsummary(fit_raw)\n\n\nCall:\nlm(formula = y ~ x, data = dat)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-8.0995 -2.6491  0.1043  2.0486  9.1089 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)  -1.2531     1.9582  -0.640     0.53    \nx             1.3205     0.1635   8.078 2.13e-07 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 4.215 on 18 degrees of freedom\nMultiple R-squared:  0.7838,    Adjusted R-squared:  0.7718 \nF-statistic: 65.25 on 1 and 18 DF,  p-value: 2.134e-07\n\nsummary(fit_log)\n\n\nCall:\nlm(formula = log(y) ~ x, data = dat)\n\nResiduals:\n     Min       1Q   Median       3Q      Max \n-0.49698 -0.15070 -0.00942  0.12985  0.43338 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept) 1.077523   0.115500   9.329 2.57e-08 ***\nx           0.115989   0.009642  12.030 4.85e-10 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 0.2486 on 18 degrees of freedom\nMultiple R-squared:  0.8894,    Adjusted R-squared:  0.8832 \nF-statistic: 144.7 on 1 and 18 DF,  p-value: 4.848e-10",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#diagnostic-plots-for-the-untransformed-model",
+    "href": "07.html#diagnostic-plots-for-the-untransformed-model",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.30 Diagnostic plots for the untransformed model",
+    "text": "8.30 Diagnostic plots for the untransformed model\n\npar(mfrow = c(2, 2))\nplot(fit_raw)\n\n\n\n\n\n\n\npar(mfrow = c(1, 1))",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#diagnostic-plots-for-the-log-transformed-model",
+    "href": "07.html#diagnostic-plots-for-the-log-transformed-model",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.31 Diagnostic plots for the log-transformed model",
+    "text": "8.31 Diagnostic plots for the log-transformed model\n\npar(mfrow = c(2, 2))\nplot(fit_log)\n\n\n\n\n\n\n\npar(mfrow = c(1, 1))",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#plot-data-on-original-and-transformed-scales",
+    "href": "07.html#plot-data-on-original-and-transformed-scales",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.32 Plot data on original and transformed scales",
+    "text": "8.32 Plot data on original and transformed scales\n\nplot(dat$x, dat$y, pch = 19, xlab = \"x\", ylab = \"y\")\nabline(fit_raw, lwd = 2)\n\n\n\n\n\n\n\nplot(dat$x, log(dat$y), pch = 19, xlab = \"x\", ylab = \"log(y)\")\nabline(fit_log, lwd = 2)",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#r-demonstration-with-weighted-least-squares",
+    "href": "07.html#r-demonstration-with-weighted-least-squares",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.33 R Demonstration With Weighted Least Squares",
+    "text": "8.33 R Demonstration With Weighted Least Squares",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#generate-data-with-variance-increasing-in-x",
+    "href": "07.html#generate-data-with-variance-increasing-in-x",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.34 Generate data with variance increasing in x",
+    "text": "8.34 Generate data with variance increasing in x\n\nset.seed(456)\nx2 &lt;- seq(1, 15, by = 1)\ny2 &lt;- 5 + 2 * x2 + rnorm(length(x2), sd = 0.6 * x2)\n\ndat2 &lt;- data.frame(x = x2, y = y2)\n\nfit_ols &lt;- lm(y ~ x, data = dat2)\nfit_wls &lt;- lm(y ~ x, data = dat2, weights = 1 / x^2)",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#compare-summaries",
+    "href": "07.html#compare-summaries",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.35 Compare summaries",
+    "text": "8.35 Compare summaries\n\nsummary(fit_ols)\n\n\nCall:\nlm(formula = y ~ x, data = dat2)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-16.190  -2.291   1.063   2.853  10.942 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)   4.1385     3.6015   1.149    0.271    \nx             2.2723     0.3961   5.736 6.86e-05 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 6.628 on 13 degrees of freedom\nMultiple R-squared:  0.7168,    Adjusted R-squared:  0.695 \nF-statistic: 32.91 on 1 and 13 DF,  p-value: 6.862e-05\n\nsummary(fit_wls)\n\n\nCall:\nlm(formula = y ~ x, data = dat2, weights = 1/x^2)\n\nWeighted Residuals:\n    Min      1Q  Median      3Q     Max \n-1.0753 -0.4167  0.1633  0.4726  0.7858 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)   4.0940     0.6638   6.167 3.39e-05 ***\nx             2.2713     0.2155  10.541 9.73e-08 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 0.6107 on 13 degrees of freedom\nMultiple R-squared:  0.8953,    Adjusted R-squared:  0.8872 \nF-statistic: 111.1 on 1 and 13 DF,  p-value: 9.732e-08",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#compare-diagnostic-plots",
+    "href": "07.html#compare-diagnostic-plots",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.36 Compare diagnostic plots",
+    "text": "8.36 Compare diagnostic plots\n\npar(mfrow = c(2, 2))\nplot(fit_ols)\n\n\n\n\n\n\n\npar(mfrow = c(1, 1))\n\n\npar(mfrow = c(2, 2))\nplot(fit_wls)\n\n\n\n\n\n\n\npar(mfrow = c(1, 1))",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#plot-fitted-lines",
+    "href": "07.html#plot-fitted-lines",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.37 Plot fitted lines",
+    "text": "8.37 Plot fitted lines\n\nplot(dat2$x, dat2$y, pch = 19, xlab = \"x\", ylab = \"y\")\nabline(fit_ols, lwd = 2)\nabline(fit_wls, lwd = 2, lty = 2)\nlegend(\"topleft\",\n       legend = c(\"OLS\", \"WLS\"),\n       lty = c(1, 2),\n       lwd = 2,\n       bty = \"n\")",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#example-with-a-quadratic-remedy-for-curvature",
+    "href": "07.html#example-with-a-quadratic-remedy-for-curvature",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.38 Example With a Quadratic Remedy for Curvature",
+    "text": "8.38 Example With a Quadratic Remedy for Curvature\n\nset.seed(789)\nx3 &lt;- seq(-3, 3, length.out = 50)\ny3 &lt;- 3 + 2 * x3 + 1.8 * x3^2 + rnorm(length(x3), sd = 1)\n\ndat3 &lt;- data.frame(x = x3, y = y3)\n\nfit_lin &lt;- lm(y ~ x, data = dat3)\nfit_quad &lt;- lm(y ~ x + I(x^2), data = dat3)\n\nsummary(fit_lin)\n\n\nCall:\nlm(formula = y ~ x, data = dat3)\n\nResiduals:\n   Min     1Q Median     3Q    Max \n-6.891 -4.391 -1.388  3.994 11.626 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)   8.4756     0.7498   11.30 3.94e-15 ***\nx             2.1258     0.4243    5.01 7.79e-06 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 5.302 on 48 degrees of freedom\nMultiple R-squared:  0.3434,    Adjusted R-squared:  0.3297 \nF-statistic:  25.1 on 1 and 48 DF,  p-value: 7.79e-06\n\nsummary(fit_quad)\n\n\nCall:\nlm(formula = y ~ x + I(x^2), data = dat3)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-3.4044 -0.4148 -0.0022  0.5909  1.6173 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)  2.74823    0.19245   14.28   &lt;2e-16 ***\nx            2.12581    0.07258   29.29   &lt;2e-16 ***\nI(x^2)       1.83425    0.04595   39.92   &lt;2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 0.9069 on 47 degrees of freedom\nMultiple R-squared:  0.9812,    Adjusted R-squared:  0.9804 \nF-statistic:  1226 on 2 and 47 DF,  p-value: &lt; 2.2e-16\n\nanova(fit_lin, fit_quad)\n\nAnalysis of Variance Table\n\nModel 1: y ~ x\nModel 2: y ~ x + I(x^2)\n  Res.Df     RSS Df Sum of Sq      F    Pr(&gt;F)    \n1     48 1349.18                                  \n2     47   38.66  1    1310.5 1593.4 &lt; 2.2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#compare-diagnostic-plots-for-linear-and-quadratic-fits",
+    "href": "07.html#compare-diagnostic-plots-for-linear-and-quadratic-fits",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.39 Compare diagnostic plots for linear and quadratic fits",
+    "text": "8.39 Compare diagnostic plots for linear and quadratic fits\n\npar(mfrow = c(2, 2))\nplot(fit_lin)\n\n\n\n\n\n\n\npar(mfrow = c(1, 1))\n\n\npar(mfrow = c(2, 2))\nplot(fit_quad)\n\n\n\n\n\n\n\npar(mfrow = c(1, 1))",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#interpreting-software-output",
+    "href": "07.html#interpreting-software-output",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.40 Interpreting Software Output",
+    "text": "8.40 Interpreting Software Output\nUseful commands in R include:\n\nlm(..., weights = ...) for weighted least squares;\nplot(fit) for standard diagnostic plots;\nanova(fit1, fit2) for comparing nested mean models;\npredict() for fitted values on the chosen modelling scale.\n\nStudents should always keep track of the scale on which the model is fitted. This is especially important when the response is transformed.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#a-practical-remedy-workflow",
+    "href": "07.html#a-practical-remedy-workflow",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.41 A Practical Remedy Workflow",
+    "text": "8.41 A Practical Remedy Workflow\nA useful workflow after diagnostics is:\n\nidentify the main problem from residual analysis;\ndecide whether the issue concerns the mean structure, the variance structure, or both;\ntry a scientifically reasonable remedy;\nrefit the model;\ncompare diagnostics before and after the change;\ninterpret the new model on the correct scale.\n\nThis encourages disciplined model improvement rather than ad hoc trial and error.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#in-class-discussion-questions",
+    "href": "07.html#in-class-discussion-questions",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.42 In-Class Discussion Questions",
+    "text": "8.42 In-Class Discussion Questions\n\nWhen is a response transformation preferable to adding polynomial terms?\nHow does the interpretation of coefficients change under a log transformation?\nWhy does weighted least squares downweight high-variance observations?\nWhy should model remedies be guided by both diagnostics and subject-matter knowledge?",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#practice-problems",
+    "href": "07.html#practice-problems",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.43 Practice Problems",
+    "text": "8.43 Practice Problems",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#conceptual",
+    "href": "07.html#conceptual",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.44 Conceptual",
+    "text": "8.44 Conceptual\n\nExplain the difference between transforming the response and transforming a predictor.\nExplain why a log transformation may help when the variance grows with the mean.\nExplain why weighted least squares can be viewed as ordinary least squares on a transformed system.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#computational",
+    "href": "07.html#computational",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.45 Computational",
+    "text": "8.45 Computational\nSuppose a regression model has\n\\[\n\\mathrm{Var}(\\varepsilon_i) = \\sigma^2 x_i^2.\n\\]\n\nWhat weights would be natural for weighted least squares?\nWhich observations receive the largest weights?\nWhy do these weights make sense?\n\nNow suppose the fitted model is\n\\[\n\\log(Y_i) = 1.5 + 0.2x_i.\n\\]\n\nWhat is the fitted log response when \\(x_i = 3\\)?\nWhat is the fitted value on the original response scale if you exponentiate the fitted mean?\nWhy should interpretation on the original scale be made carefully?",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#model-improvement-problem",
+    "href": "07.html#model-improvement-problem",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.46 Model-Improvement Problem",
+    "text": "8.46 Model-Improvement Problem\nA residual-versus-fitted plot shows both a curved pattern and increasing spread.\n\nWhat kinds of model inadequacy does this suggest?\nName two possible remedies.\nHow would you decide which remedy is more appropriate?",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#suggested-homework",
+    "href": "07.html#suggested-homework",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.47 Suggested Homework",
+    "text": "8.47 Suggested Homework\nComplete the following tasks:\n\nfit a regression model that shows heteroscedasticity or curvature;\napply one response transformation and assess whether the diagnostics improve;\nfit a weighted least squares model with a justified set of weights;\ncompare OLS and WLS fits both numerically and graphically;\nwrite a short discussion explaining which remedy you prefer and why.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#summary",
+    "href": "07.html#summary",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.48 Summary",
+    "text": "8.48 Summary\nIn this week, we studied practical remedies for model inadequacy in linear regression.\nWe focused on:\n\ntransforming the response or predictors;\nusing polynomial terms to address curvature;\nstabilizing variance through transformation;\nusing weighted least squares when error variances differ across observations;\ncomparing alternative remedies using diagnostics and interpretation.\n\nThese ideas help students move from model criticism to model improvement.\nNext week, a natural continuation is to study multicollinearity, variable selection, and model-building strategies, or to move into generalized least squares and correlated errors, depending on the course emphasis.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "07.html#appendix-compact-formula-summary",
+    "href": "07.html#appendix-compact-formula-summary",
+    "title": "8  Week 7: Transformations, Weighted Least Squares, and Remedial Measures",
+    "section": "8.49 Appendix: Compact Formula Summary",
+    "text": "8.49 Appendix: Compact Formula Summary\nResponse transformation model:\n\\[\ng(Y_i) = x_i^\\top \\boldsymbol{\\beta} + \\varepsilon_i.\n\\]\nWeighted least squares criterion:\n\\[\nQ(\\boldsymbol{\\beta})\n=\n(\\mathbf{Y} - \\mathbf{X}\\boldsymbol{\\beta})^\\top\n\\mathbf{W}\n(\\mathbf{Y} - \\mathbf{X}\\boldsymbol{\\beta}).\n\\]\nWeighted least squares estimator:\n\\[\n\\hat{\\boldsymbol{\\beta}}_{WLS}\n=\n(\\mathbf{X}^\\top \\mathbf{W}\\mathbf{X})^{-1}\\mathbf{X}^\\top \\mathbf{W}\\mathbf{Y}.\n\\]\nTypical diagnostic questions after a remedy:\n\nIs the mean structure more adequate?\nIs the variance more stable?\nIs interpretation still meaningful?\nDoes the new model answer the scientific question well?\n\n\n\n\n\nMontgomery, Douglas C, Elizabeth A Peck, and G Geoffrey Vining. 2021. Introduction to Linear Regression Analysis. John Wiley & Sons.\n\n\nSeber, George AF, and Alan J Lee. 2003. Linear Regression Analysis. John Wiley & Sons.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span>"
+    ]
+  },
+  {
+    "objectID": "08.html",
+    "href": "08.html",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "",
+    "text": "9.1 Learning Objectives\nIn this week, we study how regression models behave when predictors are strongly related to one another, how this affects interpretation and inference, and how to think carefully about selecting variables for a useful final model. The emphasis is on understanding multicollinearity, model-building principles, and the strengths and limitations of common selection procedures.\nBy the end of this week, students should be able to:",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#learning-objectives",
+    "href": "08.html#learning-objectives",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "",
+    "text": "explain what multicollinearity is and why it matters in multiple regression;\ndistinguish between good prediction and stable coefficient interpretation;\ndiagnose multicollinearity using correlations, variance inflation factors, and related tools;\nexplain the ideas behind forward selection, backward elimination, and stepwise procedures;\ncompare model selection based on adjusted \\(R^2\\), AIC, BIC, and cross-validation style thinking;\ndiscuss principled strategies for building and comparing regression models.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#reading",
+    "href": "08.html#reading",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.2 Reading",
+    "text": "9.2 Reading\nRecommended reading for this week:\n\nSeber and Lee:\n\nsections on collinearity\nmodel-building considerations\nvariable selection and related issues\n\nMontgomery, Peck, and Vining:\n\nsections on multicollinearity\nvariable selection methods\nmodel-building strategies and cautions",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#why-model-building-is-difficult",
+    "href": "08.html#why-model-building-is-difficult",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.3 Why Model Building Is Difficult",
+    "text": "9.3 Why Model Building Is Difficult\nIn multiple regression, it is often easy to write down many candidate predictors, transformations, and interactions.\nThe harder questions are:\n\nWhich variables should be included?\nWhich effects are scientifically meaningful?\nAre some predictors redundant?\nCan we trust the estimated coefficients?\nAre we building a model for explanation, inference, or prediction?\n\nA good model is rarely defined only by having the largest possible \\(R^2\\). We also care about interpretability, stability, scientific plausibility, and predictive usefulness.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#review-of-the-multiple-regression-model",
+    "href": "08.html#review-of-the-multiple-regression-model",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.4 Review of the Multiple Regression Model",
+    "text": "9.4 Review of the Multiple Regression Model\nRecall the multiple linear regression model\n\\[\nY_i = \\beta_0 + \\beta_1 x_{i1} + \\cdots + \\beta_p x_{ip} + \\varepsilon_i,\n\\]\nor in matrix form,\n\\[\n\\mathbf{Y} = \\mathbf{X}\\boldsymbol{\\beta} + \\boldsymbol{\\varepsilon}.\n\\]\nWhen predictors are moderately distinct and the design matrix is well behaved, the least squares estimator\n\\[\n\\hat{\\boldsymbol{\\beta}}\n=\n(\\mathbf{X}^\\top \\mathbf{X})^{-1}\\mathbf{X}^\\top \\mathbf{Y}\n\\]\ncan be interpreted in the usual way.\nBut when predictors are strongly related to one another, estimation becomes more delicate.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#what-is-multicollinearity",
+    "href": "08.html#what-is-multicollinearity",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.5 What Is Multicollinearity",
+    "text": "9.5 What Is Multicollinearity\nMulticollinearity means that one predictor is highly linearly related to one or more of the other predictors.\nAt an extreme, one predictor may be an exact linear combination of others. Then the design matrix loses full rank, and the OLS estimator is not uniquely defined.\nMore commonly, the relationship is not exact, but is still strong enough to cause instability. This is often called near multicollinearity.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#why-multicollinearity-matters",
+    "href": "08.html#why-multicollinearity-matters",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.6 Why Multicollinearity Matters",
+    "text": "9.6 Why Multicollinearity Matters\nMulticollinearity does not necessarily harm the fitted values very much. In fact, a model can still predict reasonably well.\nThe main problems are:\n\ncoefficient estimates can become unstable;\nstandard errors can become large;\nsigns and magnitudes of coefficients can become counterintuitive;\nindividual \\(t\\) tests can become weak even when the overall model is useful;\nsmall changes in the data can lead to large changes in estimated coefficients.\n\nThus multicollinearity is especially important when interpretation and inference on individual coefficients matter.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#a-simple-intuition",
+    "href": "08.html#a-simple-intuition",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.7 A Simple Intuition",
+    "text": "9.7 A Simple Intuition\nSuppose two predictors measure almost the same underlying quantity.\nThen the model has difficulty deciding how much of the fitted effect should be attributed to one predictor and how much to the other.\nThe sum of their contributions may be estimated fairly well, but the individual coefficients may not be.\nThis is why high collinearity often affects coefficient interpretation more than overall model fit.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#exact-collinearity",
+    "href": "08.html#exact-collinearity",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.8 Exact Collinearity",
+    "text": "9.8 Exact Collinearity\nIf one column of \\(\\mathbf{X}\\) is an exact linear combination of the others, then\n\\[\n\\mathrm{rank}(\\mathbf{X}) &lt; p,\n\\]\nand\n\\[\n\\mathbf{X}^\\top \\mathbf{X}\n\\]\nis singular.\nIn that case, ordinary least squares does not produce a unique coefficient vector without imposing additional constraints.\nThis can happen, for example, if we include all indicator variables for a factor together with an intercept.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#near-collinearity",
+    "href": "08.html#near-collinearity",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.9 Near Collinearity",
+    "text": "9.9 Near Collinearity\nIn many applications, the problem is not exact singularity but near singularity.\nThen\n\\[\n\\mathbf{X}^\\top \\mathbf{X}\n\\]\nis invertible, but poorly conditioned.\nThis makes\n\\[\n(\\mathbf{X}^\\top \\mathbf{X})^{-1}\n\\]\nnumerically and statistically unstable, which inflates the variance of coefficient estimates.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#multicollinearity-and-variance",
+    "href": "08.html#multicollinearity-and-variance",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.10 Multicollinearity and Variance",
+    "text": "9.10 Multicollinearity and Variance\nRecall that under the standard linear model,\n\\[\n\\mathrm{Var}(\\hat{\\boldsymbol{\\beta}})\n=\n\\sigma^2(\\mathbf{X}^\\top \\mathbf{X})^{-1}.\n\\]\nSo when the columns of \\(\\mathbf{X}\\) are highly correlated, the inverse matrix tends to have large diagonal entries.\nThis leads to large coefficient variances and hence large standard errors.\nThat is the algebraic reason multicollinearity makes inference unstable.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#pairwise-correlations",
+    "href": "08.html#pairwise-correlations",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.11 Pairwise Correlations",
+    "text": "9.11 Pairwise Correlations\nA simple first check is to inspect the pairwise correlations among predictors.\nLarge pairwise correlations may suggest multicollinearity.\nHowever, this is not a complete diagnostic, because a predictor can be strongly related to a combination of several others even if no single pairwise correlation is extreme.\nSo pairwise correlations are useful, but not sufficient.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#variance-inflation-factor",
+    "href": "08.html#variance-inflation-factor",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.12 Variance Inflation Factor",
+    "text": "9.12 Variance Inflation Factor\nOne of the most common diagnostics is the variance inflation factor, or VIF.\nFor predictor \\(x_j\\), the VIF is\n\\[\n\\mathrm{VIF}_j = \\frac{1}{1-R_j^2},\n\\]\nwhere \\(R_j^2\\) is the coefficient of determination obtained by regressing \\(x_j\\) on the remaining predictors.\nInterpretation:\n\nif \\(x_j\\) is almost unrelated to the others, then \\(R_j^2\\) is small and the VIF is close to 1;\nif \\(x_j\\) is highly explained by the others, then \\(R_j^2\\) is close to 1 and the VIF is large.\n\nSo the VIF measures how much the variance of \\(\\hat{\\beta}_j\\) is inflated by collinearity.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#interpreting-vif-values",
+    "href": "08.html#interpreting-vif-values",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.13 Interpreting VIF Values",
+    "text": "9.13 Interpreting VIF Values\nThere is no universal cutoff, but common informal rules are:\n\nVIF near 1: little concern;\nVIF above 5: possible concern;\nVIF above 10: serious concern in many applications.\n\nThese are only rough guidelines. The seriousness depends on the context, the sample size, and the goal of the analysis.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#tolerance",
+    "href": "08.html#tolerance",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.14 Tolerance",
+    "text": "9.14 Tolerance\nA related quantity is tolerance, defined as\n\\[\n\\mathrm{Tolerance}_j = 1 - R_j^2 = \\frac{1}{\\mathrm{VIF}_j}.\n\\]\nSmall tolerance indicates that the predictor is largely explained by the others.\nSome software reports tolerance instead of VIF.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#consequences-for-hypothesis-tests",
+    "href": "08.html#consequences-for-hypothesis-tests",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.15 Consequences for Hypothesis Tests",
+    "text": "9.15 Consequences for Hypothesis Tests\nA common symptom of multicollinearity is the following:\n\nthe overall \\(F\\) test is significant;\nindividual \\(t\\) tests are weak or nonsignificant.\n\nThis can happen because the predictors collectively explain the response well, but it is difficult to estimate the separate contribution of each one.\nStudents often find this confusing at first, but it is a standard effect of collinearity.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#condition-number-and-eigenvalue-thinking",
+    "href": "08.html#condition-number-and-eigenvalue-thinking",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.16 Condition Number and Eigenvalue Thinking",
+    "text": "9.16 Condition Number and Eigenvalue Thinking\nAnother way to view multicollinearity is through the eigenstructure of the predictor matrix or the correlation matrix of predictors.\nIf the design is nearly singular, then some directions in predictor space are weakly supported by the data.\nThis is often summarized through condition numbers or condition indices.\nA large condition number indicates that the model matrix is close to singular in some direction.\nFor an introductory course, VIFs and predictor correlations are often enough, but it is useful to mention the geometric idea.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#remedies-for-multicollinearity",
+    "href": "08.html#remedies-for-multicollinearity",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.17 Remedies for Multicollinearity",
+    "text": "9.17 Remedies for Multicollinearity\nPossible responses to multicollinearity include:\n\nremoving one of several redundant predictors;\ncombining related predictors into a single summary variable;\ncentring variables, especially when polynomial or interaction terms are present;\ncollecting more data, if possible;\nfocusing on prediction rather than individual coefficient interpretation;\nusing regularization methods such as ridge regression, if the course later extends in that direction.\n\nThe best remedy depends on the scientific objective.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#centering-and-polynomial-terms",
+    "href": "08.html#centering-and-polynomial-terms",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.18 Centering and Polynomial Terms",
+    "text": "9.18 Centering and Polynomial Terms\nWhen polynomial terms such as \\(x\\) and \\(x^2\\) are both included, the terms can be highly correlated.\nA common remedy is to centre the predictor first:\n\\[\nx_i^* = x_i - \\bar{x}.\n\\]\nThen the model may be written using \\(x_i^*\\) and \\((x_i^*)^2\\).\nThis often improves numerical stability and makes the intercept more interpretable, though it does not solve all collinearity issues.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#variable-selection-as-a-modelling-problem",
+    "href": "08.html#variable-selection-as-a-modelling-problem",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.19 Variable Selection as a Modelling Problem",
+    "text": "9.19 Variable Selection as a Modelling Problem\nBeyond collinearity, regression analysts must often decide which predictors belong in the model.\nThis is called variable selection or model selection.\nThe central challenge is that adding variables can improve apparent fit in the sample, but may produce a model that is unstable, hard to interpret, or overly tailored to the data.\nThus variable selection is not just a computational problem. It is a statistical and scientific problem.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#goals-of-variable-selection",
+    "href": "08.html#goals-of-variable-selection",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.20 Goals of Variable Selection",
+    "text": "9.20 Goals of Variable Selection\nVariable selection may be done for different reasons:\n\nto improve prediction;\nto simplify interpretation;\nto reduce cost of measurement;\nto remove irrelevant or redundant predictors;\nto identify a scientifically meaningful parsimonious model.\n\nBecause these goals differ, there is no single best selection rule for every application.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#forward-selection",
+    "href": "08.html#forward-selection",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.21 Forward Selection",
+    "text": "9.21 Forward Selection\nIn forward selection, we begin with a small model, often the intercept-only model, and add predictors one at a time.\nAt each step, we add the variable that gives the best improvement according to some criterion, such as:\n\npartial \\(F\\) test;\nsmallest \\(p\\)-value;\nlargest drop in AIC;\nlargest increase in adjusted \\(R^2\\).\n\nThis continues until no candidate addition meets the chosen rule.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#backward-elimination",
+    "href": "08.html#backward-elimination",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.22 Backward Elimination",
+    "text": "9.22 Backward Elimination\nIn backward elimination, we begin with a larger model and remove predictors one at a time.\nAt each step, we remove the least useful variable according to a chosen rule.\nThis continues until all remaining variables satisfy the stopping criterion.\nBackward elimination requires that the initial model be estimable, and it may be sensitive to collinearity and hierarchical structure.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#stepwise-selection",
+    "href": "08.html#stepwise-selection",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.23 Stepwise Selection",
+    "text": "9.23 Stepwise Selection\nStepwise selection combines forward and backward ideas.\nA variable may enter at one stage and later be removed if its contribution becomes weak after other variables enter the model.\nThis procedure is popular in software because it is automated, but it should be used cautiously.\nAutomatic procedures can be unstable and may encourage overly mechanical modelling.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#problems-with-automatic-selection",
+    "href": "08.html#problems-with-automatic-selection",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.24 Problems With Automatic Selection",
+    "text": "9.24 Problems With Automatic Selection\nAutomatic variable selection can create several difficulties:\n\nit ignores model uncertainty;\nrepeated searching inflates the chance of false discoveries;\nselected coefficients and \\(p\\)-values may look more certain than they really are;\ndifferent but similar datasets may lead to different selected models;\nscientific structure may be lost if the procedure is used blindly.\n\nSo automated methods should be treated as exploratory tools, not as final arbiters of truth.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#hierarchical-principle",
+    "href": "08.html#hierarchical-principle",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.25 Hierarchical Principle",
+    "text": "9.25 Hierarchical Principle\nWhen interactions or polynomial terms are included, the hierarchical principle is often recommended.\nFor example, if the model contains\n\\[\nx_1x_2,\n\\]\nthen it is usually sensible to keep the corresponding main effects \\(x_1\\) and \\(x_2\\) in the model as well.\nSimilarly, if a quadratic term \\(x^2\\) is included, then it is usually sensible to keep the linear term \\(x\\).\nThis helps preserve interpretability and avoids awkward models.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#criteria-for-comparing-models",
+    "href": "08.html#criteria-for-comparing-models",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.26 Criteria for Comparing Models",
+    "text": "9.26 Criteria for Comparing Models\nSeveral criteria are commonly used in model comparison.\n\n9.26.1 Adjusted R Squared\nAdjusted \\(R^2\\) is\n\\[\nR^2_{\\mathrm{adj}}\n=\n1 - \\frac{\\mathrm{SSE}/(n-p)}{\\mathrm{SST}/(n-1)}.\n\\]\nUnlike ordinary \\(R^2\\), adjusted \\(R^2\\) can decrease when unnecessary predictors are added.\nIt rewards fit but penalizes unnecessary complexity in a simple way.\n\n\n9.26.2 AIC\nThe Akaike information criterion is typically written as\n\\[\n\\mathrm{AIC} = -2\\log L + 2k,\n\\]\nwhere \\(L\\) is the fitted likelihood and \\(k\\) is the number of estimated parameters.\nSmaller AIC indicates a better tradeoff between fit and complexity.\nAIC is often more prediction-oriented than strict parsimony-oriented.\n\n\n9.26.3 BIC\nThe Bayesian information criterion is\n\\[\n\\mathrm{BIC} = -2\\log L + k\\log n.\n\\]\nBecause the penalty term is stronger than that of AIC when \\(n\\) is moderate or large, BIC tends to favor smaller models.\n\n\n9.26.4 Mallows’ Cp\nAnother classical criterion is Mallows’ \\(C_p\\), which compares model bias and variance relative to a fuller model.\nIt is less frequently emphasized in introductory software workflows today, but it remains conceptually important in regression theory.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#prediction-oriented-thinking",
+    "href": "08.html#prediction-oriented-thinking",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.27 Prediction-Oriented Thinking",
+    "text": "9.27 Prediction-Oriented Thinking\nIf the main goal is prediction rather than interpretation, then the evaluation should focus more on performance on new data.\nThis leads naturally to validation ideas such as:\n\ntraining and test set comparison;\ncross-validation;\nprediction error rather than coefficient significance.\n\nEven if a course stays within classical regression, it is valuable for students to know that in-sample fit is not the same as out-of-sample performance.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#overfitting",
+    "href": "08.html#overfitting",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.28 Overfitting",
+    "text": "9.28 Overfitting\nA model is overfit when it captures not only real structure but also noise specific to the sample.\nSymptoms include:\n\nexcellent fit on the observed data;\nunstable coefficients;\npoor performance on new data;\nexcessive complexity relative to the available sample size.\n\nVariable selection is closely tied to the problem of overfitting.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#parsimony",
+    "href": "08.html#parsimony",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.29 Parsimony",
+    "text": "9.29 Parsimony\nA guiding principle in model building is parsimony.\nA parsimonious model is one that is no more complicated than necessary for the purpose at hand.\nThis does not mean the smallest possible model. It means a model that balances:\n\nadequacy of fit;\ninterpretability;\nstability;\nscientific usefulness.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#subject-matter-knowledge",
+    "href": "08.html#subject-matter-knowledge",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.30 Subject-Matter Knowledge",
+    "text": "9.30 Subject-Matter Knowledge\nNo model-building strategy should rely only on algorithmic output.\nSubject-matter knowledge can help determine:\n\nwhich variables are essential controls;\nwhich interactions are scientifically plausible;\nwhich terms should remain in the model even if their \\(p\\)-values are not small;\nwhether a selected model is substantively reasonable.\n\nThis is especially important when the goal is explanation or causal interpretation.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#a-practical-model-building-strategy",
+    "href": "08.html#a-practical-model-building-strategy",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.31 A Practical Model-Building Strategy",
+    "text": "9.31 A Practical Model-Building Strategy\nA reasonable workflow is:\n\nstart from the scientific question;\ndefine a set of plausible predictors and model terms;\nfit an initial model;\nassess collinearity and diagnostics;\nsimplify or revise where appropriate;\ncompare a small number of meaningful candidate models;\njustify the final choice in words, not just by one number.\n\nThis approach is often more reliable than indiscriminate stepwise searching.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#worked-example-with-strongly-correlated-predictors",
+    "href": "08.html#worked-example-with-strongly-correlated-predictors",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.32 Worked Example With Strongly Correlated Predictors",
+    "text": "9.32 Worked Example With Strongly Correlated Predictors\nSuppose we fit a model with two predictors, \\(x_1\\) and \\(x_2\\), that are highly correlated.\nWe may find that:\n\nboth variables together give a strong overall fit;\nthe overall \\(F\\) test is significant;\none or both individual coefficient tests are weak;\nthe signs of coefficients may look unstable or surprising.\n\nThis is a classic signature of multicollinearity.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#worked-example-with-competing-models",
+    "href": "08.html#worked-example-with-competing-models",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.33 Worked Example With Competing Models",
+    "text": "9.33 Worked Example With Competing Models\nSuppose we have candidate models:\n\na small model with two predictors;\na medium model with four predictors;\na larger model with six predictors and interactions.\n\nThe best choice may differ depending on whether we care most about:\n\ninterpretability;\ninference on key coefficients;\npredictive performance;\nscientific completeness.\n\nThis is why model-building decisions should be tied to the purpose of the analysis.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#r-demonstration-with-correlated-predictors",
+    "href": "08.html#r-demonstration-with-correlated-predictors",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.34 R Demonstration With Correlated Predictors",
+    "text": "9.34 R Demonstration With Correlated Predictors",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#generate-data-with-multicollinearity",
+    "href": "08.html#generate-data-with-multicollinearity",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.35 Generate data with multicollinearity",
+    "text": "9.35 Generate data with multicollinearity\n\nset.seed(123)\nn &lt;- 80\nx1 &lt;- rnorm(n)\nx2 &lt;- 0.92 * x1 + rnorm(n, sd = 0.25)\nx3 &lt;- rnorm(n)\ny &lt;- 3 + 2 * x1 - 1.5 * x2 + 1.2 * x3 + rnorm(n, sd = 1)\n\ndat &lt;- data.frame(y = y, x1 = x1, x2 = x2, x3 = x3)\n\nfit_full &lt;- lm(y ~ x1 + x2 + x3, data = dat)\nsummary(fit_full)\n\n\nCall:\nlm(formula = y ~ x1 + x2 + x3, data = dat)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-2.1143 -0.6551 -0.1352  0.6916  2.2288 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)   3.1453     0.1122  28.042  &lt; 2e-16 ***\nx1            1.4916     0.4759   3.134  0.00245 ** \nx2           -0.9448     0.4834  -1.954  0.05433 .  \nx3            0.9778     0.1190   8.213  4.3e-12 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 1.001 on 76 degrees of freedom\nMultiple R-squared:  0.5447,    Adjusted R-squared:  0.5267 \nF-statistic: 30.31 on 3 and 76 DF,  p-value: 5.434e-13",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#inspect-predictor-correlations",
+    "href": "08.html#inspect-predictor-correlations",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.36 Inspect predictor correlations",
+    "text": "9.36 Inspect predictor correlations\n\nround(cor(dat[, c(\"x1\", \"x2\", \"x3\")]), 3)\n\n       x1    x2     x3\nx1  1.000 0.966 -0.012\nx2  0.966 1.000  0.021\nx3 -0.012 0.021  1.000",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#compute-vif-values",
+    "href": "08.html#compute-vif-values",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.37 Compute VIF values",
+    "text": "9.37 Compute VIF values\n\nvif_manual &lt;- function(model) {\n  X &lt;- model.matrix(model)[, -1, drop = FALSE]\n  out &lt;- numeric(ncol(X))\n  names(out) &lt;- colnames(X)\n  for (j in seq_len(ncol(X))) {\n    fit_j &lt;- lm(X[, j] ~ X[, -j, drop = FALSE])\n    r2_j &lt;- summary(fit_j)$r.squared\n    out[j] &lt;- 1 / (1 - r2_j)\n  }\n  out\n}\n\nvif_manual(fit_full)\n\n       x1        x2        x3 \n15.229322 15.233765  1.016988",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#compare-with-simpler-models",
+    "href": "08.html#compare-with-simpler-models",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.38 Compare with simpler models",
+    "text": "9.38 Compare with simpler models\n\nfit_small &lt;- lm(y ~ x1 + x3, data = dat)\nfit_alt &lt;- lm(y ~ x2 + x3, data = dat)\n\nsummary(fit_small)\n\n\nCall:\nlm(formula = y ~ x1 + x3, data = dat)\n\nResiduals:\n     Min       1Q   Median       3Q      Max \n-1.95252 -0.63902 -0.09662  0.57804  2.41530 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)   3.1579     0.1140  27.698  &lt; 2e-16 ***\nx1            0.5925     0.1242   4.772 8.51e-06 ***\nx3            0.9478     0.1202   7.885 1.69e-11 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 1.019 on 77 degrees of freedom\nMultiple R-squared:  0.5218,    Adjusted R-squared:  0.5094 \nF-statistic: 42.01 on 2 and 77 DF,  p-value: 4.623e-13\n\nsummary(fit_alt)\n\n\nCall:\nlm(formula = y ~ x2 + x3, data = dat)\n\nResiduals:\n     Min       1Q   Median       3Q      Max \n-2.05628 -0.65766 -0.08436  0.55012  2.57271 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)   3.1667     0.1182  26.792  &lt; 2e-16 ***\nx2            0.5197     0.1308   3.974 0.000158 ***\nx3            0.9302     0.1247   7.462  1.1e-10 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 1.057 on 77 degrees of freedom\nMultiple R-squared:  0.4858,    Adjusted R-squared:  0.4725 \nF-statistic: 36.38 on 2 and 77 DF,  p-value: 7.541e-12\n\nanova(fit_small, fit_full)\n\nAnalysis of Variance Table\n\nModel 1: y ~ x1 + x3\nModel 2: y ~ x1 + x2 + x3\n  Res.Df    RSS Df Sum of Sq      F  Pr(&gt;F)  \n1     77 80.019                              \n2     76 76.189  1    3.8293 3.8198 0.05433 .\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#r-demonstration-with-automatic-selection",
+    "href": "08.html#r-demonstration-with-automatic-selection",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.39 R Demonstration With Automatic Selection",
+    "text": "9.39 R Demonstration With Automatic Selection",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#use-aic-based-stepwise-selection",
+    "href": "08.html#use-aic-based-stepwise-selection",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.40 Use AIC-based stepwise selection",
+    "text": "9.40 Use AIC-based stepwise selection\n\nfit_null &lt;- lm(y ~ 1, data = dat)\nfit_scope &lt;- lm(y ~ x1 + x2 + x3, data = dat)\n\nstep_forward &lt;- step(fit_null,\n                     scope = list(lower = fit_null, upper = fit_scope),\n                     direction = \"forward\",\n                     trace = 0)\n\nstep_backward &lt;- step(fit_scope, direction = \"backward\", trace = 0)\n\nsummary(step_forward)\n\n\nCall:\nlm(formula = y ~ x3 + x1 + x2, data = dat)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-2.1143 -0.6551 -0.1352  0.6916  2.2288 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)   3.1453     0.1122  28.042  &lt; 2e-16 ***\nx3            0.9778     0.1190   8.213  4.3e-12 ***\nx1            1.4916     0.4759   3.134  0.00245 ** \nx2           -0.9448     0.4834  -1.954  0.05433 .  \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 1.001 on 76 degrees of freedom\nMultiple R-squared:  0.5447,    Adjusted R-squared:  0.5267 \nF-statistic: 30.31 on 3 and 76 DF,  p-value: 5.434e-13\n\nsummary(step_backward)\n\n\nCall:\nlm(formula = y ~ x1 + x2 + x3, data = dat)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-2.1143 -0.6551 -0.1352  0.6916  2.2288 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)   3.1453     0.1122  28.042  &lt; 2e-16 ***\nx1            1.4916     0.4759   3.134  0.00245 ** \nx2           -0.9448     0.4834  -1.954  0.05433 .  \nx3            0.9778     0.1190   8.213  4.3e-12 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 1.001 on 76 degrees of freedom\nMultiple R-squared:  0.5447,    Adjusted R-squared:  0.5267 \nF-statistic: 30.31 on 3 and 76 DF,  p-value: 5.434e-13",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#compare-aic-bic-and-adjusted-r-squared",
+    "href": "08.html#compare-aic-bic-and-adjusted-r-squared",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.41 Compare AIC, BIC, and adjusted R squared",
+    "text": "9.41 Compare AIC, BIC, and adjusted R squared\n\nmodel_summary &lt;- function(model) {\n  c(\n    AIC = AIC(model),\n    BIC = BIC(model),\n    adj_R2 = summary(model)$adj.r.squared\n  )\n}\n\nrbind(\n  small = model_summary(fit_small),\n  alt = model_summary(fit_alt),\n  full = model_summary(fit_full),\n  step_forward = model_summary(step_forward),\n  step_backward = model_summary(step_backward)\n)\n\n                   AIC      BIC    adj_R2\nsmall         235.0488 244.5769 0.5093799\nalt           240.8499 250.3780 0.4724811\nfull          233.1258 245.0359 0.5267118\nstep_forward  233.1258 245.0359 0.5267118\nstep_backward 233.1258 245.0359 0.5267118",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#example-with-polynomial-terms-and-centering",
+    "href": "08.html#example-with-polynomial-terms-and-centering",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.42 Example With Polynomial Terms and Centering",
+    "text": "9.42 Example With Polynomial Terms and Centering\n\nset.seed(456)\nx &lt;- seq(1, 20, length.out = 60)\ny2 &lt;- 5 + 1.2 * x - 0.05 * x^2 + rnorm(length(x), sd = 2)\n\ndat2 &lt;- data.frame(y = y2, x = x, xc = x - mean(x))\n\nfit_poly_raw &lt;- lm(y ~ x + I(x^2), data = dat2)\nfit_poly_center &lt;- lm(y ~ xc + I(xc^2), data = dat2)\n\nsummary(fit_poly_raw)\n\n\nCall:\nlm(formula = y ~ x + I(x^2), data = dat2)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-4.2389 -1.1964  0.1053  1.0663  4.3306 \n\nCoefficients:\n             Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)  5.618794   0.933843   6.017 1.35e-07 ***\nx            1.106743   0.203829   5.430 1.21e-06 ***\nI(x^2)      -0.044706   0.009444  -4.734 1.50e-05 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 2.034 on 57 degrees of freedom\nMultiple R-squared:  0.3813,    Adjusted R-squared:  0.3596 \nF-statistic: 17.56 on 2 and 57 DF,  p-value: 1.141e-06\n\nsummary(fit_poly_center)\n\n\nCall:\nlm(formula = y ~ xc + I(xc^2), data = dat2)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-4.2389 -1.1964  0.1053  1.0663  4.3306 \n\nCoefficients:\n             Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept) 12.310735   0.394001  31.245  &lt; 2e-16 ***\nxc           0.167912   0.047087   3.566 0.000742 ***\nI(xc^2)     -0.044706   0.009444  -4.734  1.5e-05 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 2.034 on 57 degrees of freedom\nMultiple R-squared:  0.3813,    Adjusted R-squared:  0.3596 \nF-statistic: 17.56 on 2 and 57 DF,  p-value: 1.141e-06",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#compare-collinearity-before-and-after-centering",
+    "href": "08.html#compare-collinearity-before-and-after-centering",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.43 Compare collinearity before and after centering",
+    "text": "9.43 Compare collinearity before and after centering\n\ncor(cbind(dat2$x, dat2$x^2))\n\n          [,1]      [,2]\n[1,] 1.0000000 0.9729506\n[2,] 0.9729506 1.0000000\n\ncor(cbind(dat2$xc, dat2$xc^2))\n\n              [,1]          [,2]\n[1,]  1.000000e+00 -1.214134e-16\n[2,] -1.214134e-16  1.000000e+00",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#interpreting-software-output",
+    "href": "08.html#interpreting-software-output",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.44 Interpreting Software Output",
+    "text": "9.44 Interpreting Software Output\nUseful commands in R include:\n\ncor() for predictor correlations;\nsummary(lm(...)) for coefficient estimates and overall fit;\nAIC() and BIC() for model comparison;\nstep() for automated exploratory selection;\nmodel.matrix() for checking the design matrix.\n\nStudents should remember that software can rank candidate models, but interpretation and final justification must still come from statistical reasoning.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#a-practical-collinearity-and-selection-workflow",
+    "href": "08.html#a-practical-collinearity-and-selection-workflow",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.45 A Practical Collinearity and Selection Workflow",
+    "text": "9.45 A Practical Collinearity and Selection Workflow\nA sensible workflow is:\n\ninspect the scientific role of each predictor;\nexamine predictor correlations and VIFs;\nidentify redundant or unstable terms;\ncompare a small set of plausible models;\navoid blind selection when interactions or scientific controls are important;\ninterpret the final model in light of both diagnostics and the original research question.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#in-class-discussion-questions",
+    "href": "08.html#in-class-discussion-questions",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.46 In-Class Discussion Questions",
+    "text": "9.46 In-Class Discussion Questions\n\nWhy can a model have a significant overall \\(F\\) test but weak individual \\(t\\) tests?\nWhy does high collinearity affect coefficient interpretation more than fitted values?\nWhat are the dangers of relying entirely on stepwise selection?\nIn what situations is a larger model worth keeping even if some terms are not individually significant?",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#practice-problems",
+    "href": "08.html#practice-problems",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.47 Practice Problems",
+    "text": "9.47 Practice Problems",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#conceptual",
+    "href": "08.html#conceptual",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.48 Conceptual",
+    "text": "9.48 Conceptual\n\nExplain multicollinearity in your own words.\nExplain why VIF is connected to regressing one predictor on the others.\nExplain the difference between a model selected for interpretation and a model selected for prediction.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#computational",
+    "href": "08.html#computational",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.49 Computational",
+    "text": "9.49 Computational\nSuppose a predictor \\(x_j\\) has\n\\[\nR_j^2 = 0.90\n\\]\nwhen regressed on the remaining predictors.\n\nCompute the VIF.\nCompute the tolerance.\nExplain what these values imply.\n\nNow suppose a model has\n\nAIC = 210 for Model A,\nAIC = 205 for Model B,\nBIC = 220 for Model A,\nBIC = 225 for Model B.\n\n\nWhich model is preferred by AIC?\nWhich model is preferred by BIC?\nWhat does this tell you about the fit-complexity tradeoff?",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#model-building-problem",
+    "href": "08.html#model-building-problem",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.50 Model-Building Problem",
+    "text": "9.50 Model-Building Problem\nYou are comparing two models:\n\nModel 1 contains age, income, and education;\nModel 2 contains age, income, education, and an age-by-income interaction.\n\n\nWhy should the interaction model usually retain the main effects?\nWhat statistical and scientific questions would guide whether the interaction should remain?\nWhy is it not enough to choose only by the smallest \\(p\\)-value?",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#suggested-homework",
+    "href": "08.html#suggested-homework",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.51 Suggested Homework",
+    "text": "9.51 Suggested Homework\nComplete the following tasks:\n\nfit a multiple regression model with at least four predictors;\ncompute predictor correlations and VIFs;\nidentify any signs of multicollinearity and explain their consequences;\ncompare several candidate models using adjusted \\(R^2\\), AIC, and BIC;\nwrite a short justification for your preferred final model, explicitly discussing both statistical and subject-matter considerations.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#summary",
+    "href": "08.html#summary",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.52 Summary",
+    "text": "9.52 Summary\nIn this week, we studied multicollinearity, variable selection, and model building in multiple regression.\nWe emphasized that:\n\ncollinearity can make coefficients unstable even when overall fit is good;\nVIFs and related tools help diagnose this problem;\nautomatic selection procedures are useful but limited;\nmodel comparison criteria such as adjusted \\(R^2\\), AIC, and BIC serve different goals;\ngood model building requires both statistical judgment and scientific context.\n\nNext week, a natural continuation is to study formal general linear hypotheses, estimability, and matrix-based inference in more depth, or to move toward regularization methods such as ridge regression and lasso if the course is oriented toward modern regression.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "08.html#appendix-compact-formula-summary",
+    "href": "08.html#appendix-compact-formula-summary",
+    "title": "9  Week 8: Multicollinearity, Variable Selection, and Model Building",
+    "section": "9.53 Appendix: Compact Formula Summary",
+    "text": "9.53 Appendix: Compact Formula Summary\nVariance inflation factor:\n\\[\n\\mathrm{VIF}_j = \\frac{1}{1-R_j^2}.\n\\]\nTolerance:\n\\[\n\\mathrm{Tolerance}_j = 1 - R_j^2 = \\frac{1}{\\mathrm{VIF}_j}.\n\\]\nAdjusted \\(R^2\\):\n\\[\nR^2_{\\mathrm{adj}}\n=\n1 - \\frac{\\mathrm{SSE}/(n-p)}{\\mathrm{SST}/(n-1)}.\n\\]\nAIC:\n\\[\n\\mathrm{AIC} = -2\\log L + 2k.\n\\]\nBIC:\n\\[\n\\mathrm{BIC} = -2\\log L + k\\log n.\n\\]\nTypical model-building questions:\n\nAre the predictors interpretable?\nAre some predictors redundant?\nIs collinearity harming coefficient stability?\nDoes the model answer the scientific question?\nWill the model likely generalize beyond the observed data?",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Week 8: Multicollinearity, Variable Selection, and Model Building</span>"
+    ]
+  },
+  {
+    "objectID": "09.html",
+    "href": "09.html",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "",
+    "text": "10.1 Learning Objectives\nIn this week, we bring together many earlier ideas into the general framework of linear inference in regression models. The focus is on linear functions of parameters, contrasts, general linear hypotheses, and the important issue of estimability. This week helps students move from coefficient-by-coefficient thinking to a broader matrix-based understanding of inference in linear models.\nBy the end of this week, students should be able to:",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#learning-objectives",
+    "href": "09.html#learning-objectives",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "",
+    "text": "define a linear function of regression parameters;\nexplain what a contrast is and why contrasts are useful;\nformulate general linear hypotheses in matrix form;\ncarry out inference for linear combinations of parameters;\nexplain the meaning of estimability in linear models;\ndistinguish between full-rank and rank-deficient settings;\ninterpret software output for linear hypothesis tests and contrasts.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#reading",
+    "href": "09.html#reading",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.2 Reading",
+    "text": "10.2 Reading\nRecommended reading for this week:\n\nSeber and Lee:\n\nsections on linear functions of parameters\ngeneral linear hypotheses\nestimability and rank-deficient models\n\nMontgomery, Peck, and Vining:\n\nsections on tests for combinations of parameters\nqualitative predictors and comparisons among means\nextra sum of squares and related inference",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#why-this-week-matters",
+    "href": "09.html#why-this-week-matters",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.3 Why This Week Matters",
+    "text": "10.3 Why This Week Matters\nIn earlier weeks, we tested individual coefficients and compared nested models.\nBut many important questions in regression are not of the form:\n\nis one coefficient equal to zero?\n\nInstead, they are questions such as:\n\nare two slopes equal?\nis the average of two treatment effects equal to a third?\nare all group means the same?\nis a certain interaction effect absent?\ndoes a linear combination of parameters equal a specified value?\n\nThese are all questions about linear functions of the parameter vector.\nThis week provides the general language for expressing and testing such questions.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#review-of-the-linear-model",
+    "href": "09.html#review-of-the-linear-model",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.4 Review of the Linear Model",
+    "text": "10.4 Review of the Linear Model\nRecall the linear model\n\\[\n\\mathbf{Y} = \\mathbf{X}\\boldsymbol{\\beta} + \\boldsymbol{\\varepsilon},\n\\]\nwith\n\\[\n\\mathbb{E}[\\mathbf{Y}] = \\mathbf{X}\\boldsymbol{\\beta},\n\\qquad\n\\mathrm{Var}(\\mathbf{Y}) = \\sigma^2 \\mathbf{I}_n.\n\\]\nUnder the normal linear model,\n\\[\n\\mathbf{Y} \\sim N_n(\\mathbf{X}\\boldsymbol{\\beta}, \\sigma^2 \\mathbf{I}_n).\n\\]\nWhen \\(\\mathbf{X}\\) has full column rank, the ordinary least squares estimator is\n\\[\n\\hat{\\boldsymbol{\\beta}}\n=\n(\\mathbf{X}^\\top \\mathbf{X})^{-1}\\mathbf{X}^\\top \\mathbf{Y}.\n\\]\nWe also know that\n\\[\n\\hat{\\boldsymbol{\\beta}}\n\\sim\nN_p\\!\\left(\n\\boldsymbol{\\beta},\n\\sigma^2(\\mathbf{X}^\\top \\mathbf{X})^{-1}\n\\right).\n\\]\nThis makes linear combinations of \\(\\hat{\\boldsymbol{\\beta}}\\) especially important.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#linear-functions-of-parameters",
+    "href": "09.html#linear-functions-of-parameters",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.5 Linear Functions of Parameters",
+    "text": "10.5 Linear Functions of Parameters\nA linear function of the parameter vector is any quantity of the form\n\\[\na^\\top \\boldsymbol{\\beta},\n\\]\nwhere \\(a\\) is a fixed vector.\nExamples include:\n\na single coefficient, such as \\(\\beta_2\\);\nthe sum \\(\\beta_1 + \\beta_2\\);\nthe difference \\(\\beta_3 - \\beta_4\\);\nthe average \\(\\frac{1}{2}(\\beta_2 + \\beta_3)\\).\n\nThese are all linear in \\(\\boldsymbol{\\beta}\\).\nThe corresponding estimator is\n\\[\na^\\top \\hat{\\boldsymbol{\\beta}}.\n\\]",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#distribution-of-a-linear-function",
+    "href": "09.html#distribution-of-a-linear-function",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.6 Distribution of a Linear Function",
+    "text": "10.6 Distribution of a Linear Function\nSince \\(\\hat{\\boldsymbol{\\beta}}\\) is multivariate normal, any linear function of it is normal.\nThus,\n\\[\na^\\top \\hat{\\boldsymbol{\\beta}}\n\\sim\nN\\!\\left(\na^\\top \\boldsymbol{\\beta},\n\\sigma^2 a^\\top (\\mathbf{X}^\\top \\mathbf{X})^{-1} a\n\\right).\n\\]\nIf \\(\\sigma^2\\) is estimated by\n\\[\n\\hat{\\sigma}^2 = \\frac{\\mathrm{SSE}}{n-p},\n\\]\nthen\n\\[\n\\frac{\na^\\top \\hat{\\boldsymbol{\\beta}} - a^\\top \\boldsymbol{\\beta}\n}{\n\\hat{\\sigma}\\sqrt{a^\\top(\\mathbf{X}^\\top \\mathbf{X})^{-1}a}\n}\n\\sim t_{n-p}.\n\\]\nSo the familiar single-coefficient \\(t\\) test is just a special case of inference for a linear combination.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#contrasts",
+    "href": "09.html#contrasts",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.7 Contrasts",
+    "text": "10.7 Contrasts\nA contrast is a special linear combination whose coefficients sum to zero.\nThat is, a linear function\n\\[\n\\sum_{j=1}^k c_j \\mu_j\n\\]\nis a contrast if\n\\[\n\\sum_{j=1}^k c_j = 0.\n\\]\nContrasts are especially important when comparing treatment means or group means.\nExamples:\n\n\\(\\mu_1 - \\mu_2\\);\n\\(\\mu_1 - \\frac{\\mu_2 + \\mu_3}{2}\\);\n\\(\\mu_1 + \\mu_2 - \\mu_3 - \\mu_4\\).\n\nContrasts measure relative differences rather than overall level.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#why-contrasts-are-useful",
+    "href": "09.html#why-contrasts-are-useful",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.8 Why Contrasts Are Useful",
+    "text": "10.8 Why Contrasts Are Useful\nSuppose we have several group means.\nQuestions like the following are naturally expressed as contrasts:\n\nis treatment A different from treatment B?\nis the control mean equal to the average of two treatment means?\nare two pairs of means equally separated?\n\nContrasts give a flexible and interpretable way to express these comparisons.\nThey are central in ANOVA and regression models with categorical predictors.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#contrasts-in-a-regression-framework",
+    "href": "09.html#contrasts-in-a-regression-framework",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.9 Contrasts in a Regression Framework",
+    "text": "10.9 Contrasts in a Regression Framework\nSuppose a factor with three levels is coded with an intercept and two indicator variables.\nThen the regression coefficients determine the group means, and comparisons among means can be written as linear functions of \\(\\boldsymbol{\\beta}\\).\nSo the contrast framework and the regression framework are fully connected.\nThis is one of the reasons the general linear model is so powerful.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#confidence-intervals-for-linear-functions",
+    "href": "09.html#confidence-intervals-for-linear-functions",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.10 Confidence Intervals for Linear Functions",
+    "text": "10.10 Confidence Intervals for Linear Functions\nFor a linear function \\(a^\\top \\boldsymbol{\\beta}\\), a confidence interval is\n\\[\na^\\top \\hat{\\boldsymbol{\\beta}}\n\\pm\nt_{1-\\alpha/2,\\;n-p}\n\\hat{\\sigma}\n\\sqrt{a^\\top (\\mathbf{X}^\\top \\mathbf{X})^{-1} a}.\n\\]\nThis formula allows us to make inference for any estimable linear combination, not just a single coefficient.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#testing-a-single-linear-function",
+    "href": "09.html#testing-a-single-linear-function",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.11 Testing a Single Linear Function",
+    "text": "10.11 Testing a Single Linear Function\nTo test\n\\[\nH_0: a^\\top \\boldsymbol{\\beta} = c,\n\\]\nwe use the test statistic\n\\[\nT\n=\n\\frac{\na^\\top \\hat{\\boldsymbol{\\beta}} - c\n}{\n\\hat{\\sigma}\n\\sqrt{a^\\top(\\mathbf{X}^\\top \\mathbf{X})^{-1}a}\n}.\n\\]\nUnder \\(H_0\\),\n\\[\nT \\sim t_{n-p}.\n\\]\nAgain, this is just the general version of the usual coefficient \\(t\\) test.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#general-linear-hypotheses",
+    "href": "09.html#general-linear-hypotheses",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.12 General Linear Hypotheses",
+    "text": "10.12 General Linear Hypotheses\nA general linear hypothesis has the form\n\\[\nH_0: \\mathbf{C}\\boldsymbol{\\beta} = \\mathbf{d},\n\\]\nwhere:\n\n\\(\\mathbf{C}\\) is an \\(r \\times p\\) matrix;\n\\(\\mathbf{d}\\) is an \\(r \\times 1\\) vector;\n\\(r\\) is the number of linear restrictions.\n\nThis framework includes many important hypothesis tests as special cases.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#examples-of-general-linear-hypotheses",
+    "href": "09.html#examples-of-general-linear-hypotheses",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.13 Examples of General Linear Hypotheses",
+    "text": "10.13 Examples of General Linear Hypotheses\nExamples include:\n\ntesting one coefficient: \\[\nH_0: \\beta_2 = 0;\n\\]\ntesting equality of two coefficients: \\[\nH_0: \\beta_2 - \\beta_3 = 0;\n\\]\ntesting two restrictions simultaneously: \\[\nH_0:\n\\begin{cases}\n\\beta_2 = 0,\\\\\n\\beta_3 = 0;\n\\end{cases}\n\\]\ntesting whether three group means are equal.\n\nAll of these can be written in the form\n\\[\n\\mathbf{C}\\boldsymbol{\\beta} = \\mathbf{d}.\n\\]",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#f-test-for-a-general-linear-hypothesis",
+    "href": "09.html#f-test-for-a-general-linear-hypothesis",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.14 F Test for a General Linear Hypothesis",
+    "text": "10.14 F Test for a General Linear Hypothesis\nUnder the normal linear model, the hypothesis\n\\[\nH_0: \\mathbf{C}\\boldsymbol{\\beta} = \\mathbf{d}\n\\]\nis tested by\n\\[\nF\n=\n\\frac{\n(\\mathbf{C}\\hat{\\boldsymbol{\\beta}} - \\mathbf{d})^\\top\n\\left[\n\\mathbf{C}(\\mathbf{X}^\\top \\mathbf{X})^{-1}\\mathbf{C}^\\top\n\\right]^{-1}\n(\\mathbf{C}\\hat{\\boldsymbol{\\beta}} - \\mathbf{d})/r\n}{\n\\hat{\\sigma}^2\n}.\n\\]\nUnder \\(H_0\\),\n\\[\nF \\sim F_{r,\\;n-p}.\n\\]\nThis is the general matrix form of the regression \\(F\\) test.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#connection-with-nested-models",
+    "href": "09.html#connection-with-nested-models",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.15 Connection With Nested Models",
+    "text": "10.15 Connection With Nested Models\nThe general linear hypothesis test is equivalent to comparing a reduced model and a full model when the reduced model is obtained by imposing linear restrictions.\nSo the extra sum of squares \\(F\\) test from Week 4 is a special case of the general linear hypothesis test.\nThis is an important unifying idea.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#when-r-1",
+    "href": "09.html#when-r-1",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.16 When r = 1",
+    "text": "10.16 When r = 1\nIf there is only one restriction, then the general \\(F\\) test reduces to the square of a \\(t\\) test.\nThat is, when \\(r=1\\),\n\\[\nF = T^2.\n\\]\nSo single-parameter inference and multi-parameter inference are part of the same framework.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#matrix-formulation-of-contrasts",
+    "href": "09.html#matrix-formulation-of-contrasts",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.17 Matrix Formulation of Contrasts",
+    "text": "10.17 Matrix Formulation of Contrasts\nIf we are interested in several contrasts at once, we can stack them into a matrix.\nFor example, if we want to test\n\\[\n\\beta_2 - \\beta_3 = 0\n\\qquad \\text{and} \\qquad\n\\beta_3 - \\beta_4 = 0,\n\\]\nthen we may write\n\\[\n\\mathbf{C}\n=\n\\begin{bmatrix}\n0 & 1 & -1 & 0 \\\\\n0 & 0 & 1 & -1\n\\end{bmatrix},\n\\qquad\n\\mathbf{d}\n=\n\\begin{bmatrix}\n0 \\\\\n0\n\\end{bmatrix}.\n\\]\nThis turns several related coefficient comparisons into one unified hypothesis.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#estimability",
+    "href": "09.html#estimability",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.18 Estimability",
+    "text": "10.18 Estimability\nSo far, we have mostly assumed that \\(\\mathbf{X}\\) has full column rank.\nBut in some important cases, the design matrix is rank-deficient. Then the parameter vector itself is not uniquely identifiable.\nIn such settings, we ask a more refined question:\nWhich linear functions of \\(\\boldsymbol{\\beta}\\) can still be estimated uniquely from the model?\nThis leads to the concept of estimability.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#why-estimability-is-needed",
+    "href": "09.html#why-estimability-is-needed",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.19 Why Estimability Is Needed",
+    "text": "10.19 Why Estimability Is Needed\nSuppose two different parameter vectors, say \\(\\boldsymbol{\\beta}\\) and \\(\\boldsymbol{\\beta}^*\\), produce the same mean vector:\n\\[\n\\mathbf{X}\\boldsymbol{\\beta} = \\mathbf{X}\\boldsymbol{\\beta}^*.\n\\]\nThen the data cannot distinguish between these two parameter vectors.\nSo a particular coefficient may not be uniquely meaningful.\nHowever, some combinations of coefficients may still be uniquely determined by the mean structure. Those combinations are estimable.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#definition-of-estimability",
+    "href": "09.html#definition-of-estimability",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.20 Definition of Estimability",
+    "text": "10.20 Definition of Estimability\nA linear function\n\\[\na^\\top \\boldsymbol{\\beta}\n\\]\nis estimable if there exists a vector \\(t\\) such that\n\\[\na^\\top = t^\\top \\mathbf{X}.\n\\]\nEquivalently, \\(a\\) must lie in the row space of \\(\\mathbf{X}\\).\nThis condition ensures that the target quantity depends only on the mean vector \\(\\mathbf{X}\\boldsymbol{\\beta}\\), and not on the particular parameterization used.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#interpretation-of-estimability",
+    "href": "09.html#interpretation-of-estimability",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.21 Interpretation of Estimability",
+    "text": "10.21 Interpretation of Estimability\nEstimability means that the quantity is determined by the model’s observable mean structure.\nIf a linear function is not estimable, then different parameter vectors producing the same fitted mean can give different values of that function.\nSo no unbiased linear estimator can uniquely recover it.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#example-with-a-factor-model",
+    "href": "09.html#example-with-a-factor-model",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.22 Example With a Factor Model",
+    "text": "10.22 Example With a Factor Model\nSuppose we write a one-way mean model as\n\\[\nY_{ij} = \\mu + \\tau_i + \\varepsilon_{ij},\n\\]\nfor groups \\(i=1,\\dots,g\\).\nIf we include all group indicators together with an intercept, then the parameters are not uniquely identified, because adding a constant to all \\(\\tau_i\\) and subtracting it from \\(\\mu\\) gives the same mean structure.\nIn this case:\n\n\\(\\mu\\) alone is not uniquely defined;\n\\(\\tau_i\\) alone is not uniquely defined;\nbut differences such as \\(\\tau_i - \\tau_j\\) are estimable.\n\nThis is a classic example.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#estimable-functions-in-rank-deficient-models",
+    "href": "09.html#estimable-functions-in-rank-deficient-models",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.23 Estimable Functions in Rank-Deficient Models",
+    "text": "10.23 Estimable Functions in Rank-Deficient Models\nEven when the coefficient vector is not unique, fitted values are still unique, provided we project onto the column space of \\(\\mathbf{X}\\).\nLikewise, every estimable linear function has a unique value determined by the model.\nSo regression analysis in rank-deficient settings often focuses on estimable functions rather than on individual raw coefficients.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#parameterization-matters-for-coefficients-but-not-for-estimable-functions",
+    "href": "09.html#parameterization-matters-for-coefficients-but-not-for-estimable-functions",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.24 Parameterization Matters for Coefficients, but Not for Estimable Functions",
+    "text": "10.24 Parameterization Matters for Coefficients, but Not for Estimable Functions\nA factor can be parameterized in several ways:\n\ntreatment coding;\nsum-to-zero coding;\ncell-means coding.\n\nThe individual coefficients change across parameterizations.\nBut meaningful estimable comparisons, such as differences between group means, do not depend on the coding scheme.\nThis is a key conceptual lesson.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#contrasts-and-estimability",
+    "href": "09.html#contrasts-and-estimability",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.25 Contrasts and Estimability",
+    "text": "10.25 Contrasts and Estimability\nIn many ANOVA-type models, contrasts among means are estimable even when the raw parameter vector is overparameterized.\nThis is one reason contrasts are so central: they often represent the scientifically meaningful and estimable quantities.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#least-squares-in-rank-deficient-models",
+    "href": "09.html#least-squares-in-rank-deficient-models",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.26 Least Squares in Rank-Deficient Models",
+    "text": "10.26 Least Squares in Rank-Deficient Models\nWhen \\(\\mathbf{X}\\) is rank-deficient, the normal equations do not yield a unique coefficient vector.\nDifferent generalized inverse solutions may produce different coefficient vectors.\nHowever:\n\nthe fitted values are unique;\nthe residual sum of squares is unique;\nestimable linear functions have unique least squares estimates.\n\nSo the inferential target should be framed carefully.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#generalized-inverse-view",
+    "href": "09.html#generalized-inverse-view",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.27 Generalized Inverse View",
+    "text": "10.27 Generalized Inverse View\nA generalized inverse of \\(\\mathbf{X}^\\top \\mathbf{X}\\) can be used to write one least squares solution.\nThis leads to expressions similar to the full-rank case, but students should remember that not every coefficient itself is uniquely meaningful.\nWhat matters most is whether the function of interest is estimable.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#software-and-estimability",
+    "href": "09.html#software-and-estimability",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.28 Software and Estimability",
+    "text": "10.28 Software and Estimability\nModern software often handles rank deficiency automatically.\nIt may:\n\ndrop aliased columns;\nreport coefficients as not estimable;\nuse a default parameterization that makes the fit identifiable.\n\nStudents should not interpret every reported coefficient mechanically. They should understand the underlying estimable structure.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#worked-example-with-equality-of-slopes",
+    "href": "09.html#worked-example-with-equality-of-slopes",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.29 Worked Example With Equality of Slopes",
+    "text": "10.29 Worked Example With Equality of Slopes\nSuppose we fit a regression model with two predictors and want to test whether their coefficients are equal:\n\\[\nH_0: \\beta_1 = \\beta_2.\n\\]\nThis can be written as\n\\[\nH_0: \\beta_1 - \\beta_2 = 0,\n\\]\nso\n\\[\na^\\top = \\begin{bmatrix}0 & 1 & -1\\end{bmatrix}.\n\\]\nThe corresponding estimate is\n\\[\n\\hat{\\beta}_1 - \\hat{\\beta}_2,\n\\]\nand inference follows from the general linear function formula.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#worked-example-with-group-means",
+    "href": "09.html#worked-example-with-group-means",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.30 Worked Example With Group Means",
+    "text": "10.30 Worked Example With Group Means\nSuppose three group means are\n\\[\n\\mu_A,\\quad \\mu_B,\\quad \\mu_C.\n\\]\nIf we want to compare group A with the average of groups B and C, we consider the contrast\n\\[\n\\mu_A - \\frac{1}{2}\\mu_B - \\frac{1}{2}\\mu_C.\n\\]\nThe coefficients sum to zero, so this is a contrast.\nThis question arises naturally in designed experiments and treatment comparisons.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#r-demonstration-with-a-linear-hypothesis",
+    "href": "09.html#r-demonstration-with-a-linear-hypothesis",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.31 R Demonstration With a Linear Hypothesis",
+    "text": "10.31 R Demonstration With a Linear Hypothesis",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#fit-a-multiple-regression-model",
+    "href": "09.html#fit-a-multiple-regression-model",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.32 Fit a multiple regression model",
+    "text": "10.32 Fit a multiple regression model\n\nset.seed(123)\nn &lt;- 60\nx1 &lt;- rnorm(n)\nx2 &lt;- rnorm(n)\nx3 &lt;- rnorm(n)\ny &lt;- 2 + 1.5 * x1 + 1.5 * x2 - 0.8 * x3 + rnorm(n, sd = 1)\n\ndat &lt;- data.frame(y = y, x1 = x1, x2 = x2, x3 = x3)\nfit &lt;- lm(y ~ x1 + x2 + x3, data = dat)\nsummary(fit)\n\n\nCall:\nlm(formula = y ~ x1 + x2 + x3, data = dat)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-1.3089 -0.6843 -0.1389  0.5141  2.1748 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)   1.9643     0.1200  16.362  &lt; 2e-16 ***\nx1            1.5324     0.1363  11.243 5.53e-16 ***\nx2            1.5535     0.1380  11.260 5.21e-16 ***\nx3           -0.6660     0.1171  -5.685 4.91e-07 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 0.9259 on 56 degrees of freedom\nMultiple R-squared:  0.8465,    Adjusted R-squared:  0.8382 \nF-statistic: 102.9 on 3 and 56 DF,  p-value: &lt; 2.2e-16",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#test-whether-two-coefficients-are-equal",
+    "href": "09.html#test-whether-two-coefficients-are-equal",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.33 Test whether two coefficients are equal",
+    "text": "10.33 Test whether two coefficients are equal\n\nb &lt;- coef(fit)\nV &lt;- vcov(fit)\n\na &lt;- c(0, 1, -1, 0)\nest &lt;- sum(a * b)\nse &lt;- sqrt(t(a) %*% V %*% a)\nt_stat &lt;- est / se\ndf &lt;- df.residual(fit)\np_value &lt;- 2 * pt(abs(t_stat), df = df, lower.tail = FALSE)\n\nc(estimate = est, se = se, t = t_stat, p_value = p_value)\n\n   estimate          se           t     p_value \n-0.02112118  0.20603078 -0.10251470  0.91871436",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#confidence-interval-for-a-linear-combination",
+    "href": "09.html#confidence-interval-for-a-linear-combination",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.34 Confidence interval for a linear combination",
+    "text": "10.34 Confidence interval for a linear combination\n\ntcrit &lt;- qt(0.975, df = df)\nc(lower = est - tcrit * se,\n  estimate = est,\n  upper = est + tcrit * se)\n\n      lower    estimate       upper \n-0.43385043 -0.02112118  0.39160806",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#test-two-restrictions-simultaneously",
+    "href": "09.html#test-two-restrictions-simultaneously",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.35 Test two restrictions simultaneously",
+    "text": "10.35 Test two restrictions simultaneously\n\nCmat &lt;- rbind(\n  c(0, 1, -1, 0),\n  c(0, 0, 1, 1)\n)\ndvec &lt;- c(0, 0)\n\nCb_minus_d &lt;- Cmat %*% b - dvec\nmiddle &lt;- solve(Cmat %*% V %*% t(Cmat))\nr &lt;- nrow(Cmat)\n\nF_stat &lt;- as.numeric(t(Cb_minus_d) %*% middle %*% Cb_minus_d / r)\np_F &lt;- pf(F_stat, df1 = r, df2 = df, lower.tail = FALSE)\n\nc(F_stat = F_stat, p_value = p_F)\n\n      F_stat      p_value \n1.967284e+01 3.379376e-07",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#demonstration-with-a-factor-and-contrasts",
+    "href": "09.html#demonstration-with-a-factor-and-contrasts",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.36 Demonstration With a Factor and Contrasts",
+    "text": "10.36 Demonstration With a Factor and Contrasts\n\nset.seed(456)\ngroup &lt;- factor(rep(c(\"A\", \"B\", \"C\"), each = 12))\nmu &lt;- c(A = 10, B = 13, C = 15)\ny2 &lt;- mu[group] + rnorm(length(group), sd = 2)\n\ndat2 &lt;- data.frame(y = y2, group = group)\nfit_group &lt;- lm(y ~ group, data = dat2)\nsummary(fit_group)\n\n\nCall:\nlm(formula = y ~ group, data = dat2)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-4.3815 -1.6167  0.1576  1.9721  3.6541 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)  10.0948     0.6795  14.857 3.56e-16 ***\ngroupB        3.8520     0.9609   4.009 0.000328 ***\ngroupC        4.8824     0.9609   5.081 1.45e-05 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 2.354 on 33 degrees of freedom\nMultiple R-squared:  0.4651,    Adjusted R-squared:  0.4326 \nF-statistic: 14.34 on 2 and 33 DF,  p-value: 3.288e-05\n\nmodel.matrix(fit_group)[1:8, ]\n\n  (Intercept) groupB groupC\n1           1      0      0\n2           1      0      0\n3           1      0      0\n4           1      0      0\n5           1      0      0\n6           1      0      0\n7           1      0      0\n8           1      0      0",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#estimate-the-contrast-a-minus-average-of-b-and-c",
+    "href": "09.html#estimate-the-contrast-a-minus-average-of-b-and-c",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.37 Estimate the contrast A minus average of B and C",
+    "text": "10.37 Estimate the contrast A minus average of B and C\n\nb2 &lt;- coef(fit_group)\nV2 &lt;- vcov(fit_group)\n\n# Under treatment coding:\n# mean_A = beta0\n# mean_B = beta0 + beta_B\n# mean_C = beta0 + beta_C\n# contrast = mean_A - (mean_B + mean_C)/2 = -(beta_B + beta_C)/2\n\na2 &lt;- c(0, -1/2, -1/2)\nest2 &lt;- sum(a2 * b2)\nse2 &lt;- sqrt(t(a2) %*% V2 %*% a2)\nt2 &lt;- est2 / se2\ndf2 &lt;- df.residual(fit_group)\np2 &lt;- 2 * pt(abs(t2), df = df2, lower.tail = FALSE)\n\nc(estimate = est2, se = se2, t = t2, p_value = p2)\n\n     estimate            se             t       p_value \n-4.367214e+00  8.321888e-01 -5.247864e+00  8.879243e-06",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#example-of-rank-deficiency",
+    "href": "09.html#example-of-rank-deficiency",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.38 Example of rank deficiency",
+    "text": "10.38 Example of rank deficiency\n\nX_bad &lt;- cbind(1, diag(3))\nX_bad &lt;- rbind(X_bad, X_bad)\ncolnames(X_bad) &lt;- c(\"Intercept\", \"G1\", \"G2\", \"G3\")\n\nqr(X_bad)$rank\n\n[1] 3\n\nncol(X_bad)\n\n[1] 4\n\nX_bad\n\n     Intercept G1 G2 G3\n[1,]         1  1  0  0\n[2,]         1  0  1  0\n[3,]         1  0  0  1\n[4,]         1  1  0  0\n[5,]         1  0  1  0\n[6,]         1  0  0  1",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#interpreting-software-output",
+    "href": "09.html#interpreting-software-output",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.39 Interpreting Software Output",
+    "text": "10.39 Interpreting Software Output\nUseful commands in R include:\n\ncoef() for estimated coefficients;\nvcov() for the covariance matrix of coefficient estimates;\nmodel.matrix() for inspecting the design matrix;\nanova() for nested-model versions of linear hypothesis tests.\n\nEven when software provides default hypothesis tests, students should learn to express the hypothesis itself in matrix form. That is often the most important conceptual step.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#a-practical-workflow-for-linear-hypotheses",
+    "href": "09.html#a-practical-workflow-for-linear-hypotheses",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.40 A Practical Workflow for Linear Hypotheses",
+    "text": "10.40 A Practical Workflow for Linear Hypotheses\nA useful workflow is:\n\nidentify the scientific question;\nexpress the target as a linear function or a set of linear restrictions;\nwrite down the vector \\(a\\) or matrix \\(\\mathbf{C}\\);\ncompute the estimate and its standard error;\ninterpret the result on the original scientific scale.\n\nThis approach makes regression inference more flexible and more transparent.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#in-class-discussion-questions",
+    "href": "09.html#in-class-discussion-questions",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.41 In-Class Discussion Questions",
+    "text": "10.41 In-Class Discussion Questions\n\nWhy is a contrast defined by coefficients summing to zero?\nWhy are some functions estimable even when the full parameter vector is not uniquely identifiable?\nWhy is the general linear hypothesis framework more powerful than testing coefficients one by one?\nWhy should interpretation focus on estimable functions rather than arbitrary parameterizations?",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#practice-problems",
+    "href": "09.html#practice-problems",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.42 Practice Problems",
+    "text": "10.42 Practice Problems",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#conceptual",
+    "href": "09.html#conceptual",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.43 Conceptual",
+    "text": "10.43 Conceptual\n\nExplain the difference between a coefficient and a general linear function of coefficients.\nExplain why treatment comparisons are often naturally expressed as contrasts.\nExplain estimability in your own words.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#computational",
+    "href": "09.html#computational",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.44 Computational",
+    "text": "10.44 Computational\nSuppose\n\\[\n\\hat{\\boldsymbol{\\beta}}\n=\n\\begin{bmatrix}\n4 \\\\ 1 \\\\ -2\n\\end{bmatrix},\n\\qquad\n\\widehat{\\mathrm{Var}}(\\hat{\\boldsymbol{\\beta}})\n=\n\\begin{bmatrix}\n0.5 & 0.1 & 0.0 \\\\\n0.1 & 0.4 & 0.2 \\\\\n0.0 & 0.2 & 0.6\n\\end{bmatrix}.\n\\]\nLet\n\\[\na =\n\\begin{bmatrix}\n0 \\\\ 1 \\\\ -1\n\\end{bmatrix}.\n\\]\n\nCompute the estimate of \\(a^\\top \\boldsymbol{\\beta}\\).\nCompute its estimated variance.\nWrite the corresponding \\(t\\) statistic for testing whether \\(a^\\top \\boldsymbol{\\beta} = 0\\).",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#hypothesis-matrix-problem",
+    "href": "09.html#hypothesis-matrix-problem",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.45 Hypothesis-Matrix Problem",
+    "text": "10.45 Hypothesis-Matrix Problem\nWrite the matrix \\(\\mathbf{C}\\) and vector \\(\\mathbf{d}\\) for each hypothesis:\n\n\\(H_0: \\beta_2 = \\beta_3\\);\n\\(H_0: \\beta_2 = 0\\) and \\(\\beta_4 = 0\\);\n\\(H_0: \\beta_2 + \\beta_3 - 2\\beta_4 = 1\\).",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#suggested-homework",
+    "href": "09.html#suggested-homework",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.46 Suggested Homework",
+    "text": "10.46 Suggested Homework\nComplete the following tasks:\n\nfit a regression model and test at least two nontrivial linear combinations of coefficients;\nwrite each scientific question first in words and then in matrix form;\ncompute a confidence interval for one contrast of interest;\nfit a model with a factor and interpret at least two group comparisons as contrasts;\nwrite a short reflection explaining why estimability matters in categorical models.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#summary",
+    "href": "09.html#summary",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.47 Summary",
+    "text": "10.47 Summary\nIn this week, we studied the general framework of linear inference in regression.\nWe emphasized that:\n\nmany meaningful questions involve linear combinations of parameters rather than single coefficients;\ncontrasts are important special cases of linear functions;\ngeneral linear hypotheses unify many common tests;\nestimability determines which parameter functions are uniquely learnable from the model;\nmeaningful inference should focus on estimable functions, especially in rank-deficient settings.\n\nNext week, a natural continuation is to move into analysis of covariance, one-way and two-way ANOVA as special cases of the linear model, or to extend toward generalized least squares and correlated errors, depending on the course emphasis.",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
+    "objectID": "09.html#appendix-compact-formula-summary",
+    "href": "09.html#appendix-compact-formula-summary",
+    "title": "10  Week 9: General Linear Hypotheses, Contrasts, and Estimability",
+    "section": "10.48 Appendix: Compact Formula Summary",
+    "text": "10.48 Appendix: Compact Formula Summary\nLinear function of parameters:\n\\[\na^\\top \\boldsymbol{\\beta}.\n\\]\nEstimated variance of its estimator:\n\\[\n\\widehat{\\mathrm{Var}}(a^\\top \\hat{\\boldsymbol{\\beta}})\n=\n\\hat{\\sigma}^2 a^\\top (\\mathbf{X}^\\top \\mathbf{X})^{-1} a.\n\\]\nGeneral linear hypothesis:\n\\[\nH_0: \\mathbf{C}\\boldsymbol{\\beta} = \\mathbf{d}.\n\\]\nGeneral \\(F\\) statistic:\n\\[\nF\n=\n\\frac{\n(\\mathbf{C}\\hat{\\boldsymbol{\\beta}} - \\mathbf{d})^\\top\n\\left[\n\\mathbf{C}(\\mathbf{X}^\\top \\mathbf{X})^{-1}\\mathbf{C}^\\top\n\\right]^{-1}\n(\\mathbf{C}\\hat{\\boldsymbol{\\beta}} - \\mathbf{d})/r\n}{\n\\hat{\\sigma}^2\n}.\n\\]\nEstimability condition:\n\\[\na^\\top \\text{ is estimable if } a^\\top = t^\\top \\mathbf{X} \\text{ for some } t.\n\\]",
+    "crumbs": [
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Week 9: General Linear Hypotheses, Contrasts, and Estimability</span>"
+    ]
+  },
+  {
     "objectID": "summary.html",
     "href": "summary.html",
-    "title": "8  Summary",
+    "title": "11  Summary",
     "section": "",
     "text": "In summary, this book has no content whatsoever.\n\n1 + 1\n\n[1] 2",
     "crumbs": [
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Summary</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Summary</span>"
     ]
   },
   {
@@ -1962,12 +3492,12 @@
   {
     "objectID": "App_A-matrix.html",
     "href": "App_A-matrix.html",
-    "title": "9  Matrix Algebra Review",
+    "title": "12  Matrix Algebra Review",
     "section": "",
     "text": "Appendix: Optional Review of Matrix Facts\nMatrix dimensions\nIf \\(\\mathbf{A}\\) is \\(m \\times n\\) and \\(\\mathbf{B}\\) is \\(n \\times p\\), then \\(\\mathbf{A}\\mathbf{B}\\) is defined and is \\(m \\times p\\).\nTranspose rules\nFor conformable matrices,\n\\[\n(\\mathbf{A}\\mathbf{B})^\\top = \\mathbf{B}^\\top \\mathbf{A}^\\top.\n\\]\nInverse rule\nIf \\(\\mathbf{A}\\) and \\(\\mathbf{B}\\) are invertible, then\n\\[\n(\\mathbf{A}\\mathbf{B})^{-1} = \\mathbf{B}^{-1}\\mathbf{A}^{-1}.\n\\]\nSymmetric matrices\nA matrix \\(\\mathbf{A}\\) is symmetric if\n\\[\n\\mathbf{A}^\\top = \\mathbf{A}.\n\\]\nCovariance matrices are always symmetric.",
     "crumbs": [
       "Appendix",
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Matrix Algebra Review</span>"
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Matrix Algebra Review</span>"
     ]
   }
 ]
