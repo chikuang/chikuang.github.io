@@ -254,7 +254,7 @@
     "href": "01_intro.html#summary",
     "title": "2  Week 1 Overview",
     "section": "6.2 Summary",
-    "text": "6.2 Summary\nThis week introduced the notation and basic probabilistic tools needed for the rest of the course. We defined random vectors, mean vectors, covariance matrices, and the matrix form of the linear regression model. These ideas will support everything that follows.\nNext week, we will study least squares estimation and the geometry of projection in more detail.\nFor some optional review of the matrix algebra, see Chapter 12",
+    "text": "6.2 Summary\nThis week introduced the notation and basic probabilistic tools needed for the rest of the course. We defined random vectors, mean vectors, covariance matrices, and the matrix form of the linear regression model. These ideas will support everything that follows.\nNext week, we will study least squares estimation and the geometry of projection in more detail.\nFor some optional review of the matrix algebra, see Chapter 14",
     "crumbs": [
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>Week 1 Overview</span>"
     ]
@@ -3470,13 +3470,963 @@
     ]
   },
   {
+    "objectID": "10.html",
+    "href": "10.html",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "",
+    "text": "11.1 Learning Objectives\nIn this week, we study one-way ANOVA, two-way ANOVA, and analysis of covariance as special cases of the general linear model. The main goal is to show that these topics are not separate from regression, but are natural modelling frameworks within the same matrix-based system. This helps students unify mean comparisons, factor effects, covariate adjustment, and interaction analysis under one common language.\nBy the end of this week, students should be able to:",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#learning-objectives",
+    "href": "10.html#learning-objectives",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "",
+    "text": "explain how one-way ANOVA is a special case of the linear model;\nformulate and interpret two-way ANOVA models with and without interaction;\nexplain the role of a covariate in ANCOVA;\ndistinguish between main effects and interaction effects in factorial models;\ninterpret ANOVA and ANCOVA models using regression notation and software output;\ncompare group means appropriately after adjusting for covariates.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#reading",
+    "href": "10.html#reading",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.2 Reading",
+    "text": "11.2 Reading\nRecommended reading for this week:\n\nSeber and Lee:\n\nsections on analysis of variance\nanalysis of covariance\nlinear model treatment of factor and covariate effects\n\nMontgomery, Peck, and Vining:\n\nsections on qualitative predictors\nANOVA-style linear models\nANCOVA and adjusted comparisons",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#why-these-topics-belong-together",
+    "href": "10.html#why-these-topics-belong-together",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.3 Why These Topics Belong Together",
+    "text": "11.3 Why These Topics Belong Together\nStudents often first encounter ANOVA and regression as if they were separate techniques.\nBut in fact, they are part of the same linear modelling framework.\nFor example:\n\none-way ANOVA compares group means;\ntwo-way ANOVA studies the effects of two factors and possibly their interaction;\nANCOVA compares groups while adjusting for a continuous covariate.\n\nAll of these can be written as linear models using an appropriate design matrix.\nThis week emphasizes that unification.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#review-of-the-general-linear-model",
+    "href": "10.html#review-of-the-general-linear-model",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.4 Review of the General Linear Model",
+    "text": "11.4 Review of the General Linear Model\nRecall the linear model\n\\[\n\\mathbf{Y} = \\mathbf{X}\\boldsymbol{\\beta} + \\boldsymbol{\\varepsilon},\n\\]\nwith\n\\[\n\\mathbb{E}[\\mathbf{Y}] = \\mathbf{X}\\boldsymbol{\\beta},\n\\qquad\n\\mathrm{Var}(\\mathbf{Y}) = \\sigma^2 \\mathbf{I}_n.\n\\]\nThe content of the model depends on how we construct \\(\\mathbf{X}\\).\nIf \\(\\mathbf{X}\\) contains continuous predictors, we obtain regression models.\nIf \\(\\mathbf{X}\\) contains indicator variables for factor levels, we obtain ANOVA-type models.\nIf \\(\\mathbf{X}\\) contains both factor indicators and continuous covariates, we obtain ANCOVA-type models.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#one-way-anova",
+    "href": "10.html#one-way-anova",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.5 One-Way ANOVA",
+    "text": "11.5 One-Way ANOVA\nSuppose observations are divided into \\(g\\) groups, and we want to compare their means.\nOne-way ANOVA can be written as\n\\[\nY_{ij} = \\mu_i + \\varepsilon_{ij},\n\\qquad\ni = 1,\\dots,g,\n\\]\nwhere:\n\n\\(\\mu_i\\) is the mean of group \\(i\\);\n\\(\\varepsilon_{ij}\\) are independent errors with mean zero and common variance \\(\\sigma^2\\).\n\nThis is sometimes called the cell-means model.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#alternative-parameterization-of-one-way-anova",
+    "href": "10.html#alternative-parameterization-of-one-way-anova",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.6 Alternative Parameterization of One-Way ANOVA",
+    "text": "11.6 Alternative Parameterization of One-Way ANOVA\nAnother common parameterization is\n\\[\nY_{ij} = \\mu + \\tau_i + \\varepsilon_{ij},\n\\qquad\ni = 1,\\dots,g,\n\\]\nwhere:\n\n\\(\\mu\\) is an overall baseline level;\n\\(\\tau_i\\) is the effect of group \\(i\\).\n\nTo identify the model, we usually impose a constraint such as\n\\[\n\\sum_{i=1}^g \\tau_i = 0.\n\\]\nDifferent coding schemes lead to different coefficient interpretations, but the fitted group means are the same.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#null-hypothesis-in-one-way-anova",
+    "href": "10.html#null-hypothesis-in-one-way-anova",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.7 Null Hypothesis in One-Way ANOVA",
+    "text": "11.7 Null Hypothesis in One-Way ANOVA\nThe usual one-way ANOVA null hypothesis is\n\\[\nH_0: \\mu_1 = \\mu_2 = \\cdots = \\mu_g.\n\\]\nEquivalently, in the effect parameterization, this is\n\\[\nH_0: \\tau_1 = \\tau_2 = \\cdots = \\tau_g = 0\n\\]\nsubject to the model constraints.\nThis is a general linear hypothesis and can be tested by an \\(F\\) test.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#one-way-anova-as-regression-with-indicators",
+    "href": "10.html#one-way-anova-as-regression-with-indicators",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.8 One-Way ANOVA as Regression With Indicators",
+    "text": "11.8 One-Way ANOVA as Regression With Indicators\nSuppose there are three groups: A, B, and C.\nUsing treatment coding with group A as the reference group, we may write\n\\[\nY_i = \\beta_0 + \\beta_1 z_{1i} + \\beta_2 z_{2i} + \\varepsilon_i,\n\\]\nwhere:\n\n\\(z_{1i}=1\\) if observation \\(i\\) is in group B and 0 otherwise;\n\\(z_{2i}=1\\) if observation \\(i\\) is in group C and 0 otherwise.\n\nThen:\n\nmean of group A: \\(\\beta_0\\);\nmean of group B: \\(\\beta_0 + \\beta_1\\);\nmean of group C: \\(\\beta_0 + \\beta_2\\).\n\nThus one-way ANOVA is simply a regression model with categorical predictors.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#anova-table-interpretation",
+    "href": "10.html#anova-table-interpretation",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.9 ANOVA Table Interpretation",
+    "text": "11.9 ANOVA Table Interpretation\nFor one-way ANOVA, the total variation is decomposed into:\n\nvariation between groups;\nvariation within groups.\n\nThe standard ANOVA table compares the mean square for groups to the mean square for error.\nThis is an \\(F\\) test for whether the group means are all equal.\nWithin the linear model framework, this is just a comparison of a reduced intercept-only model and a fuller model that includes group indicators.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#two-way-anova",
+    "href": "10.html#two-way-anova",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.10 Two-Way ANOVA",
+    "text": "11.10 Two-Way ANOVA\nNow suppose there are two factors:\n\nfactor A with levels \\(i=1,\\dots,a\\);\nfactor B with levels \\(j=1,\\dots,b\\).\n\nA general two-way ANOVA model with interaction is\n\\[\nY_{ijk} = \\mu + \\alpha_i + \\beta_j + (\\alpha\\beta)_{ij} + \\varepsilon_{ijk}.\n\\]\nHere:\n\n\\(\\alpha_i\\) is the effect of level \\(i\\) of factor A;\n\\(\\beta_j\\) is the effect of level \\(j\\) of factor B;\n\\((\\alpha\\beta)_{ij}\\) is the interaction effect for the combination of levels \\((i,j)\\).",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#main-effects-in-two-way-anova",
+    "href": "10.html#main-effects-in-two-way-anova",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.11 Main Effects in Two-Way ANOVA",
+    "text": "11.11 Main Effects in Two-Way ANOVA\nA main effect describes how the mean response changes across levels of one factor, averaging over the levels of the other factor, when the interaction is absent or appropriately interpreted.\nFor example:\n\nfactor A main effect asks whether changing the level of A shifts the mean response;\nfactor B main effect asks the analogous question for B.\n\nHowever, if interaction is strong, main effects must be interpreted with care.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#interaction-in-two-way-anova",
+    "href": "10.html#interaction-in-two-way-anova",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.12 Interaction in Two-Way ANOVA",
+    "text": "11.12 Interaction in Two-Way ANOVA\nInteraction means that the effect of one factor depends on the level of the other factor.\nIf there is no interaction, the mean structure is additive:\n\\[\nY_{ijk} = \\mu + \\alpha_i + \\beta_j + \\varepsilon_{ijk}.\n\\]\nIf interaction is present, the difference among levels of factor A changes across levels of factor B, or vice versa.\nGraphically, in an interaction plot, no interaction corresponds roughly to parallel profiles.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#null-hypotheses-in-two-way-anova",
+    "href": "10.html#null-hypotheses-in-two-way-anova",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.13 Null Hypotheses in Two-Way ANOVA",
+    "text": "11.13 Null Hypotheses in Two-Way ANOVA\nCommon hypotheses include:\n\nno main effect of factor A;\nno main effect of factor B;\nno interaction between A and B.\n\nEach of these is a general linear hypothesis and can be tested with an \\(F\\) statistic by comparing appropriate reduced and full models.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#importance-of-testing-interaction-first",
+    "href": "10.html#importance-of-testing-interaction-first",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.14 Importance of Testing Interaction First",
+    "text": "11.14 Importance of Testing Interaction First\nIn practice, it is often wise to assess the interaction term before making strong statements about main effects.\nWhy?\nBecause if interaction is present, the effect of factor A is not the same at all levels of factor B, and vice versa.\nSo a marginal main-effect interpretation may be misleading.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#balanced-and-unbalanced-designs",
+    "href": "10.html#balanced-and-unbalanced-designs",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.15 Balanced and Unbalanced Designs",
+    "text": "11.15 Balanced and Unbalanced Designs\nA design is balanced if each factor combination has the same number of observations.\nBalanced designs have many nice algebraic properties:\n\nsums of squares decompose cleanly;\neffects are more orthogonal;\ninterpretations are often simpler.\n\nIn unbalanced designs, sums of squares and hypothesis tests depend more strongly on the model specification and coding choices.\nStudents should be aware that real data are often unbalanced.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#two-way-anova-as-regression",
+    "href": "10.html#two-way-anova-as-regression",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.16 Two-Way ANOVA as Regression",
+    "text": "11.16 Two-Way ANOVA as Regression\nJust as in one-way ANOVA, two-way ANOVA can be represented using indicator variables.\nThe design matrix can include:\n\nindicators for levels of factor A;\nindicators for levels of factor B;\nproducts of indicators for interaction terms.\n\nSo two-way ANOVA is also just a regression model with categorical predictors and possible interactions.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#analysis-of-covariance",
+    "href": "10.html#analysis-of-covariance",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.17 Analysis of Covariance",
+    "text": "11.17 Analysis of Covariance\nAnalysis of covariance, or ANCOVA, combines:\n\none or more categorical predictors;\none or more continuous covariates.\n\nA simple ANCOVA model is\n\\[\nY_i = \\beta_0 + \\beta_1 x_i + \\beta_2 z_i + \\varepsilon_i,\n\\]\nwhere:\n\n\\(x_i\\) is a continuous covariate;\n\\(z_i\\) is a group indicator.\n\nThis model compares groups while adjusting for the covariate.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#why-ancova-is-useful",
+    "href": "10.html#why-ancova-is-useful",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.18 Why ANCOVA Is Useful",
+    "text": "11.18 Why ANCOVA Is Useful\nSuppose two groups differ in an outcome, but also differ in a background variable related to the outcome.\nIf we compare the raw group means, the comparison may be confounded by the background variable.\nANCOVA adjusts for the covariate so that the group comparison is made at a common covariate level.\nThis often improves both fairness of comparison and precision of inference.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#interpreting-an-ancova-model",
+    "href": "10.html#interpreting-an-ancova-model",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.19 Interpreting an ANCOVA Model",
+    "text": "11.19 Interpreting an ANCOVA Model\nSuppose\n\\[\nY_i = \\beta_0 + \\beta_1 x_i + \\beta_2 z_i + \\varepsilon_i,\n\\]\nwith \\(z_i \\in \\{0,1\\}\\).\nThen:\n\n\\(\\beta_1\\) is the change in the mean response associated with a one-unit increase in \\(x\\), holding group fixed;\n\\(\\beta_2\\) is the difference between groups, holding the covariate fixed.\n\nThus ANCOVA is a regression model in which one of the predictors is a factor.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#parallel-slopes-assumption",
+    "href": "10.html#parallel-slopes-assumption",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.20 Parallel Slopes Assumption",
+    "text": "11.20 Parallel Slopes Assumption\nA standard ANCOVA model without interaction assumes the relationship between the response and the covariate has the same slope in all groups.\nThat is, if\n\\[\nY_i = \\beta_0 + \\beta_1 x_i + \\beta_2 z_i + \\varepsilon_i,\n\\]\nthen both groups share the same slope \\(\\beta_1\\).\nThis is often called the parallel slopes assumption.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#ancova-with-interaction",
+    "href": "10.html#ancova-with-interaction",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.21 ANCOVA With Interaction",
+    "text": "11.21 ANCOVA With Interaction\nIf we want to allow the covariate effect to differ by group, we add an interaction:\n\\[\nY_i = \\beta_0 + \\beta_1 x_i + \\beta_2 z_i + \\beta_3 x_i z_i + \\varepsilon_i.\n\\]\nNow the slope in \\(x\\) depends on the group.\nThis model should be considered when the relationship between the response and the covariate appears different across groups.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#why-the-parallel-slopes-assumption-matters",
+    "href": "10.html#why-the-parallel-slopes-assumption-matters",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.22 Why the Parallel Slopes Assumption Matters",
+    "text": "11.22 Why the Parallel Slopes Assumption Matters\nIf the slopes are not truly parallel but we fit a common-slope ANCOVA model, then the adjusted group comparison may be misleading.\nSo a practical workflow is often:\n\nfit the interaction model first;\nassess whether the interaction is needed;\nif the interaction is not important, use the simpler common-slope ANCOVA model.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#adjusted-means",
+    "href": "10.html#adjusted-means",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.23 Adjusted Means",
+    "text": "11.23 Adjusted Means\nA major idea in ANCOVA is the comparison of adjusted means.\nThese are group means adjusted to a common covariate value, often the overall mean of the covariate.\nAdjusted means are useful because they allow group comparison after accounting for systematic covariate differences.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#one-way-anova-two-way-anova-and-ancova-as-nested-models",
+    "href": "10.html#one-way-anova-two-way-anova-and-ancova-as-nested-models",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.24 One-Way ANOVA, Two-Way ANOVA, and ANCOVA as Nested Models",
+    "text": "11.24 One-Way ANOVA, Two-Way ANOVA, and ANCOVA as Nested Models\nThese topics can all be understood through model comparison.\nExamples:\n\none-way ANOVA compares the intercept-only model to a model with group effects;\ntwo-way ANOVA compares models with and without main effects or interaction;\nANCOVA compares models with and without the covariate, group effect, or interaction.\n\nThis nested-model view links directly back to the general linear hypothesis framework.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#post-hoc-comparisons",
+    "href": "10.html#post-hoc-comparisons",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.25 Post Hoc Comparisons",
+    "text": "11.25 Post Hoc Comparisons\nAfter a significant ANOVA result, we may wish to compare specific groups.\nExamples include:\n\nall pairwise comparisons;\ntreatment versus control;\npreplanned contrasts.\n\nThese are again linear functions of model parameters.\nSo post hoc or planned comparisons fit naturally into the contrast framework from the previous week.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#interpretation-and-caution",
+    "href": "10.html#interpretation-and-caution",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.26 Interpretation and Caution",
+    "text": "11.26 Interpretation and Caution\nIn factor models, coefficient interpretation depends on coding.\nFor example, treatment coding, sum-to-zero coding, and cell-means coding all yield different raw coefficients.\nTherefore students should focus on:\n\nfitted means;\ndifferences among means;\ninteractions;\nclearly defined hypotheses.\n\nThese are more stable and meaningful than memorizing one coding-specific coefficient interpretation.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#worked-example-with-one-way-anova",
+    "href": "10.html#worked-example-with-one-way-anova",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.27 Worked Example With One-Way ANOVA",
+    "text": "11.27 Worked Example With One-Way ANOVA\nSuppose three teaching methods are compared.\nA one-way ANOVA model asks whether the mean outcome differs across the three methods.\nThis can be written either as a group-means model or as a regression with two indicators and an intercept.\nThe overall \\(F\\) test asks whether all three group means are equal.\nIf the null is rejected, further contrasts can be used to compare specific methods.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#worked-example-with-two-way-anova",
+    "href": "10.html#worked-example-with-two-way-anova",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.28 Worked Example With Two-Way ANOVA",
+    "text": "11.28 Worked Example With Two-Way ANOVA\nSuppose yield is measured under:\n\nthree fertilizer types;\ntwo irrigation levels.\n\nA two-way ANOVA model can assess:\n\nwhether fertilizer matters;\nwhether irrigation matters;\nwhether the effect of fertilizer depends on irrigation.\n\nThis is a direct example of main effects and interaction in a factorial design.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#worked-example-with-ancova",
+    "href": "10.html#worked-example-with-ancova",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.29 Worked Example With ANCOVA",
+    "text": "11.29 Worked Example With ANCOVA\nSuppose two treatment groups are compared on a final score, and baseline score is available as a covariate.\nA simple ANCOVA model adjusts the treatment comparison for baseline.\nThis often provides a more precise and fairer comparison than comparing final means alone.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#r-demonstration-with-one-way-anova",
+    "href": "10.html#r-demonstration-with-one-way-anova",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.30 R Demonstration With One-Way ANOVA",
+    "text": "11.30 R Demonstration With One-Way ANOVA",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#simulate-one-way-anova-data",
+    "href": "10.html#simulate-one-way-anova-data",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.31 Simulate one-way ANOVA data",
+    "text": "11.31 Simulate one-way ANOVA data\n\nset.seed(123)\ngroup &lt;- factor(rep(c(\"A\", \"B\", \"C\"), each = 12))\nmu &lt;- c(A = 10, B = 13, C = 15)\ny &lt;- mu[group] + rnorm(length(group), sd = 2)\n\ndat1 &lt;- data.frame(y = y, group = group)\nfit1 &lt;- lm(y ~ group, data = dat1)\n\nsummary(fit1)\n\n\nCall:\nlm(formula = y ~ group, data = dat1)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-3.7417 -1.3371 -0.0372  1.3274  3.9969 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)  10.3884     0.5465  19.008  &lt; 2e-16 ***\ngroupB        2.1886     0.7729   2.832  0.00783 ** \ngroupC        4.9800     0.7729   6.443 2.63e-07 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 1.893 on 33 degrees of freedom\nMultiple R-squared:  0.5583,    Adjusted R-squared:  0.5316 \nF-statistic: 20.86 on 2 and 33 DF,  p-value: 1.393e-06\n\nanova(fit1)\n\nAnalysis of Variance Table\n\nResponse: y\n          Df Sum Sq Mean Sq F value    Pr(&gt;F)    \ngroup      2 149.53  74.764  20.858 1.393e-06 ***\nResiduals 33 118.28   3.584                      \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#group-means-and-model-matrix",
+    "href": "10.html#group-means-and-model-matrix",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.32 Group means and model matrix",
+    "text": "11.32 Group means and model matrix\n\ntapply(dat1$y, dat1$group, mean)\n\n       A        B        C \n10.38836 12.57694 15.36833 \n\nmodel.matrix(fit1)[1:10, ]\n\n   (Intercept) groupB groupC\n1            1      0      0\n2            1      0      0\n3            1      0      0\n4            1      0      0\n5            1      0      0\n6            1      0      0\n7            1      0      0\n8            1      0      0\n9            1      0      0\n10           1      0      0",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#pairwise-comparisons-through-linear-contrasts",
+    "href": "10.html#pairwise-comparisons-through-linear-contrasts",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.33 Pairwise comparisons through linear contrasts",
+    "text": "11.33 Pairwise comparisons through linear contrasts\n\nb &lt;- coef(fit1)\nV &lt;- vcov(fit1)\n\n# Under treatment coding with A as reference:\n# mean_A = beta0\n# mean_B = beta0 + beta_groupB\n# mean_C = beta0 + beta_groupC\n\n# Compare B and C\na &lt;- c(0, 1, -1)\nest &lt;- sum(a * b)\nse &lt;- sqrt(t(a) %*% V %*% a)\nt_stat &lt;- est / se\ndf &lt;- df.residual(fit1)\np_val &lt;- 2 * pt(abs(t_stat), df = df, lower.tail = FALSE)\n\nc(estimate = est, se = se, t = t_stat, p_value = p_val)\n\n     estimate            se             t       p_value \n-2.7913915175  0.7729112696 -3.6115290685  0.0009983035",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#r-demonstration-with-two-way-anova",
+    "href": "10.html#r-demonstration-with-two-way-anova",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.34 R Demonstration With Two-Way ANOVA",
+    "text": "11.34 R Demonstration With Two-Way ANOVA",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#simulate-factorial-data",
+    "href": "10.html#simulate-factorial-data",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.35 Simulate factorial data",
+    "text": "11.35 Simulate factorial data\n\nset.seed(456)\nA &lt;- factor(rep(c(\"Low\", \"Medium\", \"High\"), each = 16))\nB &lt;- factor(rep(rep(c(\"I1\", \"I2\"), each = 8), times = 3))\n\nmean_table &lt;- matrix(c(\n  10, 12,\n  13, 15,\n  16, 20\n), nrow = 3, byrow = TRUE)\n\nmu2 &lt;- numeric(length(A))\nfor (i in seq_along(mu2)) {\n  mu2[i] &lt;- mean_table[which(levels(A) == A[i]), which(levels(B) == B[i])]\n}\n\ny2 &lt;- mu2 + rnorm(length(mu2), sd = 1.8)\ndat2 &lt;- data.frame(y = y2, A = A, B = B)",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#fit-additive-and-interaction-models",
+    "href": "10.html#fit-additive-and-interaction-models",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.36 Fit additive and interaction models",
+    "text": "11.36 Fit additive and interaction models\n\nfit2_add &lt;- lm(y ~ A + B, data = dat2)\nfit2_int &lt;- lm(y ~ A * B, data = dat2)\n\nsummary(fit2_add)\n\n\nCall:\nlm(formula = y ~ A + B, data = dat2)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-3.7012 -0.9352 -0.0968  1.3177  3.6363 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)   9.6318     0.5460  17.641  &lt; 2e-16 ***\nALow          3.1589     0.6687   4.724 2.39e-05 ***\nAMedium       6.9782     0.6687  10.435 1.76e-13 ***\nBI2           3.2551     0.5460   5.962 3.84e-07 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 1.891 on 44 degrees of freedom\nMultiple R-squared:  0.7669,    Adjusted R-squared:  0.751 \nF-statistic: 48.26 on 3 and 44 DF,  p-value: 5.777e-14\n\nsummary(fit2_int)\n\n\nCall:\nlm(formula = y ~ A * B, data = dat2)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-3.7466 -0.9687 -0.0766  1.2641  3.5344 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)   9.7795     0.6832  14.314  &lt; 2e-16 ***\nALow          2.9039     0.9662   3.005  0.00446 ** \nAMedium       6.7902     0.9662   7.028 1.33e-08 ***\nBI2           2.9598     0.9662   3.063  0.00381 ** \nALow:BI2      0.5099     1.3664   0.373  0.71091    \nAMedium:BI2   0.3760     1.3664   0.275  0.78456    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 1.932 on 42 degrees of freedom\nMultiple R-squared:  0.7677,    Adjusted R-squared:  0.7401 \nF-statistic: 27.77 on 5 and 42 DF,  p-value: 2.628e-12\n\nanova(fit2_add, fit2_int)\n\nAnalysis of Variance Table\n\nModel 1: y ~ A + B\nModel 2: y ~ A * B\n  Res.Df    RSS Df Sum of Sq      F Pr(&gt;F)\n1     44 157.40                           \n2     42 156.84  2   0.55902 0.0749  0.928\n\nanova(fit2_int)\n\nAnalysis of Variance Table\n\nResponse: y\n          Df Sum Sq Mean Sq F value    Pr(&gt;F)    \nA          2 390.72 195.360 52.3157 3.958e-12 ***\nB          1 127.15 127.149 34.0494 6.855e-07 ***\nA:B        2   0.56   0.280  0.0749     0.928    \nResiduals 42 156.84   3.734                      \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#interaction-plot",
+    "href": "10.html#interaction-plot",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.37 Interaction plot",
+    "text": "11.37 Interaction plot\n\nwith(dat2, interaction.plot(x.factor = B, trace.factor = A, response = y,\n                            fun = mean, type = \"b\", legend = TRUE))",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#r-demonstration-with-ancova",
+    "href": "10.html#r-demonstration-with-ancova",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.38 R Demonstration With ANCOVA",
+    "text": "11.38 R Demonstration With ANCOVA",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#simulate-ancova-style-data",
+    "href": "10.html#simulate-ancova-style-data",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.39 Simulate ANCOVA-style data",
+    "text": "11.39 Simulate ANCOVA-style data\n\nset.seed(789)\nn &lt;- 80\ngroup3 &lt;- factor(rep(c(\"Control\", \"Treatment\"), each = n / 2))\nx &lt;- rnorm(n, mean = 50, sd = 10)\ny3 &lt;- 20 + 0.7 * x + ifelse(group3 == \"Treatment\", 4, 0) + rnorm(n, sd = 4)\n\ndat3 &lt;- data.frame(y = y3, x = x, group = group3)\nfit3 &lt;- lm(y ~ x + group, data = dat3)\nfit3_int &lt;- lm(y ~ x * group, data = dat3)\n\nsummary(fit3)\n\n\nCall:\nlm(formula = y ~ x + group, data = dat3)\n\nResiduals:\n     Min       1Q   Median       3Q      Max \n-11.2460  -2.4058   0.4175   2.2633  12.6605 \n\nCoefficients:\n               Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)    21.61302    2.49417   8.665 5.30e-13 ***\nx               0.65937    0.05125  12.865  &lt; 2e-16 ***\ngroupTreatment  4.46782    0.95667   4.670 1.25e-05 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 4.094 on 77 degrees of freedom\nMultiple R-squared:  0.7591,    Adjusted R-squared:  0.7528 \nF-statistic: 121.3 on 2 and 77 DF,  p-value: &lt; 2.2e-16\n\nsummary(fit3_int)\n\n\nCall:\nlm(formula = y ~ x * group, data = dat3)\n\nResiduals:\n     Min       1Q   Median       3Q      Max \n-11.2681  -2.4000   0.4132   2.2713  12.6713 \n\nCoefficients:\n                  Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)      21.499220   4.414169   4.871 5.92e-06 ***\nx                 0.661792   0.092900   7.124 5.13e-10 ***\ngroupTreatment    4.638217   5.520886   0.840    0.403    \nx:groupTreatment -0.003501   0.111709  -0.031    0.975    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 4.121 on 76 degrees of freedom\nMultiple R-squared:  0.7591,    Adjusted R-squared:  0.7496 \nF-statistic: 79.81 on 3 and 76 DF,  p-value: &lt; 2.2e-16\n\nanova(fit3, fit3_int)\n\nAnalysis of Variance Table\n\nModel 1: y ~ x + group\nModel 2: y ~ x * group\n  Res.Df    RSS Df Sum of Sq     F Pr(&gt;F)\n1     77 1290.8                          \n2     76 1290.8  1  0.016686 0.001 0.9751",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#plot-ancova-fit",
+    "href": "10.html#plot-ancova-fit",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.40 Plot ANCOVA fit",
+    "text": "11.40 Plot ANCOVA fit\n\nplot(dat3$x, dat3$y,\n     pch = ifelse(dat3$group == \"Control\", 1, 19),\n     xlab = \"Covariate x\",\n     ylab = \"Response y\")\nabline(a = coef(fit3)[1], b = coef(fit3)[2], lwd = 2)\nabline(a = coef(fit3)[1] + coef(fit3)[3], b = coef(fit3)[2], lwd = 2, lty = 2)\nlegend(\"topleft\",\n       legend = c(\"Control\", \"Treatment\"),\n       pch = c(1, 19),\n       lty = c(1, 2),\n       bty = \"n\")",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#interpreting-software-output",
+    "href": "10.html#interpreting-software-output",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.41 Interpreting Software Output",
+    "text": "11.41 Interpreting Software Output\nIn R:\n\nlm(y ~ group) fits a one-way ANOVA model;\nlm(y ~ A * B) fits a two-way ANOVA model with interaction;\nlm(y ~ x + group) fits a common-slope ANCOVA model;\nlm(y ~ x * group) fits an ANCOVA model with group-specific slopes.\n\nStudents should recognize that these are all regression models differing only in the structure of the design matrix.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#a-practical-workflow",
+    "href": "10.html#a-practical-workflow",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.42 A Practical Workflow",
+    "text": "11.42 A Practical Workflow\nA useful modelling workflow is:\n\nidentify whether predictors are factors, covariates, or both;\ndecide whether interactions are scientifically plausible;\nfit the more complete model when appropriate;\ntest whether interaction is needed;\ninterpret fitted means or adjusted means rather than raw coding-specific coefficients;\nuse contrasts for focused follow-up questions.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#in-class-discussion-questions",
+    "href": "10.html#in-class-discussion-questions",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.43 In-Class Discussion Questions",
+    "text": "11.43 In-Class Discussion Questions\n\nWhy is one-way ANOVA just a regression model with indicator variables?\nWhy should interaction be considered before interpreting main effects in two-way ANOVA?\nWhat does ANCOVA adjust for that ordinary group-mean comparison does not?\nWhy can coefficient interpretation depend on coding while fitted means do not?",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#practice-problems",
+    "href": "10.html#practice-problems",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.44 Practice Problems",
+    "text": "11.44 Practice Problems",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#conceptual",
+    "href": "10.html#conceptual",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.45 Conceptual",
+    "text": "11.45 Conceptual\n\nExplain the difference between a one-way ANOVA model and an ANCOVA model.\nExplain what interaction means in a two-way ANOVA setting.\nExplain why adjusted means are useful in ANCOVA.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#computational",
+    "href": "10.html#computational",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.46 Computational",
+    "text": "11.46 Computational\nSuppose there are three groups A, B, and C, and treatment coding is used with A as the reference group. The fitted model is\n\\[\n\\hat{Y} = 8 + 2z_1 + 5z_2.\n\\]\n\nWhat is the fitted mean for group A?\nWhat is the fitted mean for group B?\nWhat is the fitted mean for group C?\nWhat is the estimated difference between groups B and C?\n\nNow consider the ANCOVA model\n\\[\n\\hat{Y} = 12 + 0.6x + 3z,\n\\]\nwhere \\(z=1\\) for treatment and \\(z=0\\) for control.\n\nInterpret the coefficient of \\(x\\).\nInterpret the coefficient of \\(z\\).\nCompute the fitted mean when \\(x=10\\) for control and treatment.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#model-comparison-problem",
+    "href": "10.html#model-comparison-problem",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.47 Model-Comparison Problem",
+    "text": "11.47 Model-Comparison Problem\nYou fit the following two models:\n\nModel 1: y ~ x + group\nModel 2: y ~ x * group\n\n\nWhat extra term is in Model 2?\nWhat scientific question does the comparison test?\nWhy would a significant interaction affect the interpretation of the group effect?",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#suggested-homework",
+    "href": "10.html#suggested-homework",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.48 Suggested Homework",
+    "text": "11.48 Suggested Homework\nComplete the following tasks:\n\nfit a one-way ANOVA model and interpret the overall \\(F\\) test;\ncarry out at least two follow-up contrasts among group means;\nfit a two-way ANOVA model with interaction and interpret the interaction term;\nfit an ANCOVA model and explain the meaning of adjusted group comparison;\ncompare an ANCOVA model with and without interaction and explain which one you prefer.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#summary",
+    "href": "10.html#summary",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.49 Summary",
+    "text": "11.49 Summary\nIn this week, we studied one-way ANOVA, two-way ANOVA, and ANCOVA within the general linear model framework.\nWe emphasized that:\n\nANOVA models are regression models with categorical predictors;\ntwo-way ANOVA introduces main effects and interaction;\nANCOVA combines factor effects with continuous covariate adjustment;\nfitted means, adjusted means, and contrasts are often more meaningful than raw coding-specific coefficients;\nmodel comparison through general linear hypotheses unifies all these settings.\n\nNext week, a natural continuation is to study generalized least squares and correlated errors, or to move toward repeated-measures and mixed-model ideas, depending on the course emphasis.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "10.html#appendix-compact-formula-summary",
+    "href": "10.html#appendix-compact-formula-summary",
+    "title": "11  Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework",
+    "section": "11.50 Appendix: Compact Formula Summary",
+    "text": "11.50 Appendix: Compact Formula Summary\nOne-way ANOVA cell-means model:\n\\[\nY_{ij} = \\mu_i + \\varepsilon_{ij}.\n\\]\nTwo-way ANOVA with interaction:\n\\[\nY_{ijk} = \\mu + \\alpha_i + \\beta_j + (\\alpha\\beta)_{ij} + \\varepsilon_{ijk}.\n\\]\nSimple ANCOVA model:\n\\[\nY_i = \\beta_0 + \\beta_1 x_i + \\beta_2 z_i + \\varepsilon_i.\n\\]\nANCOVA with interaction:\n\\[\nY_i = \\beta_0 + \\beta_1 x_i + \\beta_2 z_i + \\beta_3 x_i z_i + \\varepsilon_i.\n\\]\nUnifying principle:\n\nfactors enter through indicator variables;\ninteractions enter through products of model terms;\nANOVA, ANCOVA, and regression are all linear models.",
+    "crumbs": [
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span>"
+    ]
+  },
+  {
+    "objectID": "11.html",
+    "href": "11.html",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "",
+    "text": "12.1 Learning Objectives\nIn this week, we study what happens when the error terms in a linear model are no longer independent with common variance. This leads to generalized least squares, a natural extension of ordinary least squares that accounts for nonidentity covariance structure. The goal is to help students understand how the linear model changes when observations are correlated or have unequal precision in a more general matrix form.\nBy the end of this week, students should be able to:",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#learning-objectives",
+    "href": "11.html#learning-objectives",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "",
+    "text": "explain why ordinary least squares is not always appropriate when errors are correlated or heteroscedastic;\nstate the generalized linear model covariance assumption for the error vector in a linear model context;\nderive the generalized least squares estimator;\nexplain how generalized least squares reduces to ordinary least squares and weighted least squares in special cases;\ninterpret the transformed-model view of generalized least squares;\nrecognize practical examples of correlated errors and structured covariance models.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#reading",
+    "href": "11.html#reading",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.2 Reading",
+    "text": "12.2 Reading\nRecommended reading for this week:\n\nSeber and Lee:\n\nsections on generalized least squares\ncorrelated observations and covariance structure\nextensions of least squares methods\n\nMontgomery, Peck, and Vining:\n\nsections on departures from ordinary linear model assumptions\nweighted and generalized least squares ideas\npractical modelling considerations for dependence and unequal variance",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#why-ordinary-least-squares-can-fail",
+    "href": "11.html#why-ordinary-least-squares-can-fail",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.3 Why Ordinary Least Squares Can Fail",
+    "text": "12.3 Why Ordinary Least Squares Can Fail\nSo far, much of the course has relied on the classical assumption\n\\[\n\\mathrm{Var}(\\boldsymbol{\\varepsilon}) = \\sigma^2 \\mathbf{I}_n.\n\\]\nThis means:\n\nall observations have the same error variance;\nerrors are uncorrelated.\n\nBut many real datasets do not satisfy this assumption.\nExamples include:\n\nrepeated observations on the same unit;\nmeasurements taken over time;\nclustered or grouped data;\nobservations with known unequal precision;\nspatial or serial dependence.\n\nIn such cases, ordinary least squares may still be unbiased for the mean model under suitable assumptions, but it is no longer the most efficient linear estimator, and the usual standard error formulas become incorrect.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#review-of-the-linear-model",
+    "href": "11.html#review-of-the-linear-model",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.4 Review of the Linear Model",
+    "text": "12.4 Review of the Linear Model\nRecall the linear model\n\\[\n\\mathbf{Y} = \\mathbf{X}\\boldsymbol{\\beta} + \\boldsymbol{\\varepsilon},\n\\]\nwith\n\\[\n\\mathbb{E}[\\boldsymbol{\\varepsilon}] = \\mathbf{0}.\n\\]\nUnder ordinary least squares, we assumed\n\\[\n\\mathrm{Var}(\\boldsymbol{\\varepsilon}) = \\sigma^2 \\mathbf{I}_n.\n\\]\nThis gave the estimator\n\\[\n\\hat{\\boldsymbol{\\beta}}_{OLS}\n=\n(\\mathbf{X}^\\top \\mathbf{X})^{-1}\\mathbf{X}^\\top \\mathbf{Y}.\n\\]\nNow we allow a more general covariance structure.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#a-more-general-covariance-model",
+    "href": "11.html#a-more-general-covariance-model",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.5 A More General Covariance Model",
+    "text": "12.5 A More General Covariance Model\nSuppose instead that\n\\[\n\\mathrm{Var}(\\boldsymbol{\\varepsilon}) = \\sigma^2 \\mathbf{V},\n\\]\nwhere \\(\\mathbf{V}\\) is a known positive definite matrix.\nThen\n\\[\n\\mathrm{Var}(\\mathbf{Y}) = \\sigma^2 \\mathbf{V}.\n\\]\nThe matrix \\(\\mathbf{V}\\) may represent:\n\nunequal variances;\ncorrelations among observations;\nboth at once.\n\nThis is the setting of generalized least squares.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#why-the-covariance-matrix-matters",
+    "href": "11.html#why-the-covariance-matrix-matters",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.6 Why the Covariance Matrix Matters",
+    "text": "12.6 Why the Covariance Matrix Matters\nIf two observations are highly correlated, then together they contain less independent information than two unrelated observations.\nIf one observation has much larger variance than another, it should typically receive less weight in estimation.\nThus the covariance structure affects how much information each part of the data contributes.\nOrdinary least squares ignores this structure. Generalized least squares incorporates it directly.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#the-generalized-least-squares-criterion",
+    "href": "11.html#the-generalized-least-squares-criterion",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.7 The Generalized Least Squares Criterion",
+    "text": "12.7 The Generalized Least Squares Criterion\nIn generalized least squares, we minimize the quadratic form\n\\[\nQ(\\boldsymbol{\\beta})\n=\n(\\mathbf{Y} - \\mathbf{X}\\boldsymbol{\\beta})^\\top\n\\mathbf{V}^{-1}\n(\\mathbf{Y} - \\mathbf{X}\\boldsymbol{\\beta}).\n\\]\nThis is the natural analogue of the ordinary least squares criterion\n\\[\n(\\mathbf{Y} - \\mathbf{X}\\boldsymbol{\\beta})^\\top\n(\\mathbf{Y} - \\mathbf{X}\\boldsymbol{\\beta}),\n\\]\nbut now weighted by the inverse covariance structure.\nThe matrix \\(\\mathbf{V}^{-1}\\) downweights directions in the data that are more variable or more redundant.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#derivation-of-the-generalized-least-squares-estimator",
+    "href": "11.html#derivation-of-the-generalized-least-squares-estimator",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.8 Derivation of the Generalized Least Squares Estimator",
+    "text": "12.8 Derivation of the Generalized Least Squares Estimator\nDifferentiate the generalized least squares criterion with respect to \\(\\boldsymbol{\\beta}\\) and set the derivative equal to zero.\nThis gives the generalized normal equations\n\\[\n\\mathbf{X}^\\top \\mathbf{V}^{-1}\\mathbf{X}\\,\\hat{\\boldsymbol{\\beta}}_{GLS}\n=\n\\mathbf{X}^\\top \\mathbf{V}^{-1}\\mathbf{Y}.\n\\]\nAssuming invertibility, the generalized least squares estimator is\n\\[\n\\hat{\\boldsymbol{\\beta}}_{GLS}\n=\n(\\mathbf{X}^\\top \\mathbf{V}^{-1}\\mathbf{X})^{-1}\n\\mathbf{X}^\\top \\mathbf{V}^{-1}\\mathbf{Y}.\n\\]\nThis is the central formula for the week.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#interpretation-of-the-gls-estimator",
+    "href": "11.html#interpretation-of-the-gls-estimator",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.9 Interpretation of the GLS Estimator",
+    "text": "12.9 Interpretation of the GLS Estimator\nThe GLS estimator has the same structural form as OLS and WLS, but with the covariance matrix inserted.\nIt can be interpreted as an estimator that gives appropriate weight to observations according to the joint covariance structure.\nCompared with OLS:\n\nobservations with larger variance are effectively downweighted;\ncorrelated observations are not treated as if they were independent;\nthe estimator uses the information in the data more efficiently when \\(\\mathbf{V}\\) is correctly specified.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#special-case-ordinary-least-squares",
+    "href": "11.html#special-case-ordinary-least-squares",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.10 Special Case: Ordinary Least Squares",
+    "text": "12.10 Special Case: Ordinary Least Squares\nIf\n\\[\n\\mathbf{V} = \\mathbf{I}_n,\n\\]\nthen GLS becomes\n\\[\n\\hat{\\boldsymbol{\\beta}}_{GLS}\n=\n(\\mathbf{X}^\\top \\mathbf{X})^{-1}\\mathbf{X}^\\top \\mathbf{Y},\n\\]\nwhich is exactly the ordinary least squares estimator.\nSo OLS is a special case of GLS.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#special-case-weighted-least-squares",
+    "href": "11.html#special-case-weighted-least-squares",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.11 Special Case: Weighted Least Squares",
+    "text": "12.11 Special Case: Weighted Least Squares\nIf the covariance matrix is diagonal,\n\\[\n\\mathbf{V} = \\mathrm{diag}(v_1,\\dots,v_n),\n\\]\nthen\n\\[\n\\mathbf{V}^{-1} = \\mathrm{diag}(1/v_1,\\dots,1/v_n).\n\\]\nThis is the weighted least squares setting from the previous week, with weights proportional to inverse variances.\nSo WLS is also a special case of GLS.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#the-transformed-model-view",
+    "href": "11.html#the-transformed-model-view",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.12 The Transformed-Model View",
+    "text": "12.12 The Transformed-Model View\nA very important way to understand GLS is through a transformation.\nBecause \\(\\mathbf{V}\\) is positive definite, there exists a matrix \\(\\mathbf{A}\\) such that\n\\[\n\\mathbf{A}^\\top \\mathbf{A} = \\mathbf{V}^{-1}.\n\\]\nFor example, we may take \\(\\mathbf{A} = \\mathbf{V}^{-1/2}\\).\nMultiplying the model by \\(\\mathbf{A}\\) gives\n\\[\n\\mathbf{A}\\mathbf{Y}\n=\n\\mathbf{A}\\mathbf{X}\\boldsymbol{\\beta}\n+\n\\mathbf{A}\\boldsymbol{\\varepsilon}.\n\\]\nNow the transformed error has variance\n\\[\n\\mathrm{Var}(\\mathbf{A}\\boldsymbol{\\varepsilon})\n=\n\\mathbf{A}(\\sigma^2 \\mathbf{V})\\mathbf{A}^\\top\n=\n\\sigma^2 \\mathbf{I}_n.\n\\]\nSo GLS can be viewed as ordinary least squares applied to a transformed model with spherical errors.\nThis is one of the most important conceptual ideas in the course.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#distribution-of-the-gls-estimator",
+    "href": "11.html#distribution-of-the-gls-estimator",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.13 Distribution of the GLS Estimator",
+    "text": "12.13 Distribution of the GLS Estimator\nIf the covariance structure is correctly specified and\n\\[\n\\mathbf{Y} \\sim N_n(\\mathbf{X}\\boldsymbol{\\beta}, \\sigma^2 \\mathbf{V}),\n\\]\nthen the GLS estimator is normally distributed:\n\\[\n\\hat{\\boldsymbol{\\beta}}_{GLS}\n\\sim\nN_p\\!\\left(\n\\boldsymbol{\\beta},\n\\sigma^2\n(\\mathbf{X}^\\top \\mathbf{V}^{-1}\\mathbf{X})^{-1}\n\\right).\n\\]\nThis parallels the OLS distribution theory, but with \\(\\mathbf{V}^{-1}\\) appearing throughout.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#gauss-markov-interpretation",
+    "href": "11.html#gauss-markov-interpretation",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.14 Gauss-Markov Interpretation",
+    "text": "12.14 Gauss-Markov Interpretation\nUnder the covariance model\n\\[\n\\mathrm{Var}(\\boldsymbol{\\varepsilon}) = \\sigma^2 \\mathbf{V},\n\\]\nthe generalized least squares estimator is the best linear unbiased estimator among all linear unbiased estimators.\nSo GLS is the natural Gauss-Markov extension of OLS to nonidentity covariance structures.\nThis is sometimes phrased by saying that OLS is BLUE under spherical errors, while GLS is BLUE under the more general covariance model.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#estimating-sigma-squared-under-gls",
+    "href": "11.html#estimating-sigma-squared-under-gls",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.15 Estimating Sigma Squared Under GLS",
+    "text": "12.15 Estimating Sigma Squared Under GLS\nIn the transformed model, residual sums of squares can be defined using the GLS criterion.\nThe generalized residual sum of squares is\n\\[\nSSE_{GLS}\n=\n(\\mathbf{Y} - \\mathbf{X}\\hat{\\boldsymbol{\\beta}}_{GLS})^\\top\n\\mathbf{V}^{-1}\n(\\mathbf{Y} - \\mathbf{X}\\hat{\\boldsymbol{\\beta}}_{GLS}).\n\\]\nUnder the normal model with known \\(\\mathbf{V}\\), this plays the same role as the ordinary SSE after transformation.\nAn estimator of \\(\\sigma^2\\) is then\n\\[\n\\hat{\\sigma}^2_{GLS}\n=\n\\frac{SSE_{GLS}}{n-p}.\n\\]",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#why-known-v-is-rare",
+    "href": "11.html#why-known-v-is-rare",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.16 Why Known V Is Rare",
+    "text": "12.16 Why Known V Is Rare\nIn practice, the covariance matrix \\(\\mathbf{V}\\) is usually not known exactly.\nInstead, we may have:\n\nscientific knowledge suggesting a covariance pattern;\nrepeated-measures structure suggesting dependence;\nknown weights from design considerations;\nan estimated covariance model.\n\nWhen \\(\\mathbf{V}\\) is replaced by an estimate, the resulting estimator is often called feasible GLS.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#feasible-generalized-least-squares",
+    "href": "11.html#feasible-generalized-least-squares",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.17 Feasible Generalized Least Squares",
+    "text": "12.17 Feasible Generalized Least Squares\nThe basic idea of feasible GLS is:\n\npropose a covariance model for \\(\\mathbf{V}\\);\nestimate the unknown covariance parameters from the data;\nplug the estimated covariance matrix into the GLS formula.\n\nThis is practical, but it introduces an extra modelling step and relies on the covariance model being approximately correct.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#examples-of-covariance-structures",
+    "href": "11.html#examples-of-covariance-structures",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.18 Examples of Covariance Structures",
+    "text": "12.18 Examples of Covariance Structures\nSeveral structured covariance matrices appear often in applications.\n\n12.18.1 Unequal Variances Only\nIf observations are independent but have different variances, then \\(\\mathbf{V}\\) is diagonal.\nThis is the weighted least squares case.\n\n\n12.18.2 Compound Symmetry\nIn grouped or repeated-measures settings, one may assume a common variance and a common correlation within group.\nThis gives a covariance pattern often called compound symmetry.\n\n\n12.18.3 Autoregressive Structure\nFor time-ordered observations, nearby errors may be more strongly correlated than distant ones.\nA simple model is the AR(1) structure, where correlations decay geometrically with lag.\n\n\n12.18.4 Block-Diagonal Structure\nIf observations are grouped into independent clusters, then \\(\\mathbf{V}\\) may be block diagonal, with each block describing within-cluster dependence.\nThese examples help students see that covariance structure is part of model formulation, not just a technical afterthought.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#correlated-errors-in-time-ordered-data",
+    "href": "11.html#correlated-errors-in-time-ordered-data",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.19 Correlated Errors in Time-Ordered Data",
+    "text": "12.19 Correlated Errors in Time-Ordered Data\nSuppose we observe data over time:\n\\[\nY_t = \\beta_0 + \\beta_1 x_t + \\varepsilon_t.\n\\]\nIf the errors satisfy\n\\[\n\\mathrm{Corr}(\\varepsilon_t,\\varepsilon_{t-1}) \\neq 0,\n\\]\nthen ordinary least squares may still estimate the mean trend, but standard errors based on independence are not trustworthy.\nThis is one of the classic motivations for generalized least squares.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#clustered-and-repeated-observations",
+    "href": "11.html#clustered-and-repeated-observations",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.20 Clustered and Repeated Observations",
+    "text": "12.20 Clustered and Repeated Observations\nSuppose several observations come from the same individual, school, hospital, or geographic region.\nThen responses within the same cluster may be correlated.\nIn this case, the assumption of independent errors is not appropriate, and a structured covariance model or a mixed-model approach may be better suited.\nGLS provides an important stepping stone toward these more advanced frameworks.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#relationship-to-robust-standard-errors",
+    "href": "11.html#relationship-to-robust-standard-errors",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.21 Relationship to Robust Standard Errors",
+    "text": "12.21 Relationship to Robust Standard Errors\nOne alternative to full covariance modelling is to keep the OLS mean estimator but adjust the standard errors to be robust to heteroscedasticity or dependence.\nThis is a different strategy from GLS.\n\nGLS changes the estimator itself using a covariance model;\nrobust standard errors keep the estimator but correct inference approximately.\n\nBoth are useful, but they serve different purposes.\nThis distinction is valuable for students to understand even if robust methods are treated only briefly.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#when-gls-is-worth-using",
+    "href": "11.html#when-gls-is-worth-using",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.22 When GLS Is Worth Using",
+    "text": "12.22 When GLS Is Worth Using\nGLS is especially attractive when:\n\nthere is a defensible covariance model;\nthe dependence or heteroscedasticity is substantial;\nefficient estimation matters;\nthe transformed model remains interpretable.\n\nIf the covariance model is poorly specified, the gains from GLS may be limited, and robustness or alternative modelling strategies may be preferable.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#diagnostics-for-correlated-errors",
+    "href": "11.html#diagnostics-for-correlated-errors",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.23 Diagnostics for Correlated Errors",
+    "text": "12.23 Diagnostics for Correlated Errors\nSymptoms that may suggest correlated errors include:\n\nresiduals that display runs or systematic temporal patterns;\nresidual plots against time showing clustering;\nrepeated-measures structure built into the design;\nknown grouping or spatial dependence in the data collection process.\n\nThe key lesson is that covariance structure should be motivated both by diagnostics and by how the data were collected.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#worked-example-with-known-unequal-precision",
+    "href": "11.html#worked-example-with-known-unequal-precision",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.24 Worked Example With Known Unequal Precision",
+    "text": "12.24 Worked Example With Known Unequal Precision\nSuppose each response is an average of \\(m_i\\) repeated measurements.\nThen the variance of the average may satisfy\n\\[\n\\mathrm{Var}(Y_i) = \\frac{\\sigma^2}{m_i}.\n\\]\nIn that case, a natural choice is\n\\[\nv_i = \\frac{1}{m_i},\n\\qquad\nw_i = m_i.\n\\]\nSo observations based on more repeated measurements get more weight.\nThis is a very intuitive example of GLS through weighted least squares.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#worked-example-with-correlated-pairs",
+    "href": "11.html#worked-example-with-correlated-pairs",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.25 Worked Example With Correlated Pairs",
+    "text": "12.25 Worked Example With Correlated Pairs\nSuppose observations come in natural pairs, and within each pair the errors are positively correlated.\nThen the covariance matrix has a block structure, with a \\(2\\times2\\) covariance block for each pair.\nGLS accounts for the fact that the two observations in a pair do not contribute as much independent information as two unrelated observations would.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#r-demonstration-with-weighted-least-squares-as-gls",
+    "href": "11.html#r-demonstration-with-weighted-least-squares-as-gls",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.26 R Demonstration With Weighted Least Squares as GLS",
+    "text": "12.26 R Demonstration With Weighted Least Squares as GLS",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#simulate-data-with-unequal-variances",
+    "href": "11.html#simulate-data-with-unequal-variances",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.27 Simulate data with unequal variances",
+    "text": "12.27 Simulate data with unequal variances\n\nset.seed(123)\nn &lt;- 40\nx &lt;- seq(1, 20, length.out = n)\nv &lt;- 0.3 + 0.08 * x^2\ny &lt;- 5 + 1.2 * x + rnorm(n, sd = sqrt(v))\n\ndat &lt;- data.frame(y = y, x = x, v = v)\n\nfit_ols &lt;- lm(y ~ x, data = dat)\nfit_wls &lt;- lm(y ~ x, data = dat, weights = 1 / v)\n\nsummary(fit_ols)\n\n\nCall:\nlm(formula = y ~ x, data = dat)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-6.5979 -1.6024  0.2916  1.9490  5.0754 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)  4.63093    0.93057   4.976 1.43e-05 ***\nx            1.24643    0.07813  15.954  &lt; 2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 2.779 on 38 degrees of freedom\nMultiple R-squared:  0.8701,    Adjusted R-squared:  0.8667 \nF-statistic: 254.5 on 1 and 38 DF,  p-value: &lt; 2.2e-16\n\nsummary(fit_wls)\n\n\nCall:\nlm(formula = y ~ x, data = dat, weights = 1/v)\n\nWeighted Residuals:\n    Min      1Q  Median      3Q     Max \n-1.9970 -0.6075 -0.0324  0.6769  1.7500 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)  5.15391    0.34558   14.91   &lt;2e-16 ***\nx            1.19219    0.06256   19.05   &lt;2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 0.9073 on 38 degrees of freedom\nMultiple R-squared:  0.9053,    Adjusted R-squared:  0.9028 \nF-statistic: 363.1 on 1 and 38 DF,  p-value: &lt; 2.2e-16",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#compare-fitted-lines",
+    "href": "11.html#compare-fitted-lines",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.28 Compare fitted lines",
+    "text": "12.28 Compare fitted lines\n\nplot(dat$x, dat$y, pch = 19, xlab = \"x\", ylab = \"y\")\nabline(fit_ols, lwd = 2)\nabline(fit_wls, lwd = 2, lty = 2)\nlegend(\"topleft\",\n       legend = c(\"OLS\", \"WLS / GLS\"),\n       lty = c(1, 2),\n       lwd = 2,\n       bty = \"n\")",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#r-demonstration-with-a-hand-built-gls-computation",
+    "href": "11.html#r-demonstration-with-a-hand-built-gls-computation",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.29 R Demonstration With a Hand-Built GLS Computation",
+    "text": "12.29 R Demonstration With a Hand-Built GLS Computation",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#construct-a-covariance-matrix-and-compute-gls-directly",
+    "href": "11.html#construct-a-covariance-matrix-and-compute-gls-directly",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.30 Construct a covariance matrix and compute GLS directly",
+    "text": "12.30 Construct a covariance matrix and compute GLS directly\n\nset.seed(456)\nn2 &lt;- 8\nx2 &lt;- seq(1, n2)\nX &lt;- cbind(1, x2)\n\nrho &lt;- 0.6\nV &lt;- outer(1:n2, 1:n2, function(i, j) rho^abs(i - j))\nbeta_true &lt;- c(2, 1.5)\n\neps &lt;- t(chol(V)) %*% rnorm(n2)\ny2 &lt;- as.vector(X %*% beta_true + eps)\n\nY &lt;- matrix(y2, ncol = 1)\n\nbeta_gls &lt;- solve(t(X) %*% solve(V) %*% X) %*% t(X) %*% solve(V) %*% Y\nbeta_ols &lt;- solve(t(X) %*% X) %*% t(X) %*% Y\n\nbeta_gls\n\n        [,1]\n   0.7277586\nx2 1.6715885\n\nbeta_ols\n\n       [,1]\n   1.089930\nx2 1.596804",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#transform-the-model-and-verify-the-gls-view",
+    "href": "11.html#transform-the-model-and-verify-the-gls-view",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.31 Transform the model and verify the GLS view",
+    "text": "12.31 Transform the model and verify the GLS view\n\nA &lt;- solve(chol(V))\nY_tilde &lt;- A %*% Y\nX_tilde &lt;- A %*% X\n\nbeta_transformed &lt;- solve(t(X_tilde) %*% X_tilde) %*% t(X_tilde) %*% Y_tilde\nbeta_transformed\n\n        [,1]\n   0.9738013\nx2 1.6418527",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#compare-residual-patterns",
+    "href": "11.html#compare-residual-patterns",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.32 Compare residual patterns",
+    "text": "12.32 Compare residual patterns\n\nfit_ols2 &lt;- lm(y2 ~ x2)\n\nplot(x2, resid(fit_ols2), type = \"b\", pch = 19,\n     xlab = \"Time order\", ylab = \"OLS residual\")\nabline(h = 0, lty = 2)",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#simple-example-of-grouped-covariance-intuition",
+    "href": "11.html#simple-example-of-grouped-covariance-intuition",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.33 Simple example of grouped covariance intuition",
+    "text": "12.33 Simple example of grouped covariance intuition\n\nset.seed(789)\ngroup &lt;- rep(1:10, each = 3)\nx3 &lt;- rnorm(length(group))\nu &lt;- rnorm(10, sd = 1.2)\neps3 &lt;- rep(u, each = 3) + rnorm(length(group), sd = 0.5)\ny3 &lt;- 4 + 2 * x3 + eps3\n\ndat3 &lt;- data.frame(y = y3, x = x3, group = factor(group))\nfit3 &lt;- lm(y ~ x, data = dat3)\nsummary(fit3)\n\n\nCall:\nlm(formula = y ~ x, data = dat3)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-1.3891 -0.6203 -0.2549  0.8272  1.4704 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)   3.7259     0.1740  21.417  &lt; 2e-16 ***\nx             2.1131     0.2316   9.125 6.97e-10 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 0.8837 on 28 degrees of freedom\nMultiple R-squared:  0.7484,    Adjusted R-squared:  0.7394 \nF-statistic: 83.27 on 1 and 28 DF,  p-value: 6.974e-10",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#interpreting-software-output",
+    "href": "11.html#interpreting-software-output",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.34 Interpreting Software Output",
+    "text": "12.34 Interpreting Software Output\nIn base R, ordinary lm() directly handles OLS and weighted least squares through the weights= argument.\nMore general correlated-error models often require additional packages in practice, but the matrix formula is already enough to understand the core idea of GLS.\nStudents should focus on:\n\nwhat covariance structure is being assumed;\nwhy that structure is plausible;\nhow the weighting or transformation changes the estimator;\nwhat practical goal is being improved.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#a-practical-workflow-for-gls-thinking",
+    "href": "11.html#a-practical-workflow-for-gls-thinking",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.35 A Practical Workflow for GLS Thinking",
+    "text": "12.35 A Practical Workflow for GLS Thinking\nA sensible workflow is:\n\nask whether independence and equal variance are plausible from the design of the study;\ninspect residual patterns for signs of heteroscedasticity or dependence;\npropose a covariance structure or weighting scheme when justified;\ncompare OLS and GLS-style fits;\ninterpret the results in light of both efficiency and model credibility.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#in-class-discussion-questions",
+    "href": "11.html#in-class-discussion-questions",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.36 In-Class Discussion Questions",
+    "text": "12.36 In-Class Discussion Questions\n\nWhy is weighted least squares a special case of generalized least squares?\nWhy can correlated observations carry less information than independent observations?\nWhat is the conceptual benefit of the transformed-model view of GLS?\nWhen might robust standard errors be preferred to specifying a full covariance model?",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#practice-problems",
+    "href": "11.html#practice-problems",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.37 Practice Problems",
+    "text": "12.37 Practice Problems",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#conceptual",
+    "href": "11.html#conceptual",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.38 Conceptual",
+    "text": "12.38 Conceptual\n\nExplain why OLS is not generally efficient when the covariance matrix is not proportional to the identity.\nExplain how GLS uses the inverse covariance matrix to weight information in the data.\nExplain the difference between modelling the covariance structure and simply correcting standard errors.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#computational",
+    "href": "11.html#computational",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.39 Computational",
+    "text": "12.39 Computational\nSuppose\n\\[\n\\mathrm{Var}(\\boldsymbol{\\varepsilon}) = \\sigma^2 \\mathbf{V},\n\\qquad\n\\mathbf{V} =\n\\begin{bmatrix}\n1 & 0 \\\\\n0 & 4\n\\end{bmatrix}.\n\\]\n\nWrite down \\(\\mathbf{V}^{-1}\\).\nWhich observation receives more weight in GLS?\nExplain why.\n\nNow suppose\n\\[\n\\hat{\\boldsymbol{\\beta}}_{GLS}\n=\n(\\mathbf{X}^\\top \\mathbf{V}^{-1}\\mathbf{X})^{-1}\n\\mathbf{X}^\\top \\mathbf{V}^{-1}\\mathbf{Y}.\n\\]\n\nShow how this reduces to OLS when \\(\\mathbf{V} = \\mathbf{I}_n\\).\nShow how this reduces to WLS when \\(\\mathbf{V}\\) is diagonal.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#modelling-problem",
+    "href": "11.html#modelling-problem",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.40 Modelling Problem",
+    "text": "12.40 Modelling Problem\nYou have repeated observations on each subject over time.\n\nWhy is the independence assumption questionable?\nWhat kinds of covariance structure might be reasonable?\nWhy might GLS be more appropriate than OLS in this setting?",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#suggested-homework",
+    "href": "11.html#suggested-homework",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.41 Suggested Homework",
+    "text": "12.41 Suggested Homework\nComplete the following tasks:\n\nfit an OLS model and a weighted least squares model for data with unequal variance;\ncompare coefficient estimates, standard errors, and residual plots;\ncompute a GLS estimator by hand for a small example with a known covariance matrix;\nexplain the transformed-model view in your own words;\nwrite a short discussion of when a covariance model is scientifically credible enough to justify GLS.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#summary",
+    "href": "11.html#summary",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.42 Summary",
+    "text": "12.42 Summary\nIn this week, we studied generalized least squares as an extension of ordinary least squares to models with nonidentity covariance structure.\nWe emphasized that:\n\nOLS assumes spherical errors;\nGLS allows unequal variances and correlated errors;\nWLS is a special case of GLS;\nGLS can be understood as OLS on a transformed model;\ncovariance structure is part of model formulation and should be justified by both design and diagnostics.\n\nNext week, a natural continuation is to move toward repeated-measures ideas, mixed models, or robust inference, depending on the course emphasis.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
+    "objectID": "11.html#appendix-compact-formula-summary",
+    "href": "11.html#appendix-compact-formula-summary",
+    "title": "12  Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares",
+    "section": "12.43 Appendix: Compact Formula Summary",
+    "text": "12.43 Appendix: Compact Formula Summary\nGeneral covariance model:\n\\[\n\\mathrm{Var}(\\boldsymbol{\\varepsilon}) = \\sigma^2 \\mathbf{V}.\n\\]\nGLS criterion:\n\\[\nQ(\\boldsymbol{\\beta})\n=\n(\\mathbf{Y} - \\mathbf{X}\\boldsymbol{\\beta})^\\top\n\\mathbf{V}^{-1}\n(\\mathbf{Y} - \\mathbf{X}\\boldsymbol{\\beta}).\n\\]\nGLS estimator:\n\\[\n\\hat{\\boldsymbol{\\beta}}_{GLS}\n=\n(\\mathbf{X}^\\top \\mathbf{V}^{-1}\\mathbf{X})^{-1}\n\\mathbf{X}^\\top \\mathbf{V}^{-1}\\mathbf{Y}.\n\\]\nTransformed model idea:\n\\[\n\\mathbf{A}\\mathbf{Y}\n=\n\\mathbf{A}\\mathbf{X}\\boldsymbol{\\beta}\n+\n\\mathbf{A}\\boldsymbol{\\varepsilon},\n\\qquad\n\\mathbf{A}^\\top \\mathbf{A} = \\mathbf{V}^{-1}.\n\\]\nKey message:\n\nOLS, WLS, and GLS are all part of one least squares framework;\nthe difference lies in how the covariance structure is represented.",
+    "crumbs": [
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span>"
+    ]
+  },
+  {
     "objectID": "summary.html",
     "href": "summary.html",
-    "title": "11  Summary",
+    "title": "13  Summary",
     "section": "",
     "text": "In summary, this book has no content whatsoever.\n\n1 + 1\n\n[1] 2",
     "crumbs": [
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Summary</span>"
+      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Summary</span>"
     ]
   },
   {
@@ -3492,12 +4442,12 @@
   {
     "objectID": "App_A-matrix.html",
     "href": "App_A-matrix.html",
-    "title": "12  Matrix Algebra Review",
+    "title": "14  Matrix Algebra Review",
     "section": "",
     "text": "Appendix: Optional Review of Matrix Facts\nMatrix dimensions\nIf \\(\\mathbf{A}\\) is \\(m \\times n\\) and \\(\\mathbf{B}\\) is \\(n \\times p\\), then \\(\\mathbf{A}\\mathbf{B}\\) is defined and is \\(m \\times p\\).\nTranspose rules\nFor conformable matrices,\n\\[\n(\\mathbf{A}\\mathbf{B})^\\top = \\mathbf{B}^\\top \\mathbf{A}^\\top.\n\\]\nInverse rule\nIf \\(\\mathbf{A}\\) and \\(\\mathbf{B}\\) are invertible, then\n\\[\n(\\mathbf{A}\\mathbf{B})^{-1} = \\mathbf{B}^{-1}\\mathbf{A}^{-1}.\n\\]\nSymmetric matrices\nA matrix \\(\\mathbf{A}\\) is symmetric if\n\\[\n\\mathbf{A}^\\top = \\mathbf{A}.\n\\]\nCovariance matrices are always symmetric.",
     "crumbs": [
       "Appendix",
-      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Matrix Algebra Review</span>"
+      "<span class='chapter-number'>14</span>  <span class='chapter-title'>Matrix Algebra Review</span>"
     ]
   }
 ]
