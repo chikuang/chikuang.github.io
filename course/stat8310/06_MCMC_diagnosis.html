@@ -329,6 +329,25 @@ window.Quarto = {
   <li><a href="#a-gibbs-sampler-for-the-mixture-distribution" id="toc-a-gibbs-sampler-for-the-mixture-distribution" class="nav-link" data-scroll-target="#a-gibbs-sampler-for-the-mixture-distribution"><span class="header-section-number">6.6</span> A Gibbs sampler for the mixture distribution</a></li>
   <li><a href="#why-the-gibbs-sampler-can-mix-poorly" id="toc-why-the-gibbs-sampler-can-mix-poorly" class="nav-link" data-scroll-target="#why-the-gibbs-sampler-can-mix-poorly"><span class="header-section-number">6.7</span> Why the Gibbs sampler can mix poorly</a></li>
   <li><a href="#example-code-mc-and-gibbs-sampling-for-the-mixture-model" id="toc-example-code-mc-and-gibbs-sampling-for-the-mixture-model" class="nav-link" data-scroll-target="#example-code-mc-and-gibbs-sampling-for-the-mixture-model"><span class="header-section-number">6.8</span> Example code: MC and Gibbs sampling for the mixture model</a></li>
+  <li><a href="#example-using-rjags-and-coda-for-mcmc-diagnostics" id="toc-example-using-rjags-and-coda-for-mcmc-diagnostics" class="nav-link" data-scroll-target="#example-using-rjags-and-coda-for-mcmc-diagnostics"><span class="header-section-number">6.9</span> Example: Using <code>rjags</code> and <code>coda</code> for MCMC diagnostics</a>
+  <ul class="collapse">
+  <li><a href="#step-1-load-packages-and-simulate-data" id="toc-step-1-load-packages-and-simulate-data" class="nav-link" data-scroll-target="#step-1-load-packages-and-simulate-data"><span class="header-section-number">6.9.1</span> Step 1: Load packages and simulate data</a></li>
+  <li><a href="#step-2-write-the-jags-model" id="toc-step-2-write-the-jags-model" class="nav-link" data-scroll-target="#step-2-write-the-jags-model"><span class="header-section-number">6.9.2</span> Step 2: Write the JAGS model</a></li>
+  <li><a href="#step-3-choose-initial-values" id="toc-step-3-choose-initial-values" class="nav-link" data-scroll-target="#step-3-choose-initial-values"><span class="header-section-number">6.9.3</span> Step 3: Choose initial values</a></li>
+  <li><a href="#step-4-build-the-jags-model" id="toc-step-4-build-the-jags-model" class="nav-link" data-scroll-target="#step-4-build-the-jags-model"><span class="header-section-number">6.9.4</span> Step 4: Build the JAGS model</a></li>
+  <li><a href="#step-5-burn-in" id="toc-step-5-burn-in" class="nav-link" data-scroll-target="#step-5-burn-in"><span class="header-section-number">6.9.5</span> Step 5: Burn in</a></li>
+  <li><a href="#step-6-draw-posterior-samples" id="toc-step-6-draw-posterior-samples" class="nav-link" data-scroll-target="#step-6-draw-posterior-samples"><span class="header-section-number">6.9.6</span> Step 6: Draw posterior samples</a></li>
+  <li><a href="#step-7-basic-summary-and-diagnostics" id="toc-step-7-basic-summary-and-diagnostics" class="nav-link" data-scroll-target="#step-7-basic-summary-and-diagnostics"><span class="header-section-number">6.9.7</span> Step 7: Basic summary and diagnostics</a></li>
+  <li><a href="#step-8-traceplots" id="toc-step-8-traceplots" class="nav-link" data-scroll-target="#step-8-traceplots"><span class="header-section-number">6.9.8</span> Step 8: Traceplots</a></li>
+  <li><a href="#step-9-posterior-density-plots" id="toc-step-9-posterior-density-plots" class="nav-link" data-scroll-target="#step-9-posterior-density-plots"><span class="header-section-number">6.9.9</span> Step 9: Posterior density plots</a></li>
+  <li><a href="#step-10-autocorrelation-plots" id="toc-step-10-autocorrelation-plots" class="nav-link" data-scroll-target="#step-10-autocorrelation-plots"><span class="header-section-number">6.9.10</span> Step 10: Autocorrelation plots</a></li>
+  <li><a href="#step-11-gelmanrubin-diagnostic" id="toc-step-11-gelmanrubin-diagnostic" class="nav-link" data-scroll-target="#step-11-gelmanrubin-diagnostic"><span class="header-section-number">6.9.11</span> Step 11: Gelman–Rubin diagnostic</a></li>
+  </ul></li>
+  <li><a href="#step-12-effective-sample-size" id="toc-step-12-effective-sample-size" class="nav-link" data-scroll-target="#step-12-effective-sample-size"><span class="header-section-number">6.10</span> Step 12: Effective sample size</a>
+  <ul class="collapse">
+  <li><a href="#step-13-numerical-autocorrelations" id="toc-step-13-numerical-autocorrelations" class="nav-link" data-scroll-target="#step-13-numerical-autocorrelations"><span class="header-section-number">6.10.1</span> Step 13: Numerical autocorrelations</a></li>
+  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion"><span class="header-section-number">6.10.2</span> Discussion</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1043,6 +1062,467 @@ E\left[
 <p>Compared with ordinary MC, MCMC often requires much more care in assessing the quality of the approximation.</p>
 </div>
 </div>
+</section>
+<section id="example-using-rjags-and-coda-for-mcmc-diagnostics" class="level2" data-number="6.9">
+<h2 data-number="6.9" class="anchored" data-anchor-id="example-using-rjags-and-coda-for-mcmc-diagnostics"><span class="header-section-number">6.9</span> Example: Using <code>rjags</code> and <code>coda</code> for MCMC diagnostics</h2>
+<p>In this example, we fit a simple normal model in JAGS and then use the <code>coda</code> package to examine basic MCMC diagnostics.</p>
+<p>Suppose</p>
+<p><span class="math display">\[
+Y_1,\ldots,Y_n \mid \mu,\tau \sim \text{Normal}(\mu,\tau),
+\]</span></p>
+<p>where <span class="math inline">\(\tau = 1/\sigma^2\)</span> is the precision parameter.</p>
+<p>We place the priors</p>
+<p><span class="math display">\[
+\mu \sim \text{Normal}(0,0.001),
+\qquad
+\tau \sim \text{Gamma}(0.001,0.001).
+\]</span></p>
+<p>The goal is to generate posterior samples of <span class="math inline">\(\mu\)</span>, <span class="math inline">\(\tau\)</span>, and <span class="math inline">\(\sigma\)</span>, and then assess the quality of the MCMC output.</p>
+<section id="step-1-load-packages-and-simulate-data" class="level3" data-number="6.9.1">
+<h3 data-number="6.9.1" class="anchored" data-anchor-id="step-1-load-packages-and-simulate-data"><span class="header-section-number">6.9.1</span> Step 1: Load packages and simulate data</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rjags)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Linked to JAGS 4.3.2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loaded modules: basemod,bugs</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(coda)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8310</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">50</span>, <span class="at">mean =</span> <span class="dv">2</span>, <span class="at">sd =</span> <span class="dv">1</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>data_list <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> y,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">n =</span> <span class="fu">length</span>(y)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="step-2-write-the-jags-model" class="level3" data-number="6.9.2">
+<h3 data-number="6.9.2" class="anchored" data-anchor-id="step-2-write-the-jags-model"><span class="header-section-number">6.9.2</span> Step 2: Write the JAGS model</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>model_string <span class="ot">&lt;-</span> <span class="st">"</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="st">model {</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="st">  for (i in 1:n) {</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="st">    y[i] ~ dnorm(mu, tau)</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="st">  }</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="st">  mu ~ dnorm(0, 0.001)</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="st">  tau ~ dgamma(0.001, 0.001)</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="st">  sigma &lt;- 1 / sqrt(tau)</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="st">"</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(model_string)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+model {
+  for (i in 1:n) {
+    y[i] ~ dnorm(mu, tau)
+  }
+
+  mu ~ dnorm(0, 0.001)
+  tau ~ dgamma(0.001, 0.001)
+
+  sigma &lt;- 1 / sqrt(tau)
+}</code></pre>
+</div>
+</div>
+</section>
+<section id="step-3-choose-initial-values" class="level3" data-number="6.9.3">
+<h3 data-number="6.9.3" class="anchored" data-anchor-id="step-3-choose-initial-values"><span class="header-section-number">6.9.3</span> Step 3: Choose initial values</h3>
+<p>We use three chains with dispersed starting values.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>inits1 <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">mu =</span> <span class="dv">0</span>,  <span class="at">tau =</span> <span class="dv">1</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>inits2 <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">mu =</span> <span class="dv">5</span>,  <span class="at">tau =</span> <span class="fl">0.5</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>inits3 <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">mu =</span> <span class="sc">-</span><span class="dv">3</span>, <span class="at">tau =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="step-4-build-the-jags-model" class="level3" data-number="6.9.4">
+<h3 data-number="6.9.4" class="anchored" data-anchor-id="step-4-build-the-jags-model"><span class="header-section-number">6.9.4</span> Step 4: Build the JAGS model</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>jags_mod <span class="ot">&lt;-</span> <span class="fu">jags.model</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">textConnection</span>(model_string),</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data_list,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">inits =</span> <span class="fu">list</span>(inits1, inits2, inits3),</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.chains =</span> <span class="dv">3</span>,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.adapt =</span> <span class="dv">1000</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 50
+   Unobserved stochastic nodes: 2
+   Total graph size: 58
+
+Initializing model</code></pre>
+</div>
+</div>
+</section>
+<section id="step-5-burn-in" class="level3" data-number="6.9.5">
+<h3 data-number="6.9.5" class="anchored" data-anchor-id="step-5-burn-in"><span class="header-section-number">6.9.5</span> Step 5: Burn in</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">update</span>(jags_mod, <span class="at">n.iter =</span> <span class="dv">5000</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="step-6-draw-posterior-samples" class="level3" data-number="6.9.6">
+<h3 data-number="6.9.6" class="anchored" data-anchor-id="step-6-draw-posterior-samples"><span class="header-section-number">6.9.6</span> Step 6: Draw posterior samples</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>mcmc_out <span class="ot">&lt;-</span> <span class="fu">coda.samples</span>(</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">model =</span> jags_mod,</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable.names =</span> <span class="fu">c</span>(<span class="st">"mu"</span>, <span class="st">"tau"</span>, <span class="st">"sigma"</span>),</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.iter =</span> <span class="dv">10000</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The object mcmc_out is an mcmc.list, which can be analyzed using functions from the <code>coda</code> package.</p>
+</section>
+<section id="step-7-basic-summary-and-diagnostics" class="level3" data-number="6.9.7">
+<h3 data-number="6.9.7" class="anchored" data-anchor-id="step-7-basic-summary-and-diagnostics"><span class="header-section-number">6.9.7</span> Step 7: Basic summary and diagnostics</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Iterations = 5001:15000
+Thinning interval = 1 
+Number of chains = 3 
+Sample size per chain = 10000 
+
+1. Empirical mean and standard deviation for each variable,
+   plus standard error of the mean:
+
+        Mean      SD  Naive SE Time-series SE
+mu    1.9117 0.12665 0.0007312      0.0007312
+sigma 0.8868 0.09162 0.0005290      0.0005452
+tau   1.3115 0.26445 0.0015268      0.0015749
+
+2. Quantiles for each variable:
+
+        2.5%    25%    50%    75% 97.5%
+mu    1.6634 1.8270 1.9117 1.9959 2.159
+sigma 0.7303 0.8219 0.8791 0.9442 1.087
+tau   0.8464 1.1216 1.2938 1.4803 1.875</code></pre>
+</div>
+</div>
+<p>This gives posterior means, standard deviations, and quantiles for each monitored parameter.</p>
+</section>
+<section id="step-8-traceplots" class="level3" data-number="6.9.8">
+<h3 data-number="6.9.8" class="anchored" data-anchor-id="step-8-traceplots"><span class="header-section-number">6.9.8</span> Step 8: Traceplots</h3>
+<p>A traceplot displays the sampled values in the order they were generated.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">traceplot</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/traceplot-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/traceplot-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/traceplot-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Interpretation:</p>
+<ul>
+<li>A good traceplot should fluctuate around a stable region.</li>
+<li>Different chains should overlap reasonably well.</li>
+<li>Strong trends or long drifts may indicate lack of convergence.</li>
+</ul>
+</section>
+<section id="step-9-posterior-density-plots" class="level3" data-number="6.9.9">
+<h3 data-number="6.9.9" class="anchored" data-anchor-id="step-9-posterior-density-plots"><span class="header-section-number">6.9.9</span> Step 9: Posterior density plots</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/density-plot-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This produces both traceplots and marginal density plots.</p>
+<p>Interpretation: • Density plots summarize the posterior distribution. • If the chains have converged, the density estimates from different chains should be similar.</p>
+</section>
+<section id="step-10-autocorrelation-plots" class="level3" data-number="6.9.10">
+<h3 data-number="6.9.10" class="anchored" data-anchor-id="step-10-autocorrelation-plots"><span class="header-section-number">6.9.10</span> Step 10: Autocorrelation plots</h3>
+<p>Autocorrelation shows how strongly the samples depend on previous draws.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">autocorr.plot</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/auto plot-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/auto plot-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/auto plot-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Interpretation: • Rapid decay in autocorrelation is a good sign. • Slow decay indicates that the chain is highly dependent and mixes slowly.</p>
+</section>
+<section id="step-11-gelmanrubin-diagnostic" class="level3" data-number="6.9.11">
+<h3 data-number="6.9.11" class="anchored" data-anchor-id="step-11-gelmanrubin-diagnostic"><span class="header-section-number">6.9.11</span> Step 11: Gelman–Rubin diagnostic</h3>
+<p>A standard convergence diagnostic is the Gelman–Rubin statistic.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gelman.diag</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Potential scale reduction factors:
+
+      Point est. Upper C.I.
+mu             1          1
+sigma          1          1
+tau            1          1
+
+Multivariate psrf
+
+1</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gelman.plot</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/gelman-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Interpretation: • Values close to 1 suggest that the chains have mixed well. • Values substantially larger than 1 suggest that more iterations may be needed.</p>
+</section>
+</section>
+<section id="step-12-effective-sample-size" class="level2" data-number="6.10">
+<h2 data-number="6.10" class="anchored" data-anchor-id="step-12-effective-sample-size"><span class="header-section-number">6.10</span> Step 12: Effective sample size</h2>
+<p>The effective sample size measures how many independent samples the MCMC output is approximately worth.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">effectiveSize</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      mu    sigma      tau 
+30000.00 29114.77 28875.24 </code></pre>
+</div>
+</div>
+<p>Interpretation: • Even if we generate many MCMC samples, the effective sample size may be much smaller if autocorrelation is high. • Larger effective sample sizes indicate more precise Monte Carlo approximation.</p>
+<section id="step-13-numerical-autocorrelations" class="level3" data-number="6.10.1">
+<h3 data-number="6.10.1" class="anchored" data-anchor-id="step-13-numerical-autocorrelations"><span class="header-section-number">6.10.1</span> Step 13: Numerical autocorrelations</h3>
+<p>We can also compute autocorrelations directly.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">autocorr.diag</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                  mu        sigma          tau
+Lag 0   1.0000000000  1.000000000  1.000000000
+Lag 1  -0.0069658312  0.024931411  0.020579955
+Lag 5  -0.0002712991  0.005532650  0.004830330
+Lag 10  0.0026592891 -0.005498872 -0.007092138
+Lag 50 -0.0071958173 -0.003222164 -0.001871304</code></pre>
+</div>
+</div>
+<p>This reports estimated autocorrelations at selected lags.</p>
+</section>
+<section id="discussion" class="level3" data-number="6.10.2">
+<h3 data-number="6.10.2" class="anchored" data-anchor-id="discussion"><span class="header-section-number">6.10.2</span> Discussion</h3>
+<p>This example illustrates a typical workflow for MCMC diagnostics using rjags and coda: 1. run multiple chains from dispersed starting values; 2. discard burn-in; 3. examine traceplots and density plots; 4. check autocorrelation; 5. compute Gelman–Rubin diagnostics; 6. compute effective sample sizes.</p>
+<p>In practice, no single diagnostic is sufficient on its own. It is best to use several diagnostics together when assessing MCMC quality.</p>
+<p>Putting everything together</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rjags)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(coda)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8310</span>)</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulate data</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">50</span>, <span class="at">mean =</span> <span class="dv">2</span>, <span class="at">sd =</span> <span class="dv">1</span>)</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>data_list <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> y,</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">n =</span> <span class="fu">length</span>(y)</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a><span class="co"># JAGS model</span></span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>model_string <span class="ot">&lt;-</span> <span class="st">"</span></span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a><span class="st">model {</span></span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a><span class="st">  for (i in 1:n) {</span></span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a><span class="st">    y[i] ~ dnorm(mu, tau)</span></span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a><span class="st">  }</span></span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a><span class="st">  mu ~ dnorm(0, 0.001)</span></span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a><span class="st">  tau ~ dgamma(0.001, 0.001)</span></span>
+<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-24"><a href="#cb33-24" aria-hidden="true" tabindex="-1"></a><span class="st">  sigma &lt;- 1 / sqrt(tau)</span></span>
+<span id="cb33-25"><a href="#cb33-25" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
+<span id="cb33-26"><a href="#cb33-26" aria-hidden="true" tabindex="-1"></a><span class="st">"</span></span>
+<span id="cb33-27"><a href="#cb33-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-28"><a href="#cb33-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Initial values</span></span>
+<span id="cb33-29"><a href="#cb33-29" aria-hidden="true" tabindex="-1"></a>inits1 <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">mu =</span> <span class="dv">0</span>,  <span class="at">tau =</span> <span class="dv">1</span>)</span>
+<span id="cb33-30"><a href="#cb33-30" aria-hidden="true" tabindex="-1"></a>inits2 <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">mu =</span> <span class="dv">5</span>,  <span class="at">tau =</span> <span class="fl">0.5</span>)</span>
+<span id="cb33-31"><a href="#cb33-31" aria-hidden="true" tabindex="-1"></a>inits3 <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">mu =</span> <span class="sc">-</span><span class="dv">3</span>, <span class="at">tau =</span> <span class="dv">2</span>)</span>
+<span id="cb33-32"><a href="#cb33-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-33"><a href="#cb33-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Build model</span></span>
+<span id="cb33-34"><a href="#cb33-34" aria-hidden="true" tabindex="-1"></a>jags_mod <span class="ot">&lt;-</span> <span class="fu">jags.model</span>(</span>
+<span id="cb33-35"><a href="#cb33-35" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="fu">textConnection</span>(model_string),</span>
+<span id="cb33-36"><a href="#cb33-36" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data_list,</span>
+<span id="cb33-37"><a href="#cb33-37" aria-hidden="true" tabindex="-1"></a>  <span class="at">inits =</span> <span class="fu">list</span>(inits1, inits2, inits3),</span>
+<span id="cb33-38"><a href="#cb33-38" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.chains =</span> <span class="dv">3</span>,</span>
+<span id="cb33-39"><a href="#cb33-39" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.adapt =</span> <span class="dv">1000</span></span>
+<span id="cb33-40"><a href="#cb33-40" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 50
+   Unobserved stochastic nodes: 2
+   Total graph size: 58
+
+Initializing model</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Burn-in</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">update</span>(jags_mod, <span class="at">n.iter =</span> <span class="dv">5000</span>)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Posterior samples</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>mcmc_out <span class="ot">&lt;-</span> <span class="fu">coda.samples</span>(</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">model =</span> jags_mod,</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable.names =</span> <span class="fu">c</span>(<span class="st">"mu"</span>, <span class="st">"tau"</span>, <span class="st">"sigma"</span>),</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.iter =</span> <span class="dv">10000</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Summaries</span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Iterations = 5001:15000
+Thinning interval = 1 
+Number of chains = 3 
+Sample size per chain = 10000 
+
+1. Empirical mean and standard deviation for each variable,
+   plus standard error of the mean:
+
+        Mean      SD  Naive SE Time-series SE
+mu    1.9121 0.12522 0.0007229      0.0007298
+sigma 0.8875 0.09135 0.0005274      0.0005324
+tau   1.3091 0.26323 0.0015198      0.0015351
+
+2. Quantiles for each variable:
+
+        2.5%   25%    50%    75% 97.5%
+mu    1.6653 1.829 1.9126 1.9955 2.158
+sigma 0.7297 0.823 0.8801 0.9437 1.086
+tau   0.8475 1.123 1.2909 1.4762 1.878</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Diagnostics</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>coda<span class="sc">::</span><span class="fu">traceplot</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/alltogether-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/alltogether-2.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/alltogether-3.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/alltogether-4.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>coda<span class="sc">::</span><span class="fu">autocorr.plot</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/alltogether-5.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/alltogether-6.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/alltogether-7.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>coda<span class="sc">::</span><span class="fu">gelman.diag</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Potential scale reduction factors:
+
+      Point est. Upper C.I.
+mu             1          1
+sigma          1          1
+tau            1          1
+
+Multivariate psrf
+
+1</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>coda<span class="sc">::</span><span class="fu">gelman.plot</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_MCMC_diagnosis_files/figure-html/alltogether-8.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>coda<span class="sc">::</span><span class="fu">effectiveSize</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      mu    sigma      tau 
+29489.14 29467.71 29452.91 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>coda<span class="sc">::</span><span class="fu">autocorr.diag</span>(mcmc_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                  mu         sigma          tau
+Lag 0   1.0000000000  1.0000000000 1.0000000000
+Lag 1   0.0070859739  0.0159861627 0.0162967605
+Lag 5   0.0034005881 -0.0020200272 0.0004835755
+Lag 10  0.0062517801  0.0009915335 0.0043731003
+Lag 50 -0.0002160502 -0.0013932735 0.0003868567</code></pre>
+</div>
+</div>
 <hr>
 <p>This Chapter borrows materials from Chapter 6 in <span class="citation" data-cites="hoff:2009:book">Hoff (<a href="references.html#ref-hoff:2009:book" role="doc-biblioref">2009</a>)</span>.</p>
 
@@ -1052,6 +1532,7 @@ E\left[
 Hoff, Peter D. 2009. <em>A First Course in Bayesian Statistical Methods</em>. Springer. <a href="https://sites.math.rutgers.edu/~zeilberg/EM20/Hoff.pdf">https://sites.math.rutgers.edu/~zeilberg/EM20/Hoff.pdf</a>.
 </div>
 </div>
+</section>
 </section>
 
 </main> <!-- /main -->
