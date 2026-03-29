@@ -1050,29 +1050,84 @@
     "href": "part3_3_regression_interaction.html",
     "title": "15  Regression with Interaction",
     "section": "",
-    "text": "15.1 Main Effects Versus Interaction Effects in Regression\nIn a main-effects model, each input variable’s effect on the response variable is estimated as the average effect across levels of all other input variables.\nThis means the effect of each predictor is assumed to be constant regardless of the values of the other predictors.\nFor example, suppose we want to predict *weight** using a person’s sex and height. A regression model with only main effects can be written as\n\\[\n\\text{weight} = \\beta_0 + \\beta_s \\text{SEX} + \\beta_h \\text{HEIGHT}\n\\]\nThe coefficient describing the effect of height on weight, \\(\\beta_h\\), represents a weighted average of the height effects for males and females, had we modeled them separately.\nThus, the resulting main effect of height is assumed to be the same for both males and females. However, it may be reasonable to suspect that the effect of height differs by sex. To allow the effect of height to vary across groups, we add an interaction term.\nThe regression model with interaction becomes \\[\n\\text{weight} =\n\\beta_0\n+\n\\beta_s \\text{SEX}\n+\n\\beta_h \\text{HEIGHT}\n+\n\\beta_{sh}(\\text{SEX} \\times \\text{HEIGHT})\n\\]\nThus:\nIf we code\nthen we can construct the regression equations for males and females separately.",
+    "text": "15.1 Why Do We Need Interaction?\nIn many real-world problems, the effect of one variable may depend on another variable.\nFor example:\nIf the relationship between predictors is not constant, a simple additive model is not sufficient.\nThis motivates the need for interaction terms.",
     "crumbs": [
       "Regression Analysis",
       "<span class='chapter-number'>15</span>  <span class='chapter-title'>Regression with Interaction</span>"
     ]
   },
   {
-    "objectID": "part3_3_regression_interaction.html#main-effects-versus-interaction-effects-in-regression",
-    "href": "part3_3_regression_interaction.html#main-effects-versus-interaction-effects-in-regression",
+    "objectID": "part3_3_regression_interaction.html#why-do-we-need-interaction",
+    "href": "part3_3_regression_interaction.html#why-do-we-need-interaction",
     "title": "15  Regression with Interaction",
     "section": "",
-    "text": "WarningImportant\n\n\n\nIn a regression model that includes interaction terms, the coefficients of the individual variables (often called main effects) are no longer interpreted as overall main effects.\nInstead, they represent the effect when the interacting variable equals 0.\n\n\n\n\n\\(\\beta_h\\) represents the effect of HEIGHT when SEX = 0\n\n\\(\\beta_s\\) represents the effect of SEX when HEIGHT = 0\n\n\n\nSEX = 0 → male\n\nSEX = 1 → female",
+    "text": "Does the effect of study time depend on gender?\nDoes treatment effectiveness depend on age?\nDoes price sensitivity depend on income?\n\n\n\n\nWithout interaction → parallel lines\nWith interaction → non-parallel lines",
     "crumbs": [
       "Regression Analysis",
       "<span class='chapter-number'>15</span>  <span class='chapter-title'>Regression with Interaction</span>"
     ]
   },
   {
-    "objectID": "part3_3_regression_interaction.html#regression-equation-for-males",
-    "href": "part3_3_regression_interaction.html#regression-equation-for-males",
+    "objectID": "part3_3_regression_interaction.html#visualizing-interaction-effects",
+    "href": "part3_3_regression_interaction.html#visualizing-interaction-effects",
     "title": "15  Regression with Interaction",
-    "section": "15.2 Regression Equation for Males",
-    "text": "15.2 Regression Equation for Males\nSubstitute \\(SEX = 0\\) into the interaction model:\n\\[\n\\begin{aligned}\n\\text{weight}_{male}\n&= \\beta_0 + \\beta_s(0) + \\beta_h \\text{HEIGHT} + \\beta_{sh}(0)\\text{HEIGHT} \\\\\n&= \\beta_0 + \\beta_h \\text{HEIGHT}\n\\end{aligned}\n\\]\nSubstitute \\(SEX = 1\\):\n\\[\n\\begin{aligned}\n\\text{weight}_{female}\n&= \\beta_0 + \\beta_s(1) + \\beta_h \\text{HEIGHT} + \\beta_{sh}(1)\\text{HEIGHT} \\\\\n&= \\beta_0 + \\beta_s + \\beta_h \\text{HEIGHT} + \\beta_{sh}\\text{HEIGHT} \\\\\n&= \\beta_0 + \\beta_s + (\\beta_h + \\beta_{sh})\\text{HEIGHT}\n\\end{aligned}\n\\]\nThus, slope for males is \\(\\beta_h\\) and the slope for females is \\(\\beta_h + \\beta_{sh}\\).\nInterpretation\nThe interaction coefficient \\(\\beta_{sh}\\) represents how much the slope of height changes between males and females.\n\nMale slope = \\(\\beta_h\\)\n\nFemale slope = \\(\\beta_h + \\beta_{sh}\\)\n\nTherefore, if \\(\\beta_{sh} \\neq 0\\), the effect of height on weight differs by sex.\n\n15.2.1 Interpreting the Interaction Coefficient\nFrom the previous equations, we can see that the effect of HEIGHT differs for males and females.\n\nFor males (SEX = 0), the slope of height is\n\\[\n\\beta_h\n\\]\nFor females (SEX = 1), the slope of height is\n\\[\n\\beta_h + \\beta_{sh}\n\\]\n\nThus, HEIGHT has a different effect for males and females.\nThe interaction coefficient\n\\[\n\\beta_{sh}\n\\]\nrepresents the difference between the height effects for males and females.\nIn other words, a one-unit increase in SEX (changing from male to female) changes the slope of HEIGHT by \\(\\beta_{sh}\\).\nIt is important to note that this interpretation holds when the main effects are included in the model together with the interaction term.\nIf the interaction term were entered without the corresponding main effects, the interpretation of the coefficient would change.\n\n\n\n15.2.2 Example: Checking Regression Assumptions in SAS\nThe following SAS code fits a regression model and produces diagnostic plots for checking model assumptions.\nPROC REG DATA=MEASUREMENT;\n    TITLE \"Regression and Residual Plots\";\n    MODEL WEIGHT = HEIGHT;\n    OUTPUT OUT=MYOUT R=RESID;\nRUN;\n\nPROC UNIVARIATE DATA=MYOUT NORMAL;\n    QQPLOT RESID / NORMAL(MU=EST SIGMA=EST COLOR=RED L=1);\nRUN;\nDescription of the Code\n\nPROC REG fits the linear regression model relating weight to height.\nOUTPUT OUT=myout R=resid saves the residual values from the regression model into a new dataset called myout.\nPROC UNIVARIATE is used to examine the distribution of the residuals.\nQQPLOT RESID produces a Q–Q plot to visually assess whether the residuals follow a normal distribution.",
+    "section": "15.2 Visualizing Interaction Effects",
+    "text": "15.2 Visualizing Interaction Effects\nThe easiest way to understand interaction is through visualization.\n\n\n\n\n\n\nImportantHow to visually detect interaction\n\n\n\nFor two groups:\n\nParallel regression lines suggest no interaction\nNon-parallel regression lines suggest interaction\nCrossing lines indicate a strong interaction effect\n\n\n\n\n\n\n\n\n\n\n\n\nPROC SGPLOT DATA=MEASUREMENT;\n    TITLE \"Interaction Visualization: WEIGHT vs HEIGHT by SEX\";\n    REG X=HEIGHT Y=WEIGHT / GROUP=SEX;\nRUN;\nTITLE;",
+    "crumbs": [
+      "Regression Analysis",
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Regression with Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "part3_3_regression_interaction.html#main-effects-model-vs-interaction-model",
+    "href": "part3_3_regression_interaction.html#main-effects-model-vs-interaction-model",
+    "title": "15  Regression with Interaction",
+    "section": "15.3 Main-Effects Model vs Interaction Model",
+    "text": "15.3 Main-Effects Model vs Interaction Model\nA main-effects model assumes each predictor has a constant effect across all levels of the other predictors.\nFor example, suppose we want to predict weight using a person’s sex and height. A regression model with only main effects can be written as\n\\[\n\\text{weight} = \\beta_0 + \\beta_s \\text{SEX} + \\beta_h \\text{HEIGHT}\n\\]\nThe coefficient \\(\\beta_h\\) represents a weighted average of the height effects for males and females, had we modeled them separately.\nThus, the main-effects model assumes that the effect of height is the same for both males and females. However, if the effect of height differs by sex, then we need an interaction term.\nThe regression model with interaction becomes\n\\[\n\\text{weight}\n=\n\\beta_0\n+\n\\beta_s \\text{SEX}\n+\n\\beta_h \\text{HEIGHT}\n+\n\\beta_{sh}(\\text{SEX} \\times \\text{HEIGHT})\n\\]\n\n\n\n\n\n\nWarningImportant\n\n\n\nIn a regression model that includes interaction terms, the coefficients of the individual variables are no longer interpreted as overall main effects.\nInstead, they represent the effect when the interacting variable equals 0.\n\n\nThus:\n\n\\(\\beta_h\\) represents the effect of HEIGHT when SEX = 0\n\\(\\beta_s\\) represents the effect of SEX when HEIGHT = 0\n\nIf we code\n\nSEX = 0 → male\n\nSEX = 1 → female\n\nthen we can construct the regression equations for males and females separately.",
+    "crumbs": [
+      "Regression Analysis",
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Regression with Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "part3_3_regression_interaction.html#regression-equations-by-group",
+    "href": "part3_3_regression_interaction.html#regression-equations-by-group",
+    "title": "15  Regression with Interaction",
+    "section": "15.4 Regression Equations by Group",
+    "text": "15.4 Regression Equations by Group\nSubstitute \\(SEX = 0\\) into the interaction model:\n\\[\n\\begin{aligned}\n\\text{weight}_{male}\n&= \\beta_0 + \\beta_s(0) + \\beta_h \\text{HEIGHT} + \\beta_{sh}(0)\\text{HEIGHT} \\\\\n&= \\beta_0 + \\beta_h \\text{HEIGHT}\n\\end{aligned}\n\\]\nSubstitute \\(SEX = 1\\):\n\\[\n\\begin{aligned}\n\\text{weight}_{female}\n&= \\beta_0 + \\beta_s(1) + \\beta_h \\text{HEIGHT} + \\beta_{sh}(1)\\text{HEIGHT} \\\\\n&= \\beta_0 + \\beta_s + \\beta_h \\text{HEIGHT} + \\beta_{sh}\\text{HEIGHT} \\\\\n&= \\beta_0 + \\beta_s + (\\beta_h + \\beta_{sh})\\text{HEIGHT}\n\\end{aligned}\n\\]\nThus, slope for males is \\(\\beta_h\\) and the slope for females is \\(\\beta_h + \\beta_{sh}\\).",
+    "crumbs": [
+      "Regression Analysis",
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Regression with Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "part3_3_regression_interaction.html#interpreting-the-interaction-coefficient",
+    "href": "part3_3_regression_interaction.html#interpreting-the-interaction-coefficient",
+    "title": "15  Regression with Interaction",
+    "section": "15.5 Interpreting the Interaction Coefficient",
+    "text": "15.5 Interpreting the Interaction Coefficient\nFrom the previous equations, we can see that the effect of HEIGHT differs for males and females.\n\nFor males (SEX = 0), the slope of height is \\[\n\\beta_h\n\\]\nFor females (SEX = 1), the slope of height is \\[\n\\beta_h + \\beta_{sh}\n\\]\n\nThus, HEIGHT has a different effect for males and females.\nThe interaction coefficient\n\\[\n\\beta_{sh}\n\\]\nrepresents the difference between the height effects for males and females.\nIn other words, a one-unit increase in SEX (changing from male to female) changes the slope of HEIGHT by \\(\\beta_{sh}\\).\nIt is important to note that this interpretation holds when the main effects are included in the model together with the interaction term.\nIf the interaction term were entered without the corresponding main effects, the interpretation of the coefficient would change.\n\nSuppose the fitted model is\n\\[\n\\widehat{\\text{weight}}\n=\n20 + 5\\text{SEX} + 2\\text{HEIGHT} + 1(\\text{SEX}\\times\\text{HEIGHT})\n\\]\nThen:\n\nMale slope = 2\nFemale slope = 2 + 1 = 3\n\nInterpretation:\n\nFor males, a one-unit increase in height increases expected weight by 2 units.\nFor females, a one-unit increase in height increases expected weight by 3 units.\n\nThus, the effect of height is stronger for females.",
+    "crumbs": [
+      "Regression Analysis",
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Regression with Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "part3_3_regression_interaction.html#sas-implementation",
+    "href": "part3_3_regression_interaction.html#sas-implementation",
+    "title": "15  Regression with Interaction",
+    "section": "15.6 SAS Implementation",
+    "text": "15.6 SAS Implementation\n\n15.6.1 Example dataset\nDATA MEASUREMENT;\nINPUT SEX $ HEIGHT WEIGHT;\nDATALINES;\nMale 67.07 163.61\nMale 66.98 162.23\nMale 69.13 163.06\nMale 67.31 163.76\nMale 66.25 163.84\nMale 72.20 168.39\nMale 71.39 168.19\nMale 60.81 159.14\nMale 64.78 160.58\nMale 68.13 163.63\nMale 63.15 161.36\nMale 73.91 170.46\nMale 74.38 166.68\nMale 69.77 164.70\nMale 73.86 170.27\nMale 65.34 161.75\nMale 72.75 169.74\nMale 63.92 160.03\nMale 61.85 161.79\nMale 71.25 170.94\nMale 61.68 157.11\nMale 70.71 165.60\nMale 65.73 165.85\nMale 68.04 163.39\nMale 62.76 160.00\nMale 63.05 161.20\nMale 61.34 158.26\nMale 60.59 157.50\nMale 74.35 167.14\nMale 61.36 161.91\nFemale 65.42 158.25\nFemale 65.76 158.12\nFemale 74.60 182.54\nFemale 65.67 161.15\nFemale 66.06 161.69\nFemale 62.60 159.56\nFemale 72.26 177.10\nFemale 65.48 158.31\nFemale 66.87 167.29\nFemale 64.29 162.77\nFemale 71.11 170.03\nFemale 62.40 154.43\nFemale 60.95 153.28\nFemale 63.15 156.38\nFemale 72.54 171.83\nFemale 70.49 175.26\nFemale 72.68 171.63\nFemale 67.37 161.84\nFemale 68.11 165.04\nFemale 70.48 168.12\nFemale 64.33 160.85\nFemale 71.84 177.00\nFemale 69.55 171.59\nFemale 64.69 156.69\nFemale 74.90 182.22\nFemale 71.89 168.57\nFemale 73.25 176.51\nFemale 72.43 174.51\nFemale 71.01 172.05\nFemale 63.16 155.14\n;\nRUN;\n\n\n15.6.2 Fit the interaction model in SAS\nPROC GLM DATA=MEASUREMENT;\nCLASS SEX;\nMODEL WEIGHT = HEIGHT SEX HEIGHT*SEX;\nSTORE INTMODEL;\nRUN;\n\n\n15.6.3 Plot fitted interaction in SAS\nPROC PLM RESTORE=INTMODEL;\nEFFECTPLOT INTERACTION(X=HEIGHT SLICEBY=SEX);\nRUN;\n\n\n15.6.4 Quick visualization in SAS\nPROC SGPLOT DATA=MEASUREMENT;\nTITLE \"Interaction Visualization: WEIGHT vs HEIGHT by SEX\";\nREG X=HEIGHT Y=WEIGHT / GROUP=SEX;\nRUN;\nTITLE;",
+    "crumbs": [
+      "Regression Analysis",
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Regression with Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "part3_3_regression_interaction.html#checking-regression-assumptions-in-sas",
+    "href": "part3_3_regression_interaction.html#checking-regression-assumptions-in-sas",
+    "title": "15  Regression with Interaction",
+    "section": "15.7 Checking Regression Assumptions in SAS",
+    "text": "15.7 Checking Regression Assumptions in SAS\nThe following SAS code fits a regression model and produces diagnostic plots for checking model assumptions.\nPROC REG DATA=MEASUREMENT;\n    TITLE \"Regression and Residual Plots\";\n    MODEL WEIGHT = HEIGHT;\n    OUTPUT OUT=MYOUT R=RESID;\nRUN;\n\nPROC UNIVARIATE DATA=MYOUT NORMAL;\n    QQPLOT RESID / NORMAL(MU=EST SIGMA=EST COLOR=RED L=1);\nRUN;\n\n\n\n\n\n\n\nDescription of the Code\n\nPROC REG fits the linear regression model relating weight to height.\nOUTPUT OUT=MYOUT R=RESID saves the residual values from the regression model into a new dataset called MYOUT.\nPROC UNIVARIATE is used to examine the distribution of the residuals.\nQQPLOT RESID produces a Q–Q plot to visually assess whether the residuals follow a normal distribution.",
     "crumbs": [
       "Regression Analysis",
       "<span class='chapter-number'>15</span>  <span class='chapter-title'>Regression with Interaction</span>"
@@ -1082,8 +1137,8 @@
     "objectID": "part3_3_regression_interaction.html#proc-plm",
     "href": "part3_3_regression_interaction.html#proc-plm",
     "title": "15  Regression with Interaction",
-    "section": "15.3 PROC PLM",
-    "text": "15.3 PROC PLM\nThis section relies heavily on PROC PLM to estimate, compare, and visualize the conditional effects of interactions. Before applying it to interaction models, we briefly introduce PROC PLM in general.\nPROC PLM performs various analyses and plotting functions after a regression model has been fitted. It can be used for:\n\ntesting custom hypotheses about model parameters,\ncomputing predicted values,\nestimating simple effects and contrasts, and\ncreating visualizations of predicted values.\n\nUnlike most SAS procedures, PROC PLM does not directly use a dataset as input.\nInstead, it reads from an item store, which contains information about a previously fitted model.\nAn item store can be created by several SAS modeling procedures, including:\n\nPROC GLM\nPROC GENMOD\nPROC LOGISTIC\nPROC PHREG\nPROC MIXED\nPROC GLIMMIX\n\nThese procedures create the item store using a STORE statement.\nLater, PROC PLM accesses this stored model using the RESTORE= option.\nCommon PROC PLM Statements\nThe following statements are commonly used when analyzing interaction models:\n\nESTIMATEL Used to estimate linear combinations of model coefficients, including:\n\npredicted means\ncontrasts\nsimple slopes\nconditional effects\n\nThis statement is very flexible but may require more coding.\nSLICE: Used to estimate simple effects by comparing marginal means within levels of another factor.\nLSMESTIMATE: A hybrid of ESTIMATE and LSMEANS. It estimates differences between marginal means and is commonly used for simple effect comparisons.\nLSMEANS: Used to compute least squares means (marginal means) and test differences between them.\nEFFECTPLOT: Used to plot predicted values of the response variable across a range of values for one or two predictors. This is particularly useful for visualizing:\n\ninteraction effects\n\nsimple slopes\n\nconditional relationships\n\n\nIf additional predictors are included in the model, EFFECTPLOT will fix their values automatically:\n\nat the mean for continuous predictors\nat the reference category for categorical predictors.\n\nPROC GLM DATA=EXERCISE;\nMODEL LOSS = HOURS|EFFORT;\nSTORE CONTCONT;\nRUN;\n\nPROC PLM RESTORE=CONTCONT;\nEFFECTPLOT INTERACTION(X=HOURS SLICEBY=EFFORT);\nRUN;",
+    "section": "15.8 PROC PLM",
+    "text": "15.8 PROC PLM\nThis section relies heavily on PROC PLM to estimate, compare, and visualize the conditional effects of interactions. Before applying it to interaction models, we briefly introduce PROC PLM in general.\nPROC PLM performs various analyses and plotting functions after a regression model has been fitted. It can be used for:\n\ntesting custom hypotheses about model parameters\ncomputing predicted values\nestimating simple effects and contrasts\ncreating visualizations of predicted values\n\nUnlike most SAS procedures, PROC PLM does not directly use a dataset as input.\nInstead, it reads from an item store, which contains information about a previously fitted model.\nAn item store can be created by several SAS modeling procedures, including:\n\nPROC GLM\nPROC GENMOD\nPROC LOGISTIC\nPROC PHREG\nPROC MIXED\nPROC GLIMMIX\n\nThese procedures create the item store using a STORE statement.\nLater, PROC PLM accesses this stored model using the RESTORE= option.\n\n15.8.1 Example with PROC PLM\nDATA EXERCISE;\n    INPUT HOURS EFFORT $ LOSS;\n    DATALINES;\n1 Low 3.0\n2 Low 4.0\n3 Low 5.0\n4 Low 6.0\n5 Low 7.0\n1 High 2.0\n2 High 4.0\n3 High 7.0\n4 High 11.0\n5 High 16.0\n;\nRUN;\nPROC GLM DATA=EXERCISE;\n    CLASS EFFORT;\n    MODEL LOSS = HOURS|EFFORT;\n    STORE CONTCONT;\nRUN;\n\nPROC PLM RESTORE=CONTCONT;\n    EFFECTPLOT INTERACTION(X=HOURS SLICEBY=EFFORT);\nRUN;\n\n\n\n\n\n\nNoteKey Takeaways\n\n\n\n\nInteraction means the effect of one variable depends on another\n\nMain effects are no longer “global effects”\n\nAlways interpret simple slopes\n\nVisualization is the easiest way to detect interaction",
     "crumbs": [
       "Regression Analysis",
       "<span class='chapter-number'>15</span>  <span class='chapter-title'>Regression with Interaction</span>"
@@ -1563,69 +1618,245 @@
     ]
   },
   {
-    "objectID": "exercise_3_LMEM.html",
-    "href": "exercise_3_LMEM.html",
-    "title": "20  Exercise 3: Linear Mixed Effects Model (Advanced)",
+    "objectID": "exercise_3_regression.html",
+    "href": "exercise_3_regression.html",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
     "section": "",
-    "text": "20.1 Dataset: Multi-Location Crop Yield Study\nWe now consider a more complex dataset:",
+    "text": "20.1 Structure of This Activity\nThis activity follows a three-stage workflow:",
     "crumbs": [
       "Hands on Class",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Mixed Effects Model (Advanced)</span>"
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
     ]
   },
   {
-    "objectID": "exercise_3_LMEM.html#dataset-multi-location-crop-yield-study",
-    "href": "exercise_3_LMEM.html#dataset-multi-location-crop-yield-study",
-    "title": "20  Exercise 3: Linear Mixed Effects Model (Advanced)",
+    "objectID": "exercise_3_regression.html#structure-of-this-activity",
+    "href": "exercise_3_regression.html#structure-of-this-activity",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
+    "section": "",
+    "text": "Build a baseline regression model\nDiagnose model assumptions\nExtend to an interaction model",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_3_regression.html#dataset-for-this-exercise",
+    "href": "exercise_3_regression.html#dataset-for-this-exercise",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
+    "section": "20.2 Dataset for This Exercise",
+    "text": "20.2 Dataset for This Exercise\nWe will use a dataset relating:\n\nheight\nsex\nweight\n\nDATA MEASUREMENT;\n    INPUT SEX $ HEIGHT WEIGHT;\n    DATALINES;\nMale 67.07 163.61\nMale 66.98 162.23\nMale 69.13 163.06\nMale 67.31 163.76\nMale 66.25 163.84\nMale 72.20 168.39\nMale 71.39 168.19\nMale 60.81 159.14\nMale 64.78 160.58\nMale 68.13 163.63\nMale 63.15 161.36\nMale 73.91 170.46\nMale 74.38 166.68\nMale 69.77 164.70\nMale 73.86 170.27\nMale 65.34 161.75\nMale 72.75 169.74\nMale 63.92 160.03\nMale 61.85 161.79\nMale 71.25 170.94\nMale 61.68 157.11\nMale 70.71 165.60\nMale 65.73 165.85\nMale 68.04 163.39\nMale 62.76 160.00\nMale 63.05 161.20\nMale 61.34 158.26\nMale 60.59 157.50\nMale 74.35 167.14\nMale 61.36 161.91\nFemale 65.42 158.25\nFemale 65.76 158.12\nFemale 74.60 182.54\nFemale 65.67 161.15\nFemale 66.06 161.69\nFemale 62.60 159.56\nFemale 72.26 177.10\nFemale 65.48 158.31\nFemale 66.87 167.29\nFemale 64.29 162.77\nFemale 71.11 170.03\nFemale 62.40 154.43\nFemale 60.95 153.28\nFemale 63.15 156.38\nFemale 72.54 171.83\nFemale 70.49 175.26\nFemale 72.68 171.63\nFemale 67.37 161.84\nFemale 68.11 165.04\nFemale 70.48 168.12\nFemale 64.33 160.85\nFemale 71.84 177.00\nFemale 69.55 171.59\nFemale 64.69 156.69\nFemale 74.90 182.22\nFemale 71.89 168.57\nFemale 73.25 176.51\nFemale 72.43 174.51\nFemale 71.01 172.05\nFemale 63.16 155.14\n;\nRUN;",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_3_regression.html#part-1-simple-linear-regression",
+    "href": "exercise_3_regression.html#part-1-simple-linear-regression",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
+    "section": "20.3 Part 1: Simple Linear Regression",
+    "text": "20.3 Part 1: Simple Linear Regression\nFit a simple regression model:\nPROC REG DATA=MEASUREMENT;\n    MODEL WEIGHT = HEIGHT;\nRUN;\nQUIT;\n\n20.3.1 Questions\n\nWhat is the estimated slope?\nInterpret the slope in context.\nIs HEIGHT a significant predictor?\nWhat does the intercept represent here?",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_3_regression.html#part-2-diagnostic-checking",
+    "href": "exercise_3_regression.html#part-2-diagnostic-checking",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
+    "section": "20.4 Part 2: Diagnostic Checking",
+    "text": "20.4 Part 2: Diagnostic Checking\nPROC REG DATA=MEASUREMENT;\n    MODEL WEIGHT = HEIGHT;\n    OUTPUT OUT=MYOUT R=RESID;\nRUN;\nQUIT;\n\nPROC UNIVARIATE DATA=MYOUT NORMAL;\n    QQPLOT RESID / NORMAL(MU=EST SIGMA=EST);\nRUN;\n\n20.4.1 Questions\n\nAre the residuals approximately normal?\nDo you see any obvious violations of model assumptions?\nWhat would you check next if the model looked problematic?",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_3_regression.html#part-3-add-a-categorical-variable",
+    "href": "exercise_3_regression.html#part-3-add-a-categorical-variable",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
+    "section": "20.5 Part 3: Add a Categorical Variable",
+    "text": "20.5 Part 3: Add a Categorical Variable\nNow include SEX:\nPROC GLM DATA=MEASUREMENT;\n    CLASS SEX;\n    MODEL WEIGHT = HEIGHT SEX;\nRUN;\nQUIT;\n\n20.5.1 Questions\n\nWhat does the coefficient or effect of SEX represent?\nDoes this model assume the same slope for males and females?\nIs SEX associated with average differences in weight after accounting for HEIGHT?",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_3_regression.html#key-concept",
+    "href": "exercise_3_regression.html#key-concept",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
+    "section": "20.6 Key Concept",
+    "text": "20.6 Key Concept\nThis model assumes:\n\nThe effect of HEIGHT is the same for both groups.",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_3_regression.html#part-4-visual-check-for-interaction",
+    "href": "exercise_3_regression.html#part-4-visual-check-for-interaction",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
+    "section": "20.7 Part 4: Visual Check for Interaction",
+    "text": "20.7 Part 4: Visual Check for Interaction\nPROC SGPLOT DATA=MEASUREMENT;\n    REG X=HEIGHT Y=WEIGHT / GROUP=SEX;\nRUN;\n\n20.7.1 Questions\n\nAre the two fitted lines roughly parallel?\nDo you suspect interaction?\nWhich group appears to have the steeper slope?",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_3_regression.html#part-5-fit-the-interaction-model",
+    "href": "exercise_3_regression.html#part-5-fit-the-interaction-model",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
+    "section": "20.8 Part 5: Fit the Interaction Model",
+    "text": "20.8 Part 5: Fit the Interaction Model\nPROC GLM DATA=MEASUREMENT;\n    CLASS SEX;\n    MODEL WEIGHT = HEIGHT SEX HEIGHT*SEX;\nRUN;\nQUIT;\n\n20.8.1 Questions\n\nIs the interaction term significant?\nHow does this model differ from the previous one?\nShould we keep the interaction term?",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_3_regression.html#part-6-interpret-the-model",
+    "href": "exercise_3_regression.html#part-6-interpret-the-model",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
+    "section": "20.9 Part 6: Interpret the Model",
+    "text": "20.9 Part 6: Interpret the Model\nThe interaction model is\n\\[\n\\text{weight}\n=\n\\beta_0 + \\beta_s \\text{SEX} + \\beta_h \\text{HEIGHT} + \\beta_{sh}(\\text{SEX} \\times \\text{HEIGHT}).\n\\]\nAssume coding:\n\nSEX = 0 for males\nSEX = 1 for females\n\n\n20.9.1 Task\nDerive the fitted equations for each group.\n\n20.9.1.1 For males\n\\[\n\\text{weight}_{male} = \\beta_0 + \\beta_h \\text{HEIGHT}\n\\]\n\n\n20.9.1.2 For females\n\\[\n\\text{weight}_{female} = \\beta_0 + \\beta_s + (\\beta_h + \\beta_{sh})\\text{HEIGHT}\n\\]\n\n\n\n20.9.2 Questions\n\nWhat is the slope for males?\nWhat is the slope for females?\nWhat does \\(\\beta_{sh}\\) represent?",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_3_regression.html#key-insight",
+    "href": "exercise_3_regression.html#key-insight",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
+    "section": "20.10 Key Insight",
+    "text": "20.10 Key Insight\n\nInteraction = difference in slopes.",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_3_regression.html#part-7-visualization-using-proc-plm",
+    "href": "exercise_3_regression.html#part-7-visualization-using-proc-plm",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
+    "section": "20.11 Part 7: Visualization Using PROC PLM",
+    "text": "20.11 Part 7: Visualization Using PROC PLM\nPROC GLM DATA=MEASUREMENT;\n    CLASS SEX;\n    MODEL WEIGHT = HEIGHT SEX HEIGHT*SEX;\n    STORE INTMODEL;\nRUN;\nQUIT;\n\nPROC PLM RESTORE=INTMODEL;\n    EFFECTPLOT INTERACTION(X=HEIGHT SLICEBY=SEX);\nRUN;\n\n20.11.1 Questions\n\nDoes the plot confirm interaction?\nWhich group changes faster as HEIGHT increases?\nIs the interaction easier to understand using the plot?",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_3_regression.html#part-8-numerical-interpretation-practice",
+    "href": "exercise_3_regression.html#part-8-numerical-interpretation-practice",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
+    "section": "20.12 Part 8: Numerical Interpretation Practice",
+    "text": "20.12 Part 8: Numerical Interpretation Practice\nSuppose the fitted interaction model is\n\\[\n\\widehat{\\text{weight}}\n=\n20 + 5\\text{SEX} + 2\\text{HEIGHT} + 1(\\text{SEX}\\times\\text{HEIGHT}).\n\\]\n\n20.12.1 Questions\n\nWhat is the slope for males?\nWhat is the slope for females?\nFor a person of height 70, what is the predicted weight for a male?\nFor a person of height 70, what is the predicted weight for a female?",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_3_regression.html#final-reflection",
+    "href": "exercise_3_regression.html#final-reflection",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
+    "section": "20.13 Final Reflection",
+    "text": "20.13 Final Reflection\nDiscuss the following:\n\nWhen should we include an interaction term?\nWhy is interpretation harder once interaction is added?\nWhat is the danger of ignoring interaction when it is truly present?",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_3_regression.html#summary",
+    "href": "exercise_3_regression.html#summary",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
+    "section": "20.14 Summary",
+    "text": "20.14 Summary\n\nA simple regression model assumes a constant effect.\nAdding a group variable still assumes equal slopes unless interaction is included.\nInteraction allows the effect of one variable to depend on another.\nOnce interaction is present, interpretation becomes conditional.\nVisualization is often the clearest way to understand interaction.",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_3_regression.html#instructor-timing-guide-75-minutes",
+    "href": "exercise_3_regression.html#instructor-timing-guide-75-minutes",
+    "title": "20  Exercise 3: Linear Regression and Interaction",
+    "section": "20.15 Instructor Timing Guide (75 minutes)",
+    "text": "20.15 Instructor Timing Guide (75 minutes)\n\n\n\nSection\nTime\n\n\n\n\nPart 1–2\n20 min\n\n\nPart 3–4\n15 min\n\n\nPart 5–6\n20 min\n\n\nPart 7–8\n15 min\n\n\nFinal reflection\n5 min",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Regression and Interaction</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_4_LMEM.html",
+    "href": "exercise_4_LMEM.html",
+    "title": "21  Exercise 4: Linear Mixed Effects Model",
+    "section": "",
+    "text": "21.1 Dataset: Multi-Location Crop Yield Study\nWe now consider a more complex dataset:",
+    "crumbs": [
+      "Hands on Class",
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Exercise 4: Linear Mixed Effects Model</span>"
+    ]
+  },
+  {
+    "objectID": "exercise_4_LMEM.html#dataset-multi-location-crop-yield-study",
+    "href": "exercise_4_LMEM.html#dataset-multi-location-crop-yield-study",
+    "title": "21  Exercise 4: Linear Mixed Effects Model",
     "section": "",
     "text": "5 locations (randomly sampled farms)\n2 machine types (draper, stripper)\n2 crop varieties\nmultiple observations per combination",
     "crumbs": [
       "Hands on Class",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Mixed Effects Model (Advanced)</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Exercise 4: Linear Mixed Effects Model</span>"
     ]
   },
   {
-    "objectID": "exercise_3_LMEM.html#sas-dataset",
-    "href": "exercise_3_LMEM.html#sas-dataset",
-    "title": "20  Exercise 3: Linear Mixed Effects Model (Advanced)",
-    "section": "20.2 SAS Dataset",
-    "text": "20.2 SAS Dataset\nDATA crop;\nINPUT location $ machine $ variety $ yield;\nDATALINES;\nA draper v1 35.2\nA draper v2 34.8\nA stripper v1 38.5\nA stripper v2 39.1\nB draper v1 30.5\nB draper v2 31.2\nB stripper v1 34.0\nB stripper v2 35.5\nC draper v1 28.9\nC draper v2 29.5\nC stripper v1 32.1\nC stripper v2 33.0\nD draper v1 36.0\nD draper v2 35.7\nD stripper v1 40.2\nD stripper v2 41.0\nE draper v1 33.3\nE draper v2 34.1\nE stripper v1 37.5\nE stripper v2 38.0\n;\nRUN;",
+    "objectID": "exercise_4_LMEM.html#sas-dataset",
+    "href": "exercise_4_LMEM.html#sas-dataset",
+    "title": "21  Exercise 4: Linear Mixed Effects Model",
+    "section": "21.2 SAS Dataset",
+    "text": "21.2 SAS Dataset\nDATA crop;\nINPUT location $ machine $ variety $ yield;\nDATALINES;\nA draper v1 35.2\nA draper v2 34.8\nA stripper v1 38.5\nA stripper v2 39.1\nB draper v1 30.5\nB draper v2 31.2\nB stripper v1 34.0\nB stripper v2 35.5\nC draper v1 28.9\nC draper v2 29.5\nC stripper v1 32.1\nC stripper v2 33.0\nD draper v1 36.0\nD draper v2 35.7\nD stripper v1 40.2\nD stripper v2 41.0\nE draper v1 33.3\nE draper v2 34.1\nE stripper v1 37.5\nE stripper v2 38.0\n;\nRUN;",
     "crumbs": [
       "Hands on Class",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Mixed Effects Model (Advanced)</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Exercise 4: Linear Mixed Effects Model</span>"
     ]
   },
   {
-    "objectID": "exercise_3_LMEM.html#step-1-identify-model-structure",
-    "href": "exercise_3_LMEM.html#step-1-identify-model-structure",
-    "title": "20  Exercise 3: Linear Mixed Effects Model (Advanced)",
-    "section": "20.3 Step 1: Identify Model Structure",
-    "text": "20.3 Step 1: Identify Model Structure\n\n20.3.1 Task 1\nIdentify:\n\nResponse variable: ________\nFixed effects: ________\nRandom effects: ________",
+    "objectID": "exercise_4_LMEM.html#step-1-identify-model-structure",
+    "href": "exercise_4_LMEM.html#step-1-identify-model-structure",
+    "title": "21  Exercise 4: Linear Mixed Effects Model",
+    "section": "21.3 Step 1: Identify Model Structure",
+    "text": "21.3 Step 1: Identify Model Structure\n\n21.3.1 Task 1\nIdentify:\n\nResponse variable: ________\nFixed effects: ________\nRandom effects: ________",
     "crumbs": [
       "Hands on Class",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Mixed Effects Model (Advanced)</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Exercise 4: Linear Mixed Effects Model</span>"
     ]
   },
   {
-    "objectID": "exercise_3_LMEM.html#step-2-write-the-full-model",
-    "href": "exercise_3_LMEM.html#step-2-write-the-full-model",
-    "title": "20  Exercise 3: Linear Mixed Effects Model (Advanced)",
-    "section": "20.4 Step 2: Write the Full Model",
-    "text": "20.4 Step 2: Write the Full Model\n\\[\nY = \\beta_0 + \\beta_1 \\text{machine} + \\beta_2 \\text{variety} +\n\\beta_3 (machine \\times variety) + u_{location} + \\epsilon\n\\]",
+    "objectID": "exercise_4_LMEM.html#step-2-write-the-full-model",
+    "href": "exercise_4_LMEM.html#step-2-write-the-full-model",
+    "title": "21  Exercise 4: Linear Mixed Effects Model",
+    "section": "21.4 Step 2: Write the Full Model",
+    "text": "21.4 Step 2: Write the Full Model\n\\[\nY = \\beta_0 + \\beta_1 \\text{machine} + \\beta_2 \\text{variety} +\n\\beta_3 (machine \\times variety) + u_{location} + \\epsilon\n\\]",
     "crumbs": [
       "Hands on Class",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Mixed Effects Model (Advanced)</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Exercise 4: Linear Mixed Effects Model</span>"
     ]
   },
   {
-    "objectID": "exercise_3_LMEM.html#step-3-implement-in-sas",
-    "href": "exercise_3_LMEM.html#step-3-implement-in-sas",
-    "title": "20  Exercise 3: Linear Mixed Effects Model (Advanced)",
-    "section": "20.5 Step 3: Implement in SAS",
-    "text": "20.5 Step 3: Implement in SAS\nPROC MIXED DATA=crop;\n    CLASS location machine variety;\n    MODEL yield = machine variety machine*variety;\n    RANDOM location;\nRUN;\n\n20.5.1 Step 4: Interpretation\nSuppose:\n\nmachine effect = 3.2\ninteraction = 1.1\n\nInterpret:\n\nmachine effect: ____________________\ninteraction: _______________________\n\n\n\n20.5.2 Step 5: Model Comparison\n\n\n\nModel\nAIC\n\n\n\n\nNo random effect\n210\n\n\nWith random effect\n165\n\n\n\nWhich is better? Why?",
+    "objectID": "exercise_4_LMEM.html#step-3-implement-in-sas",
+    "href": "exercise_4_LMEM.html#step-3-implement-in-sas",
+    "title": "21  Exercise 4: Linear Mixed Effects Model",
+    "section": "21.5 Step 3: Implement in SAS",
+    "text": "21.5 Step 3: Implement in SAS\nPROC MIXED DATA=crop;\n    CLASS location machine variety;\n    MODEL yield = machine variety machine*variety;\n    RANDOM location;\nRUN;\n\n21.5.1 Step 4: Interpretation\nSuppose:\n\nmachine effect = 3.2\ninteraction = 1.1\n\nInterpret:\n\nmachine effect: ____________________\ninteraction: _______________________\n\n\n\n21.5.2 Step 5: Model Comparison\n\n\n\nModel\nAIC\n\n\n\n\nNo random effect\n210\n\n\nWith random effect\n165\n\n\n\nWhich is better? Why?",
     "crumbs": [
       "Hands on Class",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Exercise 3: Linear Mixed Effects Model (Advanced)</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Exercise 4: Linear Mixed Effects Model</span>"
     ]
   }
 ]
