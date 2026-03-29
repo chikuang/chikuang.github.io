@@ -1149,29 +1149,62 @@
     "href": "part3_4_LMEM_I.html",
     "title": "16  Linear Mixed Effect Models I",
     "section": "",
-    "text": "16.1 Introduction\nIn previous lectures, we studied linear regression models of the form:\n\\[\nY_i = \\beta_0 + \\beta_1 X_i + \\epsilon_i, \\quad \\epsilon_i \\sim N(0, \\sigma^2)\n\\]\nA key assumption is:\nHowever, this assumption often fails in real applications.\nThis can be written as the additive structure of the fixed effects and random effects.\nThis can be modelled using something called Linear Mixed",
+    "text": "16.1 Introduction\nIn previous lectures, we studied linear regression models of the form\n\\[\nY_i = \\beta_0 + \\beta_1 X_i + \\epsilon_i,\n\\qquad \\epsilon_i \\sim N(0, \\sigma^2).\n\\]\nA key assumption of this model is that the observations are independent.\nHowever, in many real applications, this assumption is not reasonable. Observations often come in groups, or the same subject is measured repeatedly. In such settings, observations from the same group tend to be more similar to each other than to observations from other groups.\nThis leads to correlated data, and ordinary regression is no longer the right model.",
     "crumbs": [
       "Regression Analysis",
       "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
     ]
   },
   {
-    "objectID": "part3_4_LMEM_I.html#introduction",
-    "href": "part3_4_LMEM_I.html#introduction",
+    "objectID": "part3_4_LMEM_I.html#two-common-settings-where-independence-fails",
+    "href": "part3_4_LMEM_I.html#two-common-settings-where-independence-fails",
     "title": "16  Linear Mixed Effect Models I",
-    "section": "",
-    "text": "Observations are independent\n\n\n\n\nStudents within schools\nPatients within hospitals\n\nObservations within the same group tend to be similar, leading to:\n\\[\n\\text{Corr}(Y_{ij}, Y_{ik}) \\neq 0\n\\]\n\n\nRepeated measurements on the same subject\nExample\n\nMeasuring performance across trials\n\nThis leads to:\n\\[\nY_{i1}, Y_{i2}, \\dots, Y_{iT} \\text{ are correlated}\n\\]\n\n\n\nFixed Effects\n\nParameters associated with entire population\nExample:\n\n\\[\n\\beta_1 = \\text{effect of treatment}\n\\]\nRandom Effects\n\nCapture subject-specific variation\n\nLet:\n\\[\nu_i \\sim N(0, \\sigma_u^2)\n\\]\nThen each subject has its own deviation.",
+    "section": "16.2 Two Common Settings where Independence Fails",
+    "text": "16.2 Two Common Settings where Independence Fails\n\nClustered data arise when observations are grouped into natural clusters.\nExamples include:\n\nstudents within schools\npatients within hospitals\ncalves within farms\n\nObservations within the same cluster tend to be similar, so for subjects \\(j\\) and \\(k\\) in the same cluster \\(i\\),\n\\[\n\\operatorname{Corr}(Y_{ij}, Y_{ik}) \\neq 0.\n\\]\n\n\nLongitudinal data arise when the same subject is measured repeatedly over time or across repeated trials.\nExamples include:\n\nrepeated test scores from the same student\nmonthly measurements from the same patient\nrepeated performance scores from the same worker\n\nFor subject \\(i\\), repeated measurements such as\n\\[\nY_{i1}, Y_{i2}, \\dots, Y_{iT}\n\\]\nare typically correlated.",
     "crumbs": [
       "Regression Analysis",
       "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
     ]
   },
   {
-    "objectID": "part3_4_LMEM_I.html#linear-mixed-effect-model-lmem",
-    "href": "part3_4_LMEM_I.html#linear-mixed-effect-model-lmem",
+    "objectID": "part3_4_LMEM_I.html#why-ordinary-regression-is-not-enough",
+    "href": "part3_4_LMEM_I.html#why-ordinary-regression-is-not-enough",
     "title": "16  Linear Mixed Effect Models I",
-    "section": "16.2 Linear Mixed Effect Model (LMEM)",
-    "text": "16.2 Linear Mixed Effect Model (LMEM)\nA general LMEM is:\n\\[\nY_{ij} = \\beta_0 + \\beta_1 X_{ij} + u_i + \\epsilon_{ij},\n\\]\nwhere\n\n\\(u_i \\sim N(0, \\sigma_u^2)\\) (random effect)\n\\(\\epsilon_{ij} \\sim N(0, \\sigma^2)\\) (residual)\n\nInterpretation\n\n\\(\\beta_0, \\beta_1\\): fixed effects\n\\(u_i\\): subject-specific deviation\n\\(Y_{ij}\\) are correlated because of shared \\(u_i\\)",
+    "section": "16.3 Why Ordinary Regression is Not Enough",
+    "text": "16.3 Why Ordinary Regression is Not Enough\nIf we ignore clustering or repeated measurements and fit an ordinary regression model, we usually make the standard errors too small. As a result:\n\np-values may be misleading\nconfidence intervals may be too narrow\nconclusions may be overly optimistic\n\nSo the issue is not only the mean structure. We also need to model the dependence structure in the data.",
+    "crumbs": [
+      "Regression Analysis",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
+    ]
+  },
+  {
+    "objectID": "part3_4_LMEM_I.html#fixed-effects-and-random-effects",
+    "href": "part3_4_LMEM_I.html#fixed-effects-and-random-effects",
+    "title": "16  Linear Mixed Effect Models I",
+    "section": "16.4 Fixed Effects and Random Effects",
+    "text": "16.4 Fixed Effects and Random Effects\nTo do this, we extend regression by adding random effects.\n\nFixed Effects\nFixed effects describe population-level effects that are of direct interest.\nExamples:\n\ntreatment group\nsex\nage\ntrial number\n\nIf we write\n\\[\n\\beta_1 = \\text{effect of treatment},\n\\]\nthen \\(\\beta_1\\) is a fixed effect parameter.\nRandom Effects\nRandom effects describe group-specific deviations from the overall population pattern.\nFor example, if subjects are measured repeatedly, each subject may have their own baseline level. We can write this as\n\\[\nu_i \\sim N(0, \\sigma_u^2),\n\\]\nwhere \\(u_i\\) is the random effect for subject \\(i\\).\n\n\n16.4.1 Intuition\n\nFixed effects tell us about the average relationship\nRandom effects allow each cluster or subject to have their own deviation\n\nThis leads to a model that combines both kinds of effects. That is why it is called a mixed model.",
+    "crumbs": [
+      "Regression Analysis",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
+    ]
+  },
+  {
+    "objectID": "part3_4_LMEM_I.html#the-basic-linear-mixed-effect-model",
+    "href": "part3_4_LMEM_I.html#the-basic-linear-mixed-effect-model",
+    "title": "16  Linear Mixed Effect Models I",
+    "section": "16.5 The Basic Linear Mixed Effect Model",
+    "text": "16.5 The Basic Linear Mixed Effect Model\nA simple linear mixed effect model is\n\\[\nY_{ij} = \\beta_0 + \\beta_1 X_{ij} + u_i + \\epsilon_{ij},\n\\]\nwhere:\n\n\\(\\beta_0, \\beta_1\\) are fixed effects\n\\(u_i\\) is a random effect for cluster or subject \\(i\\)\n\\(\\epsilon_{ij}\\) is the residual error\n\nAssumptions:\n\\[\nu_i \\sim N(0, \\sigma_u^2),\n\\qquad\n\\epsilon_{ij} \\sim N(0, \\sigma^2),\n\\]\nand we usually assume that \\(u_i\\) and \\(\\epsilon_{ij}\\) are independent.",
+    "crumbs": [
+      "Regression Analysis",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
+    ]
+  },
+  {
+    "objectID": "part3_4_LMEM_I.html#why-this-model-creates-correlation",
+    "href": "part3_4_LMEM_I.html#why-this-model-creates-correlation",
+    "title": "16  Linear Mixed Effect Models I",
+    "section": "16.6 Why This Model Creates Correlation",
+    "text": "16.6 Why This Model Creates Correlation\nTwo observations from the same subject share the same random effect \\(u_i\\). That is exactly what creates correlation.\nFor the same subject or cluster \\(i\\),\n\\[\nY_{ij} = \\beta_0 + \\beta_1 X_{ij} + u_i + \\epsilon_{ij},\n\\]\n\\[\nY_{ik} = \\beta_0 + \\beta_1 X_{ik} + u_i + \\epsilon_{ik}.\n\\]\nBecause both contain the same \\(u_i\\), they are correlated.",
     "crumbs": [
       "Regression Analysis",
       "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
@@ -1181,8 +1214,8 @@
     "objectID": "part3_4_LMEM_I.html#variance-structure",
     "href": "part3_4_LMEM_I.html#variance-structure",
     "title": "16  Linear Mixed Effect Models I",
-    "section": "16.3 Variance Structure",
-    "text": "16.3 Variance Structure\nWe can derive:\n\\[\n\\text{Var}(Y_{ij}) = \\sigma_u^2 + \\sigma^2\n\\]\n\\[\n\\text{Cov}(Y_{ij}, Y_{ik}) = \\sigma_u^2\n\\]\nThus:\n\\[\n\\text{Corr}(Y_{ij}, Y_{ik}) = \\frac{\\sigma_u^2}{\\sigma_u^2 + \\sigma^2}\n\\]",
+    "section": "16.7 Variance Structure",
+    "text": "16.7 Variance Structure\nFor the random intercept model,\n\\[\n\\operatorname{Var}(Y_{ij}) = \\sigma_u^2 + \\sigma^2\n\\]\nand for two observations in the same cluster,\n\\[\n\\operatorname{Cov}(Y_{ij}, Y_{ik}) = \\sigma_u^2.\n\\]\nTherefore,\n\\[\n\\operatorname{Corr}(Y_{ij}, Y_{ik})\n=\n\\frac{\\sigma_u^2}{\\sigma_u^2 + \\sigma^2}.\n\\]\nThis is one of the key ideas behind mixed models:\n\nthe random effect induces dependence.",
     "crumbs": [
       "Regression Analysis",
       "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
@@ -1192,8 +1225,52 @@
     "objectID": "part3_4_LMEM_I.html#example-dataset",
     "href": "part3_4_LMEM_I.html#example-dataset",
     "title": "16  Linear Mixed Effect Models I",
-    "section": "16.4 Example Dataset",
-    "text": "16.4 Example Dataset\nDATA performance;\n    INPUT id $ age group $ trial score;\n    DATALINES;\nSY 34 A 1 14.3\nSY 34 A 2 21.4\nSY 34 A 3 27.6\nSY 34 A 4 31.1\nSY 34 A 5 33.2\nWL 33 A 1 13.2\nWL 33 A 2 21.4\nWL 33 A 3 23.3\nWL 33 A 4 30.0\nWL 33 A 5 38.6\nZN 43 B 1 15.9\nZN 43 B 2 23.4\nZN 43 B 3 22.0\nZN 43 B 4 29.0\nZN 43 B 5 33.6\n;\nRUN;\nStep 1: Incorrect Model (Ignoring Correlation)\nPROC REG DATA=performance;\n    MODEL score = trial;\nRUN;\nProblem:\n\nAssumes independence\nUnderestimates variance\n\nStep 2: Random Intercept Model\nPROC MIXED DATA=performance;\n    CLASS id;\n    MODEL score = trial;\n    RANDOM INTERCEPT / SUBJECT=id;\nRUN;\nModel:\n\\[\nY_{ij} = \\beta_0 + \\beta_1 \\cdot trial_{ij} + u_i + \\epsilon_{ij}\n\\]\nStep 3: Add Fixed Effects\nPROC MIXED DATA=performance;\n    CLASS id group;\n    MODEL score = trial group;\n    RANDOM INTERCEPT / SUBJECT=id;\nRUN;\nModel:\n\\[\nY_{ij} = \\beta_0 + \\beta_1 trial_{ij} + \\beta_2 group_i + u_i + \\epsilon_{ij}\n\\]\nStep 4: Random Slope Model\nPROC MIXED DATA=performance;\n    CLASS id;\n    MODEL score = trial;\n    RANDOM INTERCEPT trial / SUBJECT=id;\nRUN;\nModel:\n\\[\nY_{ij} = \\beta_0 + \\beta_1 trial_{ij} + u_{0i} + u_{1i} trial_{ij} + \\epsilon_{ij}\n\\]",
+    "section": "16.8 Example Dataset",
+    "text": "16.8 Example Dataset\nTo illustrate the idea, consider the following repeated-measures dataset.\nDATA performance;\n    INPUT id $ age group $ trial score;\n    DATALINES;\nSY 34 A 1 14.3\nSY 34 A 2 21.4\nSY 34 A 3 27.6\nSY 34 A 4 31.1\nSY 34 A 5 33.2\nWL 33 A 1 13.2\nWL 33 A 2 21.4\nWL 33 A 3 23.3\nWL 33 A 4 30.0\nWL 33 A 5 38.6\nZN 43 B 1 15.9\nZN 43 B 2 23.4\nZN 43 B 3 22.0\nZN 43 B 4 29.0\nZN 43 B 5 33.6\n;\nRUN;\nIn this dataset:\n\nscore is the response variable\ntrial is a fixed effect\ngroup is a fixed effect\nid identifies the subject\n\nBecause each subject appears multiple times, the observations are not independent.",
+    "crumbs": [
+      "Regression Analysis",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
+    ]
+  },
+  {
+    "objectID": "part3_4_LMEM_I.html#step-1-a-model-that-ignores-correlation",
+    "href": "part3_4_LMEM_I.html#step-1-a-model-that-ignores-correlation",
+    "title": "16  Linear Mixed Effect Models I",
+    "section": "16.9 Step 1: A Model That Ignores Correlation",
+    "text": "16.9 Step 1: A Model That Ignores Correlation\nIf we fit ordinary regression,\nPROC REG DATA=performance;\n    MODEL score = trial;\nRUN;\nQUIT;\nthis assumes all observations are independent.\nThat is not appropriate here, because repeated scores from the same person are likely correlated.",
+    "crumbs": [
+      "Regression Analysis",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
+    ]
+  },
+  {
+    "objectID": "part3_4_LMEM_I.html#step-2-random-intercept-model",
+    "href": "part3_4_LMEM_I.html#step-2-random-intercept-model",
+    "title": "16  Linear Mixed Effect Models I",
+    "section": "16.10 Step 2: Random Intercept Model",
+    "text": "16.10 Step 2: Random Intercept Model\nA natural first mixed model is the random intercept model.\nPROC MIXED DATA=performance;\n    CLASS id;\n    MODEL score = trial;\n    RANDOM INTERCEPT / SUBJECT=id;\nRUN;\nThis corresponds to the model\n\\[\nY_{ij} = \\beta_0 + \\beta_1 \\, trial_{ij} + u_i + \\epsilon_{ij}.\n\\]\n\n16.10.1 Interpretation\n\n\\(\\beta_0\\) is the overall intercept\n\\(\\beta_1\\) is the average effect of trial\n\\(u_i\\) allows each subject to have their own baseline level\n\nSo this model says:\n\neveryone follows the same overall slope, but each subject may start from a different intercept.",
+    "crumbs": [
+      "Regression Analysis",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
+    ]
+  },
+  {
+    "objectID": "part3_4_LMEM_I.html#step-3-add-another-fixed-effect",
+    "href": "part3_4_LMEM_I.html#step-3-add-another-fixed-effect",
+    "title": "16  Linear Mixed Effect Models I",
+    "section": "16.11 Step 3: Add Another Fixed Effect",
+    "text": "16.11 Step 3: Add Another Fixed Effect\nWe can also include group as a fixed effect.\nPROC MIXED DATA=performance;\n    CLASS id group;\n    MODEL score = trial group;\n    RANDOM INTERCEPT / SUBJECT=id;\nRUN;\nThis corresponds to\n\\[\nY_{ij} = \\beta_0 + \\beta_1 \\, trial_{ij} + \\beta_2 \\, group_i + u_i + \\epsilon_{ij}.\n\\]\nNow the model includes:\n\nan overall effect of trial\nan overall difference between groups\na subject-specific random intercept",
+    "crumbs": [
+      "Regression Analysis",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
+    ]
+  },
+  {
+    "objectID": "part3_4_LMEM_I.html#step-4-random-slope-model",
+    "href": "part3_4_LMEM_I.html#step-4-random-slope-model",
+    "title": "16  Linear Mixed Effect Models I",
+    "section": "16.12 Step 4: Random Slope Model",
+    "text": "16.12 Step 4: Random Slope Model\nA more flexible model allows the effect of trial to vary by subject.\nPROC MIXED DATA=performance;\n    CLASS id;\n    MODEL score = trial;\n    RANDOM INTERCEPT trial / SUBJECT=id;\nRUN;\nThis corresponds to\n\\[\nY_{ij} = \\beta_0 + \\beta_1 trial_{ij} + u_{0i} + u_{1i} trial_{ij} + \\epsilon_{ij}.\n\\]\n\n16.12.1 Interpretation\n\n\\(u_{0i}\\) allows subject \\(i\\) to have their own intercept\n\\(u_{1i}\\) allows subject \\(i\\) to have their own slope\n\nThis means different subjects can improve at different rates across trials.",
     "crumbs": [
       "Regression Analysis",
       "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
@@ -1203,8 +1280,8 @@
     "objectID": "part3_4_LMEM_I.html#conceptual-visualization",
     "href": "part3_4_LMEM_I.html#conceptual-visualization",
     "title": "16  Linear Mixed Effect Models I",
-    "section": "16.5 Conceptual Visualization",
-    "text": "16.5 Conceptual Visualization\n\nRegression: one line\nMixed model: multiple lines (one per subject)",
+    "section": "16.13 Conceptual Visualization",
+    "text": "16.13 Conceptual Visualization\nA helpful way to think about the difference between regression and mixed models is:\n\nordinary regression: one fitted line for everyone\nrandom intercept model: many subject-specific lines with different intercepts\nrandom slope model: many subject-specific lines with different intercepts and different slopes\n\nThis is one reason mixed models are so useful for repeated-measures data.",
     "crumbs": [
       "Regression Analysis",
       "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
@@ -1214,8 +1291,30 @@
     "objectID": "part3_4_LMEM_I.html#in-class-questions",
     "href": "part3_4_LMEM_I.html#in-class-questions",
     "title": "16  Linear Mixed Effect Models I",
-    "section": "16.6 In-Class Questions",
-    "text": "16.6 In-Class Questions\n\nWhich variable is most appropriate as a random effect?\n\ntrial\n\nscore\n\nid\n\ngroup\n\n\n\nWhy include random effects?\n\nIncrease sample size\n\nModel dependence\n\nRemove variables\n\nNormalize data\n\n\n\nIgnoring clustering leads to:\n\nCorrect inference\n\nSmaller errors\n\nIncorrect standard errors\n\nBetter prediction\n\n\n\n\n\n\n\n\nNoteKey Takeaways\n\n\n\n\nMixed models handle correlated data\nRandom effects introduce dependence structure\nImportant for:\n\nLongitudinal data\nClustered data\n\nImplemented via PROC MIXED in SAS",
+    "section": "16.14 In-Class Questions",
+    "text": "16.14 In-Class Questions\n\nWhich variable is most appropriate as a random effect?\n\ntrial\n\nscore\n\nid\n\ngroupㄐ\n\n\n\nWhy include a random effect?\n\nTo increase sample size\n\nTo model dependence\n\nTo remove variables\n\nTo normalize the data\n\n\n\nIgnoring clustering most directly leads to:\n\nCorrect inference\n\nSmaller residuals\n\nIncorrect standard errors\n\nBetter prediction",
+    "crumbs": [
+      "Regression Analysis",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
+    ]
+  },
+  {
+    "objectID": "part3_4_LMEM_I.html#what-to-remember-from-this-lecture",
+    "href": "part3_4_LMEM_I.html#what-to-remember-from-this-lecture",
+    "title": "16  Linear Mixed Effect Models I",
+    "section": "16.15 What to Remember from This Lecture",
+    "text": "16.15 What to Remember from This Lecture\nThis first lecture on linear mixed models is mainly about intuition.\nThe big picture is:\n\nOrdinary regression assumes independence\nClustered and longitudinal data violate this assumption\nRandom effects are used to model within-group dependence\nMixed models combine:\n\nfixed effects for the mean structure\nrandom effects for the dependence structure\n\n\nIn the next lecture, we will go further into:\n\nmore detailed interpretation of PROC MIXED output\ncovariance structures\nrepeated-measures formulations\nmodel comparison and diagnostics",
+    "crumbs": [
+      "Regression Analysis",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
+    ]
+  },
+  {
+    "objectID": "part3_4_LMEM_I.html#key-takeaways",
+    "href": "part3_4_LMEM_I.html#key-takeaways",
+    "title": "16  Linear Mixed Effect Models I",
+    "section": "16.16 Key Takeaways",
+    "text": "16.16 Key Takeaways\n\n\n\n\n\n\nNoteKey Takeaways\n\n\n\n\nMixed models are used when observations are correlated\nTwo common settings are:\n\nclustered data\nlongitudinal data\n\nFixed effects describe population-level effects\nRandom effects describe subject- or cluster-specific deviations\nA random effect creates correlation among observations from the same subject or cluster\nIn SAS, the most basic mixed model can be fitted using PROC MIXED",
     "crumbs": [
       "Regression Analysis",
       "<span class='chapter-number'>16</span>  <span class='chapter-title'>Linear Mixed Effect Models I</span>"
