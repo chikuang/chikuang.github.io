@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.36">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>16&nbsp; Linear Mixed Effect Models I – STAT 8678 - SAS Programming &amp; Data Analysis</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./part3_5_LMEM_II.html" rel="next">
+<link href="./part3_3_regression_interaction.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-b9eaee60a963b5d74e9d33cc267de6a6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT 8678 - SAS Programming &amp; Data Analysis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8678"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="././STAT-8678---SAS-Programming---Data-Analysis.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./part3_1_ANOVA.html">Regression Analysis</a></li><li class="breadcrumb-item"><a href="./part3_4_LMEM_I.html"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Linear Mixed Effect Models I</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Introduction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_1_intro_operation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction to Basic SAS Operation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_2_sas_syntax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Working with SAS Syntax</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_3_import_export.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Import and Export Dataset</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_4_rv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Random Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Statistical Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_1_intro_inference1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Introduction to Statistical Inference I</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_2_intro_inference2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Introduction to Statistical Inference II</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_3_1sample_nonparametric_test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">One Sample Nonparametric Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_4_1sample_proportion_test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">One Sample Proportion Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_5_sas_marco.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">SAS Macro Program in One Sample Variance Problem</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_6_chi-square.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title"><span class="math inline">\(\chi^2\)</span> Goodness of Fit Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_7_power.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Power Analysis with application in one sample <span class="math inline">\(t\)</span>-test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_8_2sample_t.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Two Sample <span class="math inline">\(t\)</span>-test for Independent and Paired Data</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Regression Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_1_ANOVA.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Analysis of Variance</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_2_regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Regression Analysis</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_3_regression_interaction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Regression with Interaction</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_4_LMEM_I.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Linear Mixed Effect Models I</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_5_LMEM_II.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Linear Mixed Effect Models II</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Final Project</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./project.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data Analysis Using SAS</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Hands on Class</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_1_macro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Writing Macro in SAS</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_2_t_ANOVA.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Two-Sample t-Test and ANOVA in SAS</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_3_regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Exercise 3: Linear Regression and Interaction</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_4_LMEM.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Exercise 4: Linear Mixed Effects Model</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">16.1</span> Introduction</a></li>
+  <li><a href="#two-common-settings-where-independence-fails" id="toc-two-common-settings-where-independence-fails" class="nav-link" data-scroll-target="#two-common-settings-where-independence-fails"><span class="header-section-number">16.2</span> Two Common Settings where Independence Fails</a></li>
+  <li><a href="#why-ordinary-regression-is-not-enough" id="toc-why-ordinary-regression-is-not-enough" class="nav-link" data-scroll-target="#why-ordinary-regression-is-not-enough"><span class="header-section-number">16.3</span> Why Ordinary Regression is Not Enough</a></li>
+  <li><a href="#fixed-effects-and-random-effects" id="toc-fixed-effects-and-random-effects" class="nav-link" data-scroll-target="#fixed-effects-and-random-effects"><span class="header-section-number">16.4</span> Fixed Effects and Random Effects</a>
+  <ul class="collapse">
+  <li><a href="#intuition" id="toc-intuition" class="nav-link" data-scroll-target="#intuition"><span class="header-section-number">16.4.1</span> Intuition</a></li>
+  </ul></li>
+  <li><a href="#the-basic-linear-mixed-effect-model" id="toc-the-basic-linear-mixed-effect-model" class="nav-link" data-scroll-target="#the-basic-linear-mixed-effect-model"><span class="header-section-number">16.5</span> The Basic Linear Mixed Effect Model</a></li>
+  <li><a href="#why-this-model-creates-correlation" id="toc-why-this-model-creates-correlation" class="nav-link" data-scroll-target="#why-this-model-creates-correlation"><span class="header-section-number">16.6</span> Why This Model Creates Correlation</a></li>
+  <li><a href="#variance-structure" id="toc-variance-structure" class="nav-link" data-scroll-target="#variance-structure"><span class="header-section-number">16.7</span> Variance Structure</a></li>
+  <li><a href="#example-dataset" id="toc-example-dataset" class="nav-link" data-scroll-target="#example-dataset"><span class="header-section-number">16.8</span> Example Dataset</a></li>
+  <li><a href="#step-1-a-model-that-ignores-correlation" id="toc-step-1-a-model-that-ignores-correlation" class="nav-link" data-scroll-target="#step-1-a-model-that-ignores-correlation"><span class="header-section-number">16.9</span> Step 1: A Model That Ignores Correlation</a></li>
+  <li><a href="#step-2-random-intercept-model" id="toc-step-2-random-intercept-model" class="nav-link" data-scroll-target="#step-2-random-intercept-model"><span class="header-section-number">16.10</span> Step 2: Random Intercept Model</a>
+  <ul class="collapse">
+  <li><a href="#interpretation" id="toc-interpretation" class="nav-link" data-scroll-target="#interpretation"><span class="header-section-number">16.10.1</span> Interpretation</a></li>
+  </ul></li>
+  <li><a href="#step-3-add-another-fixed-effect" id="toc-step-3-add-another-fixed-effect" class="nav-link" data-scroll-target="#step-3-add-another-fixed-effect"><span class="header-section-number">16.11</span> Step 3: Add Another Fixed Effect</a></li>
+  <li><a href="#step-4-random-slope-model" id="toc-step-4-random-slope-model" class="nav-link" data-scroll-target="#step-4-random-slope-model"><span class="header-section-number">16.12</span> Step 4: Random Slope Model</a>
+  <ul class="collapse">
+  <li><a href="#interpretation-1" id="toc-interpretation-1" class="nav-link" data-scroll-target="#interpretation-1"><span class="header-section-number">16.12.1</span> Interpretation</a></li>
+  </ul></li>
+  <li><a href="#conceptual-visualization" id="toc-conceptual-visualization" class="nav-link" data-scroll-target="#conceptual-visualization"><span class="header-section-number">16.13</span> Conceptual Visualization</a></li>
+  <li><a href="#in-class-questions" id="toc-in-class-questions" class="nav-link" data-scroll-target="#in-class-questions"><span class="header-section-number">16.14</span> In-Class Questions</a></li>
+  <li><a href="#what-to-remember-from-this-lecture" id="toc-what-to-remember-from-this-lecture" class="nav-link" data-scroll-target="#what-to-remember-from-this-lecture"><span class="header-section-number">16.15</span> What to Remember from This Lecture</a></li>
+  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways"><span class="header-section-number">16.16</span> Key Takeaways</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./part3_1_ANOVA.html">Regression Analysis</a></li><li class="breadcrumb-item"><a href="./part3_4_LMEM_I.html"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Linear Mixed Effect Models I</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Linear Mixed Effect Models I</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<blockquote class="blockquote">
+<p>Learning Objectives</p>
+<p>By the end of this lecture, you should be able to:</p>
+<ol type="1">
+<li>Understand why <strong>ordinary linear regression may fail</strong> for correlated data<br>
+</li>
+<li>Distinguish between <strong>fixed effects</strong> and <strong>random effects</strong><br>
+</li>
+<li>Recognize <strong>clustered</strong> and <strong>longitudinal</strong> data structures<br>
+</li>
+<li>Write down the basic form of a <strong>linear mixed effect model</strong><br>
+</li>
+<li>Fit a simple mixed model in <strong>SAS using <code>PROC MIXED</code></strong></li>
+</ol>
+</blockquote>
+<section id="introduction" class="level2" data-number="16.1">
+<h2 data-number="16.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">16.1</span> Introduction</h2>
+<p>In previous lectures, we studied linear regression models of the form</p>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1 X_i + \epsilon_i,
+\qquad \epsilon_i \sim N(0, \sigma^2).
+\]</span></p>
+<p>A key assumption of this model is that the observations are <strong>independent</strong>.</p>
+<p>However, in many real applications, this assumption is not reasonable. Observations often come in groups, or the same subject is measured repeatedly. In such settings, observations from the same group tend to be more similar to each other than to observations from other groups.</p>
+<p>This leads to <strong>correlated data</strong>, and ordinary regression is no longer the right model.</p>
+</section>
+<section id="two-common-settings-where-independence-fails" class="level2" data-number="16.2">
+<h2 data-number="16.2" class="anchored" data-anchor-id="two-common-settings-where-independence-fails"><span class="header-section-number">16.2</span> Two Common Settings where Independence Fails</h2>
+<div class="callout-definition" title="Clustered Data">
+<p>Clustered data arise when observations are grouped into natural clusters.</p>
+<p>Examples include:</p>
+<ul>
+<li>students within schools</li>
+<li>patients within hospitals</li>
+<li>calves within farms</li>
+</ul>
+<p>Observations within the same cluster tend to be similar, so for subjects <span class="math inline">\(j\)</span> and <span class="math inline">\(k\)</span> in the same cluster <span class="math inline">\(i\)</span>,</p>
+<p><span class="math display">\[
+\operatorname{Corr}(Y_{ij}, Y_{ik}) \neq 0.
+\]</span></p>
+</div>
+<div class="callout-definition" title="Longitudinal Data">
+<p>Longitudinal data arise when the same subject is measured repeatedly over time or across repeated trials.</p>
+<p>Examples include:</p>
+<ul>
+<li>repeated test scores from the same student</li>
+<li>monthly measurements from the same patient</li>
+<li>repeated performance scores from the same worker</li>
+</ul>
+<p>For subject <span class="math inline">\(i\)</span>, repeated measurements such as</p>
+<p><span class="math display">\[
+Y_{i1}, Y_{i2}, \dots, Y_{iT}
+\]</span></p>
+<p>are typically correlated.</p>
+</div>
+</section>
+<section id="why-ordinary-regression-is-not-enough" class="level2" data-number="16.3">
+<h2 data-number="16.3" class="anchored" data-anchor-id="why-ordinary-regression-is-not-enough"><span class="header-section-number">16.3</span> Why Ordinary Regression is Not Enough</h2>
+<p>If we ignore clustering or repeated measurements and fit an ordinary regression model, we usually make the standard errors too small. As a result:</p>
+<ul>
+<li>p-values may be misleading</li>
+<li>confidence intervals may be too narrow</li>
+<li>conclusions may be overly optimistic</li>
+</ul>
+<p>So the issue is not only the mean structure. We also need to model the <strong>dependence structure</strong> in the data.</p>
+</section>
+<section id="fixed-effects-and-random-effects" class="level2" data-number="16.4">
+<h2 data-number="16.4" class="anchored" data-anchor-id="fixed-effects-and-random-effects"><span class="header-section-number">16.4</span> Fixed Effects and Random Effects</h2>
+<p>To do this, we extend regression by adding <strong>random effects</strong>.</p>
+<div class="callout-definition" title="Fixed Effects vs Random Effects">
+<p><strong>Fixed Effects</strong></p>
+<p>Fixed effects describe <strong>population-level effects</strong> that are of direct interest.</p>
+<p>Examples:</p>
+<ul>
+<li>treatment group</li>
+<li>sex</li>
+<li>age</li>
+<li>trial number</li>
+</ul>
+<p>If we write</p>
+<p><span class="math display">\[
+\beta_1 = \text{effect of treatment},
+\]</span></p>
+<p>then <span class="math inline">\(\beta_1\)</span> is a fixed effect parameter.</p>
+<p><strong>Random Effects</strong></p>
+<p>Random effects describe <strong>group-specific deviations</strong> from the overall population pattern.</p>
+<p>For example, if subjects are measured repeatedly, each subject may have their own baseline level. We can write this as</p>
+<p><span class="math display">\[
+u_i \sim N(0, \sigma_u^2),
+\]</span></p>
+<p>where <span class="math inline">\(u_i\)</span> is the random effect for subject <span class="math inline">\(i\)</span>.</p>
+</div>
+<section id="intuition" class="level3" data-number="16.4.1">
+<h3 data-number="16.4.1" class="anchored" data-anchor-id="intuition"><span class="header-section-number">16.4.1</span> Intuition</h3>
+<ul>
+<li>Fixed effects tell us about the <strong>average relationship</strong></li>
+<li>Random effects allow each cluster or subject to have their <strong>own deviation</strong></li>
+</ul>
+<p>This leads to a model that combines both kinds of effects. That is why it is called a <strong>mixed</strong> model.</p>
+</section>
+</section>
+<section id="the-basic-linear-mixed-effect-model" class="level2" data-number="16.5">
+<h2 data-number="16.5" class="anchored" data-anchor-id="the-basic-linear-mixed-effect-model"><span class="header-section-number">16.5</span> The Basic Linear Mixed Effect Model</h2>
+<p>A simple linear mixed effect model is</p>
+<p><span class="math display">\[
+Y_{ij} = \beta_0 + \beta_1 X_{ij} + u_i + \epsilon_{ij},
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(\beta_0, \beta_1\)</span> are fixed effects</li>
+<li><span class="math inline">\(u_i\)</span> is a random effect for cluster or subject <span class="math inline">\(i\)</span></li>
+<li><span class="math inline">\(\epsilon_{ij}\)</span> is the residual error</li>
+</ul>
+<p>Assumptions:</p>
+<p><span class="math display">\[
+u_i \sim N(0, \sigma_u^2),
+\qquad
+\epsilon_{ij} \sim N(0, \sigma^2),
+\]</span></p>
+<p>and we usually assume that <span class="math inline">\(u_i\)</span> and <span class="math inline">\(\epsilon_{ij}\)</span> are independent.</p>
+</section>
+<section id="why-this-model-creates-correlation" class="level2" data-number="16.6">
+<h2 data-number="16.6" class="anchored" data-anchor-id="why-this-model-creates-correlation"><span class="header-section-number">16.6</span> Why This Model Creates Correlation</h2>
+<p>Two observations from the same subject share the same random effect <span class="math inline">\(u_i\)</span>. That is exactly what creates correlation.</p>
+<p>For the same subject or cluster <span class="math inline">\(i\)</span>,</p>
+<p><span class="math display">\[
+Y_{ij} = \beta_0 + \beta_1 X_{ij} + u_i + \epsilon_{ij},
+\]</span></p>
+<p><span class="math display">\[
+Y_{ik} = \beta_0 + \beta_1 X_{ik} + u_i + \epsilon_{ik}.
+\]</span></p>
+<p>Because both contain the same <span class="math inline">\(u_i\)</span>, they are correlated.</p>
+</section>
+<section id="variance-structure" class="level2" data-number="16.7">
+<h2 data-number="16.7" class="anchored" data-anchor-id="variance-structure"><span class="header-section-number">16.7</span> Variance Structure</h2>
+<p>For the random intercept model,</p>
+<p><span class="math display">\[
+\operatorname{Var}(Y_{ij}) = \sigma_u^2 + \sigma^2
+\]</span></p>
+<p>and for two observations in the same cluster,</p>
+<p><span class="math display">\[
+\operatorname{Cov}(Y_{ij}, Y_{ik}) = \sigma_u^2.
+\]</span></p>
+<p>Therefore,</p>
+<p><span class="math display">\[
+\operatorname{Corr}(Y_{ij}, Y_{ik})
+=
+\frac{\sigma_u^2}{\sigma_u^2 + \sigma^2}.
+\]</span></p>
+<p>This is one of the key ideas behind mixed models:</p>
+<blockquote class="blockquote">
+<p>the random effect induces dependence.</p>
+</blockquote>
+</section>
+<section id="example-dataset" class="level2" data-number="16.8">
+<h2 data-number="16.8" class="anchored" data-anchor-id="example-dataset"><span class="header-section-number">16.8</span> Example Dataset</h2>
+<p>To illustrate the idea, consider the following repeated-measures dataset.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>DATA performance;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    INPUT id <span class="sc">$</span> age group <span class="sc">$</span> trial score;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    DATALINES;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>SY <span class="dv">34</span> A <span class="dv">1</span> <span class="fl">14.3</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>SY <span class="dv">34</span> A <span class="dv">2</span> <span class="fl">21.4</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>SY <span class="dv">34</span> A <span class="dv">3</span> <span class="fl">27.6</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>SY <span class="dv">34</span> A <span class="dv">4</span> <span class="fl">31.1</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>SY <span class="dv">34</span> A <span class="dv">5</span> <span class="fl">33.2</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>WL <span class="dv">33</span> A <span class="dv">1</span> <span class="fl">13.2</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>WL <span class="dv">33</span> A <span class="dv">2</span> <span class="fl">21.4</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>WL <span class="dv">33</span> A <span class="dv">3</span> <span class="fl">23.3</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>WL <span class="dv">33</span> A <span class="dv">4</span> <span class="fl">30.0</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>WL <span class="dv">33</span> A <span class="dv">5</span> <span class="fl">38.6</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>ZN <span class="dv">43</span> B <span class="dv">1</span> <span class="fl">15.9</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>ZN <span class="dv">43</span> B <span class="dv">2</span> <span class="fl">23.4</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>ZN <span class="dv">43</span> B <span class="dv">3</span> <span class="fl">22.0</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>ZN <span class="dv">43</span> B <span class="dv">4</span> <span class="fl">29.0</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>ZN <span class="dv">43</span> B <span class="dv">5</span> <span class="fl">33.6</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>;</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>In this dataset:</p>
+<ul>
+<li><code>score</code> is the response variable</li>
+<li><code>trial</code> is a fixed effect</li>
+<li><code>group</code> is a fixed effect</li>
+<li><code>id</code> identifies the subject</li>
+</ul>
+<p>Because each subject appears multiple times, the observations are not independent.</p>
+</section>
+<section id="step-1-a-model-that-ignores-correlation" class="level2" data-number="16.9">
+<h2 data-number="16.9" class="anchored" data-anchor-id="step-1-a-model-that-ignores-correlation"><span class="header-section-number">16.9</span> Step 1: A Model That Ignores Correlation</h2>
+<p>If we fit ordinary regression,</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>PROC REG DATA<span class="ot">=</span>performance;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    MODEL score <span class="ot">=</span> trial;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>QUIT;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>this assumes all observations are independent.</p>
+<p>That is not appropriate here, because repeated scores from the same person are likely correlated.</p>
+</section>
+<section id="step-2-random-intercept-model" class="level2" data-number="16.10">
+<h2 data-number="16.10" class="anchored" data-anchor-id="step-2-random-intercept-model"><span class="header-section-number">16.10</span> Step 2: Random Intercept Model</h2>
+<p>A natural first mixed model is the <strong>random intercept model</strong>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>PROC MIXED DATA<span class="ot">=</span>performance;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    CLASS id;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    MODEL score <span class="ot">=</span> trial;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    RANDOM INTERCEPT <span class="sc">/</span> SUBJECT<span class="ot">=</span>id;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This corresponds to the model</p>
+<p><span class="math display">\[
+Y_{ij} = \beta_0 + \beta_1 \, trial_{ij} + u_i + \epsilon_{ij}.
+\]</span></p>
+<section id="interpretation" class="level3" data-number="16.10.1">
+<h3 data-number="16.10.1" class="anchored" data-anchor-id="interpretation"><span class="header-section-number">16.10.1</span> Interpretation</h3>
+<ul>
+<li><span class="math inline">\(\beta_0\)</span> is the overall intercept</li>
+<li><span class="math inline">\(\beta_1\)</span> is the average effect of trial</li>
+<li><span class="math inline">\(u_i\)</span> allows each subject to have their own baseline level</li>
+</ul>
+<p>So this model says:</p>
+<blockquote class="blockquote">
+<p>everyone follows the same overall slope, but each subject may start from a different intercept.</p>
+</blockquote>
+</section>
+</section>
+<section id="step-3-add-another-fixed-effect" class="level2" data-number="16.11">
+<h2 data-number="16.11" class="anchored" data-anchor-id="step-3-add-another-fixed-effect"><span class="header-section-number">16.11</span> Step 3: Add Another Fixed Effect</h2>
+<p>We can also include group as a fixed effect.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>PROC MIXED DATA<span class="ot">=</span>performance;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    CLASS id group;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    MODEL score <span class="ot">=</span> trial group;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    RANDOM INTERCEPT <span class="sc">/</span> SUBJECT<span class="ot">=</span>id;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This corresponds to</p>
+<p><span class="math display">\[
+Y_{ij} = \beta_0 + \beta_1 \, trial_{ij} + \beta_2 \, group_i + u_i + \epsilon_{ij}.
+\]</span></p>
+<p>Now the model includes:</p>
+<ul>
+<li>an overall effect of trial</li>
+<li>an overall difference between groups</li>
+<li>a subject-specific random intercept</li>
+</ul>
+</section>
+<section id="step-4-random-slope-model" class="level2" data-number="16.12">
+<h2 data-number="16.12" class="anchored" data-anchor-id="step-4-random-slope-model"><span class="header-section-number">16.12</span> Step 4: Random Slope Model</h2>
+<p>A more flexible model allows the effect of trial to vary by subject.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>PROC MIXED DATA<span class="ot">=</span>performance;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    CLASS id;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    MODEL score <span class="ot">=</span> trial;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    RANDOM INTERCEPT trial <span class="sc">/</span> SUBJECT<span class="ot">=</span>id;</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This corresponds to</p>
+<p><span class="math display">\[
+Y_{ij} = \beta_0 + \beta_1 trial_{ij} + u_{0i} + u_{1i} trial_{ij} + \epsilon_{ij}.
+\]</span></p>
+<section id="interpretation-1" class="level3" data-number="16.12.1">
+<h3 data-number="16.12.1" class="anchored" data-anchor-id="interpretation-1"><span class="header-section-number">16.12.1</span> Interpretation</h3>
+<ul>
+<li><span class="math inline">\(u_{0i}\)</span> allows subject <span class="math inline">\(i\)</span> to have their own intercept</li>
+<li><span class="math inline">\(u_{1i}\)</span> allows subject <span class="math inline">\(i\)</span> to have their own slope</li>
+</ul>
+<p>This means different subjects can improve at different rates across trials.</p>
+</section>
+</section>
+<section id="conceptual-visualization" class="level2" data-number="16.13">
+<h2 data-number="16.13" class="anchored" data-anchor-id="conceptual-visualization"><span class="header-section-number">16.13</span> Conceptual Visualization</h2>
+<p>A helpful way to think about the difference between regression and mixed models is:</p>
+<ul>
+<li>ordinary regression: one fitted line for everyone</li>
+<li>random intercept model: many subject-specific lines with different intercepts</li>
+<li>random slope model: many subject-specific lines with different intercepts and different slopes</li>
+</ul>
+<p>This is one reason mixed models are so useful for repeated-measures data.</p>
+</section>
+<section id="in-class-questions" class="level2" data-number="16.14">
+<h2 data-number="16.14" class="anchored" data-anchor-id="in-class-questions"><span class="header-section-number">16.14</span> In-Class Questions</h2>
+<div class="callout-exercise" title="Question 1">
+<p>Which variable is most appropriate as a random effect?</p>
+<ol type="A">
+<li><code>trial</code><br>
+</li>
+<li><code>score</code><br>
+</li>
+<li><code>id</code><br>
+</li>
+<li><code>group</code>ㄐ</li>
+</ol>
+</div>
+<div class="callout-exercise" title="Question 2">
+<p>Why include a random effect?</p>
+<ol type="A">
+<li>To increase sample size<br>
+</li>
+<li>To model dependence<br>
+</li>
+<li>To remove variables<br>
+</li>
+<li>To normalize the data</li>
+</ol>
+</div>
+<div class="callout-exercise" title="Question 3">
+<p>Ignoring clustering most directly leads to:</p>
+<ol type="A">
+<li>Correct inference<br>
+</li>
+<li>Smaller residuals<br>
+</li>
+<li>Incorrect standard errors<br>
+</li>
+<li>Better prediction</li>
+</ol>
+</div>
+</section>
+<section id="what-to-remember-from-this-lecture" class="level2" data-number="16.15">
+<h2 data-number="16.15" class="anchored" data-anchor-id="what-to-remember-from-this-lecture"><span class="header-section-number">16.15</span> What to Remember from This Lecture</h2>
+<p>This first lecture on linear mixed models is mainly about <strong>intuition</strong>.</p>
+<p>The big picture is:</p>
+<ol type="1">
+<li>Ordinary regression assumes independence</li>
+<li>Clustered and longitudinal data violate this assumption</li>
+<li>Random effects are used to model within-group dependence</li>
+<li>Mixed models combine:
+<ul>
+<li>fixed effects for the mean structure</li>
+<li>random effects for the dependence structure</li>
+</ul></li>
+</ol>
+<p>In the next lecture, we will go further into:</p>
+<ul>
+<li>more detailed interpretation of <code>PROC MIXED</code> output</li>
+<li>covariance structures</li>
+<li>repeated-measures formulations</li>
+<li>model comparison and diagnostics</li>
+</ul>
+</section>
+<section id="key-takeaways" class="level2" data-number="16.16">
+<h2 data-number="16.16" class="anchored" data-anchor-id="key-takeaways"><span class="header-section-number">16.16</span> Key Takeaways</h2>
+<div id="callout-1" class="callout callout-style-default callout-note callout-titled" title="Key Takeaways">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Key Takeaways
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Mixed models are used when observations are <strong>correlated</strong></li>
+<li>Two common settings are:
+<ul>
+<li><strong>clustered data</strong></li>
+<li><strong>longitudinal data</strong></li>
+</ul></li>
+<li>Fixed effects describe <strong>population-level effects</strong></li>
+<li>Random effects describe <strong>subject- or cluster-specific deviations</strong></li>
+<li>A random effect creates correlation among observations from the same subject or cluster</li>
+<li>In SAS, the most basic mixed model can be fitted using <code>PROC MIXED</code></li>
+</ul>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./part3_3_regression_interaction.html" class="pagination-link" aria-label="Regression with Interaction">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Regression with Interaction</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./part3_5_LMEM_II.html" class="pagination-link" aria-label="Linear Mixed Effect Models II">
+        <span class="nav-page-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Linear Mixed Effect Models II</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
