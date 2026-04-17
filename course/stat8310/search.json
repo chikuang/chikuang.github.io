@@ -680,11 +680,401 @@
     ]
   },
   {
+    "objectID": "08_BML.html",
+    "href": "08_BML.html",
+    "title": "8  Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty",
+    "section": "",
+    "text": "8.1 Why connect Bayesian statistics and machine learning?\nIn this lecture, we explore several ways in which Bayesian statistics connects naturally with machine learning. The main message is that many ideas in modern machine learning have very natural Bayesian interpretations.\nIn particular, we will focus on three themes:\nMany machine learning methods are designed to do one or more of the following:\nBayesian methods are also designed to address these goals, but from a probabilistic perspective.\nA Bayesian analysis starts with a model for the data, specifies prior distributions on unknown parameters, and then uses the posterior distribution to update beliefs and make predictions.\nIn many cases, the two perspectives are closely related.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span>"
+    ]
+  },
+  {
+    "objectID": "08_BML.html#why-connect-bayesian-statistics-and-machine-learning",
+    "href": "08_BML.html#why-connect-bayesian-statistics-and-machine-learning",
+    "title": "8  Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty",
+    "section": "",
+    "text": "estimate complicated models,\nmake predictions,\navoid overfitting,\nquantify uncertainty.\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nA useful way to think about the connection is:\n\nmachine learning often emphasizes prediction and optimization;\nBayesian statistics emphasizes probability models and uncertainty quantification.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span>"
+    ]
+  },
+  {
+    "objectID": "08_BML.html#roadmap",
+    "href": "08_BML.html#roadmap",
+    "title": "8  Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty",
+    "section": "8.2 Roadmap",
+    "text": "8.2 Roadmap\nIn this lecture we will study:\n\nBayesian linear regression as a probabilistic prediction model,\nregularization as prior modeling,\nposterior predictive uncertainty,\nwhy these ideas matter in modern machine learning.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span>"
+    ]
+  },
+  {
+    "objectID": "08_BML.html#bayesian-linear-regression-as-probabilistic-machine-learning",
+    "href": "08_BML.html#bayesian-linear-regression-as-probabilistic-machine-learning",
+    "title": "8  Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty",
+    "section": "8.3 Bayesian linear regression as probabilistic machine learning",
+    "text": "8.3 Bayesian linear regression as probabilistic machine learning\nSuppose we observe data\n\\[\n(y_1,\\mathbf{x}_1),\\dots,(y_n,\\mathbf{x}_n),\n\\]\nwhere each \\(\\mathbf{x}_i \\in \\mathbb{R}^p\\) is a vector of predictors.\nA standard linear regression model is\n\\[\ny_i = \\mathbf{x}_i^\\top \\boldsymbol{\\beta} + \\varepsilon_i,\n\\qquad\n\\varepsilon_i \\sim \\mathcal{N}(0,\\sigma^2).\n\\]\nEquivalently,\n\\[\ny_i \\mid \\boldsymbol{\\beta},\\sigma^2\n\\sim\n\\mathcal{N}(\\mathbf{x}_i^\\top \\boldsymbol{\\beta},\\sigma^2).\n\\]\nIn matrix form,\n\\[\n\\mathbf{y} \\mid \\boldsymbol{\\beta},\\sigma^2\n\\sim\n\\mathcal{N}_n(\\mathbf{X}\\boldsymbol{\\beta}, \\sigma^2 \\mathbf{I}_n).\n\\]\n\n8.3.1 Frequentist view versus Bayesian view\nIn ordinary least squares regression, we estimate \\(\\boldsymbol{\\beta}\\) by a single point estimate:\n\\[\n\\hat{\\boldsymbol{\\beta}} = (\\mathbf{X}^\\top \\mathbf{X})^{-1}\\mathbf{X}^\\top \\mathbf{y}.\n\\]\nThis gives one “best” coefficient vector.\nIn Bayesian linear regression, we instead treat \\(\\boldsymbol{\\beta}\\) as unknown and assign it a prior distribution, such as\n\\[\n\\boldsymbol{\\beta} \\sim \\mathcal{N}_p(\\mathbf{0}, \\tau^2 \\mathbf{I}_p).\n\\]\nThen we obtain the posterior distribution\n\\[\np(\\boldsymbol{\\beta} \\mid \\mathbf{y}, \\mathbf{X}).\n\\]\nSo instead of a single estimate, we get a full distribution over plausible values of the regression coefficients.\n\n\n\n\n\n\nNote\n\n\n\nThis is one of the key Bayesian ideas in machine learning:\n\nInstead of learning one parameter value, we learn a distribution over parameter values.\n\n\n\n\n\n8.3.2 Why is this useful?\nA posterior distribution over \\(\\boldsymbol{\\beta}\\) gives us:\n\npoint estimates such as posterior means,\ninterval estimates such as credible intervals,\npredictive distributions for new observations,\nuncertainty quantification.\n\nThis is especially useful when:\n\nsample sizes are small,\npredictors are correlated,\noverfitting is a concern,\nprediction uncertainty matters.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span>"
+    ]
+  },
+  {
+    "objectID": "08_BML.html#regularization-as-prior-modeling",
+    "href": "08_BML.html#regularization-as-prior-modeling",
+    "title": "8  Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty",
+    "section": "8.4 Regularization as prior modeling",
+    "text": "8.4 Regularization as prior modeling\nOne of the most important connections between Bayesian statistics and machine learning is that regularization can often be interpreted as a prior distribution.\n\n8.4.1 Why regularization?\nIn machine learning, flexible models can easily overfit the data. To control complexity, we often add a penalty term.\nFor example, ridge regression solves\n\\[\n\\hat{\\boldsymbol{\\beta}}_{\\text{ridge}}\n=\n\\arg\\min_{\\boldsymbol{\\beta}}\n\\left\\{\n\\sum_{i=1}^n (y_i - \\mathbf{x}_i^\\top \\boldsymbol{\\beta})^2\n+\n\\lambda \\sum_{j=1}^p \\beta_j^2\n\\right\\}.\n\\]\nThe second term penalizes large coefficients.\n\n\n8.4.2 Bayesian interpretation of ridge regression\nSuppose we use the Gaussian prior\n\\[\n\\beta_j \\sim \\mathcal{N}(0,\\tau^2),\n\\qquad j=1,\\dots,p,\n\\]\nindependently.\nThen the log prior density is proportional to\n\\[\n-\\frac{1}{2\\tau^2}\\sum_{j=1}^p \\beta_j^2.\n\\]\nUnder a Gaussian likelihood, the log posterior is proportional to\n\\[\n-\\frac{1}{2\\sigma^2}\\sum_{i=1}^n (y_i - \\mathbf{x}_i^\\top \\boldsymbol{\\beta})^2\n-\n\\frac{1}{2\\tau^2}\\sum_{j=1}^p \\beta_j^2.\n\\]\nMaximizing the posterior is therefore equivalent to minimizing a penalized least squares criterion. In particular, the Gaussian prior corresponds to an \\(L_2\\) penalty.\n\n\n\n\n\n\nImportant\n\n\n\nA Gaussian prior on coefficients corresponds to ridge-type shrinkage.\n\n\nSo a prior is not only a statement about beliefs. It is also a way to control model complexity.\n\n\n8.4.3 Bayesian interpretation of the lasso\nThe lasso solves\n\\[\n\\hat{\\boldsymbol{\\beta}}_{\\text{lasso}}\n=\n\\arg\\min_{\\boldsymbol{\\beta}}\n\\left\\{\n\\sum_{i=1}^n (y_i - \\mathbf{x}_i^\\top \\boldsymbol{\\beta})^2\n+\n\\lambda \\sum_{j=1}^p |\\beta_j|\n\\right\\}.\n\\]\nThis corresponds to a Laplace prior,\n\\[\np(\\beta_j) \\propto \\exp(-\\lambda |\\beta_j|).\n\\]\nSo:\n\nGaussian prior \\(\\Rightarrow\\) ridge-type shrinkage,\nLaplace prior \\(\\Rightarrow\\) lasso-type shrinkage.\n\nThis is a powerful connection, because it shows that many machine learning penalties can be understood as prior distributions.\n\n\n8.4.4 Why shrinkage is Bayesianly natural\nFrom a Bayesian point of view, shrinkage happens because the prior says that very large coefficients are unlikely. The posterior combines this prior information with the evidence in the data.\nThis often improves prediction, especially in noisy or high-dimensional settings.\n\n\n\n\n\n\nNote\n\n\n\nIn machine learning language: regularization controls overfitting.\nIn Bayesian language: priors regularize estimation.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span>"
+    ]
+  },
+  {
+    "objectID": "08_BML.html#a-simple-simulation-ordinary-least-squares-versus-ridge-style-shrinkage",
+    "href": "08_BML.html#a-simple-simulation-ordinary-least-squares-versus-ridge-style-shrinkage",
+    "title": "8  Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty",
+    "section": "8.5 A simple simulation: ordinary least squares versus ridge-style shrinkage",
+    "text": "8.5 A simple simulation: ordinary least squares versus ridge-style shrinkage\nThe following example illustrates the effect of shrinkage in a small regression problem.\n\nlibrary(ggplot2)\n\nset.seed(8310)\n\nn &lt;- 40\np &lt;- 8\n\nX &lt;- matrix(rnorm(n * p), nrow = n, ncol = p)\nbeta_true &lt;- c(2, -1.5, 1, 0, 0, 0, 0, 0)\ny &lt;- X %*% beta_true + rnorm(n, sd = 2)\ny &lt;- as.numeric(y)\n\n# OLS estimate\nbeta_ols &lt;- solve(t(X) %*% X, t(X) %*% y)\n\n# Ridge estimate\nlambda &lt;- 10\nbeta_ridge &lt;- solve(t(X) %*% X + lambda * diag(p), t(X) %*% y)\n\ncoef_df &lt;- data.frame(\n  index = factor(1:p),\n  True = beta_true,\n  OLS = as.numeric(beta_ols),\n  Ridge = as.numeric(beta_ridge)\n)\n\ncoef_long &lt;- rbind(\n  data.frame(index = coef_df$index, value = coef_df$True, method = \"True\"),\n  data.frame(index = coef_df$index, value = coef_df$OLS, method = \"OLS\"),\n  data.frame(index = coef_df$index, value = coef_df$Ridge, method = \"Ridge\")\n)\n\nggplot(coef_long, aes(x = index, y = value, fill = method)) +\n  geom_col(position = \"dodge\") +\n  labs(\n    title = \"OLS and ridge estimates\",\n    x = \"Coefficient index\",\n    y = \"Value\",\n    fill = NULL\n  ) +\n  theme_classic()\n\n\n\n\n\n\n\nFigure 8.1: Comparison of ordinary least squares and ridge regression coefficient estimates in a small simulated example.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span>"
+    ]
+  },
+  {
+    "objectID": "08_BML.html#discussion-of-the-plot",
+    "href": "08_BML.html#discussion-of-the-plot",
+    "title": "8  Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty",
+    "section": "8.6 Discussion of the plot",
+    "text": "8.6 Discussion of the plot\nIn many small or noisy datasets, the ordinary least squares estimates can be unstable. Ridge shrinkage tends to pull the estimates toward zero. This can reduce variance and improve predictive performance, even if it introduces some bias.\nThis is a good example of a more general machine learning principle:\n\nA small amount of bias can be worthwhile if it substantially reduces variance.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span>"
+    ]
+  },
+  {
+    "objectID": "08_BML.html#prediction-and-uncertainty",
+    "href": "08_BML.html#prediction-and-uncertainty",
+    "title": "8  Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty",
+    "section": "8.7 Prediction and uncertainty",
+    "text": "8.7 Prediction and uncertainty\nA major strength of Bayesian methods is that prediction is naturally probabilistic.\nSuppose we have a new predictor vector \\(\\mathbf{x}_{\\text{new}}\\). In a non-Bayesian regression analysis, we may plug in an estimate and compute\n\\[\n\\hat{y}_{\\text{new}} = \\mathbf{x}_{\\text{new}}^\\top \\hat{\\boldsymbol{\\beta}}.\n\\]\nIn a Bayesian analysis, we instead use the posterior predictive distribution\n\\[\np(y_{\\text{new}} \\mid \\mathbf{y})\n=\n\\int p(y_{\\text{new}} \\mid \\boldsymbol{\\beta},\\sigma^2)\\,\np(\\boldsymbol{\\beta},\\sigma^2 \\mid \\mathbf{y})\\,\nd\\boldsymbol{\\beta}\\,d\\sigma^2.\n\\]\nThis distribution accounts for both:\n\nrandomness in future observations,\nuncertainty about the parameters.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span>"
+    ]
+  },
+  {
+    "objectID": "08_BML.html#why-posterior-predictive-distributions-matter",
+    "href": "08_BML.html#why-posterior-predictive-distributions-matter",
+    "title": "8  Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty",
+    "section": "8.8 Why posterior predictive distributions matter",
+    "text": "8.8 Why posterior predictive distributions matter\nPosterior predictive distributions are useful because they let us answer questions such as:\n\nWhat values are plausible for a future outcome?\nHow uncertain is our prediction?\nHow do different models compare in predictive performance?\n\nThis is especially important in decision-making problems, where uncertainty is not a nuisance but a core part of the problem.\n\n\n\n\n\n\nImportant\n\n\n\nMachine learning models often emphasize accurate prediction.\nBayesian models emphasize accurate prediction with calibrated uncertainty.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span>"
+    ]
+  },
+  {
+    "objectID": "08_BML.html#a-simple-predictive-simulation",
+    "href": "08_BML.html#a-simple-predictive-simulation",
+    "title": "8  Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty",
+    "section": "8.9 A simple predictive simulation",
+    "text": "8.9 A simple predictive simulation\nThe next example illustrates posterior predictive thinking in a regression setting. For simplicity, we simulate from a Gaussian approximation.\n\nlibrary(MASS)\nlibrary(ggplot2)\n\nset.seed(8310)\n\nn &lt;- 50\nx &lt;- runif(n, -2, 2)\ny &lt;- 1 + 2 * x + rnorm(n, sd = 1)\n\nX &lt;- cbind(1, x)\nbeta_hat &lt;- solve(t(X) %*% X, t(X) %*% y)\nsigma2_hat &lt;- sum((y - X %*% beta_hat)^2) / (n - 2)\nV_beta &lt;- sigma2_hat * solve(t(X) %*% X)\n\n# Simulate approximate posterior draws\nS &lt;- 4000\nbeta_draws &lt;- MASS::mvrnorm(S, mu = as.numeric(beta_hat), Sigma = V_beta)\n\nx_new &lt;- 1.0\nX_new &lt;- c(1, x_new)\n\ny_new_draws &lt;- numeric(S)\nfor (s in 1:S) {\n  mu_new &lt;- sum(X_new * beta_draws[s, ])\n  y_new_draws[s] &lt;- rnorm(1, mean = mu_new, sd = sqrt(sigma2_hat))\n}\n\npred_df &lt;- data.frame(y_new = y_new_draws)\n\nggplot(pred_df, aes(x = y_new)) +\n  geom_histogram(aes(y = after_stat(density)),\n                 bins = 40,\n                 fill = \"grey80\",\n                 color = \"white\") +\n  labs(\n    title = \"Posterior predictive distribution\",\n    subtitle = \"Prediction for a new response at x = 1\",\n    x = expression(y[new]),\n    y = \"Density\"\n  ) +\n  theme_classic()\n\n\n\n\n\n\n\nFigure 8.2: Posterior predictive distribution for a new observation in a simple regression example.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span>"
+    ]
+  },
+  {
+    "objectID": "08_BML.html#what-do-we-learn-from-this",
+    "href": "08_BML.html#what-do-we-learn-from-this",
+    "title": "8  Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty",
+    "section": "8.10 What do we learn from this?",
+    "text": "8.10 What do we learn from this?\nThis histogram is not just a point prediction. It is a distribution for the future observation.\nFrom it, we can compute:\n\npredictive means,\npredictive intervals,\nprobabilities of exceeding a threshold.\n\nThis is often much more useful than a single fitted value.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span>"
+    ]
+  },
+  {
+    "objectID": "08_BML.html#bayesian-ideas-in-modern-machine-learning",
+    "href": "08_BML.html#bayesian-ideas-in-modern-machine-learning",
+    "title": "8  Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty",
+    "section": "8.11 Bayesian ideas in modern machine learning",
+    "text": "8.11 Bayesian ideas in modern machine learning\nThe ideas we have seen so far are not isolated topics. They reappear in many modern machine learning methods.\n\n8.11.1 1. Priors as regularizers\nWe have already seen that priors can act like penalties. This idea extends far beyond ridge and lasso.\nExamples:\n\nGaussian priors \\(\\Rightarrow\\) shrinkage,\nLaplace priors \\(\\Rightarrow\\) sparsity,\nhierarchical priors \\(\\Rightarrow\\) adaptive shrinkage.\n\n\n\n8.11.2 2. Prediction with uncertainty\nMany machine learning models make predictions, but not all provide uncertainty in a principled way.\nBayesian models naturally provide:\n\npredictive distributions,\ncredible intervals,\nprobabilities of events.\n\nThis is particularly important in applications such as:\n\nmedicine,\npolicy,\nfinance,\nscientific prediction.\n\n\n\n8.11.3 3. Model complexity and overfitting\nBayesian methods can control complexity through the prior. Instead of just asking\n\nWhich parameter values fit the data best?\n\nBayesian analysis asks\n\nWhich parameter values are plausible after combining prior structure with the observed data?\n\nThis can improve stability and generalization.\n\n\n8.11.4 4. Modern computation\nIn simple models, posterior distributions may be available in closed form. In more complicated models, Bayesian machine learning relies on computational methods such as:\n\nMCMC,\nHamiltonian Monte Carlo,\nvariational inference.\n\nThis is one reason Bayesian computation has become such an important part of modern statistics and machine learning.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span>"
+    ]
+  },
+  {
+    "objectID": "08_BML.html#bayesian-versus-machine-learning-language",
+    "href": "08_BML.html#bayesian-versus-machine-learning-language",
+    "title": "8  Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty",
+    "section": "8.12 Bayesian versus machine learning language",
+    "text": "8.12 Bayesian versus machine learning language\nIt is often helpful to translate between the two languages.\n\n\n\n\n\n\n\nMachine learning language\nBayesian language\n\n\n\n\nRegularization\nPrior distribution\n\n\nTraining loss + penalty\nNegative log posterior\n\n\nPrediction\nPosterior predictive distribution\n\n\nParameter estimate\nPosterior summary\n\n\nEnsemble / uncertainty\nPosterior distribution over functions or parameters\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nThese are not exactly the same in every setting, but the parallels are often very strong.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span>"
+    ]
+  },
+  {
+    "objectID": "08_BML.html#what-bayesian-methods-add",
+    "href": "08_BML.html#what-bayesian-methods-add",
+    "title": "8  Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty",
+    "section": "8.13 What Bayesian methods add",
+    "text": "8.13 What Bayesian methods add\nIt is worth emphasizing that Bayesian methods do not replace machine learning. Rather, they provide a probabilistic framework for many of the same goals.\nBayesian methods add:\n\nprincipled uncertainty quantification,\ncoherent updating,\ninterpretable regularization through priors,\npredictive distributions instead of only point predictions.",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span>"
+    ]
+  },
+  {
+    "objectID": "08_BML.html#summary",
+    "href": "08_BML.html#summary",
+    "title": "8  Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty",
+    "section": "8.14 Summary",
+    "text": "8.14 Summary\nIn this lecture, we explored several important links between Bayesian statistics and machine learning.\nMain ideas:\n\nBayesian linear regression is a probabilistic predictive model.\nRegularization can often be interpreted as prior modeling.\nPosterior predictive distributions quantify uncertainty in predictions.\nMany modern machine learning ideas have natural Bayesian counterparts.\n\nIn short,\n\\[\n\\text{Bayesian statistics}\n\\;\\Longleftrightarrow\\;\n\\text{probabilistic machine learning}.\n\\]",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html",
+    "href": "09_VI_GP.html",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "",
+    "text": "9.1 Roadmap\nIn the previous lecture, we discussed several connections between Bayesian statistics and machine learning, focusing on\nIn this lecture, we continue that theme by looking at two major directions in modern Bayesian statistics:\nThe main message of this lecture is:\nIn this lecture we will study:",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#roadmap",
+    "href": "09_VI_GP.html#roadmap",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "",
+    "text": "why classical MCMC is not always enough,\nvariational inference as optimization-based Bayesian approximation,\nGaussian processes as priors over functions,\nwhy these ideas matter in modern statistics and machine learning.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#a-short-review-of-mcmc",
+    "href": "09_VI_GP.html#a-short-review-of-mcmc",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "10.1 A short review of MCMC",
+    "text": "10.1 A short review of MCMC\nMarkov chain Monte Carlo methods approximate posterior distributions by generating dependent samples\n\\[\n\\phi^{(1)},\\dots,\\phi^{(S)}\n\\]\nfrom a Markov chain whose stationary distribution is the target posterior.\nThen posterior expectations are approximated by\n\\[\nE[g(\\phi)\\mid y]\n\\approx\n\\frac{1}{S}\\sum_{s=1}^S g(\\phi^{(s)}).\n\\]\nThis is a powerful idea, but MCMC can become computationally expensive when:\n\nthe chain mixes slowly,\nthe dimension is large,\nthe likelihood is costly to evaluate,\nor we need to analyze many datasets quickly.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#beyond-classical-mcmc",
+    "href": "09_VI_GP.html#beyond-classical-mcmc",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "10.2 Beyond classical MCMC",
+    "text": "10.2 Beyond classical MCMC\nModern Bayesian computation includes methods such as\n\nHamiltonian Monte Carlo,\nvariational inference,\nstochastic gradient MCMC,\napproximate Bayesian computation.\n\nIn this lecture, we focus on variational inference, because it is one of the clearest examples of the connection between Bayesian computation and machine learning.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#core-idea",
+    "href": "09_VI_GP.html#core-idea",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "11.1 Core idea",
+    "text": "11.1 Core idea\nSuppose the true posterior is\n\\[\np(\\theta \\mid y),\n\\]\nbut this distribution is hard to compute or sample from directly.\nInstead of drawing MCMC samples, variational inference approximates the posterior by choosing a simpler distribution\n\\[\nq(\\theta)\n\\]\nfrom a family of tractable distributions, and then finding the member of that family that is “closest” to the posterior.\nThe approximation problem becomes\n\\[\nq^*(\\theta)\n=\n\\arg\\min_{q \\in \\mathcal{Q}}\n\\mathrm{KL}\\bigl(q(\\theta)\\,\\|\\,p(\\theta\\mid y)\\bigr).\n\\]\nSo variational inference turns posterior approximation into an optimization problem.\n\n\n\n\n\n\nImportant\n\n\n\nMCMC is based on sampling.\nVariational inference is based on optimization.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#why-is-this-useful",
+    "href": "09_VI_GP.html#why-is-this-useful",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "11.2 Why is this useful?",
+    "text": "11.2 Why is this useful?\nVariational inference can be much faster than MCMC, especially in large or complicated models.\nThis is one reason it is widely used in machine learning and large-scale Bayesian modeling.\nThe tradeoff is that the approximation may be biased, because we are restricting attention to a smaller family of distributions.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#kl-divergence",
+    "href": "09_VI_GP.html#kl-divergence",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "11.3 KL divergence",
+    "text": "11.3 KL divergence\nThe Kullback–Leibler divergence from \\(q\\) to \\(p\\) is\n\\[\n\\mathrm{KL}(q \\,\\|\\, p)\n=\n\\int q(\\theta)\\log \\frac{q(\\theta)}{p(\\theta\\mid y)}\\,d\\theta.\n\\]\nThis quantity is always nonnegative, and it equals zero only if \\(q = p\\) almost everywhere.\nSo minimizing KL divergence tries to make \\(q\\) as close as possible to the posterior.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#the-elbo",
+    "href": "09_VI_GP.html#the-elbo",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "11.4 The ELBO",
+    "text": "11.4 The ELBO\nDirectly minimizing\n\\[\n\\mathrm{KL}(q(\\theta)\\,\\|\\,p(\\theta\\mid y))\n\\]\nis not always convenient, because the posterior normalization constant may be unknown.\nInstead, variational inference often maximizes the evidence lower bound (ELBO),\n\\[\n\\mathrm{ELBO}(q)\n=\nE_q[\\log p(y,\\theta)] - E_q[\\log q(\\theta)].\n\\]\nMaximizing the ELBO is equivalent to minimizing the KL divergence.\n\n11.4.1 Interpretation of the ELBO\nThe ELBO has two parts:\n\na fit term, which encourages \\(q\\) to place mass where the joint density \\(p(y,\\theta)\\) is large;\nan entropy term, which discourages \\(q\\) from collapsing too much.\n\nThis balance is similar in spirit to many machine learning optimization problems, where we balance fit and complexity.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#mean-field-variational-inference",
+    "href": "09_VI_GP.html#mean-field-variational-inference",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "11.5 Mean-field variational inference",
+    "text": "11.5 Mean-field variational inference\nA common simplification is to assume that the approximation factorizes:\n\\[\nq(\\theta)\n=\n\\prod_{j=1}^p q_j(\\theta_j).\n\\]\nThis is called the mean-field approximation.\nIt makes optimization easier, but it can underestimate posterior dependence.\n\n\n\n\n\n\nWarning\n\n\n\nA common limitation of variational inference is that it may underestimate posterior uncertainty, especially when the true posterior has strong dependence.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#variational-inference-versus-mcmc",
+    "href": "09_VI_GP.html#variational-inference-versus-mcmc",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "11.6 Variational inference versus MCMC",
+    "text": "11.6 Variational inference versus MCMC\nThe table below summarizes the broad comparison.\n\n\n\nFeature\nMCMC\nVariational inference\n\n\n\n\nMain idea\nSampling\nOptimization\n\n\nAccuracy\nOften high\nApproximate\n\n\nSpeed\nCan be slow\nOften faster\n\n\nOutput\nSamples from posterior\nApproximate distribution\n\n\nUncertainty quantification\nUsually strong\nMay be underestimated",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#a-simple-variational-approximation-example",
+    "href": "09_VI_GP.html#a-simple-variational-approximation-example",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "11.7 A simple variational approximation example",
+    "text": "11.7 A simple variational approximation example\nThe following code illustrates a very simple variational-style approximation idea. We compare a target density with a Gaussian approximation.\nThis is not a full general-purpose VI algorithm. The goal is only to build intuition.\n\nlibrary(ggplot2)\n\ntheta_grid &lt;- seq(-4, 4, length.out = 1000)\n\n# Example target density: a non-Gaussian posterior-like shape\ntarget_unnorm &lt;- exp(-0.5 * (theta_grid - 1)^2) * (1 + 0.3 * sin(3 * theta_grid))\ntarget_unnorm[target_unnorm &lt; 0] &lt;- 0\ntarget_density &lt;- target_unnorm / sum(target_unnorm) / (theta_grid[2] - theta_grid[1])\n\n# A simple Gaussian approximation\nq_density &lt;- dnorm(theta_grid, mean = 0.9, sd = 0.8)\n\ndf_vi &lt;- data.frame(\n  theta = rep(theta_grid, 2),\n  density = c(target_density, q_density),\n  curve = factor(rep(c(\"Target density\", \"Gaussian approximation\"),\n                     each = length(theta_grid)))\n)\n\nggplot(df_vi, aes(x = theta, y = density, color = curve, linetype = curve)) +\n  geom_line(linewidth = 1) +\n  labs(\n    title = \"Variational inference intuition\",\n    subtitle = \"Approximate the target posterior by a simpler distribution\",\n    x = expression(theta),\n    y = \"Density\",\n    color = NULL,\n    linetype = NULL\n  ) +\n  theme_classic()\n\n\n\n\n\n\n\nFigure 11.1: A target density and a simple Gaussian approximation.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#takeaway-from-variational-inference",
+    "href": "09_VI_GP.html#takeaway-from-variational-inference",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "11.8 Takeaway from variational inference",
+    "text": "11.8 Takeaway from variational inference\nVariational inference is attractive because it scales well and turns Bayesian inference into optimization. This makes it very natural for modern machine learning.\nAt the same time, we should remember:\n\nit is an approximation,\nits quality depends on the approximation family,\nand it may not capture all posterior dependence or uncertainty.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#motivation",
+    "href": "09_VI_GP.html#motivation",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "12.1 Motivation",
+    "text": "12.1 Motivation\nIn regression, we often assume a parametric relationship such as\n\\[\ny_i = \\beta_0 + \\beta_1 x_i + \\varepsilon_i.\n\\]\nBut what if the true relationship is nonlinear and we do not want to commit to a specific parametric form?\nA Gaussian process provides a Bayesian way to model an unknown function flexibly.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#core-idea-1",
+    "href": "09_VI_GP.html#core-idea-1",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "12.2 Core idea",
+    "text": "12.2 Core idea\nIn Gaussian process regression, we write\n\\[\ny_i = f(x_i) + \\varepsilon_i,\n\\qquad\n\\varepsilon_i \\sim \\mathcal{N}(0,\\sigma^2),\n\\]\nand then place a prior directly on the unknown function \\(f\\).\nA Gaussian process prior says that for any collection of inputs\n\\[\nx_1,\\dots,x_n,\n\\]\nthe corresponding function values\n\\[\n(f(x_1),\\dots,f(x_n))^\\top\n\\]\nfollow a multivariate Gaussian distribution.\nIn symbols,\n\\[\nf \\sim \\mathcal{GP}(m(\\cdot), k(\\cdot,\\cdot)),\n\\]\nwhere\n\n\\(m(x)\\) is the mean function,\n\\(k(x,x')\\) is the covariance kernel.\n\n\n\n\n\n\n\nNote\n\n\n\nA Gaussian process is an infinite-dimensional generalization of the multivariate Gaussian distribution.\n\n\nThis is exactly why Gaussian processes fit naturally after our earlier lecture on multivariate Gaussian models.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#the-kernel-function",
+    "href": "09_VI_GP.html#the-kernel-function",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "12.3 The kernel function",
+    "text": "12.3 The kernel function\nThe kernel\n\\[\nk(x,x')\n\\]\ndetermines how strongly the function values at \\(x\\) and \\(x'\\) are related.\nA common choice is the squared exponential kernel:\n\\[\nk(x,x')\n=\n\\alpha^2 \\exp\\left(\n-\\frac{(x-x')^2}{2\\ell^2}\n\\right),\n\\]\nwhere\n\n\\(\\alpha^2\\) controls vertical variability,\n\\(\\ell\\) controls smoothness.\n\nLarge \\(\\ell\\) leads to smoother functions. Small \\(\\ell\\) allows more rapid local variation.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#why-gaussian-processes-are-bayesian",
+    "href": "09_VI_GP.html#why-gaussian-processes-are-bayesian",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "12.4 Why Gaussian processes are Bayesian",
+    "text": "12.4 Why Gaussian processes are Bayesian\nGaussian process regression is Bayesian because:\n\nwe specify a prior over functions,\ndata update this prior to a posterior over functions,\nprediction is based on the posterior predictive distribution.\n\nSo the output is not just one estimated curve. It is a posterior distribution over plausible curves.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#simulating-prior-draws-from-a-gaussian-process",
+    "href": "09_VI_GP.html#simulating-prior-draws-from-a-gaussian-process",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "12.5 Simulating prior draws from a Gaussian process",
+    "text": "12.5 Simulating prior draws from a Gaussian process\nThe following example illustrates the idea of a prior over functions.\n\nlibrary(MASS)\nlibrary(ggplot2)\n\nset.seed(8310)\n\nx_grid &lt;- seq(-3, 3, length.out = 100)\n\nkernel_se &lt;- function(x1, x2, alpha = 1, ell = 1) {\n  alpha^2 * exp(-(outer(x1, x2, \"-\")^2) / (2 * ell^2))\n}\n\nK &lt;- kernel_se(x_grid, x_grid, alpha = 1, ell = 1)\nK &lt;- K + 1e-8 * diag(length(x_grid))  # numerical stability\n\ngp_draws &lt;- MASS::mvrnorm(5, mu = rep(0, length(x_grid)), Sigma = K)\n\ngp_df &lt;- do.call(rbind, lapply(1:5, function(j) {\n  data.frame(x = x_grid, y = gp_draws[j, ], draw = factor(paste(\"Draw\", j)))\n}))\n\nggplot(gp_df, aes(x = x, y = y, color = draw)) +\n  geom_line(linewidth = 0.9) +\n  labs(\n    title = \"Gaussian process prior draws\",\n    subtitle = \"A Gaussian process defines a prior distribution over functions\",\n    x = \"x\",\n    y = \"f(x)\",\n    color = NULL\n  ) +\n  theme_classic()\n\n\n\n\n\n\n\nFigure 12.1: Draws from a Gaussian process prior.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#why-gaussian-processes-matter",
+    "href": "09_VI_GP.html#why-gaussian-processes-matter",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "12.6 Why Gaussian processes matter",
+    "text": "12.6 Why Gaussian processes matter\nGaussian processes are important because they combine:\n\nflexible nonlinear regression,\nuncertainty quantification,\nelegant Bayesian updating.\n\nThey are widely used in:\n\nspatial statistics,\nBayesian optimization,\nsurrogate modeling,\ncomputer experiments,\nprobabilistic machine learning.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#gaussian-processes-and-multivariate-gaussian-distributions",
+    "href": "09_VI_GP.html#gaussian-processes-and-multivariate-gaussian-distributions",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "12.7 Gaussian processes and multivariate Gaussian distributions",
+    "text": "12.7 Gaussian processes and multivariate Gaussian distributions\nA Gaussian process is built from multivariate Gaussian distributions. If we evaluate the unknown function at finitely many input points, then the resulting vector is multivariate Gaussian.\nSo the structure is:\n\\[\nf \\sim \\mathcal{GP}(m,k)\n\\quad \\Longrightarrow \\quad\n(f(x_1),\\dots,f(x_n))^\\top \\sim \\mathcal{N}_n(\\mathbf{m}, \\mathbf{K}).\n\\]\nThis is one reason the multivariate Gaussian distribution is so central in modern Bayesian modeling.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#theme-1-bayesian-computation",
+    "href": "09_VI_GP.html#theme-1-bayesian-computation",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "13.1 Theme 1: Bayesian computation",
+    "text": "13.1 Theme 1: Bayesian computation\nModern Bayesian methods often need computational tools beyond closed-form conjugate analysis.\nExamples include:\n\nMCMC,\nHamiltonian Monte Carlo,\nvariational inference.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#theme-2-bayesian-modeling",
+    "href": "09_VI_GP.html#theme-2-bayesian-modeling",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "13.2 Theme 2: Bayesian modeling",
+    "text": "13.2 Theme 2: Bayesian modeling\nModern Bayesian statistics also provides very flexible modeling tools.\nExamples include:\n\nhierarchical models,\nGaussian processes,\nlatent variable models,\nBayesian neural networks.\n\nThese ideas allow us to model uncertainty in complicated problems while still keeping a probabilistic interpretation.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#variational-inference-1",
+    "href": "09_VI_GP.html#variational-inference-1",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "16.1 Variational inference",
+    "text": "16.1 Variational inference\n\nturns posterior approximation into optimization,\nis often faster than MCMC,\nbut may introduce approximation bias.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#gaussian-processes-1",
+    "href": "09_VI_GP.html#gaussian-processes-1",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "16.2 Gaussian processes",
+    "text": "16.2 Gaussian processes\n\ndefine priors over functions,\nextend multivariate Gaussian ideas to infinite-dimensional settings,\nprovide flexible nonlinear regression with uncertainty quantification.\n\nIn short,\n\\[\n\\text{Modern Bayesian statistics}\n\\;=\\;\n\\text{probabilistic modeling}\n\\;+\\;\n\\text{modern computation}.\n\\]",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
+    "objectID": "09_VI_GP.html#looking-back-on-the-course",
+    "href": "09_VI_GP.html#looking-back-on-the-course",
+    "title": "9  Modern Bayesian Computation and Models",
+    "section": "16.3 Looking back on the course",
+    "text": "16.3 Looking back on the course\nThis course has moved from:\n\nbasic Bayesian probability and prior-posterior updating,\nconjugate models,\nMonte Carlo approximation,\nGibbs sampling and diagnostics,\nmultivariate Gaussian models,\n\nto ideas that connect directly to modern machine learning and modern Bayesian data analysis.\nThe underlying message has stayed the same:\n\nBayesian statistics is a coherent way to model uncertainty, learn from data, and make predictions.",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Modern Bayesian Computation and Models</span>"
+    ]
+  },
+  {
     "objectID": "project.html",
     "href": "project.html",
     "title": "Bayesian Methods Beyond the Course",
     "section": "",
-    "text": "Objective\nWeight: 20%\nDue date: April 27, 2026\nLast update: April 15, 2026\nThe goal of this project is to explore a Bayesian topic that goes beyond the core course material and to demonstrate\nYou are encouraged to go somewhat beyond what we covered in class. The emphasis is not only on fitting a Bayesian model, but also on evaluating, comparing, and interpreting Bayesian methods thoughtfully.",
+    "text": "Objective\nWeight: 20%\nDue date: May 1, 2026\nLast update: April 16, 2026\nThe goal of this project is to explore a Bayesian topic that goes beyond the core course material and to demonstrate\nYou are encouraged to go somewhat beyond what we covered in class. The emphasis is not only on fitting a Bayesian model, but also on evaluating, comparing, and interpreting Bayesian methods thoughtfully.",
     "crumbs": [
       "Project",
       "Bayesian Methods Beyond the Course"
