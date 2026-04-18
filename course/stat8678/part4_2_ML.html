@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>21&nbsp; Introduction to Machine Learning in SAS – STAT 8678 - SAS Programming &amp; Data Analysis</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./project.html" rel="next">
+<link href="./part4_1_predictive.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-b9eaee60a963b5d74e9d33cc267de6a6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT 8678 - SAS Programming &amp; Data Analysis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8678"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="././STAT-8678---SAS-Programming---Data-Analysis.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./part4_1_predictive.html">Advanced Topics</a></li><li class="breadcrumb-item"><a href="./part4_2_ML.html"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Introduction to Machine Learning in SAS</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Introduction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_1_intro_operation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction to Basic SAS Operation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_2_sas_syntax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Working with SAS Syntax</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_3_import_export.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Import and Export Dataset</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_4_rv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Random Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Statistical Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_1_intro_inference1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Introduction to Statistical Inference I</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_2_intro_inference2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Introduction to Statistical Inference II</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_3_1sample_nonparametric_test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">One Sample Nonparametric Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_4_1sample_proportion_test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">One Sample Proportion Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_5_sas_marco.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">SAS Macro Program in One Sample Variance Problem</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_6_chi-square.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title"><span class="math inline">\(\chi^2\)</span> Goodness of Fit Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_7_power.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Power Analysis with application in one sample <span class="math inline">\(t\)</span>-test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_8_2sample_t.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Two Sample <span class="math inline">\(t\)</span>-test for Independent and Paired Data</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Regression Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_1_ANOVA.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Analysis of Variance</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_2_regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Regression Analysis</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_3_regression_interaction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Regression with Interaction</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_4_LMEM_I.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Linear Mixed Effect Models I</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_5_LMEM_II.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Linear Mixed Effect Models II</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_6_model_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Model Selection in SAS</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_7_nested_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Nested Models and Nested Designs</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Advanced Topics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part4_1_predictive.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Predictive Modelling and Model Evaluation in SAS</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part4_2_ML.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Introduction to Machine Learning in SAS</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Final Project</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./project.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data Analysis Using SAS</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Hands on Class</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_1_macro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Writing Macro in SAS</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_2_t_ANOVA.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Two-Sample t-Test and ANOVA in SAS</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_3_regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Linear Regression and Interaction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_4_LMEM.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Linear Mixed Effects Model</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">21.1</span> Introduction</a></li>
+  <li><a href="#what-is-machine-learning" id="toc-what-is-machine-learning" class="nav-link" data-scroll-target="#what-is-machine-learning"><span class="header-section-number">21.2</span> What Is Machine Learning?</a>
+  <ul class="collapse">
+  <li><a href="#important-note" id="toc-important-note" class="nav-link" data-scroll-target="#important-note"><span class="header-section-number">21.2.1</span> Important Note</a></li>
+  </ul></li>
+  <li><a href="#supervised-vs-unsupervised-learning" id="toc-supervised-vs-unsupervised-learning" class="nav-link" data-scroll-target="#supervised-vs-unsupervised-learning"><span class="header-section-number">21.3</span> Supervised vs Unsupervised Learning</a>
+  <ul class="collapse">
+  <li><a href="#supervised-learning" id="toc-supervised-learning" class="nav-link" data-scroll-target="#supervised-learning"><span class="header-section-number">21.3.1</span> Supervised Learning</a></li>
+  <li><a href="#unsupervised-learning" id="toc-unsupervised-learning" class="nav-link" data-scroll-target="#unsupervised-learning"><span class="header-section-number">21.3.2</span> Unsupervised Learning</a></li>
+  <li><a href="#focus-of-this-lecture" id="toc-focus-of-this-lecture" class="nav-link" data-scroll-target="#focus-of-this-lecture"><span class="header-section-number">21.3.3</span> Focus of This Lecture</a></li>
+  </ul></li>
+  <li><a href="#classical-models-vs-machine-learning-models" id="toc-classical-models-vs-machine-learning-models" class="nav-link" data-scroll-target="#classical-models-vs-machine-learning-models"><span class="header-section-number">21.4</span> Classical Models vs Machine Learning Models</a>
+  <ul class="collapse">
+  <li><a href="#comparison" id="toc-comparison" class="nav-link" data-scroll-target="#comparison"><span class="header-section-number">21.4.1</span> Comparison</a></li>
+  <li><a href="#important-message" id="toc-important-message" class="nav-link" data-scroll-target="#important-message"><span class="header-section-number">21.4.2</span> Important Message</a></li>
+  </ul></li>
+  <li><a href="#why-flexible-models-can-help" id="toc-why-flexible-models-can-help" class="nav-link" data-scroll-target="#why-flexible-models-can-help"><span class="header-section-number">21.5</span> Why Flexible Models Can Help</a></li>
+  <li><a href="#decision-trees" id="toc-decision-trees" class="nav-link" data-scroll-target="#decision-trees"><span class="header-section-number">21.6</span> Decision Trees</a>
+  <ul class="collapse">
+  <li><a href="#basic-idea" id="toc-basic-idea" class="nav-link" data-scroll-target="#basic-idea"><span class="header-section-number">21.6.1</span> Basic Idea</a></li>
+  <li><a href="#why-students-usually-like-trees" id="toc-why-students-usually-like-trees" class="nav-link" data-scroll-target="#why-students-usually-like-trees"><span class="header-section-number">21.6.2</span> Why Students Usually Like Trees</a></li>
+  <li><a href="#example" id="toc-example" class="nav-link" data-scroll-target="#example"><span class="header-section-number">21.6.3</span> Example</a></li>
+  </ul></li>
+  <li><a href="#strengths-and-weaknesses-of-trees" id="toc-strengths-and-weaknesses-of-trees" class="nav-link" data-scroll-target="#strengths-and-weaknesses-of-trees"><span class="header-section-number">21.7</span> Strengths and Weaknesses of Trees</a>
+  <ul class="collapse">
+  <li><a href="#strengths" id="toc-strengths" class="nav-link" data-scroll-target="#strengths"><span class="header-section-number">21.7.1</span> Strengths</a></li>
+  <li><a href="#weaknesses" id="toc-weaknesses" class="nav-link" data-scroll-target="#weaknesses"><span class="header-section-number">21.7.2</span> Weaknesses</a></li>
+  </ul></li>
+  <li><a href="#random-forests-and-ensemble-thinking" id="toc-random-forests-and-ensemble-thinking" class="nav-link" data-scroll-target="#random-forests-and-ensemble-thinking"><span class="header-section-number">21.8</span> 21.8 Random Forests and Ensemble Thinking</a>
+  <ul class="collapse">
+  <li><a href="#main-idea" id="toc-main-idea" class="nav-link" data-scroll-target="#main-idea"><span class="header-section-number">21.8.1</span> Main Idea</a></li>
+  <li><a href="#why-random-forests-work-well" id="toc-why-random-forests-work-well" class="nav-link" data-scroll-target="#why-random-forests-work-well"><span class="header-section-number">21.8.2</span> Why Random Forests Work Well</a></li>
+  <li><a href="#trade-off" id="toc-trade-off" class="nav-link" data-scroll-target="#trade-off"><span class="header-section-number">21.8.3</span> Trade-off</a></li>
+  </ul></li>
+  <li><a href="#regularization-and-high-dimensional-prediction" id="toc-regularization-and-high-dimensional-prediction" class="nav-link" data-scroll-target="#regularization-and-high-dimensional-prediction"><span class="header-section-number">21.9</span> 21.9 Regularization and High-Dimensional Prediction</a>
+  <ul class="collapse">
+  <li><a href="#motivation" id="toc-motivation" class="nav-link" data-scroll-target="#motivation"><span class="header-section-number">21.9.1</span> Motivation</a></li>
+  <li><a href="#example-lasso" id="toc-example-lasso" class="nav-link" data-scroll-target="#example-lasso"><span class="header-section-number">21.9.2</span> Example: LASSO</a></li>
+  <li><a href="#big-picture" id="toc-big-picture" class="nav-link" data-scroll-target="#big-picture"><span class="header-section-number">21.9.3</span> Big Picture</a></li>
+  </ul></li>
+  <li><a href="#a-simple-machine-learning-workflow-in-sas" id="toc-a-simple-machine-learning-workflow-in-sas" class="nav-link" data-scroll-target="#a-simple-machine-learning-workflow-in-sas"><span class="header-section-number">21.10</span> A Simple Machine Learning Workflow in SAS</a></li>
+  <li><a href="#sas-example-decision-tree" id="toc-sas-example-decision-tree" class="nav-link" data-scroll-target="#sas-example-decision-tree"><span class="header-section-number">21.11</span> SAS Example: Decision Tree</a>
+  <ul class="collapse">
+  <li><a href="#example-classification-tree" id="toc-example-classification-tree" class="nav-link" data-scroll-target="#example-classification-tree"><span class="header-section-number">21.11.1</span> Example: Classification Tree</a></li>
+  <li><a href="#explanation" id="toc-explanation" class="nav-link" data-scroll-target="#explanation"><span class="header-section-number">21.11.2</span> Explanation</a></li>
+  <li><a href="#scoring-the-test-set" id="toc-scoring-the-test-set" class="nav-link" data-scroll-target="#scoring-the-test-set"><span class="header-section-number">21.11.3</span> Scoring the Test Set</a></li>
+  </ul></li>
+  <li><a href="#sas-example-random-forest" id="toc-sas-example-random-forest" class="nav-link" data-scroll-target="#sas-example-random-forest"><span class="header-section-number">21.12</span> SAS Example: Random Forest</a>
+  <ul class="collapse">
+  <li><a href="#interpretation" id="toc-interpretation" class="nav-link" data-scroll-target="#interpretation"><span class="header-section-number">21.12.1</span> Interpretation</a></li>
+  </ul></li>
+  <li><a href="#sas-example-regularization-with-glmselect" id="toc-sas-example-regularization-with-glmselect" class="nav-link" data-scroll-target="#sas-example-regularization-with-glmselect"><span class="header-section-number">21.13</span> SAS Example: Regularization with GLMSELECT</a>
+  <ul class="collapse">
+  <li><a href="#why-this-is-useful" id="toc-why-this-is-useful" class="nav-link" data-scroll-target="#why-this-is-useful"><span class="header-section-number">21.13.1</span> Why This Is Useful</a></li>
+  </ul></li>
+  <li><a href="#comparing-models" id="toc-comparing-models" class="nav-link" data-scroll-target="#comparing-models"><span class="header-section-number">21.14</span> 21.14 Comparing Models</a>
+  <ul class="collapse">
+  <li><a href="#questions-to-ask" id="toc-questions-to-ask" class="nav-link" data-scroll-target="#questions-to-ask"><span class="header-section-number">21.14.1</span> Questions to Ask</a></li>
+  <li><a href="#example-discussion" id="toc-example-discussion" class="nav-link" data-scroll-target="#example-discussion"><span class="header-section-number">21.14.2</span> Example Discussion</a></li>
+  </ul></li>
+  <li><a href="#bias-variance-trade-off" id="toc-bias-variance-trade-off" class="nav-link" data-scroll-target="#bias-variance-trade-off"><span class="header-section-number">21.15</span> 21.15 Bias-Variance Trade-off</a>
+  <ul class="collapse">
+  <li><a href="#informal-idea" id="toc-informal-idea" class="nav-link" data-scroll-target="#informal-idea"><span class="header-section-number">21.15.1</span> Informal Idea</a></li>
+  <li><a href="#connection-to-earlier-topics" id="toc-connection-to-earlier-topics" class="nav-link" data-scroll-target="#connection-to-earlier-topics"><span class="header-section-number">21.15.2</span> Connection to Earlier Topics</a></li>
+  </ul></li>
+  <li><a href="#why-this-matters-for-sas-users" id="toc-why-this-matters-for-sas-users" class="nav-link" data-scroll-target="#why-this-matters-for-sas-users"><span class="header-section-number">21.16</span> 21.16 Why This Matters for SAS Users</a></li>
+  <li><a href="#practical-advice-for-students" id="toc-practical-advice-for-students" class="nav-link" data-scroll-target="#practical-advice-for-students"><span class="header-section-number">21.17</span> 21.17 Practical Advice for Students</a></li>
+  <li><a href="#looking-ahead" id="toc-looking-ahead" class="nav-link" data-scroll-target="#looking-ahead"><span class="header-section-number">21.18</span> 21.18 Looking Ahead</a></li>
+  <li><a href="#chapter-summary" id="toc-chapter-summary" class="nav-link" data-scroll-target="#chapter-summary"><span class="header-section-number">21.19</span> 21.19 Chapter Summary</a>
+  <ul class="collapse">
+  <li><a href="#main-ideas" id="toc-main-ideas" class="nav-link" data-scroll-target="#main-ideas"><span class="header-section-number">21.19.1</span> Main Ideas</a></li>
+  <li><a href="#sas-skills-introduced" id="toc-sas-skills-introduced" class="nav-link" data-scroll-target="#sas-skills-introduced"><span class="header-section-number">21.19.2</span> SAS Skills Introduced</a></li>
+  <li><a href="#final-message" id="toc-final-message" class="nav-link" data-scroll-target="#final-message"><span class="header-section-number">21.19.3</span> Final Message</a></li>
+  </ul></li>
+  <li><a href="#practice-problems" id="toc-practice-problems" class="nav-link" data-scroll-target="#practice-problems"><span class="header-section-number">21.20</span> Practice Problems</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./part4_1_predictive.html">Advanced Topics</a></li><li class="breadcrumb-item"><a href="./part4_2_ML.html"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Introduction to Machine Learning in SAS</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Introduction to Machine Learning in SAS</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<blockquote class="blockquote">
+<p><strong>Learning Objectives</strong></p>
+<p>By the end of this lecture, you should be able to:</p>
+<ol type="1">
+<li>Explain what <strong>machine learning</strong> means in a predictive modelling context.</li>
+<li>Distinguish between <strong>supervised</strong> and <strong>unsupervised</strong> learning.</li>
+<li>Understand the basic ideas behind <strong>decision trees</strong>, <strong>random forests</strong>, and <strong>regularization</strong>.</li>
+<li>Compare classical statistical models with more flexible machine learning methods.</li>
+<li>Implement basic machine learning workflows in SAS for prediction and model comparison.</li>
+</ol>
+</blockquote>
+<section id="introduction" class="level2" data-number="21.1">
+<h2 data-number="21.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">21.1</span> Introduction</h2>
+<p>In the previous lecture, we introduced predictive modelling and emphasized the importance of evaluating models using out-of-sample performance. That lecture served as a bridge from classical statistical modelling to modern prediction.</p>
+<p>In this lecture, we take one more step and ask:</p>
+<ul>
+<li>What do people mean by <strong>machine learning</strong> (ML)?</li>
+<li>How is it related to regression and classification?</li>
+<li>What kinds of predictive methods are available in SAS?</li>
+<li>When might a more flexible model be useful?</li>
+</ul>
+<p>The goal of this lecture is not to turn this course into a full machine learning course. Instead, the goal is to introduce several important ideas in a way that is connected to the statistical models you already know.</p>
+</section>
+<section id="what-is-machine-learning" class="level2" data-number="21.2">
+<h2 data-number="21.2" class="anchored" data-anchor-id="what-is-machine-learning"><span class="header-section-number">21.2</span> What Is Machine Learning?</h2>
+<p>There is no single perfect definition of machine learning, but in many practical settings it refers to:</p>
+<blockquote class="blockquote">
+<p>using data-driven algorithms to learn patterns from data for prediction, classification, or discovery.</p>
+</blockquote>
+<p>Compared with traditional statistical modelling, machine learning often places stronger emphasis on:</p>
+<ul>
+<li>prediction,</li>
+<li>flexibility,</li>
+<li>automatic pattern detection,</li>
+<li>performance on unseen data.</li>
+</ul>
+<section id="important-note" class="level3" data-number="21.2.1">
+<h3 data-number="21.2.1" class="anchored" data-anchor-id="important-note"><span class="header-section-number">21.2.1</span> Important Note</h3>
+<p>Machine learning is <strong>not separate from statistics</strong>. Many machine learning methods are extensions of ideas you already know:</p>
+<ul>
+<li>regression,</li>
+<li>classification,</li>
+<li>optimization,</li>
+<li>variable selection,</li>
+<li>bias-variance trade-off.</li>
+</ul>
+<p>In many real applications, the boundary between statistics and machine learning is not sharp.</p>
+</section>
+</section>
+<section id="supervised-vs-unsupervised-learning" class="level2" data-number="21.3">
+<h2 data-number="21.3" class="anchored" data-anchor-id="supervised-vs-unsupervised-learning"><span class="header-section-number">21.3</span> Supervised vs Unsupervised Learning</h2>
+<p>A useful first distinction is between <strong>supervised learning</strong> and <strong>unsupervised learning</strong>.</p>
+<section id="supervised-learning" class="level3" data-number="21.3.1">
+<h3 data-number="21.3.1" class="anchored" data-anchor-id="supervised-learning"><span class="header-section-number">21.3.1</span> Supervised Learning</h3>
+<p>In supervised learning, we observe:</p>
+<ul>
+<li>predictors <span class="math inline">\(X\)</span>,</li>
+<li>a response <span class="math inline">\(Y\)</span>.</li>
+</ul>
+<p>The goal is to learn a rule that predicts <span class="math inline">\(Y\)</span> from <span class="math inline">\(X\)</span>.</p>
+<div class="callout-example" title="Examples of Supervised Learning">
+<ul>
+<li>predicting house price from location and size,</li>
+<li>predicting whether a patient has a disease,</li>
+<li>predicting whether an email is spam.</li>
+</ul>
+</div>
+<p>Typical supervised learning methods include:</p>
+<ul>
+<li>linear regression,</li>
+<li>logistic regression,</li>
+<li>decision trees,</li>
+<li>random forests,</li>
+<li>support vector machines,</li>
+<li>neural networks.</li>
+</ul>
+</section>
+<section id="unsupervised-learning" class="level3" data-number="21.3.2">
+<h3 data-number="21.3.2" class="anchored" data-anchor-id="unsupervised-learning"><span class="header-section-number">21.3.2</span> Unsupervised Learning</h3>
+<p>In unsupervised learning, we observe predictors <span class="math inline">\(X\)</span> but no response variable.</p>
+<p>The goal is to discover structure in the data.</p>
+<div class="callout-example" title="Examples of Unsupervised Learning">
+<ul>
+<li>grouping customers into segments,</li>
+<li>detecting clusters,</li>
+<li>dimension reduction.</li>
+</ul>
+</div>
+<p>Typical unsupervised learning methods include:</p>
+<ul>
+<li>clustering,</li>
+<li>principal component analysis.</li>
+</ul>
+</section>
+<section id="focus-of-this-lecture" class="level3" data-number="21.3.3">
+<h3 data-number="21.3.3" class="anchored" data-anchor-id="focus-of-this-lecture"><span class="header-section-number">21.3.3</span> Focus of This Lecture</h3>
+<p>We focus mainly on <strong>supervised learning</strong>, because it connects directly to predictive modelling and to many SAS procedures.</p>
+</section>
+</section>
+<section id="classical-models-vs-machine-learning-models" class="level2" data-number="21.4">
+<h2 data-number="21.4" class="anchored" data-anchor-id="classical-models-vs-machine-learning-models"><span class="header-section-number">21.4</span> Classical Models vs Machine Learning Models</h2>
+<p>Classical statistical models often emphasize:</p>
+<ul>
+<li>interpretability,</li>
+<li>effect estimation,</li>
+<li>statistical significance,</li>
+<li>model assumptions.</li>
+</ul>
+<p>Machine learning methods often emphasize:</p>
+<ul>
+<li>predictive accuracy,</li>
+<li>flexibility,</li>
+<li>automatic adaptation to nonlinear patterns,</li>
+<li>performance on new data.</li>
+</ul>
+<section id="comparison" class="level3" data-number="21.4.1">
+<h3 data-number="21.4.1" class="anchored" data-anchor-id="comparison"><span class="header-section-number">21.4.1</span> Comparison</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Perspective</th>
+<th>Classical Statistical Modelling</th>
+<th>Machine Learning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Main goal</td>
+<td>explanation and inference</td>
+<td>prediction</td>
+</tr>
+<tr class="even">
+<td>Focus</td>
+<td>parameter interpretation</td>
+<td>predictive performance</td>
+</tr>
+<tr class="odd">
+<td>Model form</td>
+<td>often specified in advance</td>
+<td>often more flexible</td>
+</tr>
+<tr class="even">
+<td>Evaluation</td>
+<td>significance, AIC, BIC</td>
+<td>test error, accuracy, AUC</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="important-message" class="level3" data-number="21.4.2">
+<h3 data-number="21.4.2" class="anchored" data-anchor-id="important-message"><span class="header-section-number">21.4.2</span> Important Message</h3>
+<p>This is a difference in emphasis, not a strict separation. For example:</p>
+<ul>
+<li>linear regression can be used as a predictive model,</li>
+<li>machine learning models can sometimes still be interpreted.</li>
+</ul>
+</section>
+</section>
+<section id="why-flexible-models-can-help" class="level2" data-number="21.5">
+<h2 data-number="21.5" class="anchored" data-anchor-id="why-flexible-models-can-help"><span class="header-section-number">21.5</span> Why Flexible Models Can Help</h2>
+<p>A linear model assumes a relatively simple relationship between the response and predictors.</p>
+<p>But in real data, relationships may be:</p>
+<ul>
+<li>nonlinear,</li>
+<li>involve interactions,</li>
+<li>vary across different parts of the predictor space,</li>
+<li>too complex to describe with a simple formula.</li>
+</ul>
+<p>More flexible models can adapt to such patterns.</p>
+<p>However, flexibility comes with a cost:</p>
+<ul>
+<li>a flexible model may overfit,</li>
+<li>interpretation may become harder,</li>
+<li>tuning becomes more important.</li>
+</ul>
+<p>This is why we must always evaluate models on new data.</p>
+</section>
+<section id="decision-trees" class="level2" data-number="21.6">
+<h2 data-number="21.6" class="anchored" data-anchor-id="decision-trees"><span class="header-section-number">21.6</span> Decision Trees</h2>
+<p>One of the most intuitive machine learning methods is the <strong>decision tree</strong>.</p>
+<section id="basic-idea" class="level3" data-number="21.6.1">
+<h3 data-number="21.6.1" class="anchored" data-anchor-id="basic-idea"><span class="header-section-number">21.6.1</span> Basic Idea</h3>
+<p>A decision tree splits the predictor space into regions by asking a sequence of questions such as:</p>
+<ul>
+<li>Is age &lt; 40?</li>
+<li>Is income &gt; 60,000?</li>
+<li>Is blood pressure &gt; 130?</li>
+</ul>
+<p>For regression, each terminal node gives a predicted numeric value.<br>
+For classification, each terminal node gives a predicted class or class probability.</p>
+</section>
+<section id="why-students-usually-like-trees" class="level3" data-number="21.6.2">
+<h3 data-number="21.6.2" class="anchored" data-anchor-id="why-students-usually-like-trees"><span class="header-section-number">21.6.2</span> Why Students Usually Like Trees</h3>
+<p>Decision trees are appealing because they are:</p>
+<ul>
+<li>easy to visualize,</li>
+<li>easy to explain,</li>
+<li>capable of capturing nonlinear relationships,</li>
+<li>capable of handling interactions automatically.</li>
+</ul>
+</section>
+<section id="example" class="level3" data-number="21.6.3">
+<h3 data-number="21.6.3" class="anchored" data-anchor-id="example"><span class="header-section-number">21.6.3</span> Example</h3>
+<p>A decision tree for loan default might work like this:</p>
+<ol type="1">
+<li>Split first on income.</li>
+<li>Among lower-income individuals, split on credit score.</li>
+<li>Among higher-income individuals, split on debt level.</li>
+</ol>
+<p>The final prediction depends on the path through the tree.</p>
+</section>
+</section>
+<section id="strengths-and-weaknesses-of-trees" class="level2" data-number="21.7">
+<h2 data-number="21.7" class="anchored" data-anchor-id="strengths-and-weaknesses-of-trees"><span class="header-section-number">21.7</span> Strengths and Weaknesses of Trees</h2>
+<section id="strengths" class="level3" data-number="21.7.1">
+<h3 data-number="21.7.1" class="anchored" data-anchor-id="strengths"><span class="header-section-number">21.7.1</span> Strengths</h3>
+<ul>
+<li>easy to interpret,</li>
+<li>naturally capture interactions,</li>
+<li>do not require linearity,</li>
+<li>useful for both regression and classification.</li>
+</ul>
+</section>
+<section id="weaknesses" class="level3" data-number="21.7.2">
+<h3 data-number="21.7.2" class="anchored" data-anchor-id="weaknesses"><span class="header-section-number">21.7.2</span> Weaknesses</h3>
+<ul>
+<li>can be unstable,</li>
+<li>small changes in data may lead to a different tree,</li>
+<li>a single tree may not predict as accurately as ensemble methods.</li>
+</ul>
+<p>This motivates methods such as <strong>bagging</strong> and <strong>random forests</strong>.</p>
+<hr>
+</section>
+</section>
+<section id="random-forests-and-ensemble-thinking" class="level2" data-number="21.8">
+<h2 data-number="21.8" class="anchored" data-anchor-id="random-forests-and-ensemble-thinking"><span class="header-section-number">21.8</span> 21.8 Random Forests and Ensemble Thinking</h2>
+<p>A random forest is an <strong>ensemble method</strong> built from many decision trees.</p>
+<section id="main-idea" class="level3" data-number="21.8.1">
+<h3 data-number="21.8.1" class="anchored" data-anchor-id="main-idea"><span class="header-section-number">21.8.1</span> Main Idea</h3>
+<p>Instead of relying on one tree, we build many trees using random variation in the data and predictors, then combine their predictions.</p>
+<p>This often improves predictive performance because:</p>
+<ul>
+<li>a single tree may be noisy or unstable,</li>
+<li>averaging many trees reduces variability,</li>
+<li>the combined model is often more robust.</li>
+</ul>
+</section>
+<section id="why-random-forests-work-well" class="level3" data-number="21.8.2">
+<h3 data-number="21.8.2" class="anchored" data-anchor-id="why-random-forests-work-well"><span class="header-section-number">21.8.2</span> Why Random Forests Work Well</h3>
+<p>Random forests can:</p>
+<ul>
+<li>model nonlinear relationships,</li>
+<li>handle many predictors,</li>
+<li>capture interactions,</li>
+<li>provide strong predictive accuracy in many settings.</li>
+</ul>
+</section>
+<section id="trade-off" class="level3" data-number="21.8.3">
+<h3 data-number="21.8.3" class="anchored" data-anchor-id="trade-off"><span class="header-section-number">21.8.3</span> Trade-off</h3>
+<p>Compared with a single tree, a random forest is usually:</p>
+<ul>
+<li>more accurate,</li>
+<li>less interpretable.</li>
+</ul>
+<p>This is a common pattern in machine learning: better predictive performance may come at the cost of simpler interpretation.</p>
+<hr>
+</section>
+</section>
+<section id="regularization-and-high-dimensional-prediction" class="level2" data-number="21.9">
+<h2 data-number="21.9" class="anchored" data-anchor-id="regularization-and-high-dimensional-prediction"><span class="header-section-number">21.9</span> 21.9 Regularization and High-Dimensional Prediction</h2>
+<p>Another important machine learning idea is <strong>regularization</strong>.</p>
+<section id="motivation" class="level3" data-number="21.9.1">
+<h3 data-number="21.9.1" class="anchored" data-anchor-id="motivation"><span class="header-section-number">21.9.1</span> Motivation</h3>
+<p>Suppose we have many predictors.</p>
+<p>Problems may include:</p>
+<ul>
+<li>overfitting,</li>
+<li>unstable coefficient estimates,</li>
+<li>multicollinearity,</li>
+<li>poor test performance.</li>
+</ul>
+<p>Regularization adds a penalty that discourages overly complex models.</p>
+</section>
+<section id="example-lasso" class="level3" data-number="21.9.2">
+<h3 data-number="21.9.2" class="anchored" data-anchor-id="example-lasso"><span class="header-section-number">21.9.2</span> Example: LASSO</h3>
+<p>LASSO regression estimates coefficients by balancing:</p>
+<ul>
+<li>goodness of fit,</li>
+<li>model complexity.</li>
+</ul>
+<p>As a result, some coefficients may be shrunk toward zero, and some may become exactly zero.</p>
+<p>This makes LASSO useful for:</p>
+<ul>
+<li>variable selection,</li>
+<li>prediction in larger models,</li>
+<li>controlling overfitting.</li>
+</ul>
+</section>
+<section id="big-picture" class="level3" data-number="21.9.3">
+<h3 data-number="21.9.3" class="anchored" data-anchor-id="big-picture"><span class="header-section-number">21.9.3</span> Big Picture</h3>
+<p>Regularization helps us move from classical regression toward modern predictive modelling in a principled way.</p>
+</section>
+</section>
+<section id="a-simple-machine-learning-workflow-in-sas" class="level2" data-number="21.10">
+<h2 data-number="21.10" class="anchored" data-anchor-id="a-simple-machine-learning-workflow-in-sas"><span class="header-section-number">21.10</span> A Simple Machine Learning Workflow in SAS</h2>
+<p>A practical machine learning workflow in SAS looks like this:</p>
+<ol type="1">
+<li>split the data into training and test sets,</li>
+<li>fit multiple candidate models,</li>
+<li>score the models on the test set,</li>
+<li>compare predictive performance,</li>
+<li>choose a model based on out-of-sample results.</li>
+</ol>
+<p>This is similar to the workflow from the previous lecture, but now we may compare more flexible models.</p>
+</section>
+<section id="sas-example-decision-tree" class="level2" data-number="21.11">
+<h2 data-number="21.11" class="anchored" data-anchor-id="sas-example-decision-tree"><span class="header-section-number">21.11</span> SAS Example: Decision Tree</h2>
+<p>One useful SAS procedure for tree-based methods is <code>PROC HPSPLIT</code>.</p>
+<section id="example-classification-tree" class="level3" data-number="21.11.1">
+<h3 data-number="21.11.1" class="anchored" data-anchor-id="example-classification-tree"><span class="header-section-number">21.11.1</span> Example: Classification Tree</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>PROC HPSPLIT DATA<span class="ot">=</span>train;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    CLASS response;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    MODEL response <span class="ot">=</span> X1 X2 X3 X4 X5;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    GROW GINI;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    PRUNE COSTCOMPLEXITY;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    CODE FILE<span class="ot">=</span><span class="st">'tree_score.sas'</span>;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="explanation" class="level3" data-number="21.11.2">
+<h3 data-number="21.11.2" class="anchored" data-anchor-id="explanation"><span class="header-section-number">21.11.2</span> Explanation</h3>
+<ul>
+<li><code>GROW GINI</code> is a common splitting rule for classification.</li>
+<li><code>PRUNE COSTCOMPLEXITY</code> reduces overfitting by simplifying the tree.</li>
+<li><code>CODE FILE=...</code> creates scoring code that can be applied to new data.</li>
+</ul>
+</section>
+<section id="scoring-the-test-set" class="level3" data-number="21.11.3">
+<h3 data-number="21.11.3" class="anchored" data-anchor-id="scoring-the-test-set"><span class="header-section-number">21.11.3</span> Scoring the Test Set</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>DATA tree_scored;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    SET test;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    %INCLUDE <span class="st">'tree_score.sas'</span>;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>After scoring, we can compare predicted classes to observed classes.</p>
+</section>
+</section>
+<section id="sas-example-random-forest" class="level2" data-number="21.12">
+<h2 data-number="21.12" class="anchored" data-anchor-id="sas-example-random-forest"><span class="header-section-number">21.12</span> SAS Example: Random Forest</h2>
+<p>A useful SAS procedure for random forests is <code>PROC HPFOREST</code>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>PROC HPFOREST DATA<span class="ot">=</span>train;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    TARGET response <span class="sc">/</span> LEVEL<span class="ot">=</span>nominal;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    INPUT X1 X2 X3 X4 X5 <span class="sc">/</span> LEVEL<span class="ot">=</span>interval;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    SCORE OUT<span class="ot">=</span>forest_train;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Depending on your SAS environment, you may also use procedure-specific scoring output for validation or test datasets.</p>
+<section id="interpretation" class="level3" data-number="21.12.1">
+<h3 data-number="21.12.1" class="anchored" data-anchor-id="interpretation"><span class="header-section-number">21.12.1</span> Interpretation</h3>
+<p>The random forest builds many trees and aggregates their predictions. In practice, this often gives better predictive accuracy than a single tree.</p>
+</section>
+</section>
+<section id="sas-example-regularization-with-glmselect" class="level2" data-number="21.13">
+<h2 data-number="21.13" class="anchored" data-anchor-id="sas-example-regularization-with-glmselect"><span class="header-section-number">21.13</span> SAS Example: Regularization with GLMSELECT</h2>
+<p>SAS also provides tools for regression-based model selection and shrinkage.</p>
+<p>A useful procedure is <code>PROC GLMSELECT</code>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>PROC GLMSELECT DATA<span class="ot">=</span>train;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    MODEL Y <span class="ot">=</span> X1 X2 X3 X4 X5 <span class="sc">/</span> SELECTION<span class="ot">=</span>LASSO;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    PARTITION <span class="fu">FRACTION</span>(<span class="at">TEST=</span><span class="fl">0.3</span>);</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="why-this-is-useful" class="level3" data-number="21.13.1">
+<h3 data-number="21.13.1" class="anchored" data-anchor-id="why-this-is-useful"><span class="header-section-number">21.13.1</span> Why This Is Useful</h3>
+<p>This procedure illustrates an important idea:</p>
+<ul>
+<li>classical regression and machine learning are connected,</li>
+<li>variable selection can be handled in a prediction-oriented framework,</li>
+<li>model complexity can be controlled automatically.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="comparing-models" class="level2" data-number="21.14">
+<h2 data-number="21.14" class="anchored" data-anchor-id="comparing-models"><span class="header-section-number">21.14</span> 21.14 Comparing Models</h2>
+<p>One of the most important lessons in machine learning is that we should compare models using the same evaluation framework.</p>
+<p>For example, we might compare:</p>
+<ul>
+<li>logistic regression,</li>
+<li>a classification tree,</li>
+<li>a random forest.</li>
+</ul>
+<section id="questions-to-ask" class="level3" data-number="21.14.1">
+<h3 data-number="21.14.1" class="anchored" data-anchor-id="questions-to-ask"><span class="header-section-number">21.14.1</span> Questions to Ask</h3>
+<ul>
+<li>Which method has the highest test accuracy?</li>
+<li>Which method gives the best balance between performance and interpretability?</li>
+<li>Is the improvement in prediction large enough to justify a more complex model?</li>
+</ul>
+</section>
+<section id="example-discussion" class="level3" data-number="21.14.2">
+<h3 data-number="21.14.2" class="anchored" data-anchor-id="example-discussion"><span class="header-section-number">21.14.2</span> Example Discussion</h3>
+<p>A logistic regression model may be:</p>
+<ul>
+<li>easier to interpret,</li>
+<li>easier to communicate,</li>
+<li>better when the relationship is approximately linear.</li>
+</ul>
+<p>A tree-based model may be:</p>
+<ul>
+<li>better at capturing nonlinear relationships,</li>
+<li>better at capturing interactions,</li>
+<li>harder to summarize with a few coefficients.</li>
+</ul>
+<p>A random forest may be:</p>
+<ul>
+<li>even more accurate,</li>
+<li>but much less transparent.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="bias-variance-trade-off" class="level2" data-number="21.15">
+<h2 data-number="21.15" class="anchored" data-anchor-id="bias-variance-trade-off"><span class="header-section-number">21.15</span> 21.15 Bias-Variance Trade-off</h2>
+<p>A central concept in machine learning is the <strong>bias-variance trade-off</strong>.</p>
+<section id="informal-idea" class="level3" data-number="21.15.1">
+<h3 data-number="21.15.1" class="anchored" data-anchor-id="informal-idea"><span class="header-section-number">21.15.1</span> Informal Idea</h3>
+<ul>
+<li>a very simple model may be too rigid and miss important patterns,</li>
+<li>a very flexible model may follow noise too closely.</li>
+</ul>
+<p>So good prediction often requires balancing:</p>
+<ul>
+<li><strong>bias</strong>: error from being too simple,</li>
+<li><strong>variance</strong>: error from being too sensitive to the sample.</li>
+</ul>
+</section>
+<section id="connection-to-earlier-topics" class="level3" data-number="21.15.2">
+<h3 data-number="21.15.2" class="anchored" data-anchor-id="connection-to-earlier-topics"><span class="header-section-number">21.15.2</span> Connection to Earlier Topics</h3>
+<p>This idea is closely related to:</p>
+<ul>
+<li>overfitting,</li>
+<li>model selection,</li>
+<li>regularization,</li>
+<li>test-set evaluation.</li>
+</ul>
+<p>In other words, machine learning builds on ideas that are already present in statistics.</p>
+<hr>
+</section>
+</section>
+<section id="why-this-matters-for-sas-users" class="level2" data-number="21.16">
+<h2 data-number="21.16" class="anchored" data-anchor-id="why-this-matters-for-sas-users"><span class="header-section-number">21.16</span> 21.16 Why This Matters for SAS Users</h2>
+<p>Students sometimes think machine learning is something completely separate that requires a different software ecosystem.</p>
+<p>That is not true.</p>
+<p>SAS supports important machine learning workflows, including:</p>
+<ul>
+<li>data splitting,</li>
+<li>regression-based prediction,</li>
+<li>tree-based methods,</li>
+<li>forests and ensemble methods,</li>
+<li>regularization and model comparison.</li>
+</ul>
+<p>This means the tools you have learned in SAS can be extended naturally into modern predictive analytics.</p>
+<hr>
+</section>
+<section id="practical-advice-for-students" class="level2" data-number="21.17">
+<h2 data-number="21.17" class="anchored" data-anchor-id="practical-advice-for-students"><span class="header-section-number">21.17</span> 21.17 Practical Advice for Students</h2>
+<p>When using machine learning methods, remember:</p>
+<ol type="1">
+<li>Do not evaluate performance only on the training set.</li>
+<li>A more complex model is not automatically better.</li>
+<li>Interpretability still matters in many applications.</li>
+<li>Always compare models using a clear test-set or validation framework.</li>
+<li>Good predictive modelling requires both statistical thinking and computational implementation.</li>
+</ol>
+<hr>
+</section>
+<section id="looking-ahead" class="level2" data-number="21.18">
+<h2 data-number="21.18" class="anchored" data-anchor-id="looking-ahead"><span class="header-section-number">21.18</span> 21.18 Looking Ahead</h2>
+<p>This lecture is only an introduction, but it shows how SAS can be used for modern predictive analysis.</p>
+<p>After this course, students interested in advanced topics could continue with:</p>
+<ul>
+<li>cross-validation,</li>
+<li>boosting,</li>
+<li>support vector machines,</li>
+<li>neural networks,</li>
+<li>deep learning,</li>
+<li>high-dimensional data analysis.</li>
+</ul>
+<p>The key point is that the ideas from this course already provide a strong foundation for these topics.</p>
+<hr>
+</section>
+<section id="chapter-summary" class="level2" data-number="21.19">
+<h2 data-number="21.19" class="anchored" data-anchor-id="chapter-summary"><span class="header-section-number">21.19</span> 21.19 Chapter Summary</h2>
+<p>In this lecture, we introduced machine learning as an extension of predictive modelling.</p>
+<section id="main-ideas" class="level3" data-number="21.19.1">
+<h3 data-number="21.19.1" class="anchored" data-anchor-id="main-ideas"><span class="header-section-number">21.19.1</span> Main Ideas</h3>
+<ul>
+<li>Machine learning emphasizes prediction, flexibility, and out-of-sample performance.</li>
+<li>Supervised learning uses predictors and a response; unsupervised learning looks for structure without a response.</li>
+<li>Decision trees provide intuitive nonlinear prediction rules.</li>
+<li>Random forests improve prediction by aggregating many trees.</li>
+<li>Regularization helps control model complexity and improve prediction.</li>
+</ul>
+</section>
+<section id="sas-skills-introduced" class="level3" data-number="21.19.2">
+<h3 data-number="21.19.2" class="anchored" data-anchor-id="sas-skills-introduced"><span class="header-section-number">21.19.2</span> SAS Skills Introduced</h3>
+<ul>
+<li>tree modelling with <code>PROC HPSPLIT</code>,</li>
+<li>random forests with <code>PROC HPFOREST</code>,</li>
+<li>regularized regression with <code>PROC GLMSELECT</code>,</li>
+<li>model comparison using predictive performance.</li>
+</ul>
+</section>
+<section id="final-message" class="level3" data-number="21.19.3">
+<h3 data-number="21.19.3" class="anchored" data-anchor-id="final-message"><span class="header-section-number">21.19.3</span> Final Message</h3>
+<blockquote class="blockquote">
+<p>Machine learning does not replace statistics.<br>
+It extends statistical modelling when prediction and flexibility become central goals.</p>
+</blockquote>
+</section>
+</section>
+<section id="practice-problems" class="level2" data-number="21.20">
+<h2 data-number="21.20" class="anchored" data-anchor-id="practice-problems"><span class="header-section-number">21.20</span> Practice Problems</h2>
+<ol type="1">
+<li>Explain the difference between supervised and unsupervised learning.</li>
+<li>Why might a decision tree outperform a linear model in some datasets?</li>
+<li>What is the main advantage of a random forest over a single tree?</li>
+<li>Why does regularization help when many predictors are available?</li>
+<li>Compare logistic regression and a tree-based classifier in terms of interpretability and flexibility.</li>
+<li>In SAS, which procedures introduced in this lecture would you consider for:
+<ul>
+<li>a classification tree,</li>
+<li>a random forest,</li>
+<li>LASSO regression?</li>
+</ul></li>
+</ol>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./part4_1_predictive.html" class="pagination-link" aria-label="Predictive Modelling and Model Evaluation in SAS">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Predictive Modelling and Model Evaluation in SAS</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./project.html" class="pagination-link" aria-label="Data Analysis Using SAS">
+        <span class="nav-page-text">Data Analysis Using SAS</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

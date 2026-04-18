@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>19&nbsp; Nested Models and Nested Designs – STAT 8678 - SAS Programming &amp; Data Analysis</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./part4_1_predictive.html" rel="next">
+<link href="./part3_6_model_selection.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-b9eaee60a963b5d74e9d33cc267de6a6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT 8678 - SAS Programming &amp; Data Analysis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8678"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="././STAT-8678---SAS-Programming---Data-Analysis.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./part3_1_ANOVA.html">Regression Analysis</a></li><li class="breadcrumb-item"><a href="./part3_7_nested_model.html"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Nested Models and Nested Designs</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Introduction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_1_intro_operation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction to Basic SAS Operation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_2_sas_syntax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Working with SAS Syntax</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_3_import_export.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Import and Export Dataset</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_4_rv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Random Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Statistical Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_1_intro_inference1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Introduction to Statistical Inference I</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_2_intro_inference2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Introduction to Statistical Inference II</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_3_1sample_nonparametric_test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">One Sample Nonparametric Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_4_1sample_proportion_test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">One Sample Proportion Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_5_sas_marco.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">SAS Macro Program in One Sample Variance Problem</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_6_chi-square.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title"><span class="math inline">\(\chi^2\)</span> Goodness of Fit Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_7_power.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Power Analysis with application in one sample <span class="math inline">\(t\)</span>-test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_8_2sample_t.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Two Sample <span class="math inline">\(t\)</span>-test for Independent and Paired Data</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Regression Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_1_ANOVA.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Analysis of Variance</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_2_regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Regression Analysis</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_3_regression_interaction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Regression with Interaction</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_4_LMEM_I.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Linear Mixed Effect Models I</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_5_LMEM_II.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Linear Mixed Effect Models II</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_6_model_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Model Selection in SAS</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_7_nested_model.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Nested Models and Nested Designs</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Advanced Topics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part4_1_predictive.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Predictive Modelling and Model Evaluation in SAS</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part4_2_ML.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Introduction to Machine Learning in SAS</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Final Project</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./project.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data Analysis Using SAS</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Hands on Class</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_1_macro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Writing Macro in SAS</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_2_t_ANOVA.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Two-Sample t-Test and ANOVA in SAS</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_3_regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Linear Regression and Interaction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_4_LMEM.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Linear Mixed Effects Model</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">19.1</span> Introduction</a>
+  <ul class="collapse">
+  <li><a href="#full-and-reduced-models" id="toc-full-and-reduced-models" class="nav-link" data-scroll-target="#full-and-reduced-models"><span class="header-section-number">19.1.1</span> Full and Reduced Models</a></li>
+  <li><a href="#why-this-matters" id="toc-why-this-matters" class="nav-link" data-scroll-target="#why-this-matters"><span class="header-section-number">19.1.2</span> Why This Matters</a></li>
+  </ul></li>
+  <li><a href="#partial-f-test-for-nested-linear-models" id="toc-partial-f-test-for-nested-linear-models" class="nav-link" data-scroll-target="#partial-f-test-for-nested-linear-models"><span class="header-section-number">19.2</span> Partial F-test for Nested Linear Models</a>
+  <ul class="collapse">
+  <li><a href="#interpretation" id="toc-interpretation" class="nav-link" data-scroll-target="#interpretation"><span class="header-section-number">19.2.1</span> Interpretation</a></li>
+  </ul></li>
+  <li><a href="#likelihood-ratio-test-lrt" id="toc-likelihood-ratio-test-lrt" class="nav-link" data-scroll-target="#likelihood-ratio-test-lrt"><span class="header-section-number">19.3</span> Likelihood Ratio Test (LRT)</a>
+  <ul class="collapse">
+  <li><a href="#when-do-we-use-it" id="toc-when-do-we-use-it" class="nav-link" data-scroll-target="#when-do-we-use-it"><span class="header-section-number">19.3.1</span> When Do We Use It?</a></li>
+  </ul></li>
+  <li><a href="#sas-implementation-for-nested-models" id="toc-sas-implementation-for-nested-models" class="nav-link" data-scroll-target="#sas-implementation-for-nested-models"><span class="header-section-number">19.4</span> SAS Implementation for Nested Models</a>
+  <ul class="collapse">
+  <li><a href="#what-does-this-do" id="toc-what-does-this-do" class="nav-link" data-scroll-target="#what-does-this-do"><span class="header-section-number">19.4.1</span> What Does This Do?</a></li>
+  </ul></li>
+  <li><a href="#concept-2-nested-designs" id="toc-concept-2-nested-designs" class="nav-link" data-scroll-target="#concept-2-nested-designs"><span class="header-section-number">19.5</span> Concept 2: Nested Designs</a></li>
+  <li><a href="#crossed-vs-nested-factors" id="toc-crossed-vs-nested-factors" class="nav-link" data-scroll-target="#crossed-vs-nested-factors"><span class="header-section-number">19.6</span> Crossed vs Nested Factors</a>
+  <ul class="collapse">
+  <li><a href="#crossed-factors" id="toc-crossed-factors" class="nav-link" data-scroll-target="#crossed-factors"><span class="header-section-number">19.6.1</span> Crossed Factors</a></li>
+  <li><a href="#nested-factors" id="toc-nested-factors" class="nav-link" data-scroll-target="#nested-factors"><span class="header-section-number">19.6.2</span> Nested Factors</a></li>
+  <li><a href="#summary-table" id="toc-summary-table" class="nav-link" data-scroll-target="#summary-table"><span class="header-section-number">19.6.3</span> Summary Table</a></li>
+  </ul></li>
+  <li><a href="#statistical-formulation-for-a-nested-design" id="toc-statistical-formulation-for-a-nested-design" class="nav-link" data-scroll-target="#statistical-formulation-for-a-nested-design"><span class="header-section-number">19.7</span> Statistical Formulation for a Nested Design</a></li>
+  <li><a href="#sas-implementation-for-nested-designs" id="toc-sas-implementation-for-nested-designs" class="nav-link" data-scroll-target="#sas-implementation-for-nested-designs"><span class="header-section-number">19.8</span> SAS Implementation for Nested Designs</a>
+  <ul class="collapse">
+  <li><a href="#example-data" id="toc-example-data" class="nav-link" data-scroll-target="#example-data"><span class="header-section-number">19.8.1</span> Example Data</a></li>
+  <li><a href="#proc-glm-fixed-effects-perspective" id="toc-proc-glm-fixed-effects-perspective" class="nav-link" data-scroll-target="#proc-glm-fixed-effects-perspective"><span class="header-section-number">19.8.2</span> <code>PROC GLM</code>: Fixed-Effects Perspective</a></li>
+  <li><a href="#proc-mixed-hierarchical-or-random-effects-perspective" id="toc-proc-mixed-hierarchical-or-random-effects-perspective" class="nav-link" data-scroll-target="#proc-mixed-hierarchical-or-random-effects-perspective"><span class="header-section-number">19.8.3</span> <code>PROC MIXED</code>: Hierarchical or Random-Effects Perspective</a></li>
+  </ul></li>
+  <li><a href="#fixed-vs-random-effects" id="toc-fixed-vs-random-effects" class="nav-link" data-scroll-target="#fixed-vs-random-effects"><span class="header-section-number">19.9</span> Fixed vs Random Effects</a></li>
+  <li><a href="#connection-to-model-selection" id="toc-connection-to-model-selection" class="nav-link" data-scroll-target="#connection-to-model-selection"><span class="header-section-number">19.10</span> Connection to Model Selection</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">19.11</span> Summary</a>
+  <ul class="collapse">
+  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways"><span class="header-section-number">19.11.1</span> Key Takeaways</a></li>
+  </ul></li>
+  <li><a href="#practice-problems" id="toc-practice-problems" class="nav-link" data-scroll-target="#practice-problems"><span class="header-section-number">19.12</span> Practice Problems</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./part3_1_ANOVA.html">Regression Analysis</a></li><li class="breadcrumb-item"><a href="./part3_7_nested_model.html"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Nested Models and Nested Designs</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Nested Models and Nested Designs</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<blockquote class="blockquote">
+<p><strong>Learning Objectives</strong></p>
+<p>By the end of this lecture, you should be able to:</p>
+<ol type="1">
+<li>Distinguish between <strong>nested models</strong> (full vs reduced models) and <strong>nested designs</strong> (hierarchical data structures).</li>
+<li>Perform and interpret a <strong>partial F-test</strong> and a <strong>likelihood ratio test (LRT)</strong> for model comparison.</li>
+<li>Explain the difference between <strong>crossed</strong> and <strong>nested</strong> factors.</li>
+<li>Implement nested model testing in SAS using <code>PROC REG</code> and the <code>TEST</code> statement.</li>
+<li>Specify hierarchical nested effects in <code>PROC GLM</code> and <code>PROC MIXED</code> using <code>B(A)</code> syntax.</li>
+</ol>
+</blockquote>
+<section id="introduction" class="level2" data-number="19.1">
+<h2 data-number="19.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">19.1</span> Introduction</h2>
+<p>In the previous chapter, we studied model selection methods such as AIC, BIC, and cross-validation for comparing competing models. In this chapter, we focus on a more structured type of comparison: <strong>nested structures</strong>.</p>
+<p>The word <strong>nested</strong> appears in two related but distinct contexts in statistics:</p>
+<ol type="1">
+<li><strong>Nested models</strong>: a simpler model is obtained from a more complex model by imposing parameter restrictions.</li>
+<li><strong>Nested designs</strong>: one factor exists only within the levels of another factor, creating a hierarchical data structure.</li>
+</ol>
+<p>This chapter connects regression, ANOVA, and mixed models by treating both ideas carefully.</p>
+<div class="callout-definition" title="Nested Models">
+<p>A model <span class="math inline">\(M_0\)</span> is said to be <strong>nested</strong> within a model <span class="math inline">\(M_1\)</span> if <span class="math inline">\(M_0\)</span> can be obtained from <span class="math inline">\(M_1\)</span> by imposing constraints on the parameters, usually by setting some coefficients equal to zero.</p>
+</div>
+<section id="full-and-reduced-models" class="level3" data-number="19.1.1">
+<h3 data-number="19.1.1" class="anchored" data-anchor-id="full-and-reduced-models"><span class="header-section-number">19.1.1</span> Full and Reduced Models</h3>
+<p>Consider the following regression models.</p>
+<p><strong>Full model</strong> <span class="math inline">\(M_1\)</span>: <span class="math display">\[
+Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 + \varepsilon
+\]</span></p>
+<p><strong>Reduced model</strong> <span class="math inline">\(M_0\)</span>: <span class="math display">\[
+Y = \beta_0 + \beta_1 X_1 + \varepsilon
+\]</span></p>
+<p>The reduced model is nested within the full model because it is obtained by imposing the restrictions <span class="math display">\[
+\beta_2 = \beta_3 = 0.
+\]</span></p>
+<p>In other words, the reduced model is a special case of the full model.</p>
+</section>
+<section id="why-this-matters" class="level3" data-number="19.1.2">
+<h3 data-number="19.1.2" class="anchored" data-anchor-id="why-this-matters"><span class="header-section-number">19.1.2</span> Why This Matters</h3>
+<p>Nested models allow us to answer a very specific question:</p>
+<blockquote class="blockquote">
+<p>Do the additional terms in the full model provide enough improvement to justify their inclusion?</p>
+</blockquote>
+<p>This leads naturally to formal hypothesis testing.</p>
+</section>
+</section>
+<section id="partial-f-test-for-nested-linear-models" class="level2" data-number="19.2">
+<h2 data-number="19.2" class="anchored" data-anchor-id="partial-f-test-for-nested-linear-models"><span class="header-section-number">19.2</span> Partial F-test for Nested Linear Models</h2>
+<p>For linear regression models fit by least squares, the standard test for comparing nested models is the <strong>partial F-test</strong>.</p>
+<p>We test <span class="math display">\[
+H_0: \beta_2 = \beta_3 = 0
+\]</span> against <span class="math display">\[
+H_a: \text{at least one of } \beta_2, \beta_3 \text{ is nonzero.}
+\]</span></p>
+<p>Let:</p>
+<ul>
+<li><span class="math inline">\(SSE_R\)</span>: error sum of squares for the reduced model</li>
+<li><span class="math inline">\(SSE_F\)</span>: error sum of squares for the full model</li>
+<li><span class="math inline">\(df_R\)</span>: error degrees of freedom for the reduced model</li>
+<li><span class="math inline">\(df_F\)</span>: error degrees of freedom for the full model</li>
+</ul>
+<p>Then the test statistic is <span class="math display">\[
+F = \frac{(SSE_R - SSE_F)/(df_R - df_F)}{SSE_F/df_F}.
+\]</span></p>
+<section id="interpretation" class="level3" data-number="19.2.1">
+<h3 data-number="19.2.1" class="anchored" data-anchor-id="interpretation"><span class="header-section-number">19.2.1</span> Interpretation</h3>
+<ul>
+<li>If the full model does <strong>not</strong> improve fit much, then <span class="math inline">\(SSE_R - SSE_F\)</span> will be small, and the <span class="math inline">\(F\)</span>-statistic will be small.</li>
+<li>If the full model improves fit substantially, then the <span class="math inline">\(F\)</span>-statistic will be large.</li>
+</ul>
+<p>A small <span class="math inline">\(p\)</span>-value provides evidence against <span class="math inline">\(H_0\)</span>, suggesting that the additional predictors should be retained.</p>
+</section>
+</section>
+<section id="likelihood-ratio-test-lrt" class="level2" data-number="19.3">
+<h2 data-number="19.3" class="anchored" data-anchor-id="likelihood-ratio-test-lrt"><span class="header-section-number">19.3</span> Likelihood Ratio Test (LRT)</h2>
+<p>For likelihood-based models, such as generalized linear models and many mixed models, we often compare nested models using the <strong>likelihood ratio test</strong>.</p>
+<div class="callout-definition" title="Likelihood Ratio Test">
+<p>Let <span class="math inline">\(\ell_{\text{Full}}\)</span> and <span class="math inline">\(\ell_{\text{Reduced}}\)</span> be the maximized log-likelihoods under the full and reduced models, respectively. The likelihood ratio test statistic is <span class="math display">\[
+LRT = 2\left(\ell_{\text{Full}} - \ell_{\text{Reduced}}\right).
+\]</span></p>
+<p>Under regularity conditions and under <span class="math inline">\(H_0\)</span>, <span class="math display">\[
+LRT \sim \chi^2_{\,df_R - df_F},
+\]</span> where <span class="math inline">\(df_R - df_F\)</span> is the difference in the number of free parameters between the two models.</p>
+</div>
+<section id="when-do-we-use-it" class="level3" data-number="19.3.1">
+<h3 data-number="19.3.1" class="anchored" data-anchor-id="when-do-we-use-it"><span class="header-section-number">19.3.1</span> When Do We Use It?</h3>
+<ul>
+<li><strong>Partial F-test</strong>: typically used for nested linear models fit by least squares.</li>
+<li><strong>LRT</strong>: commonly used for generalized linear models, mixed models, and other likelihood-based settings.</li>
+</ul>
+</section>
+</section>
+<section id="sas-implementation-for-nested-models" class="level2" data-number="19.4">
+<h2 data-number="19.4" class="anchored" data-anchor-id="sas-implementation-for-nested-models"><span class="header-section-number">19.4</span> SAS Implementation for Nested Models</h2>
+<p>In SAS, we can test nested regression models directly using <code>PROC REG</code> and the <code>TEST</code> statement.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>PROC REG DATA<span class="ot">=</span>my_data;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    MODEL Y <span class="ot">=</span> X1 X2 X3;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="sc">/</span><span class="er">*</span> Test whether the reduced model is sufficient <span class="sc">*</span><span class="er">/</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    TEST X2 <span class="ot">=</span> <span class="dv">0</span>, X3 <span class="ot">=</span> <span class="dv">0</span>;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>QUIT;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="what-does-this-do" class="level3" data-number="19.4.1">
+<h3 data-number="19.4.1" class="anchored" data-anchor-id="what-does-this-do"><span class="header-section-number">19.4.1</span> What Does This Do?</h3>
+<p>This code fits the full model <span class="math display">\[
+Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 + \varepsilon
+\]</span> and tests whether the restrictions <span class="math display">\[
+\beta_2 = \beta_3 = 0
+\]</span> are reasonable.</p>
+<p>If the test is significant, then the reduced model is too simple and the additional terms should remain in the model.</p>
+</section>
+</section>
+<section id="concept-2-nested-designs" class="level2" data-number="19.5">
+<h2 data-number="19.5" class="anchored" data-anchor-id="concept-2-nested-designs"><span class="header-section-number">19.5</span> Concept 2: Nested Designs</h2>
+<p>In ANOVA and mixed models, the word <strong>nested</strong> refers to a hierarchical factor structure.</p>
+<p>A factor <span class="math inline">\(B\)</span> is nested within a factor <span class="math inline">\(A\)</span> if each level of <span class="math inline">\(B\)</span> appears in only one level of <span class="math inline">\(A\)</span>.</p>
+<div class="callout-example">
+<p>Suppose:</p>
+<ul>
+<li><span class="math inline">\(A\)</span> = Region</li>
+<li><span class="math inline">\(B\)</span> = City</li>
+</ul>
+<p>If each city belongs to exactly one region, then <strong>City is nested within Region</strong>.</p>
+<p>We write this as: <span class="math display">\[
+\text{City(Region)}.
+\]</span></p>
+</div>
+</section>
+<section id="crossed-vs-nested-factors" class="level2" data-number="19.6">
+<h2 data-number="19.6" class="anchored" data-anchor-id="crossed-vs-nested-factors"><span class="header-section-number">19.6</span> Crossed vs Nested Factors</h2>
+<p>It is important to distinguish <strong>crossed</strong> factors from <strong>nested</strong> factors.</p>
+<section id="crossed-factors" class="level3" data-number="19.6.1">
+<h3 data-number="19.6.1" class="anchored" data-anchor-id="crossed-factors"><span class="header-section-number">19.6.1</span> Crossed Factors</h3>
+<p>Two factors are <strong>crossed</strong> if every level of one factor appears with every level of the other factor.</p>
+<p>Example:</p>
+<ul>
+<li>Treatment and gender</li>
+<li>Every treatment level can be observed for every gender</li>
+</ul>
+<p>In this case, an interaction term such as <span class="math inline">\(A \times B\)</span> is meaningful.</p>
+</section>
+<section id="nested-factors" class="level3" data-number="19.6.2">
+<h3 data-number="19.6.2" class="anchored" data-anchor-id="nested-factors"><span class="header-section-number">19.6.2</span> Nested Factors</h3>
+<p>A factor is <strong>nested</strong> when its levels exist only within the levels of another factor.</p>
+<p>Example:</p>
+<ul>
+<li>Students within classrooms</li>
+<li>Classrooms within schools</li>
+<li>Cities within regions</li>
+</ul>
+<p>You cannot meaningfully combine a nested level with all levels of the parent factor. For example, New York City is not a city within the Midwest region.</p>
+</section>
+<section id="summary-table" class="level3" data-number="19.6.3">
+<h3 data-number="19.6.3" class="anchored" data-anchor-id="summary-table"><span class="header-section-number">19.6.3</span> Summary Table</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Structure</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Crossed</td>
+<td>Every level of A appears with every level of B</td>
+</tr>
+<tr class="even">
+<td>Nested</td>
+<td>Levels of B exist only within levels of A</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="statistical-formulation-for-a-nested-design" class="level2" data-number="19.7">
+<h2 data-number="19.7" class="anchored" data-anchor-id="statistical-formulation-for-a-nested-design"><span class="header-section-number">19.7</span> Statistical Formulation for a Nested Design</h2>
+<p>A standard nested ANOVA model is <span class="math display">\[
+y_{ijk} = \mu + \alpha_i + \beta_{j(i)} + \varepsilon_{ijk},
+\]</span> where</p>
+<ul>
+<li><span class="math inline">\(\mu\)</span> is the overall mean,</li>
+<li><span class="math inline">\(\alpha_i\)</span> is the effect of factor <span class="math inline">\(A\)</span> (for example, Region),</li>
+<li>(_{j(i)}) is the effect of factor <span class="math inline">\(B\)</span> nested within <span class="math inline">\(A\)</span> (for example, City within Region),</li>
+<li><span class="math inline">\(\varepsilon_{ijk}\)</span> is the random error term.</li>
+</ul>
+<p>This is a <strong>hierarchical</strong> structure rather than a factorial one.</p>
+</section>
+<section id="sas-implementation-for-nested-designs" class="level2" data-number="19.8">
+<h2 data-number="19.8" class="anchored" data-anchor-id="sas-implementation-for-nested-designs"><span class="header-section-number">19.8</span> SAS Implementation for Nested Designs</h2>
+<section id="example-data" class="level3" data-number="19.8.1">
+<h3 data-number="19.8.1" class="anchored" data-anchor-id="example-data"><span class="header-section-number">19.8.1</span> Example Data</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>DATA nested_data;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    INPUT Region <span class="sc">$</span> City <span class="sc">$</span> Y;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    DATALINES;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>NE NY <span class="dv">30</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>NE NY <span class="dv">35</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>NE Pitt <span class="dv">18</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>NE Pitt <span class="dv">20</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>MW Chicago <span class="dv">10</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>MW Chicago <span class="dv">9</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>RUN;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="proc-glm-fixed-effects-perspective" class="level3" data-number="19.8.2">
+<h3 data-number="19.8.2" class="anchored" data-anchor-id="proc-glm-fixed-effects-perspective"><span class="header-section-number">19.8.2</span> <code>PROC GLM</code>: Fixed-Effects Perspective</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>PROC GLM DATA<span class="ot">=</span>nested_data;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    CLASS Region City;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    MODEL Y <span class="ot">=</span> Region <span class="fu">City</span>(Region);</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>QUIT;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This specification treats the nested structure explicitly using <code>City(Region)</code>.</p>
+</section>
+<section id="proc-mixed-hierarchical-or-random-effects-perspective" class="level3" data-number="19.8.3">
+<h3 data-number="19.8.3" class="anchored" data-anchor-id="proc-mixed-hierarchical-or-random-effects-perspective"><span class="header-section-number">19.8.3</span> <code>PROC MIXED</code>: Hierarchical or Random-Effects Perspective</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>PROC MIXED DATA<span class="ot">=</span>nested_data;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    CLASS Region City;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    MODEL Y <span class="ot">=</span> Region;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    RANDOM <span class="fu">City</span>(Region);</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>RUN;</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>QUIT;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This version is often more appropriate when the nested factor is viewed as a <strong>random effect</strong>.</p>
+</section>
+</section>
+<section id="fixed-vs-random-effects" class="level2" data-number="19.9">
+<h2 data-number="19.9" class="anchored" data-anchor-id="fixed-vs-random-effects"><span class="header-section-number">19.9</span> Fixed vs Random Effects</h2>
+<p>A key modelling decision is whether factors are treated as <strong>fixed</strong> or <strong>random</strong>.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 41%">
+<col style="width: 42%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Fixed Effect Interpretation</th>
+<th>Random Effect Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Region</td>
+<td>Compare these specific regions</td>
+<td>Regions are sampled from a larger population</td>
+</tr>
+<tr class="even">
+<td>City(Region)</td>
+<td>Compare these specific cities within each region</td>
+<td>City-to-city variation within region</td>
+</tr>
+</tbody>
+</table>
+<div id="callout-1" class="callout callout-style-default callout-warning callout-titled" title="Important Note">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Important Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>PROC GLM</code> and <code>PROC MIXED</code> are not simply interchangeable. The interpretation changes depending on whether the factor is treated as fixed or random.</p>
+<ul>
+<li>Use <code>PROC GLM</code> when you want to compare specific factor levels directly.</li>
+<li>Use <code>PROC MIXED</code> when you want to model hierarchical variation and random effects.</li>
+</ul>
+</div>
+</div>
+<p><strong>Interpreting the Output</strong></p>
+<p>In a nested design, the total variation is decomposed into:</p>
+<ol type="1">
+<li>variation <strong>between</strong> regions,</li>
+<li>variation <strong>among cities within regions</strong>,</li>
+<li>residual variation <strong>within cities</strong>.</li>
+</ol>
+<p>This is called <strong>hierarchical variance decomposition</strong>.</p>
+<p>So the interpretation is different from a crossed two-way ANOVA. We are not asking whether Region and City interact; instead, we are asking how variability is distributed across levels of a hierarchy.</p>
+</section>
+<section id="connection-to-model-selection" class="level2" data-number="19.10">
+<h2 data-number="19.10" class="anchored" data-anchor-id="connection-to-model-selection"><span class="header-section-number">19.10</span> Connection to Model Selection</h2>
+<p>This chapter connects naturally to the previous lecture on model selection.</p>
+<ul>
+<li>General Model Selection Asks</li>
+</ul>
+<blockquote class="blockquote">
+<p>Which model fits the data best overall?</p>
+</blockquote>
+<ul>
+<li>Nested Model Comparison Asks</li>
+</ul>
+<blockquote class="blockquote">
+<p>Does the added complexity of a larger model significantly improve fit over a simpler baseline?</p>
+</blockquote>
+<p>This is why nested models are so important:</p>
+<ul>
+<li>they provide the formal basis for <strong>partial F-tests</strong>,</li>
+<li>they motivate <strong>likelihood ratio tests</strong>,</li>
+<li>and they help us think carefully about when extra structure is statistically justified.</li>
+</ul>
+<p>At the same time, nested designs remind us that data structure also matters. A model can be more complex not only because it has more parameters, but also because it reflects a deeper hierarchical organization of the data.</p>
+</section>
+<section id="summary" class="level2" data-number="19.11">
+<h2 data-number="19.11" class="anchored" data-anchor-id="summary"><span class="header-section-number">19.11</span> Summary</h2>
+<p>Nested structures connect three core ideas in statistical modelling:</p>
+<ol type="1">
+<li><strong>Model building</strong>: specifying appropriate structure for the data,</li>
+<li><strong>estimation</strong>: fitting full and reduced models or decomposing variance,</li>
+<li><strong>inference</strong>: deciding whether added complexity is justified.</li>
+</ol>
+<section id="key-takeaways" class="level3" data-number="19.11.1">
+<h3 data-number="19.11.1" class="anchored" data-anchor-id="key-takeaways"><span class="header-section-number">19.11.1</span> Key Takeaways</h3>
+<ul>
+<li><strong>Nested models</strong> concern <strong>parameter restrictions</strong>.</li>
+<li><strong>Nested designs</strong> concern <strong>hierarchical factor structures</strong>.</li>
+<li>The <strong>partial F-test</strong> is used for nested linear models.</li>
+<li>The <strong>likelihood ratio test</strong> is used for many likelihood-based nested comparisons.</li>
+<li>In SAS, nested structures are expressed using <code>TEST</code>, <code>B(A)</code>, and <code>RANDOM</code>.</li>
+</ul>
+</section>
+</section>
+<section id="practice-problems" class="level2" data-number="19.12">
+<h2 data-number="19.12" class="anchored" data-anchor-id="practice-problems"><span class="header-section-number">19.12</span> Practice Problems</h2>
+<ol type="1">
+<li>Show mathematically how a reduced regression model is nested within a full model through parameter constraints.</li>
+<li>Suppose students are nested within classrooms, and classrooms are nested within schools. Write an appropriate SAS model specification.</li>
+<li>Fit a full regression model using <code>PROC REG</code>, carry out a <code>TEST</code> statement, and verify the partial F-statistic manually using the reduced and full model <span class="math inline">\(SSE\)</span> values.</li>
+<li>Explain the difference between <code>PROC GLM</code> and <code>PROC MIXED</code> for a nested design.</li>
+<li>Give one example of crossed factors and one example of nested factors, and explain why they differ.</li>
+</ol>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./part3_6_model_selection.html" class="pagination-link" aria-label="Model Selection in SAS">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Model Selection in SAS</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./part4_1_predictive.html" class="pagination-link" aria-label="Predictive Modelling and Model Evaluation in SAS">
+        <span class="nav-page-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Predictive Modelling and Model Evaluation in SAS</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

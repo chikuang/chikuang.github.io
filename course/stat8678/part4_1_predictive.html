@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>20&nbsp; Predictive Modelling and Model Evaluation in SAS – STAT 8678 - SAS Programming &amp; Data Analysis</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./part4_2_ML.html" rel="next">
+<link href="./part3_7_nested_model.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-b9eaee60a963b5d74e9d33cc267de6a6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT 8678 - SAS Programming &amp; Data Analysis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8678"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="././STAT-8678---SAS-Programming---Data-Analysis.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./part4_1_predictive.html">Advanced Topics</a></li><li class="breadcrumb-item"><a href="./part4_1_predictive.html"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Predictive Modelling and Model Evaluation in SAS</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Introduction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_1_intro_operation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction to Basic SAS Operation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_2_sas_syntax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Working with SAS Syntax</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_3_import_export.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Import and Export Dataset</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part1_4_rv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Random Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Statistical Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_1_intro_inference1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Introduction to Statistical Inference I</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_2_intro_inference2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Introduction to Statistical Inference II</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_3_1sample_nonparametric_test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">One Sample Nonparametric Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_4_1sample_proportion_test.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">One Sample Proportion Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_5_sas_marco.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">SAS Macro Program in One Sample Variance Problem</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_6_chi-square.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title"><span class="math inline">\(\chi^2\)</span> Goodness of Fit Test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_7_power.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Power Analysis with application in one sample <span class="math inline">\(t\)</span>-test</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part2_8_2sample_t.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Two Sample <span class="math inline">\(t\)</span>-test for Independent and Paired Data</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Regression Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_1_ANOVA.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Analysis of Variance</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_2_regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Regression Analysis</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_3_regression_interaction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Regression with Interaction</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_4_LMEM_I.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Linear Mixed Effect Models I</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_5_LMEM_II.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Linear Mixed Effect Models II</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_6_model_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Model Selection in SAS</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part3_7_nested_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Nested Models and Nested Designs</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Advanced Topics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part4_1_predictive.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Predictive Modelling and Model Evaluation in SAS</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./part4_2_ML.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Introduction to Machine Learning in SAS</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Final Project</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./project.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data Analysis Using SAS</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Hands on Class</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_1_macro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Writing Macro in SAS</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_2_t_ANOVA.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Two-Sample t-Test and ANOVA in SAS</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_3_regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Linear Regression and Interaction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./exercise_4_LMEM.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Linear Mixed Effects Model</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">20.1</span> Introduction</a></li>
+  <li><a href="#inference-vs-prediction" id="toc-inference-vs-prediction" class="nav-link" data-scroll-target="#inference-vs-prediction"><span class="header-section-number">20.2</span> Inference vs Prediction</a>
+  <ul class="collapse">
+  <li><a href="#inference" id="toc-inference" class="nav-link" data-scroll-target="#inference"><span class="header-section-number">20.2.1</span> Inference</a></li>
+  <li><a href="#prediction" id="toc-prediction" class="nav-link" data-scroll-target="#prediction"><span class="header-section-number">20.2.2</span> Prediction</a></li>
+  <li><a href="#key-idea" id="toc-key-idea" class="nav-link" data-scroll-target="#key-idea"><span class="header-section-number">20.2.3</span> Key Idea</a></li>
+  </ul></li>
+  <li><a href="#training-error-vs-test-error" id="toc-training-error-vs-test-error" class="nav-link" data-scroll-target="#training-error-vs-test-error"><span class="header-section-number">20.3</span> 20.3 Training Error vs Test Error</a>
+  <ul class="collapse">
+  <li><a href="#why-does-this-matter" id="toc-why-does-this-matter" class="nav-link" data-scroll-target="#why-does-this-matter"><span class="header-section-number">20.3.1</span> Why does this matter?</a></li>
+  <li><a href="#main-principle" id="toc-main-principle" class="nav-link" data-scroll-target="#main-principle"><span class="header-section-number">20.3.2</span> Main Principle</a></li>
+  </ul></li>
+  <li><a href="#data-splitting" id="toc-data-splitting" class="nav-link" data-scroll-target="#data-splitting"><span class="header-section-number">20.4</span> Data Splitting</a>
+  <ul class="collapse">
+  <li><a href="#common-split" id="toc-common-split" class="nav-link" data-scroll-target="#common-split"><span class="header-section-number">20.4.1</span> Common split</a></li>
+  <li><a href="#why-not-use-all-observations-for-fitting" id="toc-why-not-use-all-observations-for-fitting" class="nav-link" data-scroll-target="#why-not-use-all-observations-for-fitting"><span class="header-section-number">20.4.2</span> Why not use all observations for fitting?</a></li>
+  <li><a href="#data-leakage" id="toc-data-leakage" class="nav-link" data-scroll-target="#data-leakage"><span class="header-section-number">20.4.3</span> Data Leakage</a></li>
+  </ul></li>
+  <li><a href="#predictive-models-for-continuous-and-binary-outcomes" id="toc-predictive-models-for-continuous-and-binary-outcomes" class="nav-link" data-scroll-target="#predictive-models-for-continuous-and-binary-outcomes"><span class="header-section-number">20.5</span> Predictive Models for Continuous and Binary Outcomes</a>
+  <ul class="collapse">
+  <li><a href="#continuous-response" id="toc-continuous-response" class="nav-link" data-scroll-target="#continuous-response"><span class="header-section-number">20.5.1</span> Continuous Response</a></li>
+  <li><a href="#binary-response" id="toc-binary-response" class="nav-link" data-scroll-target="#binary-response"><span class="header-section-number">20.5.2</span> Binary Response</a></li>
+  </ul></li>
+  <li><a href="#performance-metrics-for-regression" id="toc-performance-metrics-for-regression" class="nav-link" data-scroll-target="#performance-metrics-for-regression"><span class="header-section-number">20.6</span> 20.6 Performance Metrics for Regression</a>
+  <ul class="collapse">
+  <li><a href="#mean-squared-error-mse" id="toc-mean-squared-error-mse" class="nav-link" data-scroll-target="#mean-squared-error-mse"><span class="header-section-number">20.6.1</span> Mean Squared Error (MSE)</a></li>
+  <li><a href="#root-mean-squared-error-rmse" id="toc-root-mean-squared-error-rmse" class="nav-link" data-scroll-target="#root-mean-squared-error-rmse"><span class="header-section-number">20.6.2</span> Root Mean Squared Error (RMSE)</a></li>
+  <li><a href="#mean-absolute-error-mae" id="toc-mean-absolute-error-mae" class="nav-link" data-scroll-target="#mean-absolute-error-mae"><span class="header-section-number">20.6.3</span> Mean Absolute Error (MAE)</a></li>
+  <li><a href="#interpretation" id="toc-interpretation" class="nav-link" data-scroll-target="#interpretation"><span class="header-section-number">20.6.4</span> Interpretation</a></li>
+  </ul></li>
+  <li><a href="#performance-metrics-for-classification" id="toc-performance-metrics-for-classification" class="nav-link" data-scroll-target="#performance-metrics-for-classification"><span class="header-section-number">20.7</span> 20.7 Performance Metrics for Classification</a>
+  <ul class="collapse">
+  <li><a href="#confusion-matrix" id="toc-confusion-matrix" class="nav-link" data-scroll-target="#confusion-matrix"><span class="header-section-number">20.7.1</span> Confusion Matrix</a></li>
+  <li><a href="#classification-accuracy" id="toc-classification-accuracy" class="nav-link" data-scroll-target="#classification-accuracy"><span class="header-section-number">20.7.2</span> Classification Accuracy</a></li>
+  <li><a href="#other-useful-metrics" id="toc-other-useful-metrics" class="nav-link" data-scroll-target="#other-useful-metrics"><span class="header-section-number">20.7.3</span> Other Useful Metrics</a></li>
+  </ul></li>
+  <li><a href="#a-simple-predictive-modelling-workflow-in-sas" id="toc-a-simple-predictive-modelling-workflow-in-sas" class="nav-link" data-scroll-target="#a-simple-predictive-modelling-workflow-in-sas"><span class="header-section-number">20.8</span> 20.8 A Simple Predictive Modelling Workflow in SAS</a></li>
+  <li><a href="#example-1-continuous-outcome-prediction" id="toc-example-1-continuous-outcome-prediction" class="nav-link" data-scroll-target="#example-1-continuous-outcome-prediction"><span class="header-section-number">20.9</span> 20.9 Example 1: Continuous Outcome Prediction</a>
+  <ul class="collapse">
+  <li><a href="#step-1-split-the-data" id="toc-step-1-split-the-data" class="nav-link" data-scroll-target="#step-1-split-the-data"><span class="header-section-number">20.9.1</span> Step 1: Split the data</a></li>
+  <li><a href="#explanation" id="toc-explanation" class="nav-link" data-scroll-target="#explanation"><span class="header-section-number">20.9.2</span> Explanation</a></li>
+  <li><a href="#step-2-create-training-and-test-datasets" id="toc-step-2-create-training-and-test-datasets" class="nav-link" data-scroll-target="#step-2-create-training-and-test-datasets"><span class="header-section-number">20.9.3</span> Step 2: Create training and test datasets</a></li>
+  <li><a href="#step-3-fit-a-regression-model-on-the-training-set" id="toc-step-3-fit-a-regression-model-on-the-training-set" class="nav-link" data-scroll-target="#step-3-fit-a-regression-model-on-the-training-set"><span class="header-section-number">20.9.4</span> Step 3: Fit a regression model on the training set</a></li>
+  <li><a href="#step-4-compute-prediction-errors" id="toc-step-4-compute-prediction-errors" class="nav-link" data-scroll-target="#step-4-compute-prediction-errors"><span class="header-section-number">20.9.5</span> Step 4: Compute prediction errors</a></li>
+  </ul></li>
+  <li><a href="#example-2-binary-outcome-prediction-with-logistic-regression" id="toc-example-2-binary-outcome-prediction-with-logistic-regression" class="nav-link" data-scroll-target="#example-2-binary-outcome-prediction-with-logistic-regression"><span class="header-section-number">20.10</span> 20.10 Example 2: Binary Outcome Prediction with Logistic Regression</a>
+  <ul class="collapse">
+  <li><a href="#step-1-fit-logistic-regression-on-the-training-data" id="toc-step-1-fit-logistic-regression-on-the-training-data" class="nav-link" data-scroll-target="#step-1-fit-logistic-regression-on-the-training-data"><span class="header-section-number">20.10.1</span> Step 1: Fit logistic regression on the training data</a></li>
+  <li><a href="#step-2-convert-probabilities-into-predicted-classes" id="toc-step-2-convert-probabilities-into-predicted-classes" class="nav-link" data-scroll-target="#step-2-convert-probabilities-into-predicted-classes"><span class="header-section-number">20.10.2</span> Step 2: Convert probabilities into predicted classes</a></li>
+  <li><a href="#step-3-compare-predicted-and-observed-classes" id="toc-step-3-compare-predicted-and-observed-classes" class="nav-link" data-scroll-target="#step-3-compare-predicted-and-observed-classes"><span class="header-section-number">20.10.3</span> Step 3: Compare predicted and observed classes</a></li>
+  </ul></li>
+  <li><a href="#why-predictive-modelling-changes-the-way-we-think" id="toc-why-predictive-modelling-changes-the-way-we-think" class="nav-link" data-scroll-target="#why-predictive-modelling-changes-the-way-we-think"><span class="header-section-number">20.11</span> 20.11 Why Predictive Modelling Changes the Way We Think</a>
+  <ul class="collapse">
+  <li><a href="#important-shift" id="toc-important-shift" class="nav-link" data-scroll-target="#important-shift"><span class="header-section-number">20.11.1</span> Important Shift</a></li>
+  </ul></li>
+  <li><a href="#relationship-to-model-selection" id="toc-relationship-to-model-selection" class="nav-link" data-scroll-target="#relationship-to-model-selection"><span class="header-section-number">20.12</span> 20.12 Relationship to Model Selection</a>
+  <ul class="collapse">
+  <li><a href="#in-model-selection-for-inference-we-often-ask" id="toc-in-model-selection-for-inference-we-often-ask" class="nav-link" data-scroll-target="#in-model-selection-for-inference-we-often-ask"><span class="header-section-number">20.12.1</span> In model selection for inference, we often ask:</a></li>
+  <li><a href="#in-predictive-modelling-we-often-ask" id="toc-in-predictive-modelling-we-often-ask" class="nav-link" data-scroll-target="#in-predictive-modelling-we-often-ask"><span class="header-section-number">20.12.2</span> In predictive modelling, we often ask:</a></li>
+  <li><a href="#key-message" id="toc-key-message" class="nav-link" data-scroll-target="#key-message"><span class="header-section-number">20.12.3</span> Key Message</a></li>
+  </ul></li>
+  <li><a href="#practical-notes-for-sas-users" id="toc-practical-notes-for-sas-users" class="nav-link" data-scroll-target="#practical-notes-for-sas-users"><span class="header-section-number">20.13</span> 20.13 Practical Notes for SAS Users</a></li>
+  <li><a href="#looking-ahead" id="toc-looking-ahead" class="nav-link" data-scroll-target="#looking-ahead"><span class="header-section-number">20.14</span> 20.14 Looking Ahead</a></li>
+  <li><a href="#chapter-summary" id="toc-chapter-summary" class="nav-link" data-scroll-target="#chapter-summary"><span class="header-section-number">20.15</span> 20.15 Chapter Summary</a>
+  <ul class="collapse">
+  <li><a href="#main-ideas" id="toc-main-ideas" class="nav-link" data-scroll-target="#main-ideas"><span class="header-section-number">20.15.1</span> Main Ideas</a></li>
+  <li><a href="#sas-skills-learned" id="toc-sas-skills-learned" class="nav-link" data-scroll-target="#sas-skills-learned"><span class="header-section-number">20.15.2</span> SAS Skills Learned</a></li>
+  </ul></li>
+  <li><a href="#practice-problems" id="toc-practice-problems" class="nav-link" data-scroll-target="#practice-problems"><span class="header-section-number">20.16</span> 20.16 Practice Problems</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./part4_1_predictive.html">Advanced Topics</a></li><li class="breadcrumb-item"><a href="./part4_1_predictive.html"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Predictive Modelling and Model Evaluation in SAS</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Predictive Modelling and Model Evaluation in SAS</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<blockquote class="blockquote">
+<p><strong>Learning Objectives</strong></p>
+<p>By the end of this lecture, you should be able to:</p>
+<ol type="1">
+<li>Explain the difference between <strong>statistical inference</strong> and <strong>prediction</strong>.</li>
+<li>Understand why we split data into <strong>training</strong> and <strong>test</strong> sets.</li>
+<li>Evaluate predictive performance using measures such as <strong>RMSE</strong>, <strong>MAE</strong>, and <strong>classification accuracy</strong>.</li>
+<li>Fit predictive models in SAS using regression-based procedures.</li>
+<li>Generate predictions and assess out-of-sample model performance in SAS.</li>
+</ol>
+</blockquote>
+<section id="introduction" class="level2" data-number="20.1">
+<h2 data-number="20.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">20.1</span> Introduction</h2>
+<p>So far in this course, we have focused mainly on statistical modelling for explanation and inference. We built regression models, interpreted coefficients, tested hypotheses, and compared models using methods such as AIC and BIC.</p>
+<p>In many real-world problems, however, the main goal is not necessarily to <strong>explain the relationship between variables</strong>. Instead, the goal is to make <strong>accurate predictions</strong> for future observations.</p>
+<p>Examples include:</p>
+<ul>
+<li>predicting house prices,</li>
+<li>forecasting sales,</li>
+<li>predicting whether a customer will respond to a marketing campaign,</li>
+<li>estimating the probability that a patient has a disease.</li>
+</ul>
+<p>This shift in focus leads us to <strong>predictive modelling</strong>.</p>
+<hr>
+</section>
+<section id="inference-vs-prediction" class="level2" data-number="20.2">
+<h2 data-number="20.2" class="anchored" data-anchor-id="inference-vs-prediction"><span class="header-section-number">20.2</span> Inference vs Prediction</h2>
+<p>Although the same model can often be used for both purposes, inference and prediction are not the same.</p>
+<section id="inference" class="level3" data-number="20.2.1">
+<h3 data-number="20.2.1" class="anchored" data-anchor-id="inference"><span class="header-section-number">20.2.1</span> Inference</h3>
+<p>Inference focuses on questions such as:</p>
+<ul>
+<li>Is a predictor statistically significant?</li>
+<li>What is the effect of a one-unit increase in <span class="math inline">\(X\)</span>?</li>
+<li>Is there evidence that the mean response differs across groups?</li>
+</ul>
+<p>The emphasis is on:</p>
+<ul>
+<li>parameter estimation,</li>
+<li>confidence intervals,</li>
+<li>hypothesis testing,</li>
+<li>interpretability.</li>
+</ul>
+</section>
+<section id="prediction" class="level3" data-number="20.2.2">
+<h3 data-number="20.2.2" class="anchored" data-anchor-id="prediction"><span class="header-section-number">20.2.2</span> Prediction</h3>
+<p>Prediction focuses on questions such as:</p>
+<ul>
+<li>How well can the model predict outcomes for new observations?</li>
+<li>Which model gives the smallest prediction error?</li>
+<li>How accurate are predicted probabilities or classifications?</li>
+</ul>
+<p>The emphasis is on:</p>
+<ul>
+<li>predictive accuracy,</li>
+<li>generalization to new data,</li>
+<li>out-of-sample performance.</li>
+</ul>
+</section>
+<section id="key-idea" class="level3" data-number="20.2.3">
+<h3 data-number="20.2.3" class="anchored" data-anchor-id="key-idea"><span class="header-section-number">20.2.3</span> Key Idea</h3>
+<p>A model can be useful for inference but not especially good for prediction, and vice versa.</p>
+<p>A model with many terms may fit the current data very well, but may perform poorly on future data. This is one reason why predictive modelling requires different evaluation tools.</p>
+<hr>
+</section>
+</section>
+<section id="training-error-vs-test-error" class="level2" data-number="20.3">
+<h2 data-number="20.3" class="anchored" data-anchor-id="training-error-vs-test-error"><span class="header-section-number">20.3</span> 20.3 Training Error vs Test Error</h2>
+<p>Suppose we fit a model using a given dataset.</p>
+<ul>
+<li>The <strong>training error</strong> measures how well the model fits the data used to estimate the model.</li>
+<li>The <strong>test error</strong> measures how well the model predicts new observations that were not used for fitting.</li>
+</ul>
+<section id="why-does-this-matter" class="level3" data-number="20.3.1">
+<h3 data-number="20.3.1" class="anchored" data-anchor-id="why-does-this-matter"><span class="header-section-number">20.3.1</span> Why does this matter?</h3>
+<p>If a model is too flexible, it may fit noise in the training sample rather than the true signal. This is called <strong>overfitting</strong>.</p>
+<p>As a result:</p>
+<ul>
+<li>training error may be very small,</li>
+<li>test error may still be large.</li>
+</ul>
+</section>
+<section id="main-principle" class="level3" data-number="20.3.2">
+<h3 data-number="20.3.2" class="anchored" data-anchor-id="main-principle"><span class="header-section-number">20.3.2</span> Main Principle</h3>
+<blockquote class="blockquote">
+<p>A good predictive model should perform well on new data, not only on the training data.</p>
+</blockquote>
+</section>
+</section>
+<section id="data-splitting" class="level2" data-number="20.4">
+<h2 data-number="20.4" class="anchored" data-anchor-id="data-splitting"><span class="header-section-number">20.4</span> Data Splitting</h2>
+<p>A standard approach in predictive modelling is to divide the data into separate parts.</p>
+<section id="common-split" class="level3" data-number="20.4.1">
+<h3 data-number="20.4.1" class="anchored" data-anchor-id="common-split"><span class="header-section-number">20.4.1</span> Common split</h3>
+<ul>
+<li><strong>Training set</strong>: used to fit the model</li>
+<li><strong>Validation set</strong>: sometimes used to tune or compare models</li>
+<li><strong>Test set</strong>: used for final evaluation</li>
+</ul>
+<p>In this lecture, we focus on the simpler and very common setup:</p>
+<ul>
+<li><strong>training set</strong></li>
+<li><strong>test set</strong></li>
+</ul>
+</section>
+<section id="why-not-use-all-observations-for-fitting" class="level3" data-number="20.4.2">
+<h3 data-number="20.4.2" class="anchored" data-anchor-id="why-not-use-all-observations-for-fitting"><span class="header-section-number">20.4.2</span> Why not use all observations for fitting?</h3>
+<p>Because if we evaluate the model on the same data used to fit it, we usually obtain an overly optimistic assessment of performance.</p>
+</section>
+<section id="data-leakage" class="level3" data-number="20.4.3">
+<h3 data-number="20.4.3" class="anchored" data-anchor-id="data-leakage"><span class="header-section-number">20.4.3</span> Data Leakage</h3>
+<p>A major concern in predictive modelling is <strong>data leakage</strong>, which occurs when information from the test data influences model building. This makes performance look better than it really is.</p>
+<p>Examples of leakage:</p>
+<ul>
+<li>choosing variables after looking at the test set,</li>
+<li>using test-set summaries in data preprocessing,</li>
+<li>evaluating many models on the same test set and reporting only the best one.</li>
+</ul>
+</section>
+</section>
+<section id="predictive-models-for-continuous-and-binary-outcomes" class="level2" data-number="20.5">
+<h2 data-number="20.5" class="anchored" data-anchor-id="predictive-models-for-continuous-and-binary-outcomes"><span class="header-section-number">20.5</span> Predictive Models for Continuous and Binary Outcomes</h2>
+<section id="continuous-response" class="level3" data-number="20.5.1">
+<h3 data-number="20.5.1" class="anchored" data-anchor-id="continuous-response"><span class="header-section-number">20.5.1</span> Continuous Response</h3>
+<p>When the response variable is continuous, common predictive models include:</p>
+<ul>
+<li>linear regression,</li>
+<li>polynomial regression,</li>
+<li>more flexible machine learning models.</li>
+</ul>
+<p>Examples:</p>
+<ul>
+<li>house price prediction,</li>
+<li>salary prediction,</li>
+<li>demand forecasting.</li>
+</ul>
+</section>
+<section id="binary-response" class="level3" data-number="20.5.2">
+<h3 data-number="20.5.2" class="anchored" data-anchor-id="binary-response"><span class="header-section-number">20.5.2</span> Binary Response</h3>
+<p>When the response variable is binary, common predictive models include:</p>
+<ul>
+<li>logistic regression,</li>
+<li>classification trees,</li>
+<li>other classifiers.</li>
+</ul>
+<p>Examples:</p>
+<ul>
+<li>disease vs no disease,</li>
+<li>default vs no default,</li>
+<li>spam vs not spam.</li>
+</ul>
+<p>In this lecture, we will use familiar regression-based models to build a bridge from classical statistics to predictive modelling.</p>
+<hr>
+</section>
+</section>
+<section id="performance-metrics-for-regression" class="level2" data-number="20.6">
+<h2 data-number="20.6" class="anchored" data-anchor-id="performance-metrics-for-regression"><span class="header-section-number">20.6</span> 20.6 Performance Metrics for Regression</h2>
+<p>Suppose we observe actual values <span class="math inline">\(y_1, \ldots, y_n\)</span> and predicted values <span class="math inline">\(\hat{y}_1, \ldots, \hat{y}_n\)</span>.</p>
+<section id="mean-squared-error-mse" class="level3" data-number="20.6.1">
+<h3 data-number="20.6.1" class="anchored" data-anchor-id="mean-squared-error-mse"><span class="header-section-number">20.6.1</span> Mean Squared Error (MSE)</h3>
+<p><span class="math display">\[
+MSE = \frac{1}{n} \sum_{i=1}^n (y_i - \hat{y}_i)^2
+\]</span></p>
+</section>
+<section id="root-mean-squared-error-rmse" class="level3" data-number="20.6.2">
+<h3 data-number="20.6.2" class="anchored" data-anchor-id="root-mean-squared-error-rmse"><span class="header-section-number">20.6.2</span> Root Mean Squared Error (RMSE)</h3>
+<p><span class="math display">\[
+RMSE = \sqrt{\frac{1}{n} \sum_{i=1}^n (y_i - \hat{y}_i)^2}
+\]</span></p>
+<p>RMSE is popular because it is measured on the same scale as the response.</p>
+</section>
+<section id="mean-absolute-error-mae" class="level3" data-number="20.6.3">
+<h3 data-number="20.6.3" class="anchored" data-anchor-id="mean-absolute-error-mae"><span class="header-section-number">20.6.3</span> Mean Absolute Error (MAE)</h3>
+<p><span class="math display">\[
+MAE = \frac{1}{n} \sum_{i=1}^n |y_i - \hat{y}_i|
+\]</span></p>
+</section>
+<section id="interpretation" class="level3" data-number="20.6.4">
+<h3 data-number="20.6.4" class="anchored" data-anchor-id="interpretation"><span class="header-section-number">20.6.4</span> Interpretation</h3>
+<ul>
+<li>Smaller RMSE or MAE indicates better predictive performance.</li>
+<li>RMSE penalizes large errors more heavily than MAE.</li>
+<li>MAE is often easier to interpret directly.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="performance-metrics-for-classification" class="level2" data-number="20.7">
+<h2 data-number="20.7" class="anchored" data-anchor-id="performance-metrics-for-classification"><span class="header-section-number">20.7</span> 20.7 Performance Metrics for Classification</h2>
+<p>For binary outcomes, the model often produces either:</p>
+<ul>
+<li>a predicted class, or</li>
+<li>a predicted probability.</li>
+</ul>
+<section id="confusion-matrix" class="level3" data-number="20.7.1">
+<h3 data-number="20.7.1" class="anchored" data-anchor-id="confusion-matrix"><span class="header-section-number">20.7.1</span> Confusion Matrix</h3>
+<p>A confusion matrix summarizes:</p>
+<ul>
+<li>true positives,</li>
+<li>true negatives,</li>
+<li>false positives,</li>
+<li>false negatives.</li>
+</ul>
+</section>
+<section id="classification-accuracy" class="level3" data-number="20.7.2">
+<h3 data-number="20.7.2" class="anchored" data-anchor-id="classification-accuracy"><span class="header-section-number">20.7.2</span> Classification Accuracy</h3>
+<p><span class="math display">\[
+\text{Accuracy} = \frac{\text{Number of correct classifications}}{\text{Total number of observations}}
+\]</span></p>
+</section>
+<section id="other-useful-metrics" class="level3" data-number="20.7.3">
+<h3 data-number="20.7.3" class="anchored" data-anchor-id="other-useful-metrics"><span class="header-section-number">20.7.3</span> Other Useful Metrics</h3>
+<ul>
+<li>sensitivity,</li>
+<li>specificity,</li>
+<li>precision,</li>
+<li>ROC curve,</li>
+<li>AUC.</li>
+</ul>
+<p>In this lecture, we focus on basic classification accuracy and predicted probabilities, while later topics in machine learning can expand these ideas.</p>
+<hr>
+</section>
+</section>
+<section id="a-simple-predictive-modelling-workflow-in-sas" class="level2" data-number="20.8">
+<h2 data-number="20.8" class="anchored" data-anchor-id="a-simple-predictive-modelling-workflow-in-sas"><span class="header-section-number">20.8</span> 20.8 A Simple Predictive Modelling Workflow in SAS</h2>
+<p>A common SAS workflow for predictive modelling is:</p>
+<ol type="1">
+<li>split the data into training and test sets,</li>
+<li>fit a model using the training set,</li>
+<li>score the model on the test set,</li>
+<li>compare predicted and observed outcomes,</li>
+<li>compute predictive performance measures.</li>
+</ol>
+<p>This workflow is useful whether the model is simple or complex.</p>
+<hr>
+</section>
+<section id="example-1-continuous-outcome-prediction" class="level2" data-number="20.9">
+<h2 data-number="20.9" class="anchored" data-anchor-id="example-1-continuous-outcome-prediction"><span class="header-section-number">20.9</span> 20.9 Example 1: Continuous Outcome Prediction</h2>
+<p>In this example, we use a regression model to predict a continuous response.</p>
+<section id="step-1-split-the-data" class="level3" data-number="20.9.1">
+<h3 data-number="20.9.1" class="anchored" data-anchor-id="step-1-split-the-data"><span class="header-section-number">20.9.1</span> Step 1: Split the data</h3>
+<pre class="sas"><code>PROC SURVEYSELECT DATA=mydata
+    OUT=split_data
+    SEED=12345
+    SAMPRATE=0.70
+    OUTALL;
+RUN;</code></pre>
+</section>
+<section id="explanation" class="level3" data-number="20.9.2">
+<h3 data-number="20.9.2" class="anchored" data-anchor-id="explanation"><span class="header-section-number">20.9.2</span> Explanation</h3>
+<p>This creates an output dataset with an indicator variable named <code>Selected</code>:</p>
+<ul>
+<li><code>Selected=1</code>: observation goes to the training set</li>
+<li><code>Selected=0</code>: observation goes to the test set</li>
+</ul>
+</section>
+<section id="step-2-create-training-and-test-datasets" class="level3" data-number="20.9.3">
+<h3 data-number="20.9.3" class="anchored" data-anchor-id="step-2-create-training-and-test-datasets"><span class="header-section-number">20.9.3</span> Step 2: Create training and test datasets</h3>
+<pre class="sas"><code>DATA train test;
+    SET split_data;
+    IF Selected = 1 THEN OUTPUT train;
+    ELSE OUTPUT test;
+RUN;</code></pre>
+</section>
+<section id="step-3-fit-a-regression-model-on-the-training-set" class="level3" data-number="20.9.4">
+<h3 data-number="20.9.4" class="anchored" data-anchor-id="step-3-fit-a-regression-model-on-the-training-set"><span class="header-section-number">20.9.4</span> Step 3: Fit a regression model on the training set</h3>
+<pre class="sas"><code>PROC REG DATA=train;
+    MODEL Y = X1 X2 X3;
+    SCORE DATA=test OUT=test_pred PREDICT;
+RUN;
+QUIT;</code></pre>
+</section>
+<section id="step-4-compute-prediction-errors" class="level3" data-number="20.9.5">
+<h3 data-number="20.9.5" class="anchored" data-anchor-id="step-4-compute-prediction-errors"><span class="header-section-number">20.9.5</span> Step 4: Compute prediction errors</h3>
+<pre class="sas"><code>DATA test_pred;
+    SET test_pred;
+    error  = Y - MODEL1;
+    abserr = ABS(error);
+    sqerr  = error**2;
+RUN;
+
+PROC MEANS DATA=test_pred MEAN;
+    VAR abserr sqerr;
+RUN;</code></pre>
+<p>The mean of <code>abserr</code> is the MAE. The mean of <code>sqerr</code> is the MSE. Taking the square root of the MSE gives the RMSE.</p>
+<hr>
+</section>
+</section>
+<section id="example-2-binary-outcome-prediction-with-logistic-regression" class="level2" data-number="20.10">
+<h2 data-number="20.10" class="anchored" data-anchor-id="example-2-binary-outcome-prediction-with-logistic-regression"><span class="header-section-number">20.10</span> 20.10 Example 2: Binary Outcome Prediction with Logistic Regression</h2>
+<p>Now suppose the response is binary, such as whether a customer responds to an offer.</p>
+<section id="step-1-fit-logistic-regression-on-the-training-data" class="level3" data-number="20.10.1">
+<h3 data-number="20.10.1" class="anchored" data-anchor-id="step-1-fit-logistic-regression-on-the-training-data"><span class="header-section-number">20.10.1</span> Step 1: Fit logistic regression on the training data</h3>
+<pre class="sas"><code>PROC LOGISTIC DATA=train;
+    MODEL response(event='1') = X1 X2 X3;
+    SCORE DATA=test OUT=logit_scored;
+RUN;</code></pre>
+</section>
+<section id="step-2-convert-probabilities-into-predicted-classes" class="level3" data-number="20.10.2">
+<h3 data-number="20.10.2" class="anchored" data-anchor-id="step-2-convert-probabilities-into-predicted-classes"><span class="header-section-number">20.10.2</span> Step 2: Convert probabilities into predicted classes</h3>
+<p>A common rule is:</p>
+<ul>
+<li>predict 1 if predicted probability <span class="math inline">\(\ge 0.5\)</span>,</li>
+<li>predict 0 otherwise.</li>
+</ul>
+<pre class="sas"><code>DATA logit_scored;
+    SET logit_scored;
+    pred_class = (P_1 &gt;= 0.5);
+RUN;</code></pre>
+</section>
+<section id="step-3-compare-predicted-and-observed-classes" class="level3" data-number="20.10.3">
+<h3 data-number="20.10.3" class="anchored" data-anchor-id="step-3-compare-predicted-and-observed-classes"><span class="header-section-number">20.10.3</span> Step 3: Compare predicted and observed classes</h3>
+<pre class="sas"><code>PROC FREQ DATA=logit_scored;
+    TABLES response*pred_class / NOCOL NOROW NOPERCENT;
+RUN;</code></pre>
+<p>From this table, we can calculate classification accuracy.</p>
+<hr>
+</section>
+</section>
+<section id="why-predictive-modelling-changes-the-way-we-think" class="level2" data-number="20.11">
+<h2 data-number="20.11" class="anchored" data-anchor-id="why-predictive-modelling-changes-the-way-we-think"><span class="header-section-number">20.11</span> 20.11 Why Predictive Modelling Changes the Way We Think</h2>
+<p>In classical regression analysis, we often ask:</p>
+<ul>
+<li>Which variables are significant?</li>
+<li>What is the interpretation of each coefficient?</li>
+</ul>
+<p>In predictive modelling, we instead ask:</p>
+<ul>
+<li>Does this model predict well on new data?</li>
+<li>Which model gives the best out-of-sample performance?</li>
+<li>Is a simpler model good enough?</li>
+</ul>
+<section id="important-shift" class="level3" data-number="20.11.1">
+<h3 data-number="20.11.1" class="anchored" data-anchor-id="important-shift"><span class="header-section-number">20.11.1</span> Important Shift</h3>
+<p>A variable can be statistically significant but add little predictive value.</p>
+<p>Conversely, a model chosen for prediction may prioritize accuracy over easy interpretation.</p>
+<hr>
+</section>
+</section>
+<section id="relationship-to-model-selection" class="level2" data-number="20.12">
+<h2 data-number="20.12" class="anchored" data-anchor-id="relationship-to-model-selection"><span class="header-section-number">20.12</span> 20.12 Relationship to Model Selection</h2>
+<p>This lecture connects directly to the previous lecture on model selection.</p>
+<section id="in-model-selection-for-inference-we-often-ask" class="level3" data-number="20.12.1">
+<h3 data-number="20.12.1" class="anchored" data-anchor-id="in-model-selection-for-inference-we-often-ask"><span class="header-section-number">20.12.1</span> In model selection for inference, we often ask:</h3>
+<ul>
+<li>Is the coefficient significant?</li>
+<li>Which model has the smallest AIC or BIC?</li>
+</ul>
+</section>
+<section id="in-predictive-modelling-we-often-ask" class="level3" data-number="20.12.2">
+<h3 data-number="20.12.2" class="anchored" data-anchor-id="in-predictive-modelling-we-often-ask"><span class="header-section-number">20.12.2</span> In predictive modelling, we often ask:</h3>
+<ul>
+<li>Which model has the smallest test RMSE?</li>
+<li>Which classifier performs best on unseen data?</li>
+</ul>
+<p>These are related questions, but they are not identical.</p>
+</section>
+<section id="key-message" class="level3" data-number="20.12.3">
+<h3 data-number="20.12.3" class="anchored" data-anchor-id="key-message"><span class="header-section-number">20.12.3</span> Key Message</h3>
+<blockquote class="blockquote">
+<p>A good explanatory model is not always the best predictive model.</p>
+</blockquote>
+<p>This distinction is central to modern data analysis and machine learning.</p>
+<hr>
+</section>
+</section>
+<section id="practical-notes-for-sas-users" class="level2" data-number="20.13">
+<h2 data-number="20.13" class="anchored" data-anchor-id="practical-notes-for-sas-users"><span class="header-section-number">20.13</span> 20.13 Practical Notes for SAS Users</h2>
+<p>When building predictive models in SAS, keep the following points in mind:</p>
+<ol type="1">
+<li>Always separate training and test data when evaluating prediction performance.</li>
+<li>Record the random seed so your results are reproducible.</li>
+<li>Evaluate performance on the test set, not only the training set.</li>
+<li>Use appropriate metrics for the outcome type:
+<ul>
+<li>RMSE or MAE for continuous response</li>
+<li>accuracy or related measures for binary response</li>
+</ul></li>
+<li>Keep the full modelling pipeline clear and reproducible.</li>
+</ol>
+<p>This is especially important in real data analysis projects.</p>
+<hr>
+</section>
+<section id="looking-ahead" class="level2" data-number="20.14">
+<h2 data-number="20.14" class="anchored" data-anchor-id="looking-ahead"><span class="header-section-number">20.14</span> 20.14 Looking Ahead</h2>
+<p>This lecture provides the bridge from classical statistics to machine learning.</p>
+<p>Once we adopt the predictive modelling viewpoint, it becomes natural to ask:</p>
+<ul>
+<li>Can we use more flexible models?</li>
+<li>Can we improve prediction beyond linear and logistic regression?</li>
+<li>How do tree-based methods work?</li>
+<li>What happens when we care more about prediction than parameter interpretation?</li>
+</ul>
+<p>These questions motivate the next lecture on <strong>machine learning in SAS</strong>.</p>
+<hr>
+</section>
+<section id="chapter-summary" class="level2" data-number="20.15">
+<h2 data-number="20.15" class="anchored" data-anchor-id="chapter-summary"><span class="header-section-number">20.15</span> 20.15 Chapter Summary</h2>
+<p>In this lecture, we introduced predictive modelling as a different perspective on statistical modelling.</p>
+<section id="main-ideas" class="level3" data-number="20.15.1">
+<h3 data-number="20.15.1" class="anchored" data-anchor-id="main-ideas"><span class="header-section-number">20.15.1</span> Main Ideas</h3>
+<ul>
+<li>Inference and prediction are related but distinct goals.</li>
+<li>Training performance and test performance are not the same.</li>
+<li>Data splitting helps us assess out-of-sample performance.</li>
+<li>Regression and logistic regression can both be used as predictive models.</li>
+<li>Predictive performance should be evaluated using suitable metrics.</li>
+</ul>
+</section>
+<section id="sas-skills-learned" class="level3" data-number="20.15.2">
+<h3 data-number="20.15.2" class="anchored" data-anchor-id="sas-skills-learned"><span class="header-section-number">20.15.2</span> SAS Skills Learned</h3>
+<ul>
+<li>splitting data using <code>PROC SURVEYSELECT</code>,</li>
+<li>fitting predictive models with <code>PROC REG</code> and <code>PROC LOGISTIC</code>,</li>
+<li>scoring test data,</li>
+<li>evaluating performance using prediction errors and classification tables.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="practice-problems" class="level2" data-number="20.16">
+<h2 data-number="20.16" class="anchored" data-anchor-id="practice-problems"><span class="header-section-number">20.16</span> 20.16 Practice Problems</h2>
+<ol type="1">
+<li>Explain the difference between inference and prediction in your own words.</li>
+<li>Why is test error usually more informative than training error in predictive modelling?</li>
+<li>Use <code>PROC SURVEYSELECT</code> to create training and test sets from a dataset of your choice.</li>
+<li>Fit a linear regression model on the training set and compute the test-set RMSE.</li>
+<li>Fit a logistic regression model on the training set and compute classification accuracy on the test set.</li>
+<li>Give an example of a model that may be easy to interpret but not necessarily best for prediction.</li>
+</ol>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./part3_7_nested_model.html" class="pagination-link" aria-label="Nested Models and Nested Designs">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Nested Models and Nested Designs</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./part4_2_ML.html" class="pagination-link" aria-label="Introduction to Machine Learning in SAS">
+        <span class="nav-page-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Introduction to Machine Learning in SAS</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
