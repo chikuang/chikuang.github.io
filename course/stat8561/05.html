@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.36">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>6&nbsp; Week 5: Multiple Regression, Partial Effects, and Categorical Predictors – STAT8561 - Linear Statistical Analysis I</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./06.html" rel="next">
+<link href="./04.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-49b5373eb2581b582546d0578abde6ba.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT8561 - Linear Statistical Analysis I</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8561"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="././STAT8561---Linear-Statistical-Analysis-I.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./05.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Week 5: Multiple Regression, Partial Effects, and Categorical Predictors</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01_intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Week 1 Overview</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Week 2 Overview</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Week 3: Distribution Theory of OLS and Inference</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Week 4: ANOVA Decomposition, Overall F Test, and Nested Models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Week 5: Multiple Regression, Partial Effects, and Categorical Predictors</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Week 6: Residual Analysis, Diagnostics, and Model Adequacy</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./07.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./08.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Week 8: Multicollinearity, Variable Selection, and Model Building</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./09.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Week 9: General Linear Hypotheses, Contrasts, and Estimability</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./10.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./11.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendix</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./App_A-matrix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Matrix Algebra Review</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives"><span class="header-section-number">6.1</span> Learning Objectives</a></li>
+  <li><a href="#reading" id="toc-reading" class="nav-link" data-scroll-target="#reading"><span class="header-section-number">6.2</span> Reading</a></li>
+  <li><a href="#review-of-the-regression-framework" id="toc-review-of-the-regression-framework" class="nav-link" data-scroll-target="#review-of-the-regression-framework"><span class="header-section-number">6.3</span> Review of the Regression Framework</a></li>
+  <li><a href="#from-simple-regression-to-multiple-regression" id="toc-from-simple-regression-to-multiple-regression" class="nav-link" data-scroll-target="#from-simple-regression-to-multiple-regression"><span class="header-section-number">6.4</span> From Simple Regression to Multiple Regression</a></li>
+  <li><a href="#why-multiple-regression-matters" id="toc-why-multiple-regression-matters" class="nav-link" data-scroll-target="#why-multiple-regression-matters"><span class="header-section-number">6.5</span> Why Multiple Regression Matters</a></li>
+  <li><a href="#interpreting-the-intercept" id="toc-interpreting-the-intercept" class="nav-link" data-scroll-target="#interpreting-the-intercept"><span class="header-section-number">6.6</span> Interpreting the Intercept</a></li>
+  <li><a href="#interpreting-partial-regression-coefficients" id="toc-interpreting-partial-regression-coefficients" class="nav-link" data-scroll-target="#interpreting-partial-regression-coefficients"><span class="header-section-number">6.7</span> Interpreting Partial Regression Coefficients</a></li>
+  <li><a href="#marginal-association-versus-adjusted-association" id="toc-marginal-association-versus-adjusted-association" class="nav-link" data-scroll-target="#marginal-association-versus-adjusted-association"><span class="header-section-number">6.8</span> Marginal Association Versus Adjusted Association</a></li>
+  <li><a href="#example-of-adjusted-interpretation" id="toc-example-of-adjusted-interpretation" class="nav-link" data-scroll-target="#example-of-adjusted-interpretation"><span class="header-section-number">6.9</span> Example of Adjusted Interpretation</a></li>
+  <li><a href="#matrix-view-of-multiple-regression" id="toc-matrix-view-of-multiple-regression" class="nav-link" data-scroll-target="#matrix-view-of-multiple-regression"><span class="header-section-number">6.10</span> Matrix View of Multiple Regression</a></li>
+  <li><a href="#categorical-predictors-and-indicator-variables" id="toc-categorical-predictors-and-indicator-variables" class="nav-link" data-scroll-target="#categorical-predictors-and-indicator-variables"><span class="header-section-number">6.11</span> Categorical Predictors and Indicator Variables</a></li>
+  <li><a href="#binary-predictor" id="toc-binary-predictor" class="nav-link" data-scroll-target="#binary-predictor"><span class="header-section-number">6.12</span> Binary Predictor</a></li>
+  <li><a href="#more-than-two-categories" id="toc-more-than-two-categories" class="nav-link" data-scroll-target="#more-than-two-categories"><span class="header-section-number">6.13</span> More Than Two Categories</a></li>
+  <li><a href="#why-we-do-not-include-all-indicators-with-an-intercept" id="toc-why-we-do-not-include-all-indicators-with-an-intercept" class="nav-link" data-scroll-target="#why-we-do-not-include-all-indicators-with-an-intercept"><span class="header-section-number">6.14</span> Why We Do Not Include All Indicators with an Intercept</a></li>
+  <li><a href="#continuous-and-categorical-predictors-together" id="toc-continuous-and-categorical-predictors-together" class="nav-link" data-scroll-target="#continuous-and-categorical-predictors-together"><span class="header-section-number">6.15</span> Continuous and Categorical Predictors Together</a></li>
+  <li><a href="#interaction-between-continuous-predictors" id="toc-interaction-between-continuous-predictors" class="nav-link" data-scroll-target="#interaction-between-continuous-predictors"><span class="header-section-number">6.16</span> Interaction Between Continuous Predictors</a></li>
+  <li><a href="#interaction-between-a-continuous-and-a-binary-predictor" id="toc-interaction-between-a-continuous-and-a-binary-predictor" class="nav-link" data-scroll-target="#interaction-between-a-continuous-and-a-binary-predictor"><span class="header-section-number">6.17</span> Interaction Between a Continuous and a Binary Predictor</a></li>
+  <li><a href="#main-effects-in-the-presence-of-interaction" id="toc-main-effects-in-the-presence-of-interaction" class="nav-link" data-scroll-target="#main-effects-in-the-presence-of-interaction"><span class="header-section-number">6.18</span> Main Effects in the Presence of Interaction</a></li>
+  <li><a href="#centering-predictors-for-interpretation" id="toc-centering-predictors-for-interpretation" class="nav-link" data-scroll-target="#centering-predictors-for-interpretation"><span class="header-section-number">6.19</span> Centering Predictors for Interpretation</a></li>
+  <li><a href="#comparing-models-with-and-without-interaction" id="toc-comparing-models-with-and-without-interaction" class="nav-link" data-scroll-target="#comparing-models-with-and-without-interaction"><span class="header-section-number">6.20</span> Comparing Models With and Without Interaction</a></li>
+  <li><a href="#collinearity-and-interpretation" id="toc-collinearity-and-interpretation" class="nav-link" data-scroll-target="#collinearity-and-interpretation"><span class="header-section-number">6.21</span> Collinearity and Interpretation</a></li>
+  <li><a href="#multiple-regression-as-conditional-mean-modelling" id="toc-multiple-regression-as-conditional-mean-modelling" class="nav-link" data-scroll-target="#multiple-regression-as-conditional-mean-modelling"><span class="header-section-number">6.22</span> Multiple Regression as Conditional Mean Modelling</a></li>
+  <li><a href="#worked-example-with-a-continuous-and-a-binary-predictor" id="toc-worked-example-with-a-continuous-and-a-binary-predictor" class="nav-link" data-scroll-target="#worked-example-with-a-continuous-and-a-binary-predictor"><span class="header-section-number">6.23</span> Worked Example With a Continuous and a Binary Predictor</a></li>
+  <li><a href="#r-demonstration-with-multiple-regression" id="toc-r-demonstration-with-multiple-regression" class="nav-link" data-scroll-target="#r-demonstration-with-multiple-regression"><span class="header-section-number">6.24</span> R Demonstration With Multiple Regression</a></li>
+  <li><a href="#fit-a-model-with-two-continuous-predictors" id="toc-fit-a-model-with-two-continuous-predictors" class="nav-link" data-scroll-target="#fit-a-model-with-two-continuous-predictors"><span class="header-section-number">6.25</span> Fit a model with two continuous predictors</a></li>
+  <li><a href="#compare-with-a-simple-regression" id="toc-compare-with-a-simple-regression" class="nav-link" data-scroll-target="#compare-with-a-simple-regression"><span class="header-section-number">6.26</span> Compare with a simple regression</a></li>
+  <li><a href="#fit-a-model-with-a-categorical-predictor" id="toc-fit-a-model-with-a-categorical-predictor" class="nav-link" data-scroll-target="#fit-a-model-with-a-categorical-predictor"><span class="header-section-number">6.27</span> Fit a model with a categorical predictor</a></li>
+  <li><a href="#fit-a-model-with-interaction" id="toc-fit-a-model-with-interaction" class="nav-link" data-scroll-target="#fit-a-model-with-interaction"><span class="header-section-number">6.28</span> Fit a model with interaction</a></li>
+  <li><a href="#plot-group-specific-regression-lines" id="toc-plot-group-specific-regression-lines" class="nav-link" data-scroll-target="#plot-group-specific-regression-lines"><span class="header-section-number">6.29</span> Plot group-specific regression lines</a></li>
+  <li><a href="#interpreting-software-output" id="toc-interpreting-software-output" class="nav-link" data-scroll-target="#interpreting-software-output"><span class="header-section-number">6.30</span> Interpreting Software Output</a></li>
+  <li><a href="#in-class-discussion-questions" id="toc-in-class-discussion-questions" class="nav-link" data-scroll-target="#in-class-discussion-questions"><span class="header-section-number">6.31</span> In-Class Discussion Questions</a></li>
+  <li><a href="#practice-problems" id="toc-practice-problems" class="nav-link" data-scroll-target="#practice-problems"><span class="header-section-number">6.32</span> Practice Problems</a></li>
+  <li><a href="#conceptual" id="toc-conceptual" class="nav-link" data-scroll-target="#conceptual"><span class="header-section-number">6.33</span> Conceptual</a></li>
+  <li><a href="#computational" id="toc-computational" class="nav-link" data-scroll-target="#computational"><span class="header-section-number">6.34</span> Computational</a></li>
+  <li><a href="#indicator-variable-problem" id="toc-indicator-variable-problem" class="nav-link" data-scroll-target="#indicator-variable-problem"><span class="header-section-number">6.35</span> Indicator Variable Problem</a></li>
+  <li><a href="#suggested-homework" id="toc-suggested-homework" class="nav-link" data-scroll-target="#suggested-homework"><span class="header-section-number">6.36</span> Suggested Homework</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">6.37</span> Summary</a></li>
+  <li><a href="#appendix-compact-interpretation-guide" id="toc-appendix-compact-interpretation-guide" class="nav-link" data-scroll-target="#appendix-compact-interpretation-guide"><span class="header-section-number">6.38</span> Appendix: Compact Interpretation Guide</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Week 5: Multiple Regression, Partial Effects, and Categorical Predictors</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>In this week, we move from simple regression ideas to multiple regression. We study how regression coefficients are interpreted when several predictors are included in the model, how categorical predictors enter through indicator variables, and how interactions change the meaning of coefficients. The main goal is to help students read, build, and interpret regression models in realistic settings.</p>
+<section id="learning-objectives" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="learning-objectives"><span class="header-section-number">6.1</span> Learning Objectives</h2>
+<p>By the end of this week, students should be able to:</p>
+<ul>
+<li>interpret coefficients in a multiple regression model;</li>
+<li>explain the meaning of a partial regression coefficient;</li>
+<li>distinguish between marginal association and adjusted association;</li>
+<li>incorporate categorical predictors using indicator variables;</li>
+<li>interpret regression models with interactions;</li>
+<li>use software output to explain fitted multiple regression models.</li>
+</ul>
+</section>
+<section id="reading" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="reading"><span class="header-section-number">6.2</span> Reading</h2>
+<p>Recommended reading for this week:</p>
+<ul>
+<li>Seber and Lee:
+<ul>
+<li>sections on multiple linear regression</li>
+<li>interpretation of regression coefficients</li>
+<li>indicator variables and model formulation</li>
+</ul></li>
+<li>Montgomery, Peck, and Vining:
+<ul>
+<li>sections on multiple regression</li>
+<li>qualitative predictors</li>
+<li>interaction terms and interpretation</li>
+</ul></li>
+</ul>
+</section>
+<section id="review-of-the-regression-framework" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="review-of-the-regression-framework"><span class="header-section-number">6.3</span> Review of the Regression Framework</h2>
+<p>Recall the linear model</p>
+<p><span class="math display">\[
+\mathbf{Y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\varepsilon},
+\qquad
+\boldsymbol{\varepsilon} \sim N_n(\mathbf{0}, \sigma^2 \mathbf{I}_n).
+\]</span></p>
+<p>When the design matrix <span class="math inline">\(\mathbf{X}\)</span> has full column rank, the ordinary least squares estimator is</p>
+<p><span class="math display">\[
+\hat{\boldsymbol{\beta}}
+=
+(\mathbf{X}^\top \mathbf{X})^{-1}\mathbf{X}^\top \mathbf{Y}.
+\]</span></p>
+<p>In earlier weeks, we focused on estimation, inference, ANOVA decomposition, and the comparison of nested models. In this week, the emphasis shifts toward interpretation and modelling structure.</p>
+</section>
+<section id="from-simple-regression-to-multiple-regression" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="from-simple-regression-to-multiple-regression"><span class="header-section-number">6.4</span> From Simple Regression to Multiple Regression</h2>
+<p>In simple linear regression, we write</p>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1 x_i + \varepsilon_i.
+\]</span></p>
+<p>Here, the slope <span class="math inline">\(\beta_1\)</span> measures the expected change in the response associated with a one-unit increase in <span class="math inline">\(x\)</span>.</p>
+<p>In multiple regression, the model becomes</p>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \cdots + \beta_p x_{ip} + \varepsilon_i.
+\]</span></p>
+<p>Now each coefficient must be interpreted while holding the other predictors fixed.</p>
+<p>This is the key conceptual shift.</p>
+</section>
+<section id="why-multiple-regression-matters" class="level2" data-number="6.5">
+<h2 data-number="6.5" class="anchored" data-anchor-id="why-multiple-regression-matters"><span class="header-section-number">6.5</span> Why Multiple Regression Matters</h2>
+<p>Multiple regression is important because real data usually involve several explanatory variables.</p>
+<p>Reasons for including multiple predictors include:</p>
+<ul>
+<li>improving prediction;</li>
+<li>adjusting for confounding variables;</li>
+<li>estimating the effect of one variable while controlling for others;</li>
+<li>allowing more realistic scientific interpretation.</li>
+</ul>
+<p>A coefficient in multiple regression is therefore usually an adjusted effect, not a purely marginal one.</p>
+</section>
+<section id="interpreting-the-intercept" class="level2" data-number="6.6">
+<h2 data-number="6.6" class="anchored" data-anchor-id="interpreting-the-intercept"><span class="header-section-number">6.6</span> Interpreting the Intercept</h2>
+<p>In the model</p>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \cdots + \beta_p x_{ip} + \varepsilon_i,
+\]</span></p>
+<p>the intercept <span class="math inline">\(\beta_0\)</span> is the expected value of the response when all predictors equal zero:</p>
+<p><span class="math display">\[
+\mathbb{E}[Y_i \mid x_{i1}, \dots, x_{ip}] = \beta_0
+\quad \text{when } x_{i1} = \cdots = x_{ip} = 0.
+\]</span></p>
+<p>This interpretation may or may not be scientifically meaningful.</p>
+<p>Sometimes zero is a natural baseline. Sometimes it is outside the observed range, in which case the intercept is mainly a mathematical anchor for the model.</p>
+</section>
+<section id="interpreting-partial-regression-coefficients" class="level2" data-number="6.7">
+<h2 data-number="6.7" class="anchored" data-anchor-id="interpreting-partial-regression-coefficients"><span class="header-section-number">6.7</span> Interpreting Partial Regression Coefficients</h2>
+<p>Consider the model</p>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \varepsilon_i.
+\]</span></p>
+<p>Then:</p>
+<ul>
+<li><span class="math inline">\(\beta_1\)</span> is the expected change in <span class="math inline">\(Y\)</span> associated with a one-unit increase in <span class="math inline">\(x_1\)</span>, holding <span class="math inline">\(x_2\)</span> fixed;</li>
+<li><span class="math inline">\(\beta_2\)</span> is the expected change in <span class="math inline">\(Y\)</span> associated with a one-unit increase in <span class="math inline">\(x_2\)</span>, holding <span class="math inline">\(x_1\)</span> fixed.</li>
+</ul>
+<p>This is called a <strong>partial effect</strong> or <strong>adjusted effect</strong>.</p>
+<p>The phrase “holding other variables fixed” is essential and should always be stated clearly.</p>
+</section>
+<section id="marginal-association-versus-adjusted-association" class="level2" data-number="6.8">
+<h2 data-number="6.8" class="anchored" data-anchor-id="marginal-association-versus-adjusted-association"><span class="header-section-number">6.8</span> Marginal Association Versus Adjusted Association</h2>
+<p>Suppose <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> are correlated.</p>
+<p>Then the relationship between <span class="math inline">\(Y\)</span> and <span class="math inline">\(x_1\)</span> in a simple regression of <span class="math inline">\(Y\)</span> on <span class="math inline">\(x_1\)</span> alone may differ from the coefficient of <span class="math inline">\(x_1\)</span> in a multiple regression including both <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span>.</p>
+<p>This happens because:</p>
+<ul>
+<li>the simple regression coefficient describes a marginal association;</li>
+<li>the multiple regression coefficient describes an adjusted association.</li>
+</ul>
+<p>These can differ substantially when predictors are related to each other.</p>
+</section>
+<section id="example-of-adjusted-interpretation" class="level2" data-number="6.9">
+<h2 data-number="6.9" class="anchored" data-anchor-id="example-of-adjusted-interpretation"><span class="header-section-number">6.9</span> Example of Adjusted Interpretation</h2>
+<p>Suppose we fit</p>
+<p><span class="math display">\[
+\widehat{Y} = 12.5 + 0.8\,x_1 - 1.2\,x_2.
+\]</span></p>
+<p>Then:</p>
+<ul>
+<li>for each one-unit increase in <span class="math inline">\(x_1\)</span>, the fitted mean response increases by 0.8 units, holding <span class="math inline">\(x_2\)</span> fixed;</li>
+<li>for each one-unit increase in <span class="math inline">\(x_2\)</span>, the fitted mean response decreases by 1.2 units, holding <span class="math inline">\(x_1\)</span> fixed.</li>
+</ul>
+<p>This interpretation is valid only within the modelling assumptions and over the range of data where the model is reasonable.</p>
+</section>
+<section id="matrix-view-of-multiple-regression" class="level2" data-number="6.10">
+<h2 data-number="6.10" class="anchored" data-anchor-id="matrix-view-of-multiple-regression"><span class="header-section-number">6.10</span> Matrix View of Multiple Regression</h2>
+<p>In multiple regression, the design matrix has the form</p>
+<p><span class="math display">\[
+\mathbf{X}
+=
+\begin{bmatrix}
+1 &amp; x_{11} &amp; x_{12} &amp; \cdots &amp; x_{1p} \\
+1 &amp; x_{21} &amp; x_{22} &amp; \cdots &amp; x_{2p} \\
+\vdots &amp; \vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+1 &amp; x_{n1} &amp; x_{n2} &amp; \cdots &amp; x_{np}
+\end{bmatrix}.
+\]</span></p>
+<p>Each column corresponds to a predictor or model term.</p>
+<p>This allows the same least squares and inference framework to handle:</p>
+<ul>
+<li>continuous predictors;</li>
+<li>categorical predictors represented by indicator variables;</li>
+<li>interactions;</li>
+<li>polynomial terms.</li>
+</ul>
+<p>So the general linear model framework is highly flexible.</p>
+</section>
+<section id="categorical-predictors-and-indicator-variables" class="level2" data-number="6.11">
+<h2 data-number="6.11" class="anchored" data-anchor-id="categorical-predictors-and-indicator-variables"><span class="header-section-number">6.11</span> Categorical Predictors and Indicator Variables</h2>
+<p>Many real predictors are categorical rather than numeric.</p>
+<p>Examples include:</p>
+<ul>
+<li>treatment group;</li>
+<li>sex;</li>
+<li>school type;</li>
+<li>region;</li>
+<li>machine type.</li>
+</ul>
+<p>These enter a regression model through indicator variables, also called dummy variables.</p>
+</section>
+<section id="binary-predictor" class="level2" data-number="6.12">
+<h2 data-number="6.12" class="anchored" data-anchor-id="binary-predictor"><span class="header-section-number">6.12</span> Binary Predictor</h2>
+<p>Suppose <span class="math inline">\(z_i\)</span> is a binary variable:</p>
+<p><span class="math display">\[
+z_i =
+\begin{cases}
+1, &amp; \text{if observation } i \text{ is in group A}, \\
+0, &amp; \text{if observation } i \text{ is in group B}.
+\end{cases}
+\]</span></p>
+<p>Then the model</p>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1 z_i + \varepsilon_i
+\]</span></p>
+<p>has the following interpretation:</p>
+<ul>
+<li>when <span class="math inline">\(z_i = 0\)</span>, the expected response is <span class="math inline">\(\beta_0\)</span>;</li>
+<li>when <span class="math inline">\(z_i = 1\)</span>, the expected response is <span class="math inline">\(\beta_0 + \beta_1\)</span>.</li>
+</ul>
+<p>Thus, <span class="math inline">\(\beta_1\)</span> measures the difference in group means.</p>
+</section>
+<section id="more-than-two-categories" class="level2" data-number="6.13">
+<h2 data-number="6.13" class="anchored" data-anchor-id="more-than-two-categories"><span class="header-section-number">6.13</span> More Than Two Categories</h2>
+<p>Suppose a categorical predictor has three levels:</p>
+<ul>
+<li>A,</li>
+<li>B,</li>
+<li><ol start="3" type="A">
+<li></li>
+</ol></li>
+</ul>
+<p>We usually represent it with two indicator variables, for example:</p>
+<p><span class="math display">\[
+z_{1i} =
+\begin{cases}
+1, &amp; \text{if level B},\\
+0, &amp; \text{otherwise},
+\end{cases}
+\qquad
+z_{2i} =
+\begin{cases}
+1, &amp; \text{if level C},\\
+0, &amp; \text{otherwise}.
+\end{cases}
+\]</span></p>
+<p>Then level A is the reference group, and the model is</p>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1 z_{1i} + \beta_2 z_{2i} + \varepsilon_i.
+\]</span></p>
+<p>Interpretation:</p>
+<ul>
+<li>level A mean: <span class="math inline">\(\beta_0\)</span>;</li>
+<li>level B mean: <span class="math inline">\(\beta_0 + \beta_1\)</span>;</li>
+<li>level C mean: <span class="math inline">\(\beta_0 + \beta_2\)</span>.</li>
+</ul>
+<p>So coefficients are interpreted relative to the reference category.</p>
+</section>
+<section id="why-we-do-not-include-all-indicators-with-an-intercept" class="level2" data-number="6.14">
+<h2 data-number="6.14" class="anchored" data-anchor-id="why-we-do-not-include-all-indicators-with-an-intercept"><span class="header-section-number">6.14</span> Why We Do Not Include All Indicators with an Intercept</h2>
+<p>If a categorical variable has <span class="math inline">\(k\)</span> levels, then with an intercept we include only <span class="math inline">\(k-1\)</span> indicator variables.</p>
+<p>If we include all <span class="math inline">\(k\)</span> indicators and also include an intercept, then the columns of the design matrix become linearly dependent. This causes rank deficiency.</p>
+<p>This is sometimes called the dummy variable trap.</p>
+</section>
+<section id="continuous-and-categorical-predictors-together" class="level2" data-number="6.15">
+<h2 data-number="6.15" class="anchored" data-anchor-id="continuous-and-categorical-predictors-together"><span class="header-section-number">6.15</span> Continuous and Categorical Predictors Together</h2>
+<p>Regression models often mix continuous and categorical predictors.</p>
+<p>For example,</p>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1 x_i + \beta_2 z_i + \varepsilon_i
+\]</span></p>
+<p>may contain:</p>
+<ul>
+<li>a continuous predictor <span class="math inline">\(x_i\)</span>;</li>
+<li>a binary indicator <span class="math inline">\(z_i\)</span>.</li>
+</ul>
+<p>Interpretation:</p>
+<ul>
+<li><span class="math inline">\(\beta_1\)</span> is the slope in <span class="math inline">\(x\)</span> holding group fixed;</li>
+<li><span class="math inline">\(\beta_2\)</span> is the group difference holding <span class="math inline">\(x\)</span> fixed.</li>
+</ul>
+<p>This is one of the simplest forms of ANCOVA-style modelling.</p>
+</section>
+<section id="interaction-between-continuous-predictors" class="level2" data-number="6.16">
+<h2 data-number="6.16" class="anchored" data-anchor-id="interaction-between-continuous-predictors"><span class="header-section-number">6.16</span> Interaction Between Continuous Predictors</h2>
+<p>An interaction allows the effect of one predictor to depend on the value of another predictor.</p>
+<p>For two continuous predictors, we may write</p>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i1}x_{i2} + \varepsilon_i.
+\]</span></p>
+<p>Now the effect of <span class="math inline">\(x_1\)</span> is no longer constant. Instead,</p>
+<p><span class="math display">\[
+\frac{\partial \mathbb{E}[Y_i \mid x_{i1},x_{i2}]}{\partial x_{i1}}
+=
+\beta_1 + \beta_3 x_{i2}.
+\]</span></p>
+<p>So the slope for <span class="math inline">\(x_1\)</span> depends on the value of <span class="math inline">\(x_2\)</span>.</p>
+<p>Likewise, the slope for <span class="math inline">\(x_2\)</span> depends on <span class="math inline">\(x_1\)</span>.</p>
+</section>
+<section id="interaction-between-a-continuous-and-a-binary-predictor" class="level2" data-number="6.17">
+<h2 data-number="6.17" class="anchored" data-anchor-id="interaction-between-a-continuous-and-a-binary-predictor"><span class="header-section-number">6.17</span> Interaction Between a Continuous and a Binary Predictor</h2>
+<p>Suppose we fit</p>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1 x_i + \beta_2 z_i + \beta_3 x_i z_i + \varepsilon_i,
+\]</span></p>
+<p>where <span class="math inline">\(z_i \in \{0,1\}\)</span>.</p>
+<p>Then:</p>
+<ul>
+<li><p>when <span class="math inline">\(z_i = 0\)</span>, <span class="math display">\[
+\mathbb{E}[Y_i \mid x_i, z_i=0] = \beta_0 + \beta_1 x_i;
+\]</span></p></li>
+<li><p>when <span class="math inline">\(z_i = 1\)</span>, <span class="math display">\[
+\mathbb{E}[Y_i \mid x_i, z_i=1] = (\beta_0+\beta_2) + (\beta_1+\beta_3)x_i.
+\]</span></p></li>
+</ul>
+<p>So:</p>
+<ul>
+<li><span class="math inline">\(\beta_2\)</span> changes the intercept;</li>
+<li><span class="math inline">\(\beta_3\)</span> changes the slope.</li>
+</ul>
+<p>This allows the two groups to have different regression lines.</p>
+</section>
+<section id="main-effects-in-the-presence-of-interaction" class="level2" data-number="6.18">
+<h2 data-number="6.18" class="anchored" data-anchor-id="main-effects-in-the-presence-of-interaction"><span class="header-section-number">6.18</span> Main Effects in the Presence of Interaction</h2>
+<p>When an interaction is present, the meaning of the main effects changes.</p>
+<p>For example, in</p>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1 x_i + \beta_2 z_i + \beta_3 x_i z_i + \varepsilon_i,
+\]</span></p>
+<p>the coefficient <span class="math inline">\(\beta_1\)</span> is the slope for <span class="math inline">\(x\)</span> only when <span class="math inline">\(z=0\)</span>, the reference group.</p>
+<p>Similarly, <span class="math inline">\(\beta_2\)</span> is the group difference only when <span class="math inline">\(x=0\)</span>.</p>
+<p>So students should be careful not to interpret main effects in isolation when interactions are included.</p>
+</section>
+<section id="centering-predictors-for-interpretation" class="level2" data-number="6.19">
+<h2 data-number="6.19" class="anchored" data-anchor-id="centering-predictors-for-interpretation"><span class="header-section-number">6.19</span> Centering Predictors for Interpretation</h2>
+<p>Sometimes the value zero is not meaningful for a continuous predictor.</p>
+<p>In that case, it can be helpful to centre the predictor:</p>
+<p><span class="math display">\[
+x_i^* = x_i - \bar{x}.
+\]</span></p>
+<p>Then the intercept becomes the expected response at the average value of <span class="math inline">\(x\)</span>, which may be much easier to interpret.</p>
+<p>Centering can also improve interpretability in models with interactions.</p>
+</section>
+<section id="comparing-models-with-and-without-interaction" class="level2" data-number="6.20">
+<h2 data-number="6.20" class="anchored" data-anchor-id="comparing-models-with-and-without-interaction"><span class="header-section-number">6.20</span> Comparing Models With and Without Interaction</h2>
+<p>To assess whether an interaction is needed, we can compare nested models.</p>
+<p>For example:</p>
+<ul>
+<li><p>reduced model: <span class="math display">\[
+Y_i = \beta_0 + \beta_1 x_i + \beta_2 z_i + \varepsilon_i;
+\]</span></p></li>
+<li><p>full model: <span class="math display">\[
+Y_i = \beta_0 + \beta_1 x_i + \beta_2 z_i + \beta_3 x_i z_i + \varepsilon_i.
+\]</span></p></li>
+</ul>
+<p>The reduced model is nested within the full model by setting</p>
+<p><span class="math display">\[
+\beta_3 = 0.
+\]</span></p>
+<p>So the interaction can be tested by a standard extra sum of squares <span class="math inline">\(F\)</span> test.</p>
+</section>
+<section id="collinearity-and-interpretation" class="level2" data-number="6.21">
+<h2 data-number="6.21" class="anchored" data-anchor-id="collinearity-and-interpretation"><span class="header-section-number">6.21</span> Collinearity and Interpretation</h2>
+<p>In multiple regression, predictors may be strongly related to each other.</p>
+<p>When this happens:</p>
+<ul>
+<li>coefficient estimates can become unstable;</li>
+<li>standard errors can become large;</li>
+<li>interpretation becomes more delicate.</li>
+</ul>
+<p>Even when the overall model seems useful, individual coefficients may be hard to estimate precisely.</p>
+<p>This issue is called <strong>multicollinearity</strong>.</p>
+<p>We will study diagnostics for it more formally later, but students should already know that “holding other variables fixed” may become practically difficult if predictors tend to move together.</p>
+</section>
+<section id="multiple-regression-as-conditional-mean-modelling" class="level2" data-number="6.22">
+<h2 data-number="6.22" class="anchored" data-anchor-id="multiple-regression-as-conditional-mean-modelling"><span class="header-section-number">6.22</span> Multiple Regression as Conditional Mean Modelling</h2>
+<p>A good way to summarize multiple regression is:</p>
+<p><span class="math display">\[
+\mathbb{E}[Y \mid X_1,\dots,X_p]
+\]</span></p>
+<p>is being modelled as a linear function of predictors and model terms.</p>
+<p>This viewpoint helps unify:</p>
+<ul>
+<li>continuous predictors;</li>
+<li>factors;</li>
+<li>interactions;</li>
+<li>transformed predictors.</li>
+</ul>
+<p>It also helps students distinguish between the response itself and its conditional mean.</p>
+</section>
+<section id="worked-example-with-a-continuous-and-a-binary-predictor" class="level2" data-number="6.23">
+<h2 data-number="6.23" class="anchored" data-anchor-id="worked-example-with-a-continuous-and-a-binary-predictor"><span class="header-section-number">6.23</span> Worked Example With a Continuous and a Binary Predictor</h2>
+<p>Suppose we observe a response <span class="math inline">\(Y\)</span>, a study-hours variable <span class="math inline">\(x\)</span>, and a tutoring indicator <span class="math inline">\(z\)</span>, where</p>
+<ul>
+<li><span class="math inline">\(z=0\)</span> means no tutoring;</li>
+<li><span class="math inline">\(z=1\)</span> means tutoring.</li>
+</ul>
+<p>Consider the model</p>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1 x_i + \beta_2 z_i + \varepsilon_i.
+\]</span></p>
+<p>Suppose the fitted equation is</p>
+<p><span class="math display">\[
+\hat{Y} = 50 + 3x + 8z.
+\]</span></p>
+<p>Then:</p>
+<ul>
+<li>among students with the same tutoring status, one extra hour of study is associated with an increase of 3 points in the fitted mean score;</li>
+<li>among students with the same number of study hours, the tutoring group has a fitted mean score 8 points higher than the non-tutoring group.</li>
+</ul>
+<p>If we add an interaction and obtain</p>
+<p><span class="math display">\[
+\hat{Y} = 48 + 4x + 10z - 1.5xz,
+\]</span></p>
+<p>then:</p>
+<ul>
+<li>for students without tutoring, the slope in study hours is 4;</li>
+<li>for students with tutoring, the slope in study hours is <span class="math inline">\(4 - 1.5 = 2.5\)</span>.</li>
+</ul>
+<p>Thus, the effect of study time depends on tutoring status.</p>
+</section>
+<section id="r-demonstration-with-multiple-regression" class="level2" data-number="6.24">
+<h2 data-number="6.24" class="anchored" data-anchor-id="r-demonstration-with-multiple-regression"><span class="header-section-number">6.24</span> R Demonstration With Multiple Regression</h2>
+</section>
+<section id="fit-a-model-with-two-continuous-predictors" class="level2" data-number="6.25">
+<h2 data-number="6.25" class="anchored" data-anchor-id="fit-a-model-with-two-continuous-predictors"><span class="header-section-number">6.25</span> Fit a model with two continuous predictors</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>dat1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="dv">12</span>, <span class="dv">15</span>, <span class="dv">14</span>, <span class="dv">18</span>, <span class="dv">20</span>, <span class="dv">19</span>, <span class="dv">23</span>, <span class="dv">25</span>),</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">x1 =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>),</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">x2 =</span> <span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">4</span>, <span class="dv">6</span>, <span class="dv">4</span>, <span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">2</span>, <span class="dv">1</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, <span class="at">data =</span> dat1)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = y ~ x1 + x2, data = dat1)
+
+Residuals:
+         1          2          3          4          5          6          7 
+-3.158e-01 -2.632e-02 -1.316e-01  7.105e-01  4.842e-16 -1.053e-01  2.895e-01 
+         8 
+-4.211e-01 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  12.2895     1.1598  10.596 0.000129 ***
+x1            2.2632     0.1681  13.464 4.05e-05 ***
+x2           -0.4474     0.1697  -2.636 0.046186 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.423 on 5 degrees of freedom
+Multiple R-squared:  0.9936,    Adjusted R-squared:  0.991 
+F-statistic: 387.3 on 2 and 5 DF,  p-value: 3.295e-06</code></pre>
+</div>
+</div>
+</section>
+<section id="compare-with-a-simple-regression" class="level2" data-number="6.26">
+<h2 data-number="6.26" class="anchored" data-anchor-id="compare-with-a-simple-regression"><span class="header-section-number">6.26</span> Compare with a simple regression</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>fit1_simple <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1, <span class="at">data =</span> dat1)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit1_simple)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = y ~ x1, data = dat1)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.89308 -0.27201  0.05031  0.39308  0.73585 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)   9.3774     0.4988   18.80 1.46e-06 ***
+x1            2.6289     0.1339   19.63 1.13e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.597 on 6 degrees of freedom
+Multiple R-squared:  0.9847,    Adjusted R-squared:  0.9821 
+F-statistic: 385.4 on 1 and 6 DF,  p-value: 1.132e-06</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = y ~ x1 + x2, data = dat1)
+
+Residuals:
+         1          2          3          4          5          6          7 
+-3.158e-01 -2.632e-02 -1.316e-01  7.105e-01  4.842e-16 -1.053e-01  2.895e-01 
+         8 
+-4.211e-01 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  12.2895     1.1598  10.596 0.000129 ***
+x1            2.2632     0.1681  13.464 4.05e-05 ***
+x2           -0.4474     0.1697  -2.636 0.046186 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.423 on 5 degrees of freedom
+Multiple R-squared:  0.9936,    Adjusted R-squared:  0.991 
+F-statistic: 387.3 on 2 and 5 DF,  p-value: 3.295e-06</code></pre>
+</div>
+</div>
+</section>
+<section id="fit-a-model-with-a-categorical-predictor" class="level2" data-number="6.27">
+<h2 data-number="6.27" class="anchored" data-anchor-id="fit-a-model-with-a-categorical-predictor"><span class="header-section-number">6.27</span> Fit a model with a categorical predictor</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>dat2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="dv">60</span>, <span class="dv">62</span>, <span class="dv">58</span>, <span class="dv">71</span>, <span class="dv">73</span>, <span class="dv">70</span>, <span class="dv">66</span>, <span class="dv">68</span>),</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">hours =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">4</span>, <span class="dv">5</span>),</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">group =</span> <span class="fu">factor</span>(<span class="fu">c</span>(<span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"B"</span>, <span class="st">"B"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>))</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> hours <span class="sc">+</span> group, <span class="at">data =</span> dat2)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = y ~ hours + group, data = dat2)
+
+Residuals:
+    1     2     3     4     5     6     7     8 
+-1.50 -0.25 -2.75  1.25  2.50 -1.25  4.50 -2.50 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)   58.500      6.236   9.381 0.000232 ***
+hours          0.750      1.512   0.496 0.641001    
+groupB         8.250      2.620   3.149 0.025399 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 3.025 on 5 degrees of freedom
+Multiple R-squared:  0.7821,    Adjusted R-squared:  0.695 
+F-statistic: 8.975 on 2 and 5 DF,  p-value: 0.02215</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model.matrix</span>(fit2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  (Intercept) hours groupB
+1           1     4      0
+2           1     5      0
+3           1     3      0
+4           1     4      1
+5           1     5      1
+6           1     6      1
+7           1     4      0
+8           1     5      1
+attr(,"assign")
+[1] 0 1 2
+attr(,"contrasts")
+attr(,"contrasts")$group
+[1] "contr.treatment"</code></pre>
+</div>
+</div>
+</section>
+<section id="fit-a-model-with-interaction" class="level2" data-number="6.28">
+<h2 data-number="6.28" class="anchored" data-anchor-id="fit-a-model-with-interaction"><span class="header-section-number">6.28</span> Fit a model with interaction</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fit3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> hours <span class="sc">*</span> group, <span class="at">data =</span> dat2)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit3)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = y ~ hours * group, data = dat2)
+
+Residuals:
+         1          2          3          4          5          6          7 
+-1.500e+00 -1.500e+00 -1.500e+00 -2.216e-15  2.500e+00 -7.730e-16  4.500e+00 
+         8 
+-2.500e+00 
+
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)   
+(Intercept)    53.500      9.026   5.927  0.00406 **
+hours           2.000      2.222   0.900  0.41897   
+groupB         19.500     14.401   1.354  0.24715   
+hours:groupB   -2.500      3.142  -0.796  0.47083   
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 3.142 on 4 degrees of freedom
+Multiple R-squared:  0.8119,    Adjusted R-squared:  0.6708 
+F-statistic: 5.755 on 3 and 4 DF,  p-value: 0.06202</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(fit2, fit3)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Variance Table
+
+Model 1: y ~ hours + group
+Model 2: y ~ hours * group
+  Res.Df   RSS Df Sum of Sq      F Pr(&gt;F)
+1      5 45.75                           
+2      4 39.50  1      6.25 0.6329 0.4708</code></pre>
+</div>
+</div>
+</section>
+<section id="plot-group-specific-regression-lines" class="level2" data-number="6.29">
+<h2 data-number="6.29" class="anchored" data-anchor-id="plot-group-specific-regression-lines"><span class="header-section-number">6.29</span> Plot group-specific regression lines</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(dat2<span class="sc">$</span>hours, dat2<span class="sc">$</span>y,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">pch =</span> <span class="fu">ifelse</span>(dat2<span class="sc">$</span>group <span class="sc">==</span> <span class="st">"A"</span>, <span class="dv">1</span>, <span class="dv">19</span>),</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Hours"</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">"Response"</span>)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">coef</span>(fit3)[<span class="dv">1</span>], <span class="at">b =</span> <span class="fu">coef</span>(fit3)[<span class="dv">2</span>], <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a =</span> <span class="fu">coef</span>(fit3)[<span class="dv">1</span>] <span class="sc">+</span> <span class="fu">coef</span>(fit3)[<span class="dv">3</span>],</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">b =</span> <span class="fu">coef</span>(fit3)[<span class="dv">2</span>] <span class="sc">+</span> <span class="fu">coef</span>(fit3)[<span class="dv">4</span>],</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Group A"</span>, <span class="st">"Group B"</span>),</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">19</span>), <span class="at">bty =</span> <span class="st">"n"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="05_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="interpreting-software-output" class="level2" data-number="6.30">
+<h2 data-number="6.30" class="anchored" data-anchor-id="interpreting-software-output"><span class="header-section-number">6.30</span> Interpreting Software Output</h2>
+<p>In <code>summary(lm(...))</code>, each coefficient estimate answers a question about the conditional mean given the model terms included.</p>
+<p>Students should always ask:</p>
+<ul>
+<li>what variables are being held fixed;</li>
+<li>what is the reference category;</li>
+<li>whether an interaction changes the meaning of the main effects;</li>
+<li>whether zero is a meaningful baseline for interpretation.</li>
+</ul>
+<p>These questions matter more than memorizing formulas.</p>
+</section>
+<section id="in-class-discussion-questions" class="level2" data-number="6.31">
+<h2 data-number="6.31" class="anchored" data-anchor-id="in-class-discussion-questions"><span class="header-section-number">6.31</span> In-Class Discussion Questions</h2>
+<ol type="1">
+<li>Why can the coefficient of a predictor change when a second predictor is added to the model?</li>
+<li>Why do we need a reference category for categorical predictors?</li>
+<li>How does an interaction change the interpretation of a main effect?</li>
+<li>When might centring a predictor improve interpretation?</li>
+</ol>
+</section>
+<section id="practice-problems" class="level2" data-number="6.32">
+<h2 data-number="6.32" class="anchored" data-anchor-id="practice-problems"><span class="header-section-number">6.32</span> Practice Problems</h2>
+</section>
+<section id="conceptual" class="level2" data-number="6.33">
+<h2 data-number="6.33" class="anchored" data-anchor-id="conceptual"><span class="header-section-number">6.33</span> Conceptual</h2>
+<ol type="1">
+<li>Explain the meaning of a partial regression coefficient in your own words.</li>
+<li>Explain the difference between a marginal association and an adjusted association.</li>
+<li>Explain why a model with an interaction requires more careful interpretation than an additive model.</li>
+</ol>
+</section>
+<section id="computational" class="level2" data-number="6.34">
+<h2 data-number="6.34" class="anchored" data-anchor-id="computational"><span class="header-section-number">6.34</span> Computational</h2>
+<p>Suppose the fitted model is</p>
+<p><span class="math display">\[
+\hat{Y} = 10 + 2x_1 - 3x_2.
+\]</span></p>
+<ol type="1">
+<li>Interpret the coefficient of <span class="math inline">\(x_1\)</span>.</li>
+<li>Interpret the coefficient of <span class="math inline">\(x_2\)</span>.</li>
+<li>Compute the fitted mean response when <span class="math inline">\(x_1 = 4\)</span> and <span class="math inline">\(x_2 = 1\)</span>.</li>
+</ol>
+<p>Now suppose the fitted model is</p>
+<p><span class="math display">\[
+\hat{Y} = 20 + 5x + 7z - 2xz,
+\]</span></p>
+<p>where <span class="math inline">\(z\)</span> is binary.</p>
+<ol type="1">
+<li>Write the fitted mean function when <span class="math inline">\(z=0\)</span>.</li>
+<li>Write the fitted mean function when <span class="math inline">\(z=1\)</span>.</li>
+<li>Interpret the interaction coefficient.</li>
+</ol>
+</section>
+<section id="indicator-variable-problem" class="level2" data-number="6.35">
+<h2 data-number="6.35" class="anchored" data-anchor-id="indicator-variable-problem"><span class="header-section-number">6.35</span> Indicator Variable Problem</h2>
+<p>A factor has four levels: A, B, C, and D.</p>
+<ol type="1">
+<li>How many indicator variables are needed if the model includes an intercept?</li>
+<li>If A is the reference group, write a regression model using indicators for B, C, and D.</li>
+<li>State the expected response for each group.</li>
+</ol>
+</section>
+<section id="suggested-homework" class="level2" data-number="6.36">
+<h2 data-number="6.36" class="anchored" data-anchor-id="suggested-homework"><span class="header-section-number">6.36</span> Suggested Homework</h2>
+<p>Complete the following tasks:</p>
+<ul>
+<li>fit a multiple regression model with at least two continuous predictors and interpret all coefficients;</li>
+<li>fit a model with one continuous predictor and one categorical predictor, then identify the reference category and explain all coefficients;</li>
+<li>add an interaction term and compare the additive and interaction models;</li>
+<li>use <code>model.matrix()</code> in R to inspect the design matrix for a model with factors;</li>
+<li>write a short explanation of why coefficient interpretation changes when additional predictors are added.</li>
+</ul>
+</section>
+<section id="summary" class="level2" data-number="6.37">
+<h2 data-number="6.37" class="anchored" data-anchor-id="summary"><span class="header-section-number">6.37</span> Summary</h2>
+<p>In this week, we developed the interpretation of multiple regression models.</p>
+<p>We emphasized that:</p>
+<ul>
+<li>regression coefficients in multiple regression are partial effects;</li>
+<li>categorical predictors are incorporated through indicator variables;</li>
+<li>interactions allow the effect of one predictor to depend on another;</li>
+<li>the meaning of a coefficient depends on the full model specification.</li>
+</ul>
+<p>These ideas are essential for moving from formal least squares theory to practical statistical modelling.</p>
+<p>Next week, a natural continuation is to study multicollinearity, variable selection, and model building, or to move into diagnostics and residual analysis, depending on the course emphasis.</p>
+</section>
+<section id="appendix-compact-interpretation-guide" class="level2" data-number="6.38">
+<h2 data-number="6.38" class="anchored" data-anchor-id="appendix-compact-interpretation-guide"><span class="header-section-number">6.38</span> Appendix: Compact Interpretation Guide</h2>
+<p>For the additive model</p>
+<p><span class="math display">\[
+Y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \varepsilon,
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\beta_0\)</span>: expected response when <span class="math inline">\(x_1=x_2=0\)</span>;</li>
+<li><span class="math inline">\(\beta_1\)</span>: expected change in response for a one-unit increase in <span class="math inline">\(x_1\)</span>, holding <span class="math inline">\(x_2\)</span> fixed;</li>
+<li><span class="math inline">\(\beta_2\)</span>: expected change in response for a one-unit increase in <span class="math inline">\(x_2\)</span>, holding <span class="math inline">\(x_1\)</span> fixed.</li>
+</ul>
+<p>For the model with a binary predictor</p>
+<p><span class="math display">\[
+Y = \beta_0 + \beta_1 x + \beta_2 z + \varepsilon,
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\beta_0\)</span>: mean for the reference group when <span class="math inline">\(x=0\)</span>;</li>
+<li><span class="math inline">\(\beta_1\)</span>: slope in <span class="math inline">\(x\)</span> for fixed group;</li>
+<li><span class="math inline">\(\beta_2\)</span>: group difference for fixed <span class="math inline">\(x\)</span>.</li>
+</ul>
+<p>For the interaction model</p>
+<p><span class="math display">\[
+Y = \beta_0 + \beta_1 x + \beta_2 z + \beta_3 xz + \varepsilon,
+\]</span></p>
+<ul>
+<li>slope in <span class="math inline">\(x\)</span> when <span class="math inline">\(z=0\)</span>: <span class="math inline">\(\beta_1\)</span>;</li>
+<li>slope in <span class="math inline">\(x\)</span> when <span class="math inline">\(z=1\)</span>: <span class="math inline">\(\beta_1+\beta_3\)</span>;</li>
+<li>group difference when <span class="math inline">\(x=0\)</span>: <span class="math inline">\(\beta_2\)</span>.</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./04.html" class="pagination-link" aria-label="Week 4: ANOVA Decomposition, Overall F Test, and Nested Models">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Week 4: ANOVA Decomposition, Overall F Test, and Nested Models</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./06.html" class="pagination-link" aria-label="Week 6: Residual Analysis, Diagnostics, and Model Adequacy">
+        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Week 6: Residual Analysis, Diagnostics, and Model Adequacy</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

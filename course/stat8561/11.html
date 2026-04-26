@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.36">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>12&nbsp; Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares – STAT8561 - Linear Statistical Analysis I</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./summary.html" rel="next">
+<link href="./10.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-49b5373eb2581b582546d0578abde6ba.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT8561 - Linear Statistical Analysis I</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8561"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="././STAT8561---Linear-Statistical-Analysis-I.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./11.html"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01_intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Week 1 Overview</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Week 2 Overview</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Week 3: Distribution Theory of OLS and Inference</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Week 4: ANOVA Decomposition, Overall F Test, and Nested Models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Week 5: Multiple Regression, Partial Effects, and Categorical Predictors</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Week 6: Residual Analysis, Diagnostics, and Model Adequacy</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./07.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Week 7: Transformations, Weighted Least Squares, and Remedial Measures</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./08.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Week 8: Multicollinearity, Variable Selection, and Model Building</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./09.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Week 9: General Linear Hypotheses, Contrasts, and Estimability</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./10.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./11.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendix</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./App_A-matrix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Matrix Algebra Review</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives"><span class="header-section-number">12.1</span> Learning Objectives</a></li>
+  <li><a href="#reading" id="toc-reading" class="nav-link" data-scroll-target="#reading"><span class="header-section-number">12.2</span> Reading</a></li>
+  <li><a href="#why-ordinary-least-squares-can-fail" id="toc-why-ordinary-least-squares-can-fail" class="nav-link" data-scroll-target="#why-ordinary-least-squares-can-fail"><span class="header-section-number">12.3</span> Why Ordinary Least Squares Can Fail</a></li>
+  <li><a href="#review-of-the-linear-model" id="toc-review-of-the-linear-model" class="nav-link" data-scroll-target="#review-of-the-linear-model"><span class="header-section-number">12.4</span> Review of the Linear Model</a></li>
+  <li><a href="#a-more-general-covariance-model" id="toc-a-more-general-covariance-model" class="nav-link" data-scroll-target="#a-more-general-covariance-model"><span class="header-section-number">12.5</span> A More General Covariance Model</a></li>
+  <li><a href="#why-the-covariance-matrix-matters" id="toc-why-the-covariance-matrix-matters" class="nav-link" data-scroll-target="#why-the-covariance-matrix-matters"><span class="header-section-number">12.6</span> Why the Covariance Matrix Matters</a></li>
+  <li><a href="#the-generalized-least-squares-criterion" id="toc-the-generalized-least-squares-criterion" class="nav-link" data-scroll-target="#the-generalized-least-squares-criterion"><span class="header-section-number">12.7</span> The Generalized Least Squares Criterion</a></li>
+  <li><a href="#derivation-of-the-generalized-least-squares-estimator" id="toc-derivation-of-the-generalized-least-squares-estimator" class="nav-link" data-scroll-target="#derivation-of-the-generalized-least-squares-estimator"><span class="header-section-number">12.8</span> Derivation of the Generalized Least Squares Estimator</a></li>
+  <li><a href="#interpretation-of-the-gls-estimator" id="toc-interpretation-of-the-gls-estimator" class="nav-link" data-scroll-target="#interpretation-of-the-gls-estimator"><span class="header-section-number">12.9</span> Interpretation of the GLS Estimator</a></li>
+  <li><a href="#special-case-ordinary-least-squares" id="toc-special-case-ordinary-least-squares" class="nav-link" data-scroll-target="#special-case-ordinary-least-squares"><span class="header-section-number">12.10</span> Special Case: Ordinary Least Squares</a></li>
+  <li><a href="#special-case-weighted-least-squares" id="toc-special-case-weighted-least-squares" class="nav-link" data-scroll-target="#special-case-weighted-least-squares"><span class="header-section-number">12.11</span> Special Case: Weighted Least Squares</a></li>
+  <li><a href="#the-transformed-model-view" id="toc-the-transformed-model-view" class="nav-link" data-scroll-target="#the-transformed-model-view"><span class="header-section-number">12.12</span> The Transformed-Model View</a></li>
+  <li><a href="#distribution-of-the-gls-estimator" id="toc-distribution-of-the-gls-estimator" class="nav-link" data-scroll-target="#distribution-of-the-gls-estimator"><span class="header-section-number">12.13</span> Distribution of the GLS Estimator</a></li>
+  <li><a href="#gauss-markov-interpretation" id="toc-gauss-markov-interpretation" class="nav-link" data-scroll-target="#gauss-markov-interpretation"><span class="header-section-number">12.14</span> Gauss-Markov Interpretation</a></li>
+  <li><a href="#estimating-sigma-squared-under-gls" id="toc-estimating-sigma-squared-under-gls" class="nav-link" data-scroll-target="#estimating-sigma-squared-under-gls"><span class="header-section-number">12.15</span> Estimating Sigma Squared Under GLS</a></li>
+  <li><a href="#why-known-v-is-rare" id="toc-why-known-v-is-rare" class="nav-link" data-scroll-target="#why-known-v-is-rare"><span class="header-section-number">12.16</span> Why Known V Is Rare</a></li>
+  <li><a href="#feasible-generalized-least-squares" id="toc-feasible-generalized-least-squares" class="nav-link" data-scroll-target="#feasible-generalized-least-squares"><span class="header-section-number">12.17</span> Feasible Generalized Least Squares</a></li>
+  <li><a href="#examples-of-covariance-structures" id="toc-examples-of-covariance-structures" class="nav-link" data-scroll-target="#examples-of-covariance-structures"><span class="header-section-number">12.18</span> Examples of Covariance Structures</a>
+  <ul class="collapse">
+  <li><a href="#unequal-variances-only" id="toc-unequal-variances-only" class="nav-link" data-scroll-target="#unequal-variances-only"><span class="header-section-number">12.18.1</span> Unequal Variances Only</a></li>
+  <li><a href="#compound-symmetry" id="toc-compound-symmetry" class="nav-link" data-scroll-target="#compound-symmetry"><span class="header-section-number">12.18.2</span> Compound Symmetry</a></li>
+  <li><a href="#autoregressive-structure" id="toc-autoregressive-structure" class="nav-link" data-scroll-target="#autoregressive-structure"><span class="header-section-number">12.18.3</span> Autoregressive Structure</a></li>
+  <li><a href="#block-diagonal-structure" id="toc-block-diagonal-structure" class="nav-link" data-scroll-target="#block-diagonal-structure"><span class="header-section-number">12.18.4</span> Block-Diagonal Structure</a></li>
+  </ul></li>
+  <li><a href="#correlated-errors-in-time-ordered-data" id="toc-correlated-errors-in-time-ordered-data" class="nav-link" data-scroll-target="#correlated-errors-in-time-ordered-data"><span class="header-section-number">12.19</span> Correlated Errors in Time-Ordered Data</a></li>
+  <li><a href="#clustered-and-repeated-observations" id="toc-clustered-and-repeated-observations" class="nav-link" data-scroll-target="#clustered-and-repeated-observations"><span class="header-section-number">12.20</span> Clustered and Repeated Observations</a></li>
+  <li><a href="#relationship-to-robust-standard-errors" id="toc-relationship-to-robust-standard-errors" class="nav-link" data-scroll-target="#relationship-to-robust-standard-errors"><span class="header-section-number">12.21</span> Relationship to Robust Standard Errors</a></li>
+  <li><a href="#when-gls-is-worth-using" id="toc-when-gls-is-worth-using" class="nav-link" data-scroll-target="#when-gls-is-worth-using"><span class="header-section-number">12.22</span> When GLS Is Worth Using</a></li>
+  <li><a href="#diagnostics-for-correlated-errors" id="toc-diagnostics-for-correlated-errors" class="nav-link" data-scroll-target="#diagnostics-for-correlated-errors"><span class="header-section-number">12.23</span> Diagnostics for Correlated Errors</a></li>
+  <li><a href="#worked-example-with-known-unequal-precision" id="toc-worked-example-with-known-unequal-precision" class="nav-link" data-scroll-target="#worked-example-with-known-unequal-precision"><span class="header-section-number">12.24</span> Worked Example With Known Unequal Precision</a></li>
+  <li><a href="#worked-example-with-correlated-pairs" id="toc-worked-example-with-correlated-pairs" class="nav-link" data-scroll-target="#worked-example-with-correlated-pairs"><span class="header-section-number">12.25</span> Worked Example With Correlated Pairs</a></li>
+  <li><a href="#r-demonstration-with-weighted-least-squares-as-gls" id="toc-r-demonstration-with-weighted-least-squares-as-gls" class="nav-link" data-scroll-target="#r-demonstration-with-weighted-least-squares-as-gls"><span class="header-section-number">12.26</span> R Demonstration With Weighted Least Squares as GLS</a></li>
+  <li><a href="#simulate-data-with-unequal-variances" id="toc-simulate-data-with-unequal-variances" class="nav-link" data-scroll-target="#simulate-data-with-unequal-variances"><span class="header-section-number">12.27</span> Simulate data with unequal variances</a></li>
+  <li><a href="#compare-fitted-lines" id="toc-compare-fitted-lines" class="nav-link" data-scroll-target="#compare-fitted-lines"><span class="header-section-number">12.28</span> Compare fitted lines</a></li>
+  <li><a href="#r-demonstration-with-a-hand-built-gls-computation" id="toc-r-demonstration-with-a-hand-built-gls-computation" class="nav-link" data-scroll-target="#r-demonstration-with-a-hand-built-gls-computation"><span class="header-section-number">12.29</span> R Demonstration With a Hand-Built GLS Computation</a></li>
+  <li><a href="#construct-a-covariance-matrix-and-compute-gls-directly" id="toc-construct-a-covariance-matrix-and-compute-gls-directly" class="nav-link" data-scroll-target="#construct-a-covariance-matrix-and-compute-gls-directly"><span class="header-section-number">12.30</span> Construct a covariance matrix and compute GLS directly</a></li>
+  <li><a href="#transform-the-model-and-verify-the-gls-view" id="toc-transform-the-model-and-verify-the-gls-view" class="nav-link" data-scroll-target="#transform-the-model-and-verify-the-gls-view"><span class="header-section-number">12.31</span> Transform the model and verify the GLS view</a></li>
+  <li><a href="#compare-residual-patterns" id="toc-compare-residual-patterns" class="nav-link" data-scroll-target="#compare-residual-patterns"><span class="header-section-number">12.32</span> Compare residual patterns</a></li>
+  <li><a href="#simple-example-of-grouped-covariance-intuition" id="toc-simple-example-of-grouped-covariance-intuition" class="nav-link" data-scroll-target="#simple-example-of-grouped-covariance-intuition"><span class="header-section-number">12.33</span> Simple example of grouped covariance intuition</a></li>
+  <li><a href="#interpreting-software-output" id="toc-interpreting-software-output" class="nav-link" data-scroll-target="#interpreting-software-output"><span class="header-section-number">12.34</span> Interpreting Software Output</a></li>
+  <li><a href="#a-practical-workflow-for-gls-thinking" id="toc-a-practical-workflow-for-gls-thinking" class="nav-link" data-scroll-target="#a-practical-workflow-for-gls-thinking"><span class="header-section-number">12.35</span> A Practical Workflow for GLS Thinking</a></li>
+  <li><a href="#in-class-discussion-questions" id="toc-in-class-discussion-questions" class="nav-link" data-scroll-target="#in-class-discussion-questions"><span class="header-section-number">12.36</span> In-Class Discussion Questions</a></li>
+  <li><a href="#practice-problems" id="toc-practice-problems" class="nav-link" data-scroll-target="#practice-problems"><span class="header-section-number">12.37</span> Practice Problems</a></li>
+  <li><a href="#conceptual" id="toc-conceptual" class="nav-link" data-scroll-target="#conceptual"><span class="header-section-number">12.38</span> Conceptual</a></li>
+  <li><a href="#computational" id="toc-computational" class="nav-link" data-scroll-target="#computational"><span class="header-section-number">12.39</span> Computational</a></li>
+  <li><a href="#modelling-problem" id="toc-modelling-problem" class="nav-link" data-scroll-target="#modelling-problem"><span class="header-section-number">12.40</span> Modelling Problem</a></li>
+  <li><a href="#suggested-homework" id="toc-suggested-homework" class="nav-link" data-scroll-target="#suggested-homework"><span class="header-section-number">12.41</span> Suggested Homework</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">12.42</span> Summary</a></li>
+  <li><a href="#appendix-compact-formula-summary" id="toc-appendix-compact-formula-summary" class="nav-link" data-scroll-target="#appendix-compact-formula-summary"><span class="header-section-number">12.43</span> Appendix: Compact Formula Summary</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Week 11: Generalized Least Squares, Correlated Errors, and Beyond Ordinary Least Squares</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>In this week, we study what happens when the error terms in a linear model are no longer independent with common variance. This leads to generalized least squares, a natural extension of ordinary least squares that accounts for nonidentity covariance structure. The goal is to help students understand how the linear model changes when observations are correlated or have unequal precision in a more general matrix form.</p>
+<section id="learning-objectives" class="level2" data-number="12.1">
+<h2 data-number="12.1" class="anchored" data-anchor-id="learning-objectives"><span class="header-section-number">12.1</span> Learning Objectives</h2>
+<p>By the end of this week, students should be able to:</p>
+<ul>
+<li>explain why ordinary least squares is not always appropriate when errors are correlated or heteroscedastic;</li>
+<li>state the generalized linear model covariance assumption for the error vector in a linear model context;</li>
+<li>derive the generalized least squares estimator;</li>
+<li>explain how generalized least squares reduces to ordinary least squares and weighted least squares in special cases;</li>
+<li>interpret the transformed-model view of generalized least squares;</li>
+<li>recognize practical examples of correlated errors and structured covariance models.</li>
+</ul>
+</section>
+<section id="reading" class="level2" data-number="12.2">
+<h2 data-number="12.2" class="anchored" data-anchor-id="reading"><span class="header-section-number">12.2</span> Reading</h2>
+<p>Recommended reading for this week:</p>
+<ul>
+<li>Seber and Lee:
+<ul>
+<li>sections on generalized least squares</li>
+<li>correlated observations and covariance structure</li>
+<li>extensions of least squares methods</li>
+</ul></li>
+<li>Montgomery, Peck, and Vining:
+<ul>
+<li>sections on departures from ordinary linear model assumptions</li>
+<li>weighted and generalized least squares ideas</li>
+<li>practical modelling considerations for dependence and unequal variance</li>
+</ul></li>
+</ul>
+</section>
+<section id="why-ordinary-least-squares-can-fail" class="level2" data-number="12.3">
+<h2 data-number="12.3" class="anchored" data-anchor-id="why-ordinary-least-squares-can-fail"><span class="header-section-number">12.3</span> Why Ordinary Least Squares Can Fail</h2>
+<p>So far, much of the course has relied on the classical assumption</p>
+<p><span class="math display">\[
+\mathrm{Var}(\boldsymbol{\varepsilon}) = \sigma^2 \mathbf{I}_n.
+\]</span></p>
+<p>This means:</p>
+<ul>
+<li>all observations have the same error variance;</li>
+<li>errors are uncorrelated.</li>
+</ul>
+<p>But many real datasets do not satisfy this assumption.</p>
+<p>Examples include:</p>
+<ul>
+<li>repeated observations on the same unit;</li>
+<li>measurements taken over time;</li>
+<li>clustered or grouped data;</li>
+<li>observations with known unequal precision;</li>
+<li>spatial or serial dependence.</li>
+</ul>
+<p>In such cases, ordinary least squares may still be unbiased for the mean model under suitable assumptions, but it is no longer the most efficient linear estimator, and the usual standard error formulas become incorrect.</p>
+</section>
+<section id="review-of-the-linear-model" class="level2" data-number="12.4">
+<h2 data-number="12.4" class="anchored" data-anchor-id="review-of-the-linear-model"><span class="header-section-number">12.4</span> Review of the Linear Model</h2>
+<p>Recall the linear model</p>
+<p><span class="math display">\[
+\mathbf{Y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\varepsilon},
+\]</span></p>
+<p>with</p>
+<p><span class="math display">\[
+\mathbb{E}[\boldsymbol{\varepsilon}] = \mathbf{0}.
+\]</span></p>
+<p>Under ordinary least squares, we assumed</p>
+<p><span class="math display">\[
+\mathrm{Var}(\boldsymbol{\varepsilon}) = \sigma^2 \mathbf{I}_n.
+\]</span></p>
+<p>This gave the estimator</p>
+<p><span class="math display">\[
+\hat{\boldsymbol{\beta}}_{OLS}
+=
+(\mathbf{X}^\top \mathbf{X})^{-1}\mathbf{X}^\top \mathbf{Y}.
+\]</span></p>
+<p>Now we allow a more general covariance structure.</p>
+</section>
+<section id="a-more-general-covariance-model" class="level2" data-number="12.5">
+<h2 data-number="12.5" class="anchored" data-anchor-id="a-more-general-covariance-model"><span class="header-section-number">12.5</span> A More General Covariance Model</h2>
+<p>Suppose instead that</p>
+<p><span class="math display">\[
+\mathrm{Var}(\boldsymbol{\varepsilon}) = \sigma^2 \mathbf{V},
+\]</span></p>
+<p>where <span class="math inline">\(\mathbf{V}\)</span> is a known positive definite matrix.</p>
+<p>Then</p>
+<p><span class="math display">\[
+\mathrm{Var}(\mathbf{Y}) = \sigma^2 \mathbf{V}.
+\]</span></p>
+<p>The matrix <span class="math inline">\(\mathbf{V}\)</span> may represent:</p>
+<ul>
+<li>unequal variances;</li>
+<li>correlations among observations;</li>
+<li>both at once.</li>
+</ul>
+<p>This is the setting of generalized least squares.</p>
+</section>
+<section id="why-the-covariance-matrix-matters" class="level2" data-number="12.6">
+<h2 data-number="12.6" class="anchored" data-anchor-id="why-the-covariance-matrix-matters"><span class="header-section-number">12.6</span> Why the Covariance Matrix Matters</h2>
+<p>If two observations are highly correlated, then together they contain less independent information than two unrelated observations.</p>
+<p>If one observation has much larger variance than another, it should typically receive less weight in estimation.</p>
+<p>Thus the covariance structure affects how much information each part of the data contributes.</p>
+<p>Ordinary least squares ignores this structure. Generalized least squares incorporates it directly.</p>
+</section>
+<section id="the-generalized-least-squares-criterion" class="level2" data-number="12.7">
+<h2 data-number="12.7" class="anchored" data-anchor-id="the-generalized-least-squares-criterion"><span class="header-section-number">12.7</span> The Generalized Least Squares Criterion</h2>
+<p>In generalized least squares, we minimize the quadratic form</p>
+<p><span class="math display">\[
+Q(\boldsymbol{\beta})
+=
+(\mathbf{Y} - \mathbf{X}\boldsymbol{\beta})^\top
+\mathbf{V}^{-1}
+(\mathbf{Y} - \mathbf{X}\boldsymbol{\beta}).
+\]</span></p>
+<p>This is the natural analogue of the ordinary least squares criterion</p>
+<p><span class="math display">\[
+(\mathbf{Y} - \mathbf{X}\boldsymbol{\beta})^\top
+(\mathbf{Y} - \mathbf{X}\boldsymbol{\beta}),
+\]</span></p>
+<p>but now weighted by the inverse covariance structure.</p>
+<p>The matrix <span class="math inline">\(\mathbf{V}^{-1}\)</span> downweights directions in the data that are more variable or more redundant.</p>
+</section>
+<section id="derivation-of-the-generalized-least-squares-estimator" class="level2" data-number="12.8">
+<h2 data-number="12.8" class="anchored" data-anchor-id="derivation-of-the-generalized-least-squares-estimator"><span class="header-section-number">12.8</span> Derivation of the Generalized Least Squares Estimator</h2>
+<p>Differentiate the generalized least squares criterion with respect to <span class="math inline">\(\boldsymbol{\beta}\)</span> and set the derivative equal to zero.</p>
+<p>This gives the generalized normal equations</p>
+<p><span class="math display">\[
+\mathbf{X}^\top \mathbf{V}^{-1}\mathbf{X}\,\hat{\boldsymbol{\beta}}_{GLS}
+=
+\mathbf{X}^\top \mathbf{V}^{-1}\mathbf{Y}.
+\]</span></p>
+<p>Assuming invertibility, the generalized least squares estimator is</p>
+<p><span class="math display">\[
+\hat{\boldsymbol{\beta}}_{GLS}
+=
+(\mathbf{X}^\top \mathbf{V}^{-1}\mathbf{X})^{-1}
+\mathbf{X}^\top \mathbf{V}^{-1}\mathbf{Y}.
+\]</span></p>
+<p>This is the central formula for the week.</p>
+</section>
+<section id="interpretation-of-the-gls-estimator" class="level2" data-number="12.9">
+<h2 data-number="12.9" class="anchored" data-anchor-id="interpretation-of-the-gls-estimator"><span class="header-section-number">12.9</span> Interpretation of the GLS Estimator</h2>
+<p>The GLS estimator has the same structural form as OLS and WLS, but with the covariance matrix inserted.</p>
+<p>It can be interpreted as an estimator that gives appropriate weight to observations according to the joint covariance structure.</p>
+<p>Compared with OLS:</p>
+<ul>
+<li>observations with larger variance are effectively downweighted;</li>
+<li>correlated observations are not treated as if they were independent;</li>
+<li>the estimator uses the information in the data more efficiently when <span class="math inline">\(\mathbf{V}\)</span> is correctly specified.</li>
+</ul>
+</section>
+<section id="special-case-ordinary-least-squares" class="level2" data-number="12.10">
+<h2 data-number="12.10" class="anchored" data-anchor-id="special-case-ordinary-least-squares"><span class="header-section-number">12.10</span> Special Case: Ordinary Least Squares</h2>
+<p>If</p>
+<p><span class="math display">\[
+\mathbf{V} = \mathbf{I}_n,
+\]</span></p>
+<p>then GLS becomes</p>
+<p><span class="math display">\[
+\hat{\boldsymbol{\beta}}_{GLS}
+=
+(\mathbf{X}^\top \mathbf{X})^{-1}\mathbf{X}^\top \mathbf{Y},
+\]</span></p>
+<p>which is exactly the ordinary least squares estimator.</p>
+<p>So OLS is a special case of GLS.</p>
+</section>
+<section id="special-case-weighted-least-squares" class="level2" data-number="12.11">
+<h2 data-number="12.11" class="anchored" data-anchor-id="special-case-weighted-least-squares"><span class="header-section-number">12.11</span> Special Case: Weighted Least Squares</h2>
+<p>If the covariance matrix is diagonal,</p>
+<p><span class="math display">\[
+\mathbf{V} = \mathrm{diag}(v_1,\dots,v_n),
+\]</span></p>
+<p>then</p>
+<p><span class="math display">\[
+\mathbf{V}^{-1} = \mathrm{diag}(1/v_1,\dots,1/v_n).
+\]</span></p>
+<p>This is the weighted least squares setting from the previous week, with weights proportional to inverse variances.</p>
+<p>So WLS is also a special case of GLS.</p>
+</section>
+<section id="the-transformed-model-view" class="level2" data-number="12.12">
+<h2 data-number="12.12" class="anchored" data-anchor-id="the-transformed-model-view"><span class="header-section-number">12.12</span> The Transformed-Model View</h2>
+<p>A very important way to understand GLS is through a transformation.</p>
+<p>Because <span class="math inline">\(\mathbf{V}\)</span> is positive definite, there exists a matrix <span class="math inline">\(\mathbf{A}\)</span> such that</p>
+<p><span class="math display">\[
+\mathbf{A}^\top \mathbf{A} = \mathbf{V}^{-1}.
+\]</span></p>
+<p>For example, we may take <span class="math inline">\(\mathbf{A} = \mathbf{V}^{-1/2}\)</span>.</p>
+<p>Multiplying the model by <span class="math inline">\(\mathbf{A}\)</span> gives</p>
+<p><span class="math display">\[
+\mathbf{A}\mathbf{Y}
+=
+\mathbf{A}\mathbf{X}\boldsymbol{\beta}
++
+\mathbf{A}\boldsymbol{\varepsilon}.
+\]</span></p>
+<p>Now the transformed error has variance</p>
+<p><span class="math display">\[
+\mathrm{Var}(\mathbf{A}\boldsymbol{\varepsilon})
+=
+\mathbf{A}(\sigma^2 \mathbf{V})\mathbf{A}^\top
+=
+\sigma^2 \mathbf{I}_n.
+\]</span></p>
+<p>So GLS can be viewed as ordinary least squares applied to a transformed model with spherical errors.</p>
+<p>This is one of the most important conceptual ideas in the course.</p>
+</section>
+<section id="distribution-of-the-gls-estimator" class="level2" data-number="12.13">
+<h2 data-number="12.13" class="anchored" data-anchor-id="distribution-of-the-gls-estimator"><span class="header-section-number">12.13</span> Distribution of the GLS Estimator</h2>
+<p>If the covariance structure is correctly specified and</p>
+<p><span class="math display">\[
+\mathbf{Y} \sim N_n(\mathbf{X}\boldsymbol{\beta}, \sigma^2 \mathbf{V}),
+\]</span></p>
+<p>then the GLS estimator is normally distributed:</p>
+<p><span class="math display">\[
+\hat{\boldsymbol{\beta}}_{GLS}
+\sim
+N_p\!\left(
+\boldsymbol{\beta},
+\sigma^2
+(\mathbf{X}^\top \mathbf{V}^{-1}\mathbf{X})^{-1}
+\right).
+\]</span></p>
+<p>This parallels the OLS distribution theory, but with <span class="math inline">\(\mathbf{V}^{-1}\)</span> appearing throughout.</p>
+</section>
+<section id="gauss-markov-interpretation" class="level2" data-number="12.14">
+<h2 data-number="12.14" class="anchored" data-anchor-id="gauss-markov-interpretation"><span class="header-section-number">12.14</span> Gauss-Markov Interpretation</h2>
+<p>Under the covariance model</p>
+<p><span class="math display">\[
+\mathrm{Var}(\boldsymbol{\varepsilon}) = \sigma^2 \mathbf{V},
+\]</span></p>
+<p>the generalized least squares estimator is the best linear unbiased estimator among all linear unbiased estimators.</p>
+<p>So GLS is the natural Gauss-Markov extension of OLS to nonidentity covariance structures.</p>
+<p>This is sometimes phrased by saying that OLS is BLUE under spherical errors, while GLS is BLUE under the more general covariance model.</p>
+</section>
+<section id="estimating-sigma-squared-under-gls" class="level2" data-number="12.15">
+<h2 data-number="12.15" class="anchored" data-anchor-id="estimating-sigma-squared-under-gls"><span class="header-section-number">12.15</span> Estimating Sigma Squared Under GLS</h2>
+<p>In the transformed model, residual sums of squares can be defined using the GLS criterion.</p>
+<p>The generalized residual sum of squares is</p>
+<p><span class="math display">\[
+SSE_{GLS}
+=
+(\mathbf{Y} - \mathbf{X}\hat{\boldsymbol{\beta}}_{GLS})^\top
+\mathbf{V}^{-1}
+(\mathbf{Y} - \mathbf{X}\hat{\boldsymbol{\beta}}_{GLS}).
+\]</span></p>
+<p>Under the normal model with known <span class="math inline">\(\mathbf{V}\)</span>, this plays the same role as the ordinary SSE after transformation.</p>
+<p>An estimator of <span class="math inline">\(\sigma^2\)</span> is then</p>
+<p><span class="math display">\[
+\hat{\sigma}^2_{GLS}
+=
+\frac{SSE_{GLS}}{n-p}.
+\]</span></p>
+</section>
+<section id="why-known-v-is-rare" class="level2" data-number="12.16">
+<h2 data-number="12.16" class="anchored" data-anchor-id="why-known-v-is-rare"><span class="header-section-number">12.16</span> Why Known V Is Rare</h2>
+<p>In practice, the covariance matrix <span class="math inline">\(\mathbf{V}\)</span> is usually not known exactly.</p>
+<p>Instead, we may have:</p>
+<ul>
+<li>scientific knowledge suggesting a covariance pattern;</li>
+<li>repeated-measures structure suggesting dependence;</li>
+<li>known weights from design considerations;</li>
+<li>an estimated covariance model.</li>
+</ul>
+<p>When <span class="math inline">\(\mathbf{V}\)</span> is replaced by an estimate, the resulting estimator is often called <strong>feasible GLS</strong>.</p>
+</section>
+<section id="feasible-generalized-least-squares" class="level2" data-number="12.17">
+<h2 data-number="12.17" class="anchored" data-anchor-id="feasible-generalized-least-squares"><span class="header-section-number">12.17</span> Feasible Generalized Least Squares</h2>
+<p>The basic idea of feasible GLS is:</p>
+<ul>
+<li>propose a covariance model for <span class="math inline">\(\mathbf{V}\)</span>;</li>
+<li>estimate the unknown covariance parameters from the data;</li>
+<li>plug the estimated covariance matrix into the GLS formula.</li>
+</ul>
+<p>This is practical, but it introduces an extra modelling step and relies on the covariance model being approximately correct.</p>
+</section>
+<section id="examples-of-covariance-structures" class="level2" data-number="12.18">
+<h2 data-number="12.18" class="anchored" data-anchor-id="examples-of-covariance-structures"><span class="header-section-number">12.18</span> Examples of Covariance Structures</h2>
+<p>Several structured covariance matrices appear often in applications.</p>
+<section id="unequal-variances-only" class="level3" data-number="12.18.1">
+<h3 data-number="12.18.1" class="anchored" data-anchor-id="unequal-variances-only"><span class="header-section-number">12.18.1</span> Unequal Variances Only</h3>
+<p>If observations are independent but have different variances, then <span class="math inline">\(\mathbf{V}\)</span> is diagonal.</p>
+<p>This is the weighted least squares case.</p>
+</section>
+<section id="compound-symmetry" class="level3" data-number="12.18.2">
+<h3 data-number="12.18.2" class="anchored" data-anchor-id="compound-symmetry"><span class="header-section-number">12.18.2</span> Compound Symmetry</h3>
+<p>In grouped or repeated-measures settings, one may assume a common variance and a common correlation within group.</p>
+<p>This gives a covariance pattern often called compound symmetry.</p>
+</section>
+<section id="autoregressive-structure" class="level3" data-number="12.18.3">
+<h3 data-number="12.18.3" class="anchored" data-anchor-id="autoregressive-structure"><span class="header-section-number">12.18.3</span> Autoregressive Structure</h3>
+<p>For time-ordered observations, nearby errors may be more strongly correlated than distant ones.</p>
+<p>A simple model is the AR(1) structure, where correlations decay geometrically with lag.</p>
+</section>
+<section id="block-diagonal-structure" class="level3" data-number="12.18.4">
+<h3 data-number="12.18.4" class="anchored" data-anchor-id="block-diagonal-structure"><span class="header-section-number">12.18.4</span> Block-Diagonal Structure</h3>
+<p>If observations are grouped into independent clusters, then <span class="math inline">\(\mathbf{V}\)</span> may be block diagonal, with each block describing within-cluster dependence.</p>
+<p>These examples help students see that covariance structure is part of model formulation, not just a technical afterthought.</p>
+</section>
+</section>
+<section id="correlated-errors-in-time-ordered-data" class="level2" data-number="12.19">
+<h2 data-number="12.19" class="anchored" data-anchor-id="correlated-errors-in-time-ordered-data"><span class="header-section-number">12.19</span> Correlated Errors in Time-Ordered Data</h2>
+<p>Suppose we observe data over time:</p>
+<p><span class="math display">\[
+Y_t = \beta_0 + \beta_1 x_t + \varepsilon_t.
+\]</span></p>
+<p>If the errors satisfy</p>
+<p><span class="math display">\[
+\mathrm{Corr}(\varepsilon_t,\varepsilon_{t-1}) \neq 0,
+\]</span></p>
+<p>then ordinary least squares may still estimate the mean trend, but standard errors based on independence are not trustworthy.</p>
+<p>This is one of the classic motivations for generalized least squares.</p>
+</section>
+<section id="clustered-and-repeated-observations" class="level2" data-number="12.20">
+<h2 data-number="12.20" class="anchored" data-anchor-id="clustered-and-repeated-observations"><span class="header-section-number">12.20</span> Clustered and Repeated Observations</h2>
+<p>Suppose several observations come from the same individual, school, hospital, or geographic region.</p>
+<p>Then responses within the same cluster may be correlated.</p>
+<p>In this case, the assumption of independent errors is not appropriate, and a structured covariance model or a mixed-model approach may be better suited.</p>
+<p>GLS provides an important stepping stone toward these more advanced frameworks.</p>
+</section>
+<section id="relationship-to-robust-standard-errors" class="level2" data-number="12.21">
+<h2 data-number="12.21" class="anchored" data-anchor-id="relationship-to-robust-standard-errors"><span class="header-section-number">12.21</span> Relationship to Robust Standard Errors</h2>
+<p>One alternative to full covariance modelling is to keep the OLS mean estimator but adjust the standard errors to be robust to heteroscedasticity or dependence.</p>
+<p>This is a different strategy from GLS.</p>
+<ul>
+<li>GLS changes the estimator itself using a covariance model;</li>
+<li>robust standard errors keep the estimator but correct inference approximately.</li>
+</ul>
+<p>Both are useful, but they serve different purposes.</p>
+<p>This distinction is valuable for students to understand even if robust methods are treated only briefly.</p>
+</section>
+<section id="when-gls-is-worth-using" class="level2" data-number="12.22">
+<h2 data-number="12.22" class="anchored" data-anchor-id="when-gls-is-worth-using"><span class="header-section-number">12.22</span> When GLS Is Worth Using</h2>
+<p>GLS is especially attractive when:</p>
+<ul>
+<li>there is a defensible covariance model;</li>
+<li>the dependence or heteroscedasticity is substantial;</li>
+<li>efficient estimation matters;</li>
+<li>the transformed model remains interpretable.</li>
+</ul>
+<p>If the covariance model is poorly specified, the gains from GLS may be limited, and robustness or alternative modelling strategies may be preferable.</p>
+</section>
+<section id="diagnostics-for-correlated-errors" class="level2" data-number="12.23">
+<h2 data-number="12.23" class="anchored" data-anchor-id="diagnostics-for-correlated-errors"><span class="header-section-number">12.23</span> Diagnostics for Correlated Errors</h2>
+<p>Symptoms that may suggest correlated errors include:</p>
+<ul>
+<li>residuals that display runs or systematic temporal patterns;</li>
+<li>residual plots against time showing clustering;</li>
+<li>repeated-measures structure built into the design;</li>
+<li>known grouping or spatial dependence in the data collection process.</li>
+</ul>
+<p>The key lesson is that covariance structure should be motivated both by diagnostics and by how the data were collected.</p>
+</section>
+<section id="worked-example-with-known-unequal-precision" class="level2" data-number="12.24">
+<h2 data-number="12.24" class="anchored" data-anchor-id="worked-example-with-known-unequal-precision"><span class="header-section-number">12.24</span> Worked Example With Known Unequal Precision</h2>
+<p>Suppose each response is an average of <span class="math inline">\(m_i\)</span> repeated measurements.</p>
+<p>Then the variance of the average may satisfy</p>
+<p><span class="math display">\[
+\mathrm{Var}(Y_i) = \frac{\sigma^2}{m_i}.
+\]</span></p>
+<p>In that case, a natural choice is</p>
+<p><span class="math display">\[
+v_i = \frac{1}{m_i},
+\qquad
+w_i = m_i.
+\]</span></p>
+<p>So observations based on more repeated measurements get more weight.</p>
+<p>This is a very intuitive example of GLS through weighted least squares.</p>
+</section>
+<section id="worked-example-with-correlated-pairs" class="level2" data-number="12.25">
+<h2 data-number="12.25" class="anchored" data-anchor-id="worked-example-with-correlated-pairs"><span class="header-section-number">12.25</span> Worked Example With Correlated Pairs</h2>
+<p>Suppose observations come in natural pairs, and within each pair the errors are positively correlated.</p>
+<p>Then the covariance matrix has a block structure, with a <span class="math inline">\(2\times2\)</span> covariance block for each pair.</p>
+<p>GLS accounts for the fact that the two observations in a pair do not contribute as much independent information as two unrelated observations would.</p>
+</section>
+<section id="r-demonstration-with-weighted-least-squares-as-gls" class="level2" data-number="12.26">
+<h2 data-number="12.26" class="anchored" data-anchor-id="r-demonstration-with-weighted-least-squares-as-gls"><span class="header-section-number">12.26</span> R Demonstration With Weighted Least Squares as GLS</h2>
+</section>
+<section id="simulate-data-with-unequal-variances" class="level2" data-number="12.27">
+<h2 data-number="12.27" class="anchored" data-anchor-id="simulate-data-with-unequal-variances"><span class="header-section-number">12.27</span> Simulate data with unequal variances</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">40</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">20</span>, <span class="at">length.out =</span> n)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="fl">0.3</span> <span class="sc">+</span> <span class="fl">0.08</span> <span class="sc">*</span> x<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="fl">1.2</span> <span class="sc">*</span> x <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fu">sqrt</span>(v))</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">y =</span> y, <span class="at">x =</span> x, <span class="at">v =</span> v)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>fit_ols <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x, <span class="at">data =</span> dat)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>fit_wls <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x, <span class="at">data =</span> dat, <span class="at">weights =</span> <span class="dv">1</span> <span class="sc">/</span> v)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_ols)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = y ~ x, data = dat)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-6.5979 -1.6024  0.2916  1.9490  5.0754 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  4.63093    0.93057   4.976 1.43e-05 ***
+x            1.24643    0.07813  15.954  &lt; 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 2.779 on 38 degrees of freedom
+Multiple R-squared:  0.8701,    Adjusted R-squared:  0.8667 
+F-statistic: 254.5 on 1 and 38 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_wls)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = y ~ x, data = dat, weights = 1/v)
+
+Weighted Residuals:
+    Min      1Q  Median      3Q     Max 
+-1.9970 -0.6075 -0.0324  0.6769  1.7500 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  5.15391    0.34558   14.91   &lt;2e-16 ***
+x            1.19219    0.06256   19.05   &lt;2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.9073 on 38 degrees of freedom
+Multiple R-squared:  0.9053,    Adjusted R-squared:  0.9028 
+F-statistic: 363.1 on 1 and 38 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+</section>
+<section id="compare-fitted-lines" class="level2" data-number="12.28">
+<h2 data-number="12.28" class="anchored" data-anchor-id="compare-fitted-lines"><span class="header-section-number">12.28</span> Compare fitted lines</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(dat<span class="sc">$</span>x, dat<span class="sc">$</span>y, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">xlab =</span> <span class="st">"x"</span>, <span class="at">ylab =</span> <span class="st">"y"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(fit_ols, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(fit_wls, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"OLS"</span>, <span class="st">"WLS / GLS"</span>),</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">lty =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>),</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">lwd =</span> <span class="dv">2</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">bty =</span> <span class="st">"n"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="11_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="r-demonstration-with-a-hand-built-gls-computation" class="level2" data-number="12.29">
+<h2 data-number="12.29" class="anchored" data-anchor-id="r-demonstration-with-a-hand-built-gls-computation"><span class="header-section-number">12.29</span> R Demonstration With a Hand-Built GLS Computation</h2>
+</section>
+<section id="construct-a-covariance-matrix-and-compute-gls-directly" class="level2" data-number="12.30">
+<h2 data-number="12.30" class="anchored" data-anchor-id="construct-a-covariance-matrix-and-compute-gls-directly"><span class="header-section-number">12.30</span> Construct a covariance matrix and compute GLS directly</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">456</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>n2 <span class="ot">&lt;-</span> <span class="dv">8</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, n2)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="dv">1</span>, x2)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>rho <span class="ot">&lt;-</span> <span class="fl">0.6</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>V <span class="ot">&lt;-</span> <span class="fu">outer</span>(<span class="dv">1</span><span class="sc">:</span>n2, <span class="dv">1</span><span class="sc">:</span>n2, <span class="cf">function</span>(i, j) rho<span class="sc">^</span><span class="fu">abs</span>(i <span class="sc">-</span> j))</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>beta_true <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="fl">1.5</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>eps <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">chol</span>(V)) <span class="sc">%*%</span> <span class="fu">rnorm</span>(n2)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>y2 <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(X <span class="sc">%*%</span> beta_true <span class="sc">+</span> eps)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fu">matrix</span>(y2, <span class="at">ncol =</span> <span class="dv">1</span>)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>beta_gls <span class="ot">&lt;-</span> <span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> <span class="fu">solve</span>(V) <span class="sc">%*%</span> X) <span class="sc">%*%</span> <span class="fu">t</span>(X) <span class="sc">%*%</span> <span class="fu">solve</span>(V) <span class="sc">%*%</span> Y</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>beta_ols <span class="ot">&lt;-</span> <span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> X) <span class="sc">%*%</span> <span class="fu">t</span>(X) <span class="sc">%*%</span> Y</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>beta_gls</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        [,1]
+   0.7277586
+x2 1.6715885</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>beta_ols</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       [,1]
+   1.089930
+x2 1.596804</code></pre>
+</div>
+</div>
+</section>
+<section id="transform-the-model-and-verify-the-gls-view" class="level2" data-number="12.31">
+<h2 data-number="12.31" class="anchored" data-anchor-id="transform-the-model-and-verify-the-gls-view"><span class="header-section-number">12.31</span> Transform the model and verify the GLS view</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>A <span class="ot">&lt;-</span> <span class="fu">solve</span>(<span class="fu">chol</span>(V))</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>Y_tilde <span class="ot">&lt;-</span> A <span class="sc">%*%</span> Y</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>X_tilde <span class="ot">&lt;-</span> A <span class="sc">%*%</span> X</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>beta_transformed <span class="ot">&lt;-</span> <span class="fu">solve</span>(<span class="fu">t</span>(X_tilde) <span class="sc">%*%</span> X_tilde) <span class="sc">%*%</span> <span class="fu">t</span>(X_tilde) <span class="sc">%*%</span> Y_tilde</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>beta_transformed</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        [,1]
+   0.9738013
+x2 1.6418527</code></pre>
+</div>
+</div>
+</section>
+<section id="compare-residual-patterns" class="level2" data-number="12.32">
+<h2 data-number="12.32" class="anchored" data-anchor-id="compare-residual-patterns"><span class="header-section-number">12.32</span> Compare residual patterns</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fit_ols2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y2 <span class="sc">~</span> x2)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x2, <span class="fu">resid</span>(fit_ols2), <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">pch =</span> <span class="dv">19</span>,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Time order"</span>, <span class="at">ylab =</span> <span class="st">"OLS residual"</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="11_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="simple-example-of-grouped-covariance-intuition" class="level2" data-number="12.33">
+<h2 data-number="12.33" class="anchored" data-anchor-id="simple-example-of-grouped-covariance-intuition"><span class="header-section-number">12.33</span> Simple example of grouped covariance intuition</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">789</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>group <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">each =</span> <span class="dv">3</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(group))</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">10</span>, <span class="at">sd =</span> <span class="fl">1.2</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>eps3 <span class="ot">&lt;-</span> <span class="fu">rep</span>(u, <span class="at">each =</span> <span class="dv">3</span>) <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(group), <span class="at">sd =</span> <span class="fl">0.5</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>y3 <span class="ot">&lt;-</span> <span class="dv">4</span> <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> x3 <span class="sc">+</span> eps3</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>dat3 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">y =</span> y3, <span class="at">x =</span> x3, <span class="at">group =</span> <span class="fu">factor</span>(group))</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>fit3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x, <span class="at">data =</span> dat3)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit3)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = y ~ x, data = dat3)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-1.3891 -0.6203 -0.2549  0.8272  1.4704 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)   3.7259     0.1740  21.417  &lt; 2e-16 ***
+x             2.1131     0.2316   9.125 6.97e-10 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.8837 on 28 degrees of freedom
+Multiple R-squared:  0.7484,    Adjusted R-squared:  0.7394 
+F-statistic: 83.27 on 1 and 28 DF,  p-value: 6.974e-10</code></pre>
+</div>
+</div>
+</section>
+<section id="interpreting-software-output" class="level2" data-number="12.34">
+<h2 data-number="12.34" class="anchored" data-anchor-id="interpreting-software-output"><span class="header-section-number">12.34</span> Interpreting Software Output</h2>
+<p>In base R, ordinary <code>lm()</code> directly handles OLS and weighted least squares through the <code>weights=</code> argument.</p>
+<p>More general correlated-error models often require additional packages in practice, but the matrix formula is already enough to understand the core idea of GLS.</p>
+<p>Students should focus on:</p>
+<ul>
+<li>what covariance structure is being assumed;</li>
+<li>why that structure is plausible;</li>
+<li>how the weighting or transformation changes the estimator;</li>
+<li>what practical goal is being improved.</li>
+</ul>
+</section>
+<section id="a-practical-workflow-for-gls-thinking" class="level2" data-number="12.35">
+<h2 data-number="12.35" class="anchored" data-anchor-id="a-practical-workflow-for-gls-thinking"><span class="header-section-number">12.35</span> A Practical Workflow for GLS Thinking</h2>
+<p>A sensible workflow is:</p>
+<ul>
+<li>ask whether independence and equal variance are plausible from the design of the study;</li>
+<li>inspect residual patterns for signs of heteroscedasticity or dependence;</li>
+<li>propose a covariance structure or weighting scheme when justified;</li>
+<li>compare OLS and GLS-style fits;</li>
+<li>interpret the results in light of both efficiency and model credibility.</li>
+</ul>
+</section>
+<section id="in-class-discussion-questions" class="level2" data-number="12.36">
+<h2 data-number="12.36" class="anchored" data-anchor-id="in-class-discussion-questions"><span class="header-section-number">12.36</span> In-Class Discussion Questions</h2>
+<ol type="1">
+<li>Why is weighted least squares a special case of generalized least squares?</li>
+<li>Why can correlated observations carry less information than independent observations?</li>
+<li>What is the conceptual benefit of the transformed-model view of GLS?</li>
+<li>When might robust standard errors be preferred to specifying a full covariance model?</li>
+</ol>
+</section>
+<section id="practice-problems" class="level2" data-number="12.37">
+<h2 data-number="12.37" class="anchored" data-anchor-id="practice-problems"><span class="header-section-number">12.37</span> Practice Problems</h2>
+</section>
+<section id="conceptual" class="level2" data-number="12.38">
+<h2 data-number="12.38" class="anchored" data-anchor-id="conceptual"><span class="header-section-number">12.38</span> Conceptual</h2>
+<ol type="1">
+<li>Explain why OLS is not generally efficient when the covariance matrix is not proportional to the identity.</li>
+<li>Explain how GLS uses the inverse covariance matrix to weight information in the data.</li>
+<li>Explain the difference between modelling the covariance structure and simply correcting standard errors.</li>
+</ol>
+</section>
+<section id="computational" class="level2" data-number="12.39">
+<h2 data-number="12.39" class="anchored" data-anchor-id="computational"><span class="header-section-number">12.39</span> Computational</h2>
+<p>Suppose</p>
+<p><span class="math display">\[
+\mathrm{Var}(\boldsymbol{\varepsilon}) = \sigma^2 \mathbf{V},
+\qquad
+\mathbf{V} =
+\begin{bmatrix}
+1 &amp; 0 \\
+0 &amp; 4
+\end{bmatrix}.
+\]</span></p>
+<ol type="1">
+<li>Write down <span class="math inline">\(\mathbf{V}^{-1}\)</span>.</li>
+<li>Which observation receives more weight in GLS?</li>
+<li>Explain why.</li>
+</ol>
+<p>Now suppose</p>
+<p><span class="math display">\[
+\hat{\boldsymbol{\beta}}_{GLS}
+=
+(\mathbf{X}^\top \mathbf{V}^{-1}\mathbf{X})^{-1}
+\mathbf{X}^\top \mathbf{V}^{-1}\mathbf{Y}.
+\]</span></p>
+<ol type="1">
+<li>Show how this reduces to OLS when <span class="math inline">\(\mathbf{V} = \mathbf{I}_n\)</span>.</li>
+<li>Show how this reduces to WLS when <span class="math inline">\(\mathbf{V}\)</span> is diagonal.</li>
+</ol>
+</section>
+<section id="modelling-problem" class="level2" data-number="12.40">
+<h2 data-number="12.40" class="anchored" data-anchor-id="modelling-problem"><span class="header-section-number">12.40</span> Modelling Problem</h2>
+<p>You have repeated observations on each subject over time.</p>
+<ol type="1">
+<li>Why is the independence assumption questionable?</li>
+<li>What kinds of covariance structure might be reasonable?</li>
+<li>Why might GLS be more appropriate than OLS in this setting?</li>
+</ol>
+</section>
+<section id="suggested-homework" class="level2" data-number="12.41">
+<h2 data-number="12.41" class="anchored" data-anchor-id="suggested-homework"><span class="header-section-number">12.41</span> Suggested Homework</h2>
+<p>Complete the following tasks:</p>
+<ul>
+<li>fit an OLS model and a weighted least squares model for data with unequal variance;</li>
+<li>compare coefficient estimates, standard errors, and residual plots;</li>
+<li>compute a GLS estimator by hand for a small example with a known covariance matrix;</li>
+<li>explain the transformed-model view in your own words;</li>
+<li>write a short discussion of when a covariance model is scientifically credible enough to justify GLS.</li>
+</ul>
+</section>
+<section id="summary" class="level2" data-number="12.42">
+<h2 data-number="12.42" class="anchored" data-anchor-id="summary"><span class="header-section-number">12.42</span> Summary</h2>
+<p>In this week, we studied generalized least squares as an extension of ordinary least squares to models with nonidentity covariance structure.</p>
+<p>We emphasized that:</p>
+<ul>
+<li>OLS assumes spherical errors;</li>
+<li>GLS allows unequal variances and correlated errors;</li>
+<li>WLS is a special case of GLS;</li>
+<li>GLS can be understood as OLS on a transformed model;</li>
+<li>covariance structure is part of model formulation and should be justified by both design and diagnostics.</li>
+</ul>
+<p>Next week, a natural continuation is to move toward repeated-measures ideas, mixed models, or robust inference, depending on the course emphasis.</p>
+</section>
+<section id="appendix-compact-formula-summary" class="level2" data-number="12.43">
+<h2 data-number="12.43" class="anchored" data-anchor-id="appendix-compact-formula-summary"><span class="header-section-number">12.43</span> Appendix: Compact Formula Summary</h2>
+<p>General covariance model:</p>
+<p><span class="math display">\[
+\mathrm{Var}(\boldsymbol{\varepsilon}) = \sigma^2 \mathbf{V}.
+\]</span></p>
+<p>GLS criterion:</p>
+<p><span class="math display">\[
+Q(\boldsymbol{\beta})
+=
+(\mathbf{Y} - \mathbf{X}\boldsymbol{\beta})^\top
+\mathbf{V}^{-1}
+(\mathbf{Y} - \mathbf{X}\boldsymbol{\beta}).
+\]</span></p>
+<p>GLS estimator:</p>
+<p><span class="math display">\[
+\hat{\boldsymbol{\beta}}_{GLS}
+=
+(\mathbf{X}^\top \mathbf{V}^{-1}\mathbf{X})^{-1}
+\mathbf{X}^\top \mathbf{V}^{-1}\mathbf{Y}.
+\]</span></p>
+<p>Transformed model idea:</p>
+<p><span class="math display">\[
+\mathbf{A}\mathbf{Y}
+=
+\mathbf{A}\mathbf{X}\boldsymbol{\beta}
++
+\mathbf{A}\boldsymbol{\varepsilon},
+\qquad
+\mathbf{A}^\top \mathbf{A} = \mathbf{V}^{-1}.
+\]</span></p>
+<p>Key message:</p>
+<ul>
+<li>OLS, WLS, and GLS are all part of one least squares framework;</li>
+<li>the difference lies in how the covariance structure is represented.</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./10.html" class="pagination-link" aria-label="Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Week 10: One-Way ANOVA, Two-Way ANOVA, and ANCOVA in the Linear Model Framework</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./summary.html" class="pagination-link" aria-label="Summary">
+        <span class="nav-page-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Summary</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
