@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>5&nbsp; Gibbs Sampler – STAT8310 - Bayesian Data Analysis</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./06_MCMC_diagnosis.html" rel="next">
+<link href="./04_MC.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT8310 - Bayesian Data Analysis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8310"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="././STAT8310---Bayesian-Data-Analysis.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./05_Gibbs_sampler.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Gibbs Sampler</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01_intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Quick Overview</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Belief function and Probability Review</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_bi-1par.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bayesian Inference for single parameter models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04_MC.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Monte Carlo Methods</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_Gibbs_sampler.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Gibbs Sampler</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06_MCMC_diagnosis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Introduction to MCMC diagnostics</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./07_MVN.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">The Multivariate Gaussian Model</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./08_BML.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./09_VI_GP.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Modern Bayesian Computation and Models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Project</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./project.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Bayesian Methods Beyond the Course</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendix</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./App_A-intro-R.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction to R</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./App_B-jags.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction to JAGS and BUGS language</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">5.1</span> Introduction</a></li>
+  <li><a href="#a-semi-conjugate-prior-distribution" id="toc-a-semi-conjugate-prior-distribution" class="nav-link" data-scroll-target="#a-semi-conjugate-prior-distribution"><span class="header-section-number">5.2</span> A Semi-conjugate Prior Distribution</a></li>
+  <li><a href="#discrete-approximations" id="toc-discrete-approximations" class="nav-link" data-scroll-target="#discrete-approximations"><span class="header-section-number">5.3</span> Discrete Approximations</a></li>
+  <li><a href="#sampling-from-the-conditional-distribution" id="toc-sampling-from-the-conditional-distribution" class="nav-link" data-scroll-target="#sampling-from-the-conditional-distribution"><span class="header-section-number">5.4</span> Sampling from the Conditional Distribution</a>
+  <ul class="collapse">
+  <li><a href="#motivation-for-gibbs-sampling" id="toc-motivation-for-gibbs-sampling" class="nav-link" data-scroll-target="#motivation-for-gibbs-sampling"><span class="header-section-number">5.4.1</span> Motivation for Gibbs sampling</a></li>
+  </ul></li>
+  <li><a href="#gibbs-sampler" id="toc-gibbs-sampler" class="nav-link" data-scroll-target="#gibbs-sampler"><span class="header-section-number">5.5</span> Gibbs Sampler</a></li>
+  <li><a href="#gibbs-sampler-using-an-r-package" id="toc-gibbs-sampler-using-an-r-package" class="nav-link" data-scroll-target="#gibbs-sampler-using-an-r-package"><span class="header-section-number">5.6</span> Gibbs sampler using an R package</a>
+  <ul class="collapse">
+  <li><a href="#example-using-jagsui" id="toc-example-using-jagsui" class="nav-link" data-scroll-target="#example-using-jagsui"><span class="header-section-number">5.6.1</span> Example: using <code>jagsUI</code></a></li>
+  </ul></li>
+  <li><a href="#general-properties-of-gibbs-sampler" id="toc-general-properties-of-gibbs-sampler" class="nav-link" data-scroll-target="#general-properties-of-gibbs-sampler"><span class="header-section-number">5.7</span> General Properties of Gibbs Sampler</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span id="sec-gibbs" class="quarto-section-identifier"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Gibbs Sampler</span></span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<blockquote class="blockquote">
+<p>Leading objectives:</p>
+<ul>
+<li>understand why posterior approximation is needed beyond conjugate models</li>
+<li>learn how to approximate posteriors using discrete grids and Gibbs sampling</li>
+<li>understand how Gibbs sampling uses full conditional distributions to generate dependent posterior samples</li>
+</ul>
+</blockquote>
+<section id="introduction" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">5.1</span> Introduction</h2>
+<p>For many multi-parameter Bayesian models, the joint posterior distribution does not belong to a standard family (e.g., exponential family) and is therefore difficult to sample from it directly. However, it is often the case that <strong>sampling from the full conditional distribution of each parameter is straightforward</strong>.</p>
+<p>In such situations, posterior approximation can be carried out using the <strong>Gibbs sampler</strong>, an iterative MC algorithm that constructs a <strong>dependent sequence of parameter values</strong> whose distribution converges to the target joint posterior distribution. Here, we introduce the Gibbs sampler in the context of the normal model with a <strong>semi-conjugate prior</strong>, and study how well it approximates the posterior distribution.</p>
+</section>
+<section id="a-semi-conjugate-prior-distribution" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="a-semi-conjugate-prior-distribution"><span class="header-section-number">5.2</span> A Semi-conjugate Prior Distribution</h2>
+<p>For normal distribution, it may be modelled our uncertainty about the population mean <span class="math inline">\(\theta\)</span> as depending on the sampling variance <span class="math inline">\(\sigma^2\)</span> via</p>
+<p><span class="math display">\[
+\theta \mid \sigma^2 \sim
+N\!\left(\mu_0,\; \frac{\sigma^2}{\kappa_0}\right).
+\]</span></p>
+<p>This formulation ties the prior variance of <span class="math inline">\(\theta\)</span> to the sampling variability of the data, and <span class="math inline">\(\mu_0\)</span> can be interpreted as representing <span class="math inline">\(\kappa_0\)</span> prior observations from the population.</p>
+<p>In some settings this dependence is reasonable, but in others we may wish to specify prior uncertainty about <span class="math inline">\(\theta\)</span> <em>independently</em> of <span class="math inline">\(\sigma^2\)</span> denoted as <span class="math inline">\(\theta \perp\sigma^2\)</span>, so that <span class="math display">\[
+p(\theta, \sigma^2) = p(\theta)\,p(\sigma^2).
+\]</span></p>
+<p>One such specification is the following <strong>semi-conjugate prior distribution</strong>: <span class="math display">\[
+\theta \sim \text{Normal}(\mu_0, \tau_0^2),
+\qquad
+\frac{1}{\sigma^2} \sim \text{Gamma}\!\left(\frac{\nu_0}{2}, \frac{\nu_0 \sigma_0^2}{2}\right).
+\]</span></p>
+<p><strong>Posterior Distribution of</strong> <span class="math inline">\(\theta \mid \sigma^2\)</span></p>
+<p>Note that, if <span class="math display">\[
+Y_1, \dots, Y_n \mid \theta, \sigma^2 \;\overset{i.i.d.}{\sim}\; N(\theta, \sigma^2),
+\]</span></p>
+<p>then the posterior distribution of <span class="math inline">\(\theta\)</span> is <span class="math display">\[
+\theta \mid \sigma^2, y_1, \dots, y_n
+\;\sim\;
+\text{Normal}(\mu_n, \tau_n^2),
+\]</span> where <span class="math display">\[
+\mu_n
+=
+\frac{\mu_0 / \tau_0^2 + n \bar{y} / \sigma^2}
+     {1 / \tau_0^2 + n / \sigma^2},
+\qquad
+\tau_n^2
+=
+\left( \frac{1}{\tau_0^2} + \frac{n}{\sigma^2} \right)^{-1}.
+\]</span> Those calculation may be found in Section 5.2 in Hoff (2009).</p>
+<p>This conditional posterior distribution will form one step of the Gibbs sampler.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Key Takeaway">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Key Takeaway
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>The <strong>joint posterior</strong> of <span class="math inline">\((\theta, \sigma^2)\)</span> is not available in closed form.</li>
+<li>The <strong>full conditional distributions</strong> of <span class="math inline">\(\theta \mid \sigma^2, y\)</span> and <span class="math inline">\(\sigma^2 \mid \theta, y\)</span> <em>are</em> available in standard forms.</li>
+<li>This structure makes the Gibbs sampler a natural and efficient tool for posterior approximation.</li>
+</ul>
+</div>
+</div>
+<p>In the next section, we derive the full conditional distribution of <span class="math inline">\(\sigma^2\)</span> and combine the two conditional updates into a complete Gibbs sampling algorithm.</p>
+<p>In the conjugate case where <span class="math inline">\(\tau_0^2\)</span> is proportional to <span class="math inline">\(\sigma^2\)</span>, we showed that the marginal posterior distribution <span class="math display">\[
+p(\sigma^2 \mid y_1,\ldots,y_n)
+\]</span> is an inverse-gamma distribution. In this setting, MC samples of <span class="math inline">\((\theta,\sigma^2)\)</span> from the joint posterior distribution can be obtained by the following two-step procedure:</p>
+<div class="callout-algorithm">
+<ol type="1">
+<li><p>Sample <span class="math display">\[
+\sigma^{2(s)} \sim p(\sigma^2 \mid y_1,\ldots,y_n),
+\]</span> which is an inverse-gamma distribution.</p></li>
+<li><p>Sample <span class="math display">\[
+\theta^{(s)} \sim p(\theta \mid \sigma^{2(s)}, y_1,\ldots,y_n),
+\]</span> which is a normal distribution.</p></li>
+</ol>
+</div>
+<blockquote class="blockquote">
+<p>This approach works because both full conditional distributions are standard and easy to sample from.</p>
+</blockquote>
+<p>However, when <span class="math inline">\(\tau_0^2\)</span> is <strong>not proportional</strong> to <span class="math inline">\(\sigma^2\)</span>, the marginal posterior distribution of the precision <span class="math display">\[
+\frac{1}{\sigma^2}
+\]</span> is <strong>not</strong> a gamma distribution, nor any other standard distribution from which we can easily sample. As a result, direct MC sampling from the marginal posterior is no longer straightforward, motivating the need for alternative approximation methods.</p>
+</section>
+<section id="discrete-approximations" class="level2" data-number="5.3">
+<h2 data-number="5.3" class="anchored" data-anchor-id="discrete-approximations"><span class="header-section-number">5.3</span> Discrete Approximations</h2>
+<p><strong>Posterior Density Ratios</strong></p>
+<p>Let <span class="math inline">\(\tilde{\sigma}^2 = 1/\sigma^2\)</span> denote the precision. Recall that the posterior distribution of <span class="math inline">\((\theta, \tilde{\sigma}^2)\)</span> is equal to the <strong>joint distribution</strong> <span class="math display">\[
+p(\theta, \tilde{\sigma}^2, y_1,\dots,y_n),
+\]</span> divided by <span class="math inline">\(p(y_1,\dots,y_n)\)</span>, which does not depend on the parameters. Therefore, the <strong>relative posterior probabilities</strong> of two parameter values <span class="math inline">\((\theta_1, \tilde{\sigma}_1^2)\)</span> and <span class="math inline">\((\theta_2, \tilde{\sigma}_2^2)\)</span> are directly computable: <span class="math display">\[
+\begin{aligned}
+\frac{p(\theta_1, \tilde{\sigma}_1^2 \mid y_1,\dots,y_n)}
+     {p(\theta_2, \tilde{\sigma}_2^2 \mid y_1,\dots,y_n)}
+&amp;= \frac{p\left(\theta_1, \tilde{\sigma}_1^2, y_1, \ldots, y_n\right) / p\left(y_1, \ldots, y_n\right)}{p\left(\theta_2, \tilde{\sigma}_2^2, y_1, \ldots, y_n\right) / p\left(y_1, \ldots, y_n\right)}
+\\
+&amp;=
+\frac{p(\theta_1, \tilde{\sigma}_1^2, y_1,\dots,y_n)}
+     {p(\theta_2, \tilde{\sigma}_2^2, y_1,\dots,y_n)}.
+\end{aligned}
+\]</span></p>
+<p><strong>Joint Distribution</strong></p>
+<p>The joint density can be written as <span class="math display">\[
+\begin{aligned}
+p(\theta, \tilde{\sigma}^2, y_1,\dots,y_n)
+&amp;= p(\theta, \tilde{\sigma}^2)\, p(y_1,\dots,y_n \mid \theta, \tilde{\sigma}^2) \\
+&amp;= \text{Normal}(\theta \mid \mu_0, \tau_0^2)
+   \times \text{Gamma}\!\left(\tilde{\sigma}^2 \mid \frac{\nu_0}{2}, \frac{\nu_0 \sigma_0^2}{2}\right) \\
+   &amp;~~~~
+   \times \prod_{i=1}^n \text{Normal}\!\left(y_i \mid \theta, \frac{1}{\tilde{\sigma}^2}\right).
+\end{aligned}
+\]</span></p>
+<p>All components of this joint density are standard distributions and therefore easy to evaluate numerically.</p>
+<p><strong>Discrete Posterior Approximation</strong></p>
+<p>A <strong>discrete approximation</strong> to the posterior distribution is obtained by evaluating relative posterior probabilities on a finite grid.</p>
+<p>Let</p>
+<ul>
+<li><span class="math inline">\(\{\theta_1,\ldots,\theta_G\}\)</span> be a grid of values for <span class="math inline">\(\theta\)</span>;</li>
+<li><span class="math inline">\(\{\tilde{\sigma}_1^2,\ldots,\tilde{\sigma}_H^2\}\)</span> be a grid of values for <span class="math inline">\(\tilde{\sigma}^2\)</span>.</li>
+</ul>
+<p>At each grid point <span class="math inline">\((\theta_g,\tilde{\sigma}_h^2)\)</span>, compute <span class="math display">\[
+p(\theta_g,\tilde{\sigma}_h^2,y_1,\ldots,y_n).
+\]</span></p>
+<p>The <strong>discrete joint posterior</strong> is then defined by</p>
+<p><span class="math display">\[
+\begin{aligned}
+p_D\!\left(\theta_g, \tilde{\sigma}_h^2 \mid y_1, \ldots, y_n\right)
+&amp;=\frac{p\!\left(\theta_g, \tilde{\sigma}_h^2 \mid y_1, \ldots, y_n\right)}
+{\sum_{g^\prime=1}^G \sum_{h^\prime=1}^H p\!\left(\theta_{g^\prime}, \tilde{\sigma}_{h^\prime}^2 \mid y_1, \ldots, y_n\right)} \\
+&amp;=\frac{p\!\left(\theta_g, \tilde{\sigma}_h^2, y_1, \ldots, y_n\right) / p\!\left(y_1, \ldots, y_n\right)}
+{\sum_{g^\prime=1}^G \sum_{h^\prime=1}^H p\!\left(\theta_{g^\prime}, \tilde{\sigma}_{h^\prime}^2, y_1, \ldots, y_n\right) / p\!\left(y_1, \ldots, y_n\right)} \\
+&amp;=\frac{p\!\left(\theta_g, \tilde{\sigma}_h^2, y_1, \ldots, y_n\right)}
+{\sum_{g^\prime=1}^G \sum_{h^\prime=1}^H p\!\left(\theta_{g^\prime}, \tilde{\sigma}_{h^\prime}^2, y_1, \ldots, y_n\right)} .
+\end{aligned}
+\]</span></p>
+<p>This defines a valid joint probability distribution over <span class="math display">\[
+\theta \in \{\theta_1,\ldots,\theta_G\}, \qquad
+\tilde{\sigma}^2 \in \{\tilde{\sigma}_1^2,\ldots,\tilde{\sigma}_H^2\},
+\]</span> since the probabilities sum to one. If the joint prior distribution were discrete on this grid, then <span class="math inline">\(p_D\)</span> would be <strong>exactly</strong> the posterior distribution.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Key Takeaway">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Key Takeaway
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A <strong>discrete approximation</strong> to the posterior distribution is obtained by constructing a grid over the parameter space and evaluating relative posterior probabilities on that grid.</p>
+<p>Specifically:</p>
+<ul>
+<li><p>choose grids <span class="math inline">\(\{\theta_1,\dots,\theta_G\}\)</span> and <span class="math inline">\(\{\tilde{\sigma}_1^2,\dots,\tilde{\sigma}_H^2\}\)</span> consisting of evenly spaced parameter values;</p></li>
+<li><p>evaluate <span class="math inline">\(p(\theta_g, \tilde{\sigma}_h^2, y_1,\dots,y_n)\)</span> for each grid point <span class="math inline">\((\theta_g, \tilde{\sigma}_h^2)\)</span>;</p></li>
+<li><p>assign posterior probabilities proportional to these values:</p></li>
+</ul>
+<p><span class="math display">\[
+p(\theta_g, \tilde{\sigma}_h^2 \mid y_1,\dots,y_n)
+\;\propto\;
+p(\theta_g, \tilde{\sigma}_h^2, y_1,\dots,y_n).
+\]</span></p>
+<p>This discrete approximation can then be normalized and used to compute posterior summaries such as means, variances, and credible regions.</p>
+</div>
+</div>
+<p><strong>Marginal Posterior Distributions</strong></p>
+<p>Marginal posterior distributions can be obtained by summing over the grid. For example, the marginal posterior of <span class="math inline">\(\theta\)</span> is <span class="math display">\[
+p_D(\theta_k \mid y_1,\ldots,y_n)
+=
+\sum_{h=1}^H
+p_D(\theta_k,\tilde{\sigma}_h^2 \mid y_1,\ldots,y_n).
+\]</span></p>
+<p>A similar expression holds for <span class="math inline">\(\tilde{\sigma}^2\)</span>.</p>
+<div class="callout-example" title="Midge data">
+<p>We illustrate the discrete (grid-based) posterior approximation using the <em>midge data</em> from the previous chapter. The sample summaries are <span class="math display">\[
+n = 9, \qquad \bar y = 1.804, \qquad s^2 = 0.017.
+\]</span></p>
+<p>In the conjugate normal–inverse-gamma setup, the prior variance of <span class="math inline">\(\theta\)</span> is tied to the sampling variance (through <span class="math inline">\(\sigma^2/\kappa_0\)</span>). When <span class="math inline">\(s^2\)</span> is very small, this can unintentionally force the prior uncertainty about <span class="math inline">\(\theta\)</span> to be unrealistically small. The <strong>semiconjugate</strong> prior avoids this coupling.</p>
+<p>We use the semiconjugate prior <span class="math display">\[
+\theta \sim \text{Normal}(\mu_0,\tau_0^2), \qquad
+\tilde\sigma^2 = 1/\sigma^2 \sim \text{Gamma}\!\left(\frac{\nu_0}{2}, \frac{\nu_0\sigma_0^2}{2}\right),
+\]</span> with <span class="math display">\[
+\mu_0 = 1.9,\qquad \tau_0 = 0.95,\qquad \nu_0 = 1,\qquad \sigma_0^2 = 0.01.
+\]</span></p>
+<p>The joint posterior <span class="math inline">\(p(\theta,\tilde\sigma^2 \mid y_1,\ldots,y_n)\)</span> is evaluated on a <span class="math inline">\(100\times100\)</span> grid (evenly spaced values of <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\tilde\sigma^2\)</span>) and then normalized to form <span class="math inline">\(p_D(\theta,\tilde\sigma^2\mid y)\)</span>. The <strong>joint</strong> discrete approximation corresponds to the first panel of the Figure below, while the <strong>marginals</strong> are obtained by summation, e.g.&nbsp;<span class="math display">\[
+p_D(\theta_k \mid y_1,\ldots,y_n)
+=
+\sum_{h=1}^H p_D(\theta_k,\tilde\sigma_h^2 \mid y_1,\ldots,y_n),
+\]</span> which yields the second and third panels in the Figure below.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(scales)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="do">## -----------------------------</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="do">## Data and semiconjugate prior</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="do">## -----------------------------</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>y  <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">1.64</span>,<span class="fl">1.70</span>,<span class="fl">1.72</span>,<span class="fl">1.74</span>,<span class="fl">1.82</span>,<span class="fl">1.82</span>,<span class="fl">1.82</span>,<span class="fl">1.90</span>,<span class="fl">2.08</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>n  <span class="ot">&lt;-</span> <span class="fu">length</span>(y)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>mu0     <span class="ot">&lt;-</span> <span class="fl">1.9</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>tau0_sq <span class="ot">&lt;-</span> <span class="fl">0.95</span><span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>nu0     <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>s20     <span class="ot">&lt;-</span> <span class="fl">0.01</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="do">## -----------------------------</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="do">## Grids: theta and precision (tilde sigma^2 = 1/sigma^2)</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="do">## -----------------------------</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>G <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>H <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>mean.grid <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">1.505</span>, <span class="fl">2.00</span>, <span class="at">length.out =</span> G)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>prec.grid <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">1.75</span>, <span class="dv">175</span>,  <span class="at">length.out =</span> H)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>post.grid <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="cn">NA_real_</span>, <span class="at">nrow =</span> G, <span class="at">ncol =</span> H)</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="do">## -----------------------------</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="do">## Discrete joint posterior on the grid</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="do">## p(theta, prec | y) ∝ p(theta) p(prec) ∏ N(y_i | theta, 1/prec)</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="do">## -----------------------------</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (g <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>G) {</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (h <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>H) {</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    post.grid[g, h] <span class="ot">&lt;-</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>      <span class="fu">dnorm</span>(mean.grid[g], mu0, <span class="fu">sqrt</span>(tau0_sq)) <span class="sc">*</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">dgamma</span>(prec.grid[h], <span class="at">shape =</span> nu0<span class="sc">/</span><span class="dv">2</span>, <span class="at">rate =</span> s20<span class="sc">*</span>nu0<span class="sc">/</span><span class="dv">2</span>) <span class="sc">*</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prod</span>(<span class="fu">dnorm</span>(y, mean.grid[g], <span class="at">sd =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fu">sqrt</span>(prec.grid[h])))</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>post.grid <span class="ot">&lt;-</span> post.grid <span class="sc">/</span> <span class="fu">sum</span>(post.grid)</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a><span class="do">## -----------------------------</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="do">## Data frame + marginals</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a><span class="do">## -----------------------------</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>post_df <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">theta =</span> mean.grid, <span class="at">prec =</span> prec.grid)</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>post_df<span class="sc">$</span>prob <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(post.grid)</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>theta_marg <span class="ot">&lt;-</span> post_df <span class="sc">%&gt;%</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(theta) <span class="sc">%&gt;%</span></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">prob =</span> <span class="fu">sum</span>(prob), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>prec_marg <span class="ot">&lt;-</span> post_df <span class="sc">%&gt;%</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(prec) <span class="sc">%&gt;%</span></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">prob =</span> <span class="fu">sum</span>(prob), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a><span class="do">## -----------------------------</span></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="do">## Plots (Figure 6.1 style)</span></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a><span class="do">## -----------------------------</span></span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>p_joint <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(post_df, <span class="fu">aes</span>(theta, prec, <span class="at">fill =</span> prob)) <span class="sc">+</span></span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_raster</span>(<span class="at">interpolate =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"white"</span>, <span class="at">high =</span> <span class="st">"black"</span>,</span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>                      <span class="at">trans =</span> <span class="st">"sqrt"</span>, <span class="at">labels =</span> <span class="fu">label_number</span>()) <span class="sc">+</span></span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(theta),</span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="fu">expression</span>(<span class="fu">tilde</span>(sigma)<span class="sc">^</span><span class="dv">2</span>)) <span class="sc">+</span></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>p_theta <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(theta_marg, <span class="fu">aes</span>(theta, prob)) <span class="sc">+</span></span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(theta),</span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="fu">expression</span>(<span class="fu">p</span>(theta<span class="sc">~</span><span class="st">"|"</span><span class="sc">~</span>y[<span class="dv">1</span><span class="sc">:</span>n]))) <span class="sc">+</span></span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a>p_prec <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(prec_marg, <span class="fu">aes</span>(prec, prob)) <span class="sc">+</span></span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(<span class="fu">tilde</span>(sigma)<span class="sc">^</span><span class="dv">2</span>),</span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="fu">expression</span>(<span class="fu">p</span>(<span class="fu">tilde</span>(sigma)<span class="sc">^</span><span class="dv">2</span><span class="sc">~</span><span class="st">"|"</span><span class="sc">~</span>y[<span class="dv">1</span><span class="sc">:</span>n]))) <span class="sc">+</span></span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a>p_joint <span class="sc">+</span> p_theta <span class="sc">+</span> p_prec</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="05_Gibbs_sampler_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled" title="Remarks">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Remarks
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><p>Discrete approximations are conceptually simple and transparent.</p></li>
+<li><p>They are feasible only in <strong>low-dimensional parameter spaces</strong>.</p></li>
+<li><p>As the dimension increases, grid-based methods become infeasible.</p></li>
+<li><p>For higher-dimensional models, simulation-based methods such as the <strong>Gibbs sampler</strong> become essential.</p></li>
+<li><p>This motivates <strong>Markov chain Monte Carlo methods</strong>, such as the <strong>Gibbs sampler</strong>, which we introduce soon.</p></li>
+</ul>
+</div>
+</div>
+</section>
+<section id="sampling-from-the-conditional-distribution" class="level2" data-number="5.4">
+<h2 data-number="5.4" class="anchored" data-anchor-id="sampling-from-the-conditional-distribution"><span class="header-section-number">5.4</span> Sampling from the Conditional Distribution</h2>
+<p>Suppose, for the moment, that the value of <span class="math inline">\(\theta\)</span> were known. The conditional distribution of <span class="math inline">\(\tilde{\sigma}^2\)</span> given <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\{y_1,\ldots,y_n\}\)</span> satisfies <span class="math display">\[
+\begin{aligned}
+p(\tilde{\sigma}^2 \mid \theta, y_1,\ldots,y_n)
+&amp; \;\propto\; p\left(y_1, \ldots, y_n, \theta, \tilde{\sigma}^2\right) \\
+&amp;=
+p(y_1,\ldots,y_n \mid \theta, \tilde{\sigma}^2)\, p(\tilde{\sigma}^2) p(\theta \mid \tilde{\sigma}^2)
+\end{aligned}
+\]</span></p>
+<p>If <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\sigma^2\)</span> are independent <em>a priori</em>, then <span class="math inline">\(p(\theta,\tilde{\sigma}^2)=p(\theta)p(\tilde{\sigma}^2)\)</span> and <span class="math inline">\(p\left(\theta \mid \tilde{\sigma}^2\right)=p(\theta)\)</span>. Note that, now, since <span class="math inline">\(p(\theta)\)</span> does have have <span class="math inline">\(\tilde{\sigma}^2\)</span> involved, so it can be treated like a constant in calculating the posterior for <span class="math inline">\(\tilde{\sigma}^2\)</span>. Then</p>
+<p><span class="math display">\[
+\begin{aligned}
+p\left(\tilde{\sigma}^2 \mid \theta, y_1, \ldots, y_n\right) \propto &amp; p\left(y_1, \ldots, y_n \mid \theta, \tilde{\sigma}^2\right) p\left(\tilde{\sigma}^2\right) \\
+\propto &amp; \left(\left(\tilde{\sigma}^2\right)^{n / 2} \exp \left\{-\tilde{\sigma}^2 \sum_{i=1}^n\left(y_i-\theta\right)^2 / 2\right\}\right) \times \\
+&amp; \left(\left(\tilde{\sigma}^2\right)^{\nu_0 / 2-1} \exp \left\{-\tilde{\sigma}^2 \nu_0 \sigma_0^2 / 2\right\}\right) \\
+= &amp; \left(\tilde{\sigma}^2\right)^{\left(\nu_0+n\right) / 2-1} \times \exp \left\{-\tilde{\sigma}^2 \times\left[\nu_0 \sigma_0^2+\sum\left(y_i-\theta\right)^2\right] / 2\right\} .
+\end{aligned}
+\]</span></p>
+<p>Alternatively, if one want to use <span class="math inline">\(\sigma^2\)</span> instead, the normal sampling model and the semi-conjugate prior, <span class="math display">\[
+\begin{aligned}
+p(\sigma^2 \mid \theta, y_1,\ldots,y_n)
+&amp;\propto
+(\sigma^2)^{-n/2}
+\exp\!\left\{-\frac{1}{2\sigma^2}\sum_{i=1}^n (y_i-\theta)^2 \right\}
+\times
+(\sigma^2)^{-\nu_0/2-1}
+\exp\!\left\{-\frac{\nu_0\sigma_0^2}{2\sigma^2}\right\} \\
+&amp;=
+(\sigma^2)^{-(\nu_0+n)/2-1}
+\exp\!\left\{
+-\frac{1}{2\sigma^2}
+\left[\nu_0\sigma_0^2 + \sum_{i=1}^n (y_i-\theta)^2\right]
+\right\}.
+\end{aligned}
+\]</span></p>
+<p>This is the kernel of an inverse-gamma distribution. Therefore, <span class="math display">\[
+\sigma^2 \mid \theta, y_1,\ldots,y_n
+\sim
+\text{Inverse-Gamma}\!\left(\frac{\nu_n}{2}, \frac{\nu_n\sigma_n^2(\theta)}{2}\right),
+\]</span> where <span class="math display">\[
+\nu_n = \nu_0 + n,
+\qquad
+\sigma_n^2(\theta)
+=
+\frac{1}{\nu_n}
+\left[
+\nu_0\sigma_0^2 + \sum_{i=1}^n (y_i-\theta)^2
+\right].
+\]</span></p>
+<p>Here, <span class="math display">\[
+s_n^2(\theta) = \frac{1}{n}\sum_{i=1}^n (y_i-\theta)^2
+\]</span> is the unbiased estimator of <span class="math inline">\(\sigma^2\)</span> when <span class="math inline">\(\theta\)</span> is known.</p>
+<p>This result shows that we can easily sample from <span class="math inline">\(p(\sigma^2 \mid \theta, y_1,\ldots,y_n)\)</span>.<br>
+Similarly, as shown earlier, we can sample from <span class="math inline">\(p(\theta \mid \sigma^2, y_1,\ldots,y_n)\)</span>. But so far, we have not shown how to sample from the joint posterior distribution of <span class="math inline">\((\theta, \sigma^2)\)</span>, which is our ultimate goal, i.e., sampling from <span class="math inline">\(p(\theta,\sigma^2 \mid  y_1,\ldots,y_n)\)</span>.</p>
+<section id="motivation-for-gibbs-sampling" class="level3" data-number="5.4.1">
+<h3 data-number="5.4.1" class="anchored" data-anchor-id="motivation-for-gibbs-sampling"><span class="header-section-number">5.4.1</span> Motivation for Gibbs sampling</h3>
+<p>Suppose we were given a single draw <span class="math inline">\(\sigma^{2(1)}\)</span> from the marginal posterior <span class="math inline">\(p(\sigma^2 \mid y_1,\ldots,y_n)\)</span>.<br>
+We could then sample <span class="math display">\[
+\theta^{(1)} \sim p(\theta \mid \sigma^{2(1)}, y_1,\ldots,y_n),
+\]</span> and the pair <span class="math inline">\((\theta^{(1)}, \sigma^{2(1)})\)</span> would be a draw from the joint posterior distribution of <span class="math inline">\((\theta,\sigma^2)\)</span>.</p>
+<p>Moreover, <span class="math inline">\(\theta^{(1)}\)</span> can be regarded as a draw from the marginal posterior <span class="math inline">\(p(\theta \mid y_1,\ldots,y_n)\)</span>.<br>
+From this value, we can generate <span class="math display">\[
+\sigma^{2(2)} \sim p(\sigma^2 \mid \theta^{(1)}, y_1,\ldots,y_n).
+\]</span></p>
+<p>Since <span class="math inline">\(\theta^{(1)}\)</span> is drawn from the marginal distribution of <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\sigma^{2(2)}\)</span> is drawn from the conditional distribution of <span class="math inline">\(\sigma^2\)</span> given <span class="math inline">\(\theta^{(1)}\)</span>, the pair <span class="math inline">\((\theta^{(1)}, \sigma^{2(2)})\)</span> is again a draw from the joint posterior distribution.</p>
+<p>Repeating this alternating procedure suggests that the two full conditional distributions, <span class="math display">\[
+p(\theta \mid \sigma^2, y_1,\ldots,y_n)
+\quad\text{and}\quad
+p(\sigma^2 \mid \theta, y_1,\ldots,y_n),
+\]</span> can be used to generate samples from the joint posterior distribution.<br>
+This iterative sampling scheme is the basis of the <strong>Gibbs sampler</strong>, introduced in the next section, as long as we have the <span class="math inline">\(\sigma^{2(1)}\)</span> to start the process.</p>
+</section>
+</section>
+<section id="gibbs-sampler" class="level2" data-number="5.5">
+<h2 data-number="5.5" class="anchored" data-anchor-id="gibbs-sampler"><span class="header-section-number">5.5</span> Gibbs Sampler</h2>
+<p>The distributions <span class="math display">\[
+p(\theta \mid \sigma^2, y_1,\ldots,y_n)
+\quad \text{and} \quad
+p(\sigma^2 \mid \theta, y_1,\ldots,y_n)
+\]</span> are called the <strong>full conditional distributions</strong> of <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\sigma^2\)</span>, respectively.<br>
+Each is the conditional distribution of one parameter given all the other parameters and the data.</p>
+<p>We now formalize the iterative sampling idea introduced in the previous section.<br>
+Let <span class="math display">\[
+\phi^{(s)} = \bigl\{ \theta^{(s)}, \sigma^{2(s)} \bigr\}
+\]</span> denote the current state of the parameters at iteration <span class="math inline">\(s\)</span>.</p>
+<p>Given <span class="math inline">\(\phi^{(s)}\)</span>, a new state <span class="math inline">\(\phi^{(s+1)}\)</span> is generated by alternately sampling from the full conditional distributions:</p>
+<ol type="1">
+<li><p><strong>Update</strong> <span class="math inline">\(\theta\)</span>: <span class="math display">\[
+\theta^{(s+1)} \sim p\!\left(\theta \mid \sigma^{2(s)}, y_1,\ldots,y_n\right).
+\]</span></p></li>
+<li><p><strong>Update</strong> <span class="math inline">\(\sigma^2\)</span>: <span class="math display">\[
+\sigma^{2(s+1)} \sim p\!\left(\sigma^2 \mid \theta^{(s+1)}, y_1,\ldots,y_n\right).
+\]</span></p></li>
+</ol>
+<p>Repeating these two steps produces a sequence <span class="math display">\[
+\phi^{(1)}, \phi^{(2)}, \ldots
+\]</span> that forms a <strong>Markov chain</strong>, since each new state depends only on the immediately preceding state.</p>
+<p>Under mild regularity conditions, the distribution of <span class="math inline">\(\phi^{(s)}\)</span> converges to the joint posterior distribution <span class="math display">\[
+p(\theta,\sigma^2 \mid y_1,\ldots,y_n)
+\]</span> as <span class="math inline">\(s \to \infty\)</span>.<br>
+This iterative procedure is known as the <strong>Gibbs sampler</strong>, a special case of Markov chain Monte Carlo (MCMC) methods.</p>
+<div class="callout-algorithm" title="Gibbs Sampler">
+<ol type="1">
+<li><p>Sample <span class="math display">\[
+\theta^{(s+1)} \sim p\!\left(\theta \mid \tilde{\sigma}^{2(s)}, y_1,\ldots,y_n\right).
+\]</span></p></li>
+<li><p>Sample <span class="math display">\[
+\tilde{\sigma}^{2(s+1)} \sim p\!\left(\tilde{\sigma}^2 \mid \theta^{(s+1)}, y_1,\ldots,y_n\right).
+\]</span></p></li>
+<li><p>Set <span class="math display">\[
+\phi^{(s+1)} = \bigl\{ \theta^{(s+1)}, \tilde{\sigma}^{2(s+1)} \bigr\}.
+\]</span></p></li>
+</ol>
+<p>It generates a <em>dependent</em> sequence of parameter values <span class="math display">\[
+\bigl\{ \phi^{(1)}, \phi^{(2)}, \ldots, \phi^{(S)} \bigr\}.
+\]</span></p>
+</div>
+<p>Below we give R code for implementing this Gibbs sampling scheme for the normal model with a semi-conjugate prior distribution.</p>
+<p>This algorithm is called the <em>Gibbs sampler</em>, and generates a <em>dependent</em> sequence of parameter values <span class="math display">\[
+\{\phi^{(1)}, \phi^{(2)}, \ldots, \phi^{(S)}\}.
+\]</span> The R code below implements this sampling scheme for the normal model with a semiconjugate prior distribution.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>mu0 <span class="ot">&lt;-</span> <span class="fl">1.9</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>t20 <span class="ot">&lt;-</span> <span class="fl">0.95</span><span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>s20 <span class="ot">&lt;-</span> <span class="fl">0.01</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>nu0 <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">1.64</span>, <span class="fl">1.70</span>, <span class="fl">1.72</span>, <span class="fl">1.74</span>, <span class="fl">1.82</span>, <span class="fl">1.82</span>, <span class="fl">1.82</span>, <span class="fl">1.90</span>, <span class="fl">2.08</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>G <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>H <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="do">### data</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>mean.y <span class="ot">&lt;-</span> <span class="fu">mean</span>(y)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>var.y  <span class="ot">&lt;-</span> <span class="fu">var</span>(y)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>n      <span class="ot">&lt;-</span> <span class="fu">length</span>(y)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="do">### starting values</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>S   <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>PHI <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="at">nrow =</span> S, <span class="at">ncol =</span> <span class="dv">2</span>)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>PHI[<span class="dv">1</span>, ] <span class="ot">&lt;-</span> phi <span class="ot">&lt;-</span> <span class="fu">c</span>(mean.y, <span class="dv">1</span> <span class="sc">/</span> var.y)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="do">###</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="do">### Gibbs sampling</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8310</span>)</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (s <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span>S) {</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># generate a new theta value from its full conditional</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  mun <span class="ot">&lt;-</span> (mu0 <span class="sc">/</span> t20 <span class="sc">+</span> n <span class="sc">*</span> mean.y <span class="sc">*</span> phi[<span class="dv">2</span>]) <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">/</span> t20 <span class="sc">+</span> n <span class="sc">*</span> phi[<span class="dv">2</span>])</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  t2n <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">/</span> t20 <span class="sc">+</span> n <span class="sc">*</span> phi[<span class="dv">2</span>])</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  phi[<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">1</span>, mun, <span class="fu">sqrt</span>(t2n))</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  <span class="co"># generate a new 1/sigma^2 value from its full conditional</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  nun <span class="ot">&lt;-</span> nu0 <span class="sc">+</span> n</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  s2n <span class="ot">&lt;-</span> (nu0 <span class="sc">*</span> s20 <span class="sc">+</span> (n <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> var.y <span class="sc">+</span> n <span class="sc">*</span> (mean.y <span class="sc">-</span> phi[<span class="dv">1</span>])<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> nun</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>  phi[<span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="fu">rgamma</span>(<span class="dv">1</span>, nun <span class="sc">/</span> <span class="dv">2</span>, nun <span class="sc">*</span> s2n <span class="sc">/</span> <span class="dv">2</span>)</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>  PHI[s, ] <span class="ot">&lt;-</span> phi</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(PHI) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"mu"</span>, <span class="st">"sigma2_inv"</span>)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(PHI,<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           mu sigma2_inv
+[1,] 1.804444   59.24951
+[2,] 1.802021   33.25979
+[3,] 1.750617   54.98838</code></pre>
+</div>
+</div>
+<p>In this code, we have used the identity</p>
+<p><span class="math display">\[
+n s_n^2(\theta)
+= \sum_{i=1}^{n}(y_i-\theta)^2
+= \sum_{i=1}^{n}(y_i-\bar{y}+\bar{y}-\theta)^2
+\]</span></p>
+<p><span class="math display">\[
+= \sum_{i=1}^{n}\Big[(y_i-\bar{y})^2
++2(y_i-\bar{y})(\bar{y}-\theta)
++(\bar{y}-\theta)^2\Big]
+\]</span></p>
+<p><span class="math display">\[
+= \sum_{i=1}^{n}(y_i-\bar{y})^2
++ 0
++ \sum_{i=1}^{n}(\bar{y}-\theta)^2
+\]</span></p>
+<p><span class="math display">\[
+= (n-1)s^2 + n(\bar{y}-\theta)^2 .
+\]</span></p>
+<p>The reason for writing the code this way is that <span class="math inline">\(s^2\)</span> and <span class="math inline">\(\bar{y}\)</span> do not change with each new <span class="math inline">\(\theta\)</span> value. Therefore computing</p>
+<p><span class="math display">\[
+(n-1)s^2 + n(\bar{y}-\theta)^2
+\]</span> is faster than recomputing <span class="math display">\[
+\sum_{i=1}^{n}(y_i-\theta)^2
+\]</span> at each iteration.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert Gibbs output</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(PHI)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(df) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"mu"</span>, <span class="st">"sigma2_inv"</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>iter <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(df)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Create subsets</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>make_subset <span class="ot">&lt;-</span> <span class="cf">function</span>(n) {</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  df <span class="sc">%&gt;%</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(iter <span class="sc">&lt;=</span> n) <span class="sc">%&gt;%</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">panel =</span> <span class="fu">paste0</span>(<span class="st">"First "</span>, n, <span class="st">" iterations"</span>))</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>plot_df <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">make_subset</span>(<span class="dv">5</span>),</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">make_subset</span>(<span class="dv">15</span>),</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">make_subset</span>(<span class="dv">100</span>)</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(plot_df, <span class="fu">aes</span>(mu, sigma2_inv)) <span class="sc">+</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_path</span>(<span class="fu">aes</span>(<span class="at">color =</span> iter), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> iter), <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> iter), <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.7</span>, <span class="at">size =</span> <span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>panel, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_gradientn</span>(<span class="at">colors =</span> <span class="fu">rainbow</span>(<span class="dv">100</span>)) <span class="sc">+</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">expression</span>(theta),</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">expression</span>(<span class="fu">tilde</span>(sigma)<span class="sc">^</span><span class="dv">2</span>),</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"Iteration"</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">strip.background =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="05_Gibbs_sampler_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Finally, we compute some empirical quantiles from the Gibbs samples.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">###</span><span class="co"> Credible interval for the population mean (theta)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># quantile(PHI[,1], c(.025, .5, .975))</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">###</span><span class="co"> Credible interval for the population precision (1/sigma^2)</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># quantile(PHI[,2], c(.025, .5, .975))</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">###</span><span class="co"> Credible interval for the population standard deviation (sigma)</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># quantile(1/sqrt(PHI[,2]), c(.025, .5, .975))</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>ci_table <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"θ (mean)"</span> <span class="ot">=</span> <span class="fu">quantile</span>(PHI[,<span class="dv">1</span>], <span class="fu">c</span>(.<span class="dv">025</span>, .<span class="dv">5</span>, .<span class="dv">975</span>)),</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"1/σ² (precision)"</span> <span class="ot">=</span> <span class="fu">quantile</span>(PHI[,<span class="dv">2</span>], <span class="fu">c</span>(.<span class="dv">025</span>, .<span class="dv">5</span>, .<span class="dv">975</span>)),</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"σ (standard deviation)"</span> <span class="ot">=</span> <span class="fu">quantile</span>(<span class="dv">1</span><span class="sc">/</span><span class="fu">sqrt</span>(PHI[,<span class="dv">2</span>]), <span class="fu">c</span>(.<span class="dv">025</span>, .<span class="dv">5</span>, .<span class="dv">975</span>))</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>ci_table</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                             2.5%        50%       97.5%
+θ (mean)                1.7056353  1.8044393   1.9042953
+1/σ² (precision)       19.7469320 57.3331268 132.1650512
+σ (standard deviation)  0.0869845  0.1320679   0.2250375</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(ci_table) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"2.5%"</span>, <span class="st">"Median"</span>, <span class="st">"97.5%"</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(ci_table, <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Posterior credible intervals from Gibbs samples"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Posterior credible intervals from Gibbs samples</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">2.5%</th>
+<th style="text-align: right;">Median</th>
+<th style="text-align: right;">97.5%</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">θ (mean)</td>
+<td style="text-align: right;">1.7056</td>
+<td style="text-align: right;">1.8044</td>
+<td style="text-align: right;">1.9043</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1/σ² (precision)</td>
+<td style="text-align: right;">19.7469</td>
+<td style="text-align: right;">57.3331</td>
+<td style="text-align: right;">132.1651</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">σ (standard deviation)</td>
+<td style="text-align: right;">0.0870</td>
+<td style="text-align: right;">0.1321</td>
+<td style="text-align: right;">0.2250</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The empirical distribution of the Gibbs samples closely matches the discrete approximation to the posterior distribution. Comparing Figures 6.1 and 6.3 shows that the simulated draws reproduce the shape of the posterior density. This suggests that the Gibbs sampler is an effective method for approximating <span class="math display">\[
+p(\theta,\sigma^2 \mid y_1,\ldots,y_n).
+\]</span></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="do">## Data and prior</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">1.64</span>, <span class="fl">1.70</span>, <span class="fl">1.72</span>, <span class="fl">1.74</span>, <span class="fl">1.82</span>, <span class="fl">1.82</span>, <span class="fl">1.82</span>, <span class="fl">1.90</span>, <span class="fl">2.08</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">length</span>(y)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>mu0 <span class="ot">&lt;-</span> <span class="fl">1.9</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>t20 <span class="ot">&lt;-</span> <span class="fl">0.95</span><span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>s20 <span class="ot">&lt;-</span> <span class="fl">0.01</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>nu0 <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="do">## Discrete approximation on a grid</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>G <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>H <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>mean.grid <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">1.505</span>, <span class="fl">2.00</span>, <span class="at">length.out =</span> G)</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>prec.grid <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">1.75</span>, <span class="dv">175</span>, <span class="at">length.out =</span> H)</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>post.grid <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="cn">NA_real_</span>, <span class="at">nrow =</span> G, <span class="at">ncol =</span> H)</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (g <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>G) {</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (h <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>H) {</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>    post.grid[g, h] <span class="ot">&lt;-</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>      <span class="fu">dnorm</span>(mean.grid[g], mu0, <span class="fu">sqrt</span>(t20)) <span class="sc">*</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">dgamma</span>(prec.grid[h], <span class="at">shape =</span> nu0<span class="sc">/</span><span class="dv">2</span>, <span class="at">rate =</span> nu0<span class="sc">*</span>s20<span class="sc">/</span><span class="dv">2</span>) <span class="sc">*</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prod</span>(<span class="fu">dnorm</span>(y, mean.grid[g], <span class="at">sd =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fu">sqrt</span>(prec.grid[h])))</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>post.grid <span class="ot">&lt;-</span> post.grid <span class="sc">/</span> <span class="fu">sum</span>(post.grid)</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>post_df <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">theta =</span> mean.grid, <span class="at">sigma2_inv =</span> prec.grid)</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>post_df<span class="sc">$</span>prob <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(post.grid)</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a><span class="do">## Gibbs sampler</span></span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>mean.y <span class="ot">&lt;-</span> <span class="fu">mean</span>(y)</span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>var.y  <span class="ot">&lt;-</span> <span class="fu">var</span>(y)</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>S <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>PHI <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="cn">NA_real_</span>, <span class="at">nrow =</span> S, <span class="at">ncol =</span> <span class="dv">2</span>)</span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(PHI) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"mu"</span>, <span class="st">"sigma2_inv"</span>)</span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>phi <span class="ot">&lt;-</span> <span class="fu">c</span>(mean.y, <span class="dv">1</span> <span class="sc">/</span> var.y)</span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>PHI[<span class="dv">1</span>, ] <span class="ot">&lt;-</span> phi</span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (s <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span>S) {</span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>  <span class="do">## update theta</span></span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>  mun <span class="ot">&lt;-</span> (mu0 <span class="sc">/</span> t20 <span class="sc">+</span> n <span class="sc">*</span> mean.y <span class="sc">*</span> phi[<span class="dv">2</span>]) <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">/</span> t20 <span class="sc">+</span> n <span class="sc">*</span> phi[<span class="dv">2</span>])</span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a>  t2n <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">/</span> t20 <span class="sc">+</span> n <span class="sc">*</span> phi[<span class="dv">2</span>])</span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a>  phi[<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">1</span>, mun, <span class="fu">sqrt</span>(t2n))</span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a>  <span class="do">## update precision = 1/sigma^2</span></span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a>  nun <span class="ot">&lt;-</span> nu0 <span class="sc">+</span> n</span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>  s2n <span class="ot">&lt;-</span> (nu0 <span class="sc">*</span> s20 <span class="sc">+</span> (n <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> var.y <span class="sc">+</span> n <span class="sc">*</span> (mean.y <span class="sc">-</span> phi[<span class="dv">1</span>])<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> nun</span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a>  phi[<span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="fu">rgamma</span>(<span class="dv">1</span>, nun <span class="sc">/</span> <span class="dv">2</span>, <span class="at">rate =</span> nun <span class="sc">*</span> s2n <span class="sc">/</span> <span class="dv">2</span>)</span>
+<span id="cb8-64"><a href="#cb8-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-65"><a href="#cb8-65" aria-hidden="true" tabindex="-1"></a>  PHI[s, ] <span class="ot">&lt;-</span> phi</span>
+<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-68"><a href="#cb8-68" aria-hidden="true" tabindex="-1"></a>phi_df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(PHI)</span>
+<span id="cb8-69"><a href="#cb8-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-70"><a href="#cb8-70" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-71"><a href="#cb8-71" aria-hidden="true" tabindex="-1"></a><span class="do">## Quantiles and t interval</span></span>
+<span id="cb8-72"><a href="#cb8-72" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-73"><a href="#cb8-73" aria-hidden="true" tabindex="-1"></a>theta_q <span class="ot">&lt;-</span> <span class="fu">quantile</span>(phi_df<span class="sc">$</span>mu, <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))</span>
+<span id="cb8-74"><a href="#cb8-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-75"><a href="#cb8-75" aria-hidden="true" tabindex="-1"></a>tt <span class="ot">&lt;-</span> <span class="fu">t.test</span>(y)</span>
+<span id="cb8-76"><a href="#cb8-76" aria-hidden="true" tabindex="-1"></a>t_ci <span class="ot">&lt;-</span> tt<span class="sc">$</span>conf.int</span>
+<span id="cb8-77"><a href="#cb8-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-78"><a href="#cb8-78" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-79"><a href="#cb8-79" aria-hidden="true" tabindex="-1"></a><span class="do">## Panel 1: samples over contours</span></span>
+<span id="cb8-80"><a href="#cb8-80" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-81"><a href="#cb8-81" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb8-82"><a href="#cb8-82" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_contour</span>(</span>
+<span id="cb8-83"><a href="#cb8-83" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> post_df,</span>
+<span id="cb8-84"><a href="#cb8-84" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> theta, <span class="at">y =</span> sigma2_inv, <span class="at">z =</span> prob),</span>
+<span id="cb8-85"><a href="#cb8-85" aria-hidden="true" tabindex="-1"></a>    <span class="at">bins =</span> <span class="dv">12</span>,</span>
+<span id="cb8-86"><a href="#cb8-86" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"grey70"</span>,</span>
+<span id="cb8-87"><a href="#cb8-87" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> <span class="fl">0.5</span></span>
+<span id="cb8-88"><a href="#cb8-88" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-89"><a href="#cb8-89" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb8-90"><a href="#cb8-90" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> phi_df,</span>
+<span id="cb8-91"><a href="#cb8-91" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> sigma2_inv),</span>
+<span id="cb8-92"><a href="#cb8-92" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">0.4</span>,</span>
+<span id="cb8-93"><a href="#cb8-93" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.8</span></span>
+<span id="cb8-94"><a href="#cb8-94" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-95"><a href="#cb8-95" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb8-96"><a href="#cb8-96" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">expression</span>(theta),</span>
+<span id="cb8-97"><a href="#cb8-97" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">expression</span>(<span class="fu">tilde</span>(sigma)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb8-98"><a href="#cb8-98" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-99"><a href="#cb8-99" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span>
+<span id="cb8-100"><a href="#cb8-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-101"><a href="#cb8-101" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-102"><a href="#cb8-102" aria-hidden="true" tabindex="-1"></a><span class="do">## Panel 2: density of theta</span></span>
+<span id="cb8-103"><a href="#cb8-103" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-104"><a href="#cb8-104" aria-hidden="true" tabindex="-1"></a>dens_theta <span class="ot">&lt;-</span> <span class="fu">density</span>(phi_df<span class="sc">$</span>mu)</span>
+<span id="cb8-105"><a href="#cb8-105" aria-hidden="true" tabindex="-1"></a>dens_theta_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> dens_theta<span class="sc">$</span>x, <span class="at">y =</span> dens_theta<span class="sc">$</span>y)</span>
+<span id="cb8-106"><a href="#cb8-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-107"><a href="#cb8-107" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(dens_theta_df, <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
+<span id="cb8-108"><a href="#cb8-108" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb8-109"><a href="#cb8-109" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> theta_q, <span class="at">color =</span> <span class="st">"grey50"</span>, <span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb8-110"><a href="#cb8-110" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> t_ci, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.9</span>) <span class="sc">+</span></span>
+<span id="cb8-111"><a href="#cb8-111" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb8-112"><a href="#cb8-112" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">expression</span>(theta),</span>
+<span id="cb8-113"><a href="#cb8-113" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">expression</span>(<span class="fu">p</span>(theta <span class="sc">~</span> <span class="st">"|"</span> <span class="sc">~</span> y[<span class="dv">1</span>], cdots, y[n]))</span>
+<span id="cb8-114"><a href="#cb8-114" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-115"><a href="#cb8-115" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span>
+<span id="cb8-116"><a href="#cb8-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-117"><a href="#cb8-117" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-118"><a href="#cb8-118" aria-hidden="true" tabindex="-1"></a><span class="do">## Panel 3: density of precision</span></span>
+<span id="cb8-119"><a href="#cb8-119" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-120"><a href="#cb8-120" aria-hidden="true" tabindex="-1"></a>dens_prec <span class="ot">&lt;-</span> <span class="fu">density</span>(phi_df<span class="sc">$</span>sigma2_inv)</span>
+<span id="cb8-121"><a href="#cb8-121" aria-hidden="true" tabindex="-1"></a>dens_prec_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> dens_prec<span class="sc">$</span>x, <span class="at">y =</span> dens_prec<span class="sc">$</span>y)</span>
+<span id="cb8-122"><a href="#cb8-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-123"><a href="#cb8-123" aria-hidden="true" tabindex="-1"></a>p3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(dens_prec_df, <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
+<span id="cb8-124"><a href="#cb8-124" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb8-125"><a href="#cb8-125" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb8-126"><a href="#cb8-126" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">expression</span>(<span class="fu">tilde</span>(sigma)<span class="sc">^</span><span class="dv">2</span>),</span>
+<span id="cb8-127"><a href="#cb8-127" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">expression</span>(<span class="fu">p</span>(<span class="fu">tilde</span>(sigma)<span class="sc">^</span><span class="dv">2</span> <span class="sc">~</span> <span class="st">"|"</span> <span class="sc">~</span> y[<span class="dv">1</span>], cdots, y[n]))</span>
+<span id="cb8-128"><a href="#cb8-128" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-129"><a href="#cb8-129" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span>
+<span id="cb8-130"><a href="#cb8-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-131"><a href="#cb8-131" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-132"><a href="#cb8-132" aria-hidden="true" tabindex="-1"></a><span class="do">## Combine</span></span>
+<span id="cb8-133"><a href="#cb8-133" aria-hidden="true" tabindex="-1"></a><span class="do">## -------------------------------------------------</span></span>
+<span id="cb8-134"><a href="#cb8-134" aria-hidden="true" tabindex="-1"></a>p1 <span class="sc">+</span> p2 <span class="sc">+</span> p3</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="05_Gibbs_sampler_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>In this Figure:</p>
+<ul>
+<li>left: Gibbs samples overlaid on contours of the discrete approximation</li>
+<li>middle: kernel density estimate of Gibbs samples of <span class="math inline">\(\theta\)</span>, with</li>
+<li>gray vertical lines = Gibbs 2.5% and 97.5% quantiles</li>
+<li>black vertical lines = classical t-interval for the mean</li>
+<li>right: kernel density estimate of Gibbs samples of <span class="math inline">\(\tilde{\sigma}^2 = 1/\sigma^2\)</span></li>
+</ul>
+</section>
+<section id="gibbs-sampler-using-an-r-package" class="level2" data-number="5.6">
+<h2 data-number="5.6" class="anchored" data-anchor-id="gibbs-sampler-using-an-r-package"><span class="header-section-number">5.6</span> Gibbs sampler using an R package</h2>
+<p>So far, we have implemented the Gibbs sampler by hand in R. In practice, a common alternative is to use a package interface to <strong>JAGS</strong>, such as <code>rjags</code> or a higher-level wrapper like <code>jagsUI</code>. These tools let us specify the model, data, and parameters to monitor, and then run the Gibbs sampler automatically. Note that these packages require <strong>JAGS</strong> to be installed on your system. User Manual can be found <a href="https://cran.r-project.org/web/packages/jagsUI/">Here</a>.</p>
+<section id="example-using-jagsui" class="level3" data-number="5.6.1">
+<h3 data-number="5.6.1" class="anchored" data-anchor-id="example-using-jagsui"><span class="header-section-number">5.6.1</span> Example: using <code>jagsUI</code></h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(rjags, jagsUI)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="do">## data</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">1.64</span>, <span class="fl">1.70</span>, <span class="fl">1.72</span>, <span class="fl">1.74</span>, <span class="fl">1.82</span>, <span class="fl">1.82</span>, <span class="fl">1.82</span>, <span class="fl">1.90</span>, <span class="fl">2.08</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">length</span>(y)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>data_jags <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> y,</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">n =</span> n,</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu0 =</span> <span class="fl">1.9</span>,</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">tau0 =</span> <span class="fl">0.95</span><span class="sc">^</span><span class="dv">2</span>,</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">nu0 =</span> <span class="dv">1</span>,</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">s20 =</span> <span class="fl">0.01</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="do">## JAGS model</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>model_string <span class="ot">&lt;-</span> <span class="st">"</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="st">model {</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="st">  for (i in 1:n) {</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="st">    y[i] ~ dnorm(theta, tau)</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="st">  }</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="st">  theta ~ dnorm(mu0, 1 / tau0)</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="st">  tau ~ dgamma(nu0 / 2, nu0 * s20 / 2)</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="st">  sigma &lt;- 1 / sqrt(tau)</span></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a><span class="st">"</span></span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a><span class="co"># writeLines(model_string, con = "gibbs_model.jags")</span></span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a><span class="do">## fit model</span></span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> jagsUI<span class="sc">::</span><span class="fu">jags</span>(</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data_jags,</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>  <span class="at">parameters.to.save =</span> <span class="fu">c</span>(<span class="st">'theta'</span>, <span class="st">'tau'</span>, <span class="st">'sigma'</span>),</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>  <span class="at">model.file =</span> <span class="fu">textConnection</span>(model_string),</span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.chains =</span> <span class="dv">3</span>,</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.iter =</span> <span class="dv">5000</span>,</span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.burnin =</span> <span class="dv">1000</span>,</span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.thin =</span> <span class="dv">2</span></span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Processing function input....... 
+
+Done. 
+ 
+Compiling model graph
+   Resolving undeclared variables
+   Allocating nodes
+Graph information:
+   Observed stochastic nodes: 9
+   Unobserved stochastic nodes: 2
+   Total graph size: 24
+
+Initializing model
+
+Adaptive phase..... 
+Adaptive phase complete 
+ 
+
+ Burn-in phase, 1000 iterations x 3 chains 
+ 
+
+Sampling from joint posterior, 4000 iterations x 3 chains 
+ 
+
+Calculating statistics....... 
+
+Done. </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fit</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>JAGS output for model '4', generated by jagsUI.
+Estimates based on 3 chains of 5000 iterations,
+adaptation = 100 iterations (sufficient),
+burn-in = 1000 iterations and thin rate = 2,
+yielding 6000 total samples from the joint posterior. 
+MCMC ran for 0 minutes at time 2026-03-29 11:33:02.738761.
+
+            mean     sd    2.5%     50%   97.5% overlap0     f Rhat n.eff
+theta      1.804  0.048   1.708   1.804   1.901    FALSE 1.000    1  6000
+tau       61.549 29.128  18.520  57.195 128.714    FALSE 1.000    1  6000
+sigma      0.140  0.038   0.088   0.132   0.232    FALSE 1.000    1  6000
+deviance -10.170  2.038 -12.204 -10.778  -4.600    FALSE 0.998    1  6000
+
+Successful convergence based on Rhat values (all &lt; 1.1). 
+Rhat is the potential scale reduction factor (at convergence, Rhat=1). 
+For each parameter, n.eff is a crude measure of effective sample size. 
+
+overlap0 checks if 0 falls in the parameter's 95% credible interval.
+f is the proportion of the posterior with the same sign as the mean;
+i.e., our confidence that the parameter is positive or negative.
+
+DIC info: (pD = var(deviance)/2) 
+pD = 2.1 and DIC = -8.092 
+DIC is an estimate of expected predictive error (lower is better).</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled" title="Other useful implementations">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Other useful implementations
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Besides coding the Gibbs sampler directly in R, several packages can be useful:</p>
+<ul>
+<li><code>rjags</code> / <code>jagsUI</code>: convenient interfaces to JAGS for Gibbs sampling</li>
+<li><code>nimble</code>: flexible for building and customizing MCMC algorithms</li>
+<li><code>MCMCpack</code>: easy to use for standard Bayesian models</li>
+<li><code>Stan</code> (<code>rstan</code> or <code>cmdstanr</code>): widely used for modern Bayesian computation, typically using Hamiltonian Monte Carlo rather than Gibbs sampling</li>
+</ul>
+<p>For learning purposes, writing the Gibbs sampler by hand is often the most transparent approach. For larger or more complicated models, package-based implementations are usually more practical.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="general-properties-of-gibbs-sampler" class="level2" data-number="5.7">
+<h2 data-number="5.7" class="anchored" data-anchor-id="general-properties-of-gibbs-sampler"><span class="header-section-number">5.7</span> General Properties of Gibbs Sampler</h2>
+<p>Suppose the parameter vector is</p>
+<p><span class="math display">\[
+\boldsymbol{\phi} = (\phi_1,\phi_2,\ldots,\phi_p)
+\]</span></p>
+<p>and our target distribution is the posterior</p>
+<p><span class="math display">\[
+p(\boldsymbol{\phi}) = p(\phi_1,\ldots,\phi_p).
+\]</span></p>
+<p>For example, in the normal model we may have</p>
+<p><span class="math display">\[
+\boldsymbol{\phi} = (\theta, \sigma^2)
+\]</span></p>
+<p>and the distribution of interest is</p>
+<p><span class="math display">\[
+p(\theta,\sigma^2 \mid y_1,\ldots,y_n).
+\]</span></p>
+<p>Starting from an initial value</p>
+<p><span class="math display">\[
+\boldsymbol{\phi}^{(0)} = (\phi_1^{(0)},\ldots,\phi_p^{(0)}),
+\]</span></p>
+<p>the Gibbs sampler generates a sequence of samples by updating each component from its <strong>full conditional distribution</strong>.</p>
+<div class="callout-algorithm" title="Gibbs sampling updates">
+<p>At iteration <span class="math inline">\(s\)</span>:</p>
+<ol type="1">
+<li><p>Sample<br>
+<span class="math display">\[
+\phi_1^{(s)} \sim p(\phi_1 \mid \phi_2^{(s-1)}, \phi_3^{(s-1)}, \ldots, \phi_p^{(s-1)})
+\]</span></p></li>
+<li><p>Sample<br>
+<span class="math display">\[
+\phi_2^{(s)} \sim p(\phi_2 \mid \phi_1^{(s)}, \phi_3^{(s-1)}, \ldots, \phi_p^{(s-1)})
+\]</span></p></li>
+</ol>
+<p><span class="math display">\[
+\vdots
+\]</span></p>
+<ol start="16" type="a">
+<li>Sample</li>
+</ol>
+<p><span class="math display">\[
+\phi_p^{(s)} \sim p(\phi_p \mid \phi_1^{(s)}, \phi_2^{(s)}, \ldots, \phi_{p-1}^{(s)})
+\]</span></p>
+</div>
+<p>The algorithm produces a sequence of vectors</p>
+<p><span class="math display">\[
+\boldsymbol{\phi}^{(1)},\;
+\boldsymbol{\phi}^{(2)},\;
+\ldots,\;
+\boldsymbol{\phi}^{(S)}
+\]</span></p>
+<p>where</p>
+<p><span class="math display">\[
+\boldsymbol{\phi}^{(s)} =
+(\phi_1^{(s)},\ldots,\phi_p^{(s)}).
+\]</span></p>
+<p>Each new sample depends only on the previous sample:</p>
+<p><span class="math display">\[
+p(\boldsymbol{\phi}^{(s)} \mid
+\boldsymbol{\phi}^{(0)},\ldots,\boldsymbol{\phi}^{(s-1)})
+=
+p(\boldsymbol{\phi}^{(s)} \mid \boldsymbol{\phi}^{(s-1)}).
+\]</span></p>
+<p>This property is called the <strong>Markov property</strong>, and the sequence</p>
+<p><span class="math display">\[
+\{\boldsymbol{\phi}^{(s)}\}
+\]</span></p>
+<p>is therefore a <strong>Markov chain</strong>.</p>
+<div class="callout-definition" title="Markov property">
+<p>A sequence of random variables <span class="math inline">\(\{\boldsymbol{\phi}^{(s)}\}\)</span> has the <strong>Markov property</strong> if the distribution of each new sample depends only on the previous sample, and not on any earlier samples. Formally, for all <span class="math inline">\(s\)</span>,</p>
+<p><span class="math display">\[
+p(\boldsymbol{\phi}^{(s)} \mid \boldsymbol{\phi}^{(0)},\ldots,\boldsymbol{\phi}^{(s-1)})
+=
+p(\boldsymbol{\phi}^{(s)} \mid \boldsymbol{\phi}^{(
+s-1)}).
+\]</span></p>
+</div>
+<div class="callout-definition" title="Markov chain">
+<p>A <strong>Markov chain</strong> is a sequence of random variables <span class="math inline">\(\{\boldsymbol{\phi}^{(s)}\}\)</span> that satisfies the Markov property. In other words, it is a sequence where the distribution of each new sample depends only on the immediately preceding sample.</p>
+</div>
+<p>Under mild regularity conditions, the stationary distribution of this Markov chain is the target posterior distribution</p>
+<p><span class="math display">\[
+p(\boldsymbol{\phi} \mid y_1,\ldots,y_n).
+\]</span></p>
+<p>Consequently, after a sufficient number of iterations, the Gibbs samples can be used to approximate posterior quantities such as</p>
+<p><span class="math display">\[
+E[g(\boldsymbol{\phi}) \mid y].
+\]</span></p>
+<p>Under mild regularity conditions, the Gibbs sampler converges to the target distribution. Specifically,</p>
+<p><span class="math display">\[
+\Pr(\boldsymbol{\phi}^{(s)} \in A)
+\;\longrightarrow\;
+\int_A p(\boldsymbol{\phi})\,d\boldsymbol{\phi},
+\qquad \text{as } s \to \infty .
+\]</span></p>
+<p>In words, the sampling distribution of <span class="math inline">\(\boldsymbol{\phi}^{(s)}\)</span> approaches the target distribution as the number of iterations increases, regardless of the starting value <span class="math inline">\(\boldsymbol{\phi}^{(0)}\)</span> (although some starting values reach the target distribution faster than others).</p>
+<p>More importantly, for most functions <span class="math inline">\(g(\cdot)\)</span>,</p>
+<p><span class="math display">\[
+\frac{1}{S}\sum_{s=1}^{S} g(\boldsymbol{\phi}^{(s)})
+\;\longrightarrow\;
+E[g(\boldsymbol{\phi})]
+=
+\int g(\boldsymbol{\phi}) p(\boldsymbol{\phi})\,d\boldsymbol{\phi},
+\qquad \text{as } S \to \infty .
+\]</span></p>
+<p>This means that we can approximate the expectation <span class="math inline">\(E[g(\boldsymbol{\phi})]\)</span> using the sample average of the Gibbs samples</p>
+<p><span class="math display">\[
+\{g(\boldsymbol{\phi}^{(1)}),\ldots,g(\boldsymbol{\phi}^{(S)})\}.
+\]</span></p>
+<p>This idea is analogous to MC integration. Because the samples come from a <strong>Markov chain</strong>, these methods are called</p>
+<p><span class="math display">\[
+\textbf{Markov Chain Monte Carlo (MCMC)}.
+\]</span></p>
+<div class="callout-example" title="semiconjugate normal model">
+<p>In the semiconjugate normal model, the Gibbs sampler produces samples</p>
+<p><span class="math display">\[
+\{(\theta^{(1)},\sigma^{2(1)}),\ldots,
+(\theta^{(1000)},\sigma^{2(1000)})\}
+\]</span></p>
+<p>that approximate the posterior distribution</p>
+<p><span class="math display">\[
+p(\theta,\sigma^2 \mid y_1,\ldots,y_n).
+\]</span></p>
+<p>For example,</p>
+<p><span class="math display">\[
+E[\theta \mid y_1,\ldots,y_n]
+\approx
+\frac{1}{1000}\sum_{s=1}^{1000}\theta^{(s)}
+=
+1.804.
+\]</span></p>
+<p>Similarly, a posterior credible interval can be approximated by</p>
+<p><span class="math display">\[
+\Pr(\theta \in [1.71,1.90] \mid y_1,\ldots,y_n)
+\approx 0.95 .
+\]</span></p>
+</div>
+<p>We will discuss practical aspects of MCMC in the next chapters.</p>
+<p><strong>Distinguishing parameter estimation from posterior approximation</strong></p>
+<p>Bayesian data analysis using MC methods often involves a confusing array of sampling procedures and probability distributions. It is therefore useful to distinguish the <strong>statistical modelling part</strong> of Bayesian analysis from the <strong>numerical approximation part</strong>.</p>
+<p>Recall from Chapter 2 that the necessary ingredients of Bayesian data analysis are:</p>
+<ol type="1">
+<li><p><strong>Model specification:</strong><br>
+a collection of probability distributions <span class="math inline">\(\{p(y \mid \phi), \phi \in \Phi\}\)</span> representing the sampling distribution of the data for some parameter <span class="math inline">\(\phi \in \Phi\)</span>.</p></li>
+<li><p><strong>Prior specification:</strong><br>
+a probability distribution <span class="math inline">\(p(\phi)\)</span> representing prior information about which parameter values are likely to describe the sampling distribution.</p></li>
+</ol>
+<p>Once the model and prior are specified and the data are observed, the posterior distribution</p>
+<p><span class="math display">\[
+p(\phi \mid y)
+\]</span></p>
+<p>is completely determined. It is given by the Bayes’ rule:</p>
+<p><span class="math display">\[
+p(\phi \mid y)
+=
+\frac{p(\phi)p(y \mid \phi)}{p(y)}
+=
+\frac{p(\phi)p(y \mid \phi)}
+{\int p(\phi)p(y \mid \phi)\,d\phi}.
+\]</span></p>
+<p>At this stage, there is no further modelling or estimation involved. All that remains is to <strong>describe or summarize the posterior distribution</strong>.</p>
+<ol start="3" type="1">
+<li><strong>Posterior summary:</strong><br>
+describing the posterior distribution <span class="math inline">\(p(\phi \mid y)\)</span> using quantities of interest such as posterior means, medians, modes, predictive probabilities, and credible regions.</li>
+</ol>
+<p>For many models, the <span class="math inline">\(p(\phi \mid y)\)</span> is complicated and difficult to compute analytically. In such cases, we use <strong>MC methods</strong> to study the posterior distribution by generating samples from it.</p>
+<p>Thus, we have the following</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Key point of MC and MCMC">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Key point of MC and MCMC
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>MC and MCMC algorithms</p>
+<ul>
+<li>are <strong>not models</strong> (i.e., the likelihood), nor the prior,</li>
+<li>do <strong>not create additional information</strong> beyond what is in <span class="math inline">\(y\)</span> and <span class="math inline">\(p(\phi)\)</span>,<br>
+</li>
+<li>are simply <strong>numerical tools for studying the posterior distribution</strong>.</li>
+</ul>
+</div>
+</div>
+<p>For example, suppose we obtain Monte Carlo samples</p>
+<p><span class="math display">\[
+\phi^{(1)}, \ldots, \phi^{(S)}
+\]</span></p>
+<p>that are approximately drawn from <span class="math inline">\(p(\phi \mid y)\)</span>. These samples can be used to approximate posterior quantities.</p>
+<p>For instance,</p>
+<p><span class="math display">\[
+\frac{1}{S}\sum_{s=1}^{S}\phi^{(s)}
+\;\approx\;
+\int \phi\,p(\phi \mid y)\,d\phi,
+\]</span></p>
+<p>and</p>
+<p><span class="math display">\[
+\frac{1}{S}\sum_{s=1}^{S}\mathbf{1}(\phi^{(s)} \le c)
+\;\approx\;
+\Pr(\phi \le c \mid y)
+=
+\int_{-\infty}^{c} p(\phi \mid y)\,d\phi.
+\]</span></p>
+<p>To keep this distinction clear, it is helpful to reserve the word <strong>estimation</strong> for the statistical inference based on the posterior distribution <span class="math inline">\(p(\phi \mid y)\)</span>, and the word <strong>approximation</strong> for the numerical procedures used such as MC, to evaluate integrals involving that posterior distribution.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Bayesian analysis workflow">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Bayesian analysis workflow
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><img src="fig/MC/flowchart.png" class="img-fluid"></p>
+<p>Bayesian data analysis involves two conceptually different components:</p>
+<ol type="1">
+<li><strong>Statistical modeling</strong></li>
+<li><strong>Numerical approximation</strong></li>
+</ol>
+<p>It is important not to confuse these two parts.</p>
+<p>The first part of Bayesian analysis is <strong>statistical modeling</strong>: we specify the likelihood <span class="math inline">\(p(y\mid\phi)\)</span> and prior <span class="math inline">\(p(\phi)\)</span>, which together determine the posterior distribution <span class="math inline">\(p(\phi\mid y)\)</span>.</p>
+<p>The second part is <strong>numerical approximation</strong>. When the posterior cannot be computed analytically, Monte Carlo or MCMC methods generate samples from <span class="math inline">\(p(\phi\mid y)\)</span>, which are then used to compute posterior summaries.</p>
+</div>
+</div>
+<hr>
+<p>This Chapter borrows materials from Chapter 6 in <span class="citation" data-cites="hoff:2009:book">Hoff (<a href="references.html#ref-hoff:2009:book" role="doc-biblioref">2009</a>)</span>.</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-hoff:2009:book" class="csl-entry" role="listitem">
+Hoff, Peter D. 2009. <em>A First Course in Bayesian Statistical Methods</em>. Springer. <a href="https://sites.math.rutgers.edu/~zeilberg/EM20/Hoff.pdf">https://sites.math.rutgers.edu/~zeilberg/EM20/Hoff.pdf</a>.
+</div>
+</div>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./04_MC.html" class="pagination-link" aria-label="Monte Carlo Methods">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Monte Carlo Methods</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./06_MCMC_diagnosis.html" class="pagination-link" aria-label="Introduction to MCMC diagnostics">
+        <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Introduction to MCMC diagnostics</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

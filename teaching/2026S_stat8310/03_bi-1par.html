@@ -1,0 +1,2154 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>3&nbsp; Bayesian Inference for single parameter models – STAT8310 - Bayesian Data Analysis</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./04_MC.html" rel="next">
+<link href="./02_probability.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT8310 - Bayesian Data Analysis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8310"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="././STAT8310---Bayesian-Data-Analysis.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./03_bi-1par.html"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bayesian Inference for single parameter models</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01_intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Quick Overview</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Belief function and Probability Review</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_bi-1par.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bayesian Inference for single parameter models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04_MC.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Monte Carlo Methods</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_Gibbs_sampler.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Gibbs Sampler</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06_MCMC_diagnosis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Introduction to MCMC diagnostics</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./07_MVN.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">The Multivariate Gaussian Model</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./08_BML.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Bayesian methods in Machine Learning: Regularization, Prediction, and Uncertainty</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./09_VI_GP.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Modern Bayesian Computation and Models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Project</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./project.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Bayesian Methods Beyond the Course</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendix</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./App_A-intro-R.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction to R</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./App_B-jags.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction to JAGS and BUGS language</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#three-basic-ingredients-of-bayesian-inference" id="toc-three-basic-ingredients-of-bayesian-inference" class="nav-link active" data-scroll-target="#three-basic-ingredients-of-bayesian-inference"><span class="header-section-number">3.1</span> Three basic ingredients of Bayesian inference</a>
+  <ul class="collapse">
+  <li><a href="#prior" id="toc-prior" class="nav-link" data-scroll-target="#prior"><span class="header-section-number">3.1.1</span> Prior</a></li>
+  <li><a href="#likelihood" id="toc-likelihood" class="nav-link" data-scroll-target="#likelihood"><span class="header-section-number">3.1.2</span> Likelihood</a></li>
+  <li><a href="#posterior" id="toc-posterior" class="nav-link" data-scroll-target="#posterior"><span class="header-section-number">3.1.3</span> Posterior</a></li>
+  <li><a href="#an-simple-example" id="toc-an-simple-example" class="nav-link" data-scroll-target="#an-simple-example"><span class="header-section-number">3.1.4</span> An simple example</a></li>
+  </ul></li>
+  <li><a href="#happiness-data-the-first-example-of-bayesian-inference-procedure" id="toc-happiness-data-the-first-example-of-bayesian-inference-procedure" class="nav-link" data-scroll-target="#happiness-data-the-first-example-of-bayesian-inference-procedure"><span class="header-section-number">3.2</span> Happiness Data – the first example of Bayesian inference procedure</a>
+  <ul class="collapse">
+  <li><a href="#inference-about-exchangeable-binary-data" id="toc-inference-about-exchangeable-binary-data" class="nav-link" data-scroll-target="#inference-about-exchangeable-binary-data"><span class="header-section-number">3.2.1</span> Inference about exchangeable binary data</a></li>
+  <li><a href="#confidence-regions-bayesian-v.s.-frequentist" id="toc-confidence-regions-bayesian-v.s.-frequentist" class="nav-link" data-scroll-target="#confidence-regions-bayesian-v.s.-frequentist"><span class="header-section-number">3.2.2</span> Confidence Regions: Bayesian v.s. Frequentist</a></li>
+  </ul></li>
+  <li><a href="#frequentist-vs-bayesian-coverage" id="toc-frequentist-vs-bayesian-coverage" class="nav-link" data-scroll-target="#frequentist-vs-bayesian-coverage"><span class="header-section-number">3.3</span> Frequentist vs Bayesian Coverage</a></li>
+  <li><a href="#posterior-quantile-intervals" id="toc-posterior-quantile-intervals" class="nav-link" data-scroll-target="#posterior-quantile-intervals"><span class="header-section-number">3.4</span> Posterior Quantile Intervals</a></li>
+  <li><a href="#the-poisson-model" id="toc-the-poisson-model" class="nav-link" data-scroll-target="#the-poisson-model"><span class="header-section-number">3.5</span> The Poisson Model</a>
+  <ul class="collapse">
+  <li><a href="#inference-on-the-posterior-for-poisson-model" id="toc-inference-on-the-posterior-for-poisson-model" class="nav-link" data-scroll-target="#inference-on-the-posterior-for-poisson-model"><span class="header-section-number">3.5.1</span> Inference on the Posterior for Poisson Model</a></li>
+  <li><a href="#comparing-posterior-beliefs" id="toc-comparing-posterior-beliefs" class="nav-link" data-scroll-target="#comparing-posterior-beliefs"><span class="header-section-number">3.5.2</span> Comparing posterior beliefs</a></li>
+  <li><a href="#gamma-distribution" id="toc-gamma-distribution" class="nav-link" data-scroll-target="#gamma-distribution"><span class="header-section-number">3.5.3</span> Gamma distribution</a></li>
+  <li><a href="#posterior-distribution-of-theta" id="toc-posterior-distribution-of-theta" class="nav-link" data-scroll-target="#posterior-distribution-of-theta"><span class="header-section-number">3.5.4</span> Posterior distribution of <span class="math inline">\(\theta\)</span></a></li>
+  <li><a href="#posterior-predictive-distribution-for-poisson-model" id="toc-posterior-predictive-distribution-for-poisson-model" class="nav-link" data-scroll-target="#posterior-predictive-distribution-for-poisson-model"><span class="header-section-number">3.5.5</span> Posterior predictive distribution for Poisson Model</a></li>
+  </ul></li>
+  <li><a href="#example-birth-rates" id="toc-example-birth-rates" class="nav-link" data-scroll-target="#example-birth-rates"><span class="header-section-number">3.6</span> Example: Birth rates</a></li>
+  <li><a href="#exponential-family" id="toc-exponential-family" class="nav-link" data-scroll-target="#exponential-family"><span class="header-section-number">3.7</span> Exponential Family</a>
+  <ul class="collapse">
+  <li><a href="#interpretation-of-n_0-and-t_0" id="toc-interpretation-of-n_0-and-t_0" class="nav-link" data-scroll-target="#interpretation-of-n_0-and-t_0"><span class="header-section-number">3.7.1</span> Interpretation of <span class="math inline">\(n_0\)</span> and <span class="math inline">\(t_0\)</span></a></li>
+  </ul></li>
+  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion"><span class="header-section-number">3.8</span> Discussion</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bayesian Inference for single parameter models</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<blockquote class="blockquote">
+<p>Leading objectives:</p>
+<p>Understand how to perform Bayesian inference on a single parameter model.</p>
+<ul>
+<li>Binomial model with given n</li>
+<li>Poission model</li>
+<li>Exponential family</li>
+</ul>
+</blockquote>
+<p>Recall the important ingredients of Bayesian inference:</p>
+<ol type="1">
+<li><strong>Prior distribution:</strong> <span class="math inline">\(\pi(\theta)\)</span></li>
+<li><strong>Likelihood function:</strong> <span class="math inline">\(p(y \mid \theta)\)</span></li>
+<li><strong>Posterior distribution:</strong> <span class="math inline">\(p(\theta \mid y) \propto p(y \mid \theta) \pi(\theta)\)</span></li>
+</ol>
+<section id="three-basic-ingredients-of-bayesian-inference" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="three-basic-ingredients-of-bayesian-inference"><span class="header-section-number">3.1</span> Three basic ingredients of Bayesian inference</h2>
+<section id="prior" class="level3" data-number="3.1.1">
+<h3 data-number="3.1.1" class="anchored" data-anchor-id="prior"><span class="header-section-number">3.1.1</span> Prior</h3>
+<p>The prior distribution encodes our beliefs about the parameter <span class="math inline">\(\theta\)</span> <em>before</em> conduct any experiments.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Prior and Data are independent">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Prior and Data are independent
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Note that, the prior distribution is independent of the data. It represents our knowledge or beliefs about the parameter before seeing the data.</p>
+</div>
+</div>
+<p>How do we choose a prior?</p>
+<ol type="1">
+<li><strong>Informative priors:</strong> Based on previous studies or expert knowledge</li>
+<li><strong>Weakly informative priors:</strong> Provide some regularization without dominating the data</li>
+<li><strong>Non-informative priors:</strong> Attempt to be “objective” (e.g., uniform, Jeffreys prior)</li>
+</ol>
+</section>
+<section id="likelihood" class="level3" data-number="3.1.2">
+<h3 data-number="3.1.2" class="anchored" data-anchor-id="likelihood"><span class="header-section-number">3.1.2</span> Likelihood</h3>
+<p>The likelihood function represents the probability of observing the data given the parameter <span class="math inline">\(\theta\)</span>. It can be derived from the assumed statistical model for the data or experiment, i.e., <span class="math inline">\(y \sim p(y \mid \theta)\)</span>, or we can estimate this non-parametrically (i.e., without assuming the underlying distribution is the one we know.).</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Likelihood is NOT a probability distribution for $\theta$">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Likelihood is NOT a probability distribution for <span class="math inline">\(\theta\)</span>
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Note that, the likelihood function is not a probability distribution for <span class="math inline">\(\theta\)</span> itself. It is a function of <span class="math inline">\(\theta\)</span> for fixed data <span class="math inline">\(y\)</span>.</p>
+</div>
+</div>
+</section>
+<section id="posterior" class="level3" data-number="3.1.3">
+<h3 data-number="3.1.3" class="anchored" data-anchor-id="posterior"><span class="header-section-number">3.1.3</span> Posterior</h3>
+<p>The posterior distribution combines the prior and likelihood to update our beliefs about <span class="math inline">\(\theta\)</span> after observing the data. It is given by Bayes’ theorem: <span class="math display">\[
+p(\theta \mid y) = \frac{p(y \mid \theta) \pi(\theta)}{p(y)},
+\]</span> where <span class="math inline">\(p(y) = \int p(y \mid \theta) \pi(\theta) d\theta\)</span> is the marginal likelihood or evidence.</p>
+</section>
+<section id="an-simple-example" class="level3" data-number="3.1.4">
+<h3 data-number="3.1.4" class="anchored" data-anchor-id="an-simple-example"><span class="header-section-number">3.1.4</span> An simple example</h3>
+<p><strong>Examples:</strong></p>
+<ul>
+<li>Beta prior + Binomial likelihood → Beta posterior</li>
+<li>Normal prior + Normal likelihood (known variance) → Normal posterior</li>
+<li>Gamma prior + Poisson likelihood → Gamma posterior</li>
+</ul>
+<p><strong>Advantages:</strong> - Analytical posteriors (no numerical integration needed) - Interpretable parameters - Computationally efficient</p>
+<p><strong>Limitations:</strong></p>
+<ul>
+<li>May not reflect true prior beliefs</li>
+<li>Modern computing makes non-conjugate priors feasible</li>
+</ul>
+<div class="callout-example" title="Why Conjugate Priors?">
+<p>Let’s look a simple example to illustrate the convenience of conjugate priors. Consider a Binomial model with unknown success probability <span class="math inline">\(\theta\)</span> and known number of trials <span class="math inline">\(n\)</span>. We can use a Beta prior for <span class="math inline">\(\theta\)</span>.</p>
+<p>Suppose we have a Binomial model with known number of trials <span class="math inline">\(n\)</span> and unknown success probability <span class="math inline">\(\theta\)</span>. We can use a Beta prior for <span class="math inline">\(\theta\)</span>.</p>
+<ul>
+<li><strong>Prior:</strong> <span class="math inline">\(\theta \sim \text{Beta}(\alpha, \beta)\)</span></li>
+<li><strong>Likelihood:</strong> <span class="math inline">\(y \mid \theta \sim \text{Binomial}(n, \theta)\)</span></li>
+</ul>
+<p>The derivation of the posterior is as follows:</p>
+<p><span class="math display">\[
+\begin{aligned}
+p(y \mid \theta) &amp; = \binom{n}{y} \theta^y (1 - \theta)^{n - y}, \\
+\pi(\theta) &amp; = \frac{\theta^{\alpha - 1} (1 - \theta)^{\beta - 1}}{B(\alpha, \beta)},
+\end{aligned}
+\]</span> where <span class="math inline">\(B(\alpha, \beta)\)</span> is the Beta function. Then the posterior is proportional to: <span class="math display">\[
+p(\theta \mid y) \propto p(y \mid \theta) \pi(\theta) \propto \theta^{y + \alpha - 1} (1 -  \theta)^{n - y + \beta - 1}.
+\]</span> This is the kernel of a Beta distribution with parameters <span class="math inline">\((\alpha + y, \beta + n - y)\)</span>. Thus, the posterior distribution is: <span class="math display">\[
+\theta \mid y \sim \text{Beta}(\alpha + y, \beta
++ n - y).
+\]</span></p>
+<p>Thus, the <strong>Posterior</strong> is <span class="math inline">\(\theta \mid y \sim \text{Beta}(\alpha + y, \beta + n - y)\)</span>.</p>
+</div>
+</section>
+</section>
+<section id="happiness-data-the-first-example-of-bayesian-inference-procedure" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="happiness-data-the-first-example-of-bayesian-inference-procedure"><span class="header-section-number">3.2</span> Happiness Data – the first example of Bayesian inference procedure</h2>
+<p>We study Bayesian inference for a binomial proportion <span class="math inline">\(\theta\)</span> when the sample size <span class="math inline">\(n\)</span> is fixed. In this example, we want to see what is the procedure of doing Bayesian inference</p>
+<div class="callout-example" title="Happiness Data">
+<p>In the 1998 General Social Survey, each female respondent aged 65 or over was asked whether she was generally happy.</p>
+<p>Define the response variable <span class="math display">\[
+Y_i =
+\begin{cases}
+1, &amp; \text{if respondent } i \text{ reports being generally happy},\\
+0, &amp; \text{otherwise},
+\end{cases}
+\qquad i = 1,\ldots,n,
+\]</span> where <span class="math inline">\(n = 129\)</span>.</p>
+<p>Because we lack information that distinguishes individuals, it is reasonable to treat the responses as <strong>exchangeable</strong>.<br>
+That is, before observing the data, the labels or ordering of respondents carry no information.</p>
+<p>Since the sample size <span class="math inline">\(n\)</span> is small relative to the population size <span class="math inline">\(N\)</span> of senior women, results from the previous chapter justify the following modeling approximation.</p>
+<p><strong>Modeling Assumptions</strong>: Our beliefs about <span class="math inline">\((Y_1,\ldots,Y_{129})\)</span> are described by:</p>
+<ul>
+<li><p><strong>An unknown population proportion</strong> <span class="math display">\[
+\theta = \frac{1}{N}\sum_{i=1}^N Y_i,
+\]</span> where <span class="math inline">\(\theta\)</span> represents the proportion of generally happy individuals in the population.</p></li>
+<li><p><strong>A sampling model given</strong> <span class="math inline">\(\theta\)</span></p>
+<p>Conditional on <span class="math inline">\(\theta\)</span>, the responses <span class="math inline">\(Y_1,\ldots,Y_{129}\)</span> are independent and identically distributed Bernoulli random variables with <span class="math display">\[
+\Pr(Y_i = 1 \mid \theta) = \theta.
+\]</span></p></li>
+</ul>
+<blockquote class="blockquote">
+<p>Given the population proportion <span class="math inline">\(\theta\)</span>, each respondent independently reports being happy with probability <span class="math inline">\(\theta\)</span>.</p>
+</blockquote>
+<p><strong>Likelihood</strong>: Under this model, the probability of observing data <span class="math inline">\(\{y_1,\ldots,y_{129}\}\)</span> given <span class="math inline">\(\theta\)</span> is <span class="math display">\[
+p(y_1,\ldots,y_{129} \mid \theta)
+=
+\theta^{\sum_{i=1}^{129} y_i}
+(1-\theta)^{129-\sum_{i=1}^{129} y_i}.
+\]</span></p>
+<p>This expression depends on the data only through the sufficient statistic <span class="math display">\[
+S = \sum_{i=1}^{129} Y_i,
+\]</span> the total number of respondents who report being generally happy.</p>
+<p>For the happiness data, <span class="math display">\[
+S = 118,
+\]</span> so the likelihood simplifies to <span class="math display">\[
+p(y_1,\ldots,y_{129} \mid \theta)
+=
+\theta^{118}(1-\theta)^{11}.
+\]</span></p>
+<p>Q: Which prior to be used?</p>
+<p>A prior distribution is <strong>conjugate</strong> to a likelihood if the posterior distribution belongs to the same family as the prior. For the binomial likelihood, the <strong>Beta distribution</strong> is conjugate. But we have another choice of prior, to use <em>non-informative prior</em>.</p>
+<p><strong>A Uniform Prior Distribution</strong>: Suppose our prior information about <span class="math inline">\(\theta\)</span> is very weak, in the sense that all subintervals of <span class="math inline">\([0,1]\)</span> with equal length are equally plausible.<br>
+Symbolically, for any <span class="math inline">\(0 \le a &lt; b &lt; b+c \le 1\)</span>, <span class="math display">\[
+\Pr(a \le \theta \le b)
+=
+\Pr(a+c \le \theta \le b+c).
+\]</span></p>
+<p>This implies a <strong>uniform prior</strong>: <span class="math display">\[
+\pi(\theta) = 1, \qquad 0 \le \theta \le 1.
+\]</span></p>
+<p><strong>Posterior Distribution</strong>: Bayes’ rule gives <span class="math display">\[
+p(\theta \mid y_1,\ldots,y_{129})
+=
+\frac{p(y_1,\ldots,y_{129} \mid \theta)\,\pi(\theta)}
+     {p(y_1,\ldots,y_{129})}.
+\]</span></p>
+<p>With a uniform prior, this reduces to <span class="math display">\[
+p(\theta \mid y_1,\ldots,y_{129})
+\propto
+\theta^{118}(1-\theta)^{11}.
+\]</span></p>
+<blockquote class="blockquote">
+<p><strong>Key idea:</strong> with a uniform prior, the posterior has the <strong>same shape</strong> as the likelihood.</p>
+</blockquote>
+<p>To obtain a proper probability distribution, we must normalize.</p>
+<p><strong>Normalizing Constant and the Beta Distribution</strong>: Using the identity <span class="math display">\[
+\int_0^1 \theta^{a-1}(1-\theta)^{b-1}\,d\theta
+=
+\frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)},
+\]</span> we find <span class="math display">\[
+p(y_1,\ldots,y_{129})
+=
+\frac{\Gamma(119)\Gamma(12)}{\Gamma(131)}.
+\]</span></p>
+<p>Therefore, the posterior density is <span class="math display">\[
+p(\theta \mid y_1,\ldots,y_{129})
+=
+\frac{\Gamma(131)}{\Gamma(119)\Gamma(12)}
+\theta^{119-1}(1-\theta)^{12-1}.
+\]</span></p>
+<p>That is, <span class="math display">\[
+\theta \mid y \sim \mathrm{Beta}(119,\,12).
+\]</span></p>
+<p>Recall that, a random variable <span class="math inline">\(\theta \sim \mathrm{Beta}(a,b)\)</span> distribution if <span class="math display">\[
+\pi(\theta)
+=
+\frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}
+\theta^{a-1}(1-\theta)^{b-1}.
+\]</span></p>
+<p>For <span class="math inline">\(\theta \sim \mathrm{Beta}(a,b)\)</span>, the expectation (i.e., mean or the first moment) is <span class="math inline">\(\mathbb{E}(\theta) = \frac{a}{a+b}\)</span>, and the variance is <span class="math inline">\(\mathrm{Var}(\theta)=\frac{ab}{(a+b)^2(a+b+1)}.\)</span></p>
+<p>In our example, the happiness data, the posterior distribution is <span class="math display">\[
+\theta \mid y \sim \mathrm{Beta}(119,12).
+\]</span></p>
+<p>Thus, the posterior mean is <span class="math inline">\(\mathbb{E}(\theta \mid y) = 0.915\)</span>, and the posterior standard deviation is <span class="math inline">\(\mathrm{sd}(\theta \mid y) = 0.025\)</span>.</p>
+<p>These summaries quantify both our <strong>best estimate</strong> of the population proportion and our <strong>remaining uncertainty</strong> after observing the data.</p>
+</div>
+<section id="inference-about-exchangeable-binary-data" class="level3" data-number="3.2.1">
+<h3 data-number="3.2.1" class="anchored" data-anchor-id="inference-about-exchangeable-binary-data"><span class="header-section-number">3.2.1</span> Inference about exchangeable binary data</h3>
+<p><strong>Posterior Inference under a Uniform Prior</strong></p>
+<p>Suppose <span class="math inline">\(Y_1, \ldots, Y_n \mid \theta \stackrel{\text{i.i.d.}}{\sim} \text{Bernoulli}(\theta)\)</span>, and we place a uniform prior on <span class="math inline">\(\theta\)</span>. The posterior distribution of <span class="math inline">\(\theta\)</span> given the observed data <span class="math inline">\(y_1, \ldots, y_n\)</span> is proportional to <span class="math display">\[
+\begin{aligned}
+p(\theta \mid y_1, \ldots, y_n)
+&amp;= \frac{p(y_1, \ldots, y_n \mid \theta) \pi(\theta)}{p(y_1, \ldots, y_n)} \\
+&amp;= \theta^{\sum_i y_i}(1 - \theta)^{n - \sum_i y_i} \times \frac{\pi(\theta)}{p(y_1, \ldots, y_n)}\\
+&amp;\propto
+\theta^{\sum_i y_i}(1 - \theta)^{n - \sum_i y_i}.
+\end{aligned}
+\]</span></p>
+<p>Consider two parameter values <span class="math inline">\(\theta_a\)</span> and <span class="math inline">\(\theta_b\)</span>. The ratio of their posterior densities is <span class="math display">\[
+\begin{aligned}
+\frac{p(\theta_a \mid y_1, \ldots, y_n)}
+     {p(\theta_b \mid y_1, \ldots, y_n)}
+&amp;=\frac{\theta_a^{\sum y_i}\left(1-\theta_a\right)^{n-\sum y_i} \times p\left(\theta_a\right) / p\left(y_1, \ldots, y_n\right)}{\theta_b^{\sum y_i}\left(1-\theta_b\right)^{n-\sum y_i} \times p\left(\theta_b\right) / p\left(y_1, \ldots, y_n\right)} \\
+&amp;=
+\left(\frac{\theta_a}{\theta_b}\right)^{\sum_i y_i}
+\left(\frac{1 - \theta_a}{1 - \theta_b}\right)^{n - \sum_i y_i}
+\frac{p(\theta_a)}{p(\theta_b)}.
+\end{aligned}
+\]</span></p>
+<p>This expression shows that the data affect the posterior distribution <strong>only through the sum of the data</strong> <span class="math inline">\(\sum_{i=1}^n y_i\)</span> based on the relative probability density at <span class="math inline">\(\theta_a\)</span> to <span class="math inline">\(\theta_b\)</span>.</p>
+<p>As a result, for any set <span class="math inline">\(A\)</span>, one can show that <span class="math display">\[
+\Pr(\theta \in A \mid Y_1 = y_1, \ldots, Y_n = y_n)
+=
+\Pr\left(\theta \in A \mid \sum_{i=1}^n Y_i = \sum_{i=1}^n y_i\right).
+\]</span></p>
+<p>This means that <span class="math inline">\(\sum_{i=1}^n Y_i\)</span> contains <strong>all the information</strong> in the data relevant for inference about <span class="math inline">\(\theta\)</span>. We therefore say that <span class="math inline">\(Y = \sum_{i=1}^n Y_i\)</span> is a <strong>sufficient statistic</strong> for <span class="math inline">\(\theta\)</span>. The term <em>sufficient</em> is used because knowing <span class="math inline">\(\sum_{i=1}^n Y_i\)</span> is sufficient to carry out inference about <span class="math inline">\(\theta\)</span>; no additional information from the individual observations <span class="math inline">\(Y_1, \ldots, Y_n\)</span> is required.</p>
+<p>In the case where <span class="math inline">\(Y_1, \ldots, Y_n \mid \theta\)</span> are i.i.d. Bernoulli<span class="math inline">\((\theta)\)</span> random variables, the sufficient statistic <span class="math inline">\(Y = \sum_{i=1}^n Y_i\)</span> follows a <strong>binomial distribution</strong> with parameters <span class="math inline">\((n, \theta)\)</span>.</p>
+<p><strong>The Binomial Model</strong></p>
+<p>Because each <span class="math inline">\(Y_i\)</span> is Bernoulli<span class="math inline">\((\theta)\)</span> and the observations are independent, the sufficient statistic <span class="math inline">\(Y = \sum_{i=1}^n Y_i\)</span> follows a <strong>binomial distribution</strong> with parameters <span class="math inline">\((n, \theta)\)</span>.</p>
+<p>That is, <span class="math inline">\(\Pr(Y = y \mid \theta)=\binom{n}{y} \theta^y (1 - \theta)^{n - y}\)</span>, <span class="math inline">\(y = 0, 1, \ldots, n\)</span>. For a binomial<span class="math inline">\((n, \theta)\)</span> random variable <span class="math inline">\(Y\)</span>,</p>
+<ul>
+<li><span class="math inline">\(\mathbb{E}[Y \mid \theta] = n\theta\)</span>,</li>
+<li><span class="math inline">\(\mathrm{Var}(Y \mid \theta) = n\theta(1 - \theta).\)</span></li>
+</ul>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03_bi-1par_files/figure-html/binomal-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Posterior inference under a uniform prior distribution</strong></p>
+<p>Having observed <span class="math inline">\(Y = y\)</span> our task is to obtain the posterior distribution of <span class="math inline">\(\theta\)</span>. By Bayes’ theorem, <span class="math display">\[
+p(\theta \mid y)
+= \frac{p(y \mid \theta),\pi(\theta)}{p(y)}.
+\]</span></p>
+<p>For a binomial model with <span class="math inline">\(Y \sim \text{Binomial}(n,\theta)\)</span>, the likelihood is <span class="math display">\[
+p(y \mid \theta) = \binom{n}{y}\theta^y(1-\theta)^{n-y}.
+\]</span></p>
+<p>Therefore, <span class="math display">\[
+p(\theta \mid y)
+= \frac{\binom{n}{y} \theta^y(1-\theta)^{n-y}\pi(\theta)}{p(y)}
+= c(y) \theta^y(1-\theta)^{n-y}\pi(\theta),
+\]</span> where <span class="math inline">\(c(y)\)</span> is a normalizing constant that depends only on <span class="math inline">\(y\)</span>, not on <span class="math inline">\(\theta\)</span>. When using the uniform distribution, <span class="math inline">\(\pi(\theta)\)</span>, we can calculate <span class="math inline">\(c(y)\)</span> easily as <span class="math display">\[
+\begin{aligned}
+1&amp;=\int_0^1 c(y) \theta^y(1-\theta)^{n-y} d \theta \\
+&amp;=c(y) \int_0^1 \theta^y(1-\theta)^{n-y} d \theta \\
+&amp;=c(y) \frac{\Gamma(y+1) \Gamma(n-y+1)}{\Gamma(n+2)}
+\end{aligned}.
+\]</span> Hence, <span class="math inline">\(c(y)=\Gamma(n+2)/\{\Gamma(y+1) \Gamma(n-y+1)\}\)</span>, and the posterior distribution is <span class="math display">\[
+\begin{aligned}
+p(\theta \mid y) &amp; =\frac{\Gamma(n+2)}{\Gamma(y+1) \Gamma(n-y+1)} \theta^y(1-\theta)^{n-y} \\
+&amp; =\frac{\Gamma(n+2)}{\Gamma(y+1) \Gamma(n-y+1)} \theta^{(y+1)-1}(1-\theta)^{(n-y+1)-1},
+\end{aligned}
+\]</span> Which is exactly the <span class="math inline">\(\operatorname{beta}(y+1, n-y+1)\)</span>. In the happiness example, we have <span class="math inline">\(n=129\)</span> and <span class="math inline">\(Y=\sum Y_i=118\)</span>, so the posterior distribution is <span class="math inline">\(\operatorname{beta}(119,12)\)</span>, written as <span class="math display">\[
+n=129, Y \equiv \sum Y_i=118 \quad \Rightarrow \quad \theta \mid\{Y=118\} \sim \operatorname{beta}(119,12) .
+\]</span></p>
+<p>This confirms the sufficiency result for this model and prior distribution, by showing that if <span class="math inline">\(\sum y_i = y = 118\)</span>, <span class="math inline">\(p(\theta\mid  y_1,\dots y_n) = p(\theta\mid y) = \mathrm{beta}(119, 12)\)</span>. That is, the information contained in <span class="math inline">\(\{Y_1 = y_1, \dots, Y_n = y_n\}\)</span> is the same as the information contained in <span class="math inline">\(\{Y = y\}\)</span>, where <span class="math inline">\(Y = \sum Y_i\)</span> and <span class="math inline">\(y = \sum y_i\)</span>. This show the posterior when we use <strong>uniform prior</strong>. One may ask, what if we use a different prior?</p>
+<p><strong>Posterior distributions under beta prior distributions</strong></p>
+<p>The uniform prior distribution has <span class="math inline">\(\pi(\theta) = 1\)</span> for all <span class="math inline">\(\theta\in [0,1]\)</span>. This distribution can be thought of as a beta prior distribution with parameters <span class="math inline">\(a = 1, b = 1\)</span> <span class="math display">\[
+\pi(\theta)=\frac{\Gamma(2)}{\Gamma(1) \Gamma(1)} \theta^{1-1}(1-\theta)^{1-1}=\frac{1}{1 \times 1} 1 \times 1=1
+\]</span> for all <span class="math inline">\(\theta \in[0,1]\)</span>.</p>
+<div class="callout-definition" title="Gamma function">
+<p>The gamma function is defined as <span class="math display">\[
+\Gamma(x)=\int_0^{\infty} t^{x-1} e^{-t} d t, \quad x&gt;0.
+\]</span></p>
+<p>It satisfies the following properties:</p>
+<ul>
+<li><span class="math inline">\(\Gamma(n)=(n-1)!\)</span> for any positive integer <span class="math inline">\(n\)</span>.</li>
+<li><span class="math inline">\(\Gamma(x+1)=x \Gamma(x)\)</span> for any <span class="math inline">\(x&gt;0\)</span>.</li>
+<li><span class="math inline">\(\Gamma(1 / 2)=\sqrt{\pi}\)</span>.</li>
+<li><span class="math inline">\(\Gamma(1)=1\)</span> by convention.</li>
+</ul>
+</div>
+<p>Now, from the previous part, recall that we have, <span class="math display">\[
+\text { if }\left\{\begin{array}{c}
+\theta \sim \operatorname{beta}(1,1) \text { (uniform) } \\
+Y \sim \operatorname{binomial}(n, \theta)
+\end{array}\right\}, \text { then }\{\theta \mid Y=y\} \sim \operatorname{beta}(1+y, 1+n-y).
+\]</span></p>
+<p>To get the posterior distribution under a general beta prior distribution, we just need to add the number of 1’s to the <span class="math inline">\(\alpha\)</span> parameter and the number of 0’s to the <span class="math inline">\(\beta\)</span> parameter. To see this, assume <span class="math inline">\(\theta\sim \operatorname{beta}(\alpha, \beta)\)</span>, and <span class="math inline">\(Y\mid \theta \sim \operatorname{binomial}(n, \theta)\)</span>. Then, once we observed <span class="math inline">\(\{Y=y\}\)</span>, by Bayes’ theorem, the posterior distribution is <span class="math display">\[
+\begin{aligned}
+p(\theta \mid y) &amp; =\frac{\pi(\theta) p(y \mid \theta)}{p(y)} \\
+&amp; =\frac{1}{p(y)} \times \frac{\Gamma(a+b)}{\Gamma(a) \Gamma(b)} \theta^{a-1}(1-\theta)^{b-1} \times\binom{ n}{y} \theta^y(1-\theta)^{n-y} \\
+&amp; =c(n, y, a, b) \times \theta^{a+y-1}(1-\theta)^{b+n-y-1} \\
+&amp;\propto \beta(a+y, b+n-y) .
+\end{aligned}
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled" title="One-to-one correspondence between the distribution">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>One-to-one correspondence between the distribution
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Note that, there is a one-to-one correspondence between the prior distribution parameters and the posterior distribution parameters. Two distributions are said to be the same if</p>
+<ul>
+<li>Their CDFs are the same.</li>
+<li>Their PDFs are the same.</li>
+<li>All of their moments are the same. This implies that they are equal if and only if the moment generating function or the probability generating functions are the same.</li>
+</ul>
+</div>
+</div>
+<p>We have seen the beta-binomial example twice, which is an example of <strong>conjugate prior</strong>, let’s definite this formally,</p>
+<div class="callout-definition" title="Conjugate prior">
+<p>A class <span class="math inline">\(\mathcal{P}\)</span> of prior distribution for <span class="math inline">\(\theta\)</span> is said <strong>conjugate</strong> for the likelihood function <span class="math inline">\(p(y \mid \theta)\)</span> if for every prior distribution <span class="math inline">\(\pi(\theta) \in \mathcal{P}\)</span>, the corresponding posterior distribution <span class="math inline">\(p(\theta \mid y)\)</span> is also in <span class="math inline">\(\mathcal{P}\)</span>, that is <span class="math display">\[
+\pi(\theta) \in \mathcal{P} \Rightarrow p(\theta \mid y) \in \mathcal{P}.
+\]</span></p>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Conjugate priors simplify posterior calculations, but they may not accurately reflect genuine prior beliefs. Still, mixtures of conjugate priors offer substantially greater flexibility while remaining computationally tractable.</p>
+</div>
+</div>
+<p>If the likelihood <span class="math inline">\(\theta \mid \{Y = y\} \sim beta(a + y, b + n − y)\)</span>, recall that</p>
+<ul>
+<li><span class="math inline">\(\mathrm{E}[\theta \mid y]=\frac{a+y}{a+b+n}\)</span></li>
+<li><span class="math inline">\(\operatorname{mode}[\theta \mid y]=\frac{a+y-1}{a+b+n-2}\)</span></li>
+<li><span class="math inline">\(\operatorname{Var}[\theta \mid y]=\frac{\mathrm{E}[\theta \mid y] \mathrm{E}[1-\theta \mid y]}{a+b+n+1}\)</span></li>
+</ul>
+<p>The posterior mean can be expressed as a weighted average of the prior mean and the maximum likelihood estimate (MLE) of <span class="math inline">\(\theta\)</span>: <span class="math display">\[
+\begin{aligned}
+\mathrm{E}[\theta \mid y] &amp; =\frac{a+y}{a+b+n} \\
+&amp; =\frac{a+b}{a+b+n} \times\frac{a}{a+b}+\frac{n}{a+b+n}\times \frac{y}{n} \\
+&amp; =\frac{a+b}{a+b+n} \times \text { prior expectation }+\frac{n}{a+b+n} \times \text { data mean }
+\end{aligned}
+\]</span> For this model and prior distribution, the posterior expectation (also known as the posterior mean) can be expressed as a weighted average of the prior expectation and the sample mean. The weights are proportional to the prior sample size a + b and the observed sample size n, respectively. This representation leads to a natural interpretation of the Beta prior parameters as prior data:</p>
+<ul>
+<li><span class="math inline">\(a \approx \text{``prior \# of 1’s,''}\)</span></li>
+<li><span class="math inline">\(b \approx \text{``prior \# of 0’s,''}\)</span></li>
+<li><span class="math inline">\(a + b \approx \text{``prior sample size.''}\)</span></li>
+</ul>
+<p>When <span class="math inline">\(n \gg a+b\)</span>, it is reasonable to expect that most of the information about <span class="math inline">\(\theta\)</span> should come from the data rather than from the prior distribution. This intuition is confirmed mathematically. In particular, when <span class="math inline">\(n \gg a + b\)</span>,</p>
+<ul>
+<li><span class="math inline">\(\frac{a + b}{a + b + n} \approx 0\)</span>,</li>
+<li><span class="math inline">\(\mathbb{E}[\theta \mid y] \approx \frac{y}{n}\)</span>,</li>
+<li><span class="math inline">\(\mathrm{Var}(\theta \mid y) \approx \frac{1}{n}\,\frac{y}{n}\left(1 - \frac{y}{n}\right)\)</span>.</li>
+</ul>
+<p>Thus, in large samples, the posterior mean approaches the sample proportion and the posterior variance shrinks at rate <span class="math inline">\(1/n\)</span>, reflecting increasing information from the data.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03_bi-1par_files/figure-html/posterior-change-n-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Prediction</strong></p>
+<p>An important feature of Bayesian inference is the existence of a <strong>predictive distribution</strong> for new observations.</p>
+<div class="callout-definition" title="Posterior Predictive Distribution">
+<p>The posterior predictive distribution for a new observation <span class="math inline">\(Y_{\text{new}}\)</span> given the observed data <span class="math inline">\(y\)</span> is obtained by integrating over the posterior distribution of <span class="math inline">\(\theta\)</span>.</p>
+</div>
+<p>Returning to our notation for binary data, let <span class="math inline">\(y_1, \ldots, y_n\)</span> be the observed outcomes from a sample of <span class="math inline">\(n\)</span> binary rvs, and let <span class="math inline">\(\tilde Y \in \{0,1\}\)</span> denote a future observation from the same population that has not yet been observed. The <strong>predictive distribution</strong> of <span class="math inline">\(\tilde Y\)</span> is defined as the conditional distribution of <span class="math inline">\(\tilde Y\)</span> given the observed data <span class="math inline">\(\{Y_1=y_1,\ldots,Y_n=y_n\}\)</span>. For conditionally i.i.d. binary observations, the predictive distribution can be derived by integrating out the unknown parameter <span class="math inline">\(\theta\)</span>: <span class="math display">\[
+\begin{aligned}
+\operatorname{Pr}\left(\tilde{Y}=1 \mid y_1, \ldots, y_n\right) &amp; =\int \operatorname{Pr}\left(\tilde{Y}=1, \theta \mid y_1, \ldots, y_n\right) d \theta \\
+&amp; =\int \operatorname{Pr}\left(\tilde{Y}=1 \mid \theta, y_1, \ldots, y_n\right) p\left(\theta \mid y_1, \ldots, y_n\right) d \theta \\
+&amp; =\int  p\left(\theta \mid y_1, \ldots, y_n\right) \theta d \theta \\
+&amp; =\mathrm{E}\left[\theta \mid y_1, \ldots, y_n\right]\\
+&amp;=\frac{a+\sum_{i=1}^n y_i}{a+b+n}.
+\end{aligned}
+\]</span></p>
+<p>Hence, we also have, <span class="math display">\[
+\operatorname{Pr}\left(\tilde{Y}=0 \mid y_1, \ldots, y_n\right)  =1-\mathrm{E}\left[\theta \mid y_1, \ldots, y_n\right]=\frac{b+\sum_{i=1}^n\left(1-y_i\right)}{a+b+n} .
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled" title="Properties of the predictive distribution">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Properties of the predictive distribution
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li><p>It <strong>does not depend on any unknown quantities.</strong> If it did, it could not be used to make predictions.</p></li>
+<li><p>It <strong>depends on the observed data.</strong> In particular, <span class="math inline">\(\tilde Y\)</span> is not independent of <span class="math inline">\(Y_1,\ldots,Y_n\)</span>, because the observed data provide information about <span class="math inline">\(\theta\)</span>, which in turn influences <span class="math inline">\(\tilde Y\)</span>. If <span class="math inline">\(\tilde Y\)</span> were independent of the observed data, learning from data would be impossible.</p></li>
+</ol>
+</div>
+</div>
+<div class="callout-example">
+<p>The uniform prior distribution on [0,1], also known as the <span class="math inline">\(\text{Beta}(1,1)\)</span> prior, can be interpreted as containing the same information as a hypothetical prior dataset consisting of one success (“1”) and one failure (“0”).</p>
+<p>Under this prior, the posterior predictive probability of a future success is <span class="math display">\[
+\Pr(\tilde Y = 1 \mid Y = y)
+= \mathbb{E}[\theta \mid Y = y]
+= \frac{2}{2+n}\cdot\frac{1}{2}
+    + \frac{n}{2+n}\cdot\frac{y}{n}.
+\]</span></p>
+<p>This expression highlights that the predictive probability is a weighted average of:</p>
+<ul>
+<li>the prior mean <span class="math inline">\(1/2\)</span>, and</li>
+<li>the sample proportion <span class="math inline">\(y/n\)</span>,</li>
+</ul>
+<p>with weights proportional to the prior sample size 2 and the observed sample size n, respectively.</p>
+<p>The posterior mode under this prior is <span class="math display">\[
+\text{mode}(\theta \mid Y = y) = \frac{y}{n},
+\]</span> where <span class="math display">\[
+Y = \sum_{i=1}^n Y_i.
+\]</span></p>
+<p>At first glance, the discrepancy between these two posterior summaries may seem surprising. However, it reflects the fact that different summaries capture different features of the posterior distribution.</p>
+<p>To see this clearly, consider the case <span class="math inline">\(Y = 0\)</span>. In this case, <span class="math display">\[
+\text{mode}(\theta \mid Y = 0) = 0,
+\]</span> but the predictive probability remains <span class="math display">\[
+\Pr(\tilde Y = 1 \mid Y = 0) = \frac{1}{2+n}.
+\]</span></p>
+<p>Thus, even when no successes have been observed, the Bayesian predictive distribution assigns a positive probability to a future success due to the prior information. This illustrates how Bayesian prediction naturally balances prior beliefs with observed data.</p>
+</div>
+</section>
+<section id="confidence-regions-bayesian-v.s.-frequentist" class="level3" data-number="3.2.2">
+<h3 data-number="3.2.2" class="anchored" data-anchor-id="confidence-regions-bayesian-v.s.-frequentist"><span class="header-section-number">3.2.2</span> Confidence Regions: Bayesian v.s. Frequentist</h3>
+<p>If it often desirable to identify the regions of the parameter space that are likely to contain the true value of the parameter. To do this, after observing the data <span class="math inline">\(Y=y\)</span>, we can construct an interval <span class="math inline">\([\ell(y),u(y)]\)</span> that is likely to contain the true value of <span class="math inline">\(\theta\)</span>, i.e., the probability that <span class="math inline">\(\ell(y)&lt;\theta&lt;u(y)\)</span> is large. There are two different ways to interpret this probability, leading to the concepts of <strong>Bayesian coverage</strong> and <strong>frequentist coverage</strong>.</p>
+<div class="callout-definition" title="Bayesian Coverage">
+<p>An interval <span class="math inline">\([\ell(y), u(y)]\)</span>, based on the observed data <span class="math inline">\(Y = y\)</span>, has 100(1-<span class="math inline">\(\alpha\)</span>)% Bayesian coverage for <span class="math inline">\(\theta\)</span> if <span class="math display">\[
+\Pr(\ell(y) &lt; \theta &lt; u(y)\mid Y = y) = 1-\alpha.
+\]</span></p>
+</div>
+<div class="callout-definition" title="Frequentist Coverage">
+<p>A random interval <span class="math inline">\([\ell(Y ), u(Y )]\)</span> has 100(1-<span class="math inline">\(\alpha\)</span>)% frequentist coverage for <span class="math inline">\(\theta\)</span> if, before the data are gathered, <span class="math display">\[
+\Pr(\ell(Y ) &lt; \theta &lt; u(Y )\mid\theta) = 1-\alpha.
+\]</span></p>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In a sense, the frequentist and Bayesian notions of coverage describe <strong>pre</strong> experimental and <strong>post</strong> experimental perspectives, respectively.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="frequentist-vs-bayesian-coverage" class="level2" data-number="3.3">
+<h2 data-number="3.3" class="anchored" data-anchor-id="frequentist-vs-bayesian-coverage"><span class="header-section-number">3.3</span> Frequentist vs Bayesian Coverage</h2>
+<p>You may recall an important point often emphasized in introductory statistics courses. Suppose we observe data <span class="math inline">\(Y=y\)</span> and compute a frequentist confidence interval <span class="math display">\[
+[l(y),\,u(y)].
+\]</span> Once the data are observed, the parameter <span class="math inline">\(\theta\)</span> is <strong>treated as fixed, not random</strong>.<br>
+Therefore, <span class="math display">\[
+\Pr\!\bigl(l(y) &lt; \theta &lt; u(y) \mid \theta\bigr)
+=
+\begin{cases}
+1, &amp; \text{if } \theta \in [l(y),u(y)],\\
+0, &amp; \text{if } \theta \notin [l(y),u(y)].
+\end{cases}
+\]</span></p>
+<p>This highlights a key limitation of frequentist confidence intervals:</p>
+<blockquote class="blockquote">
+<p><strong>They do not admit a post-experimental probability interpretation.</strong></p>
+</blockquote>
+<p>After observing the data, it is <em>not meaningful</em>, from a frequentist perspective, to say that there is a 95% probability that <span class="math inline">\(\theta\)</span> lies in the computed interval.</p>
+<p><strong>What Frequentist Coverage Means</strong></p>
+<p>Although this interpretation may feel unsatisfying, frequentist coverage is still useful in many situations. Imagine repeatedly running many independent experiments and constructing a confidence interval for each one.<br>
+If each interval procedure has 95% frequentist coverage, then:</p>
+<blockquote class="blockquote">
+<p><strong>About 95% of the intervals will contain the true parameter value.</strong></p>
+</blockquote>
+<p>This is a <strong>long-run, repeated-sampling interpretation</strong>, not a statement about any single observed interval.</p>
+<p><strong>Can Bayesian and Frequentist Coverage Agree?</strong></p>
+<p>A natural question is whether a confidence interval can simultaneously have:</p>
+<ul>
+<li>a Bayesian interpretation, i.e., a 100(1-<span class="math inline">\(\alpha\)</span>)% posterior probability that <span class="math inline">\(\theta\)</span> lies in the interval, and</li>
+<li>approximately 100(1-<span class="math inline">\(\alpha\)</span>)% frequentist coverage.</li>
+</ul>
+<p>Hartigan (1966) showed that, for the types of intervals considered in Hopf (2009), an interval that has 95% Bayesian coverage additionally has the property that <span class="math display">\[
+\Pr\!\bigl(l(Y) &lt; \theta &lt; u(Y) \mid \theta\bigr)
+=
+0.95 + \varepsilon_n,
+\]</span> where the error term satisfies <span class="math inline">\(|\varepsilon_n| &lt; a/n\)</span> for some constant <span class="math inline">\(a\)</span>. This result implies that, an interval with 95% Bayesian coverage, will also have approximately 95% frequentist coverage, at least asymptotically, as the sample size <span class="math inline">\(n\)</span> grows.</p>
+<p>In other words, under suitable conditions, <strong>Bayesian credible intervals and frequentist confidence intervals can agree in large samples</strong>, even though their interpretations are fundamentally different. Keep in mind that most non-Bayesian methods of constructing 100(1-<span class="math inline">\(\alpha\)</span>)% confidence intervals also only achieve their nominal coverage probability asymptotically.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Reminder">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Reminder
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This reconciliation is important, but it should not obscure the conceptual distinction:</p>
+<ul>
+<li>frequentist coverage is a <em>pre-experimental</em> property of a procedure,</li>
+<li>Bayesian coverage is a <em>post-experimental</em> probability statement about <span class="math inline">\(\theta\)</span> given the data.</li>
+</ul>
+</div>
+</div>
+<p>For further discussion of the similarities between Bayesian and frequentist intervals, see Severini (1991) and Sweeting (2001).</p>
+</section>
+<section id="posterior-quantile-intervals" class="level2" data-number="3.4">
+<h2 data-number="3.4" class="anchored" data-anchor-id="posterior-quantile-intervals"><span class="header-section-number">3.4</span> Posterior Quantile Intervals</h2>
+<p>One of the simplest ways to construct a Bayesian credible interval is to use <strong>posterior quantiles</strong>. To form a <span class="math inline">\(100(1-\alpha)\%\)</span> credible interval for <span class="math inline">\(\theta\)</span>, find numbers <span class="math inline">\(\theta_{\alpha/2} &lt; \theta_{1-\alpha/2}\)</span> such that</p>
+<ol type="1">
+<li><span class="math inline">\(\Pr(\theta &lt; \theta_{\alpha/2} \mid Y=y) = \alpha/2,\)</span></li>
+<li><span class="math inline">\(\Pr(\theta &gt; \theta_{1-\alpha/2} \mid Y=y) = \alpha/2,\)</span></li>
+</ol>
+<p>where <span class="math inline">\(\theta_{\alpha/2}\)</span> and <span class="math inline">\(\theta_{1-\alpha/2}\)</span> are the <span class="math inline">\(\alpha/2\)</span> and <span class="math inline">\(1-\alpha/2\)</span> posterior quantiles of <span class="math inline">\(\theta\)</span>. By construction, <span class="math display">\[
+\begin{aligned}
+\operatorname{Pr}\left(\theta \in\left[\theta_{\alpha / 2}, \theta_{1-\alpha / 2}\right] \mid Y=y\right) &amp; =1-\operatorname{Pr}\left(\theta \notin\left[\theta_{\alpha / 2}, \theta_{1-\alpha / 2}\right] \mid Y=y\right) \\
+&amp; =1-\left[\operatorname{Pr}\left(\theta&lt;\theta_{\alpha / 2} \mid Y=y\right)+\operatorname{Pr}\left(\theta&gt;\theta_{1-\alpha / 2} \mid Y=y\right)\right] \\
+&amp; =1-\alpha .
+\end{aligned}
+\]</span></p>
+<div class="callout-example" title="Binomial Sampling with a Uniform Prior">
+<p>Suppose we observe <span class="math inline">\(n = 10\)</span> conditionally independent Bernoulli trials and obtain <span class="math inline">\(Y = 2\)</span> successes. Using a uniform prior for <span class="math inline">\(\theta\)</span>, <span class="math inline">\(\theta \sim \mathrm{Beta}(1,1),\)</span> the posterior distribution is <span class="math display">\[
+\theta \mid \{Y=2\} \sim \mathrm{Beta}(1+2,\;1+8) = \mathrm{Beta}(3,9).
+\]</span></p>
+<p>A 95% posterior confidence interval can be obtained from by 2.5% and 97.5% quantiles of this Beta distribution <span class="math inline">\([\theta_{0.025}, \theta_{0.975}]\)</span>. In this case, <span class="math display">\[
+\theta_{0.025} \approx 0.06,
+\qquad
+\theta_{0.975} \approx 0.52,
+\]</span> so <span class="math display">\[
+\Pr(0.06 \le \theta \le 0.52 \mid Y=2) = 0.95.
+\]</span></p>
+<p>This interval has a direct probabilistic interpretation: <strong>given the observed data</strong>, there is a 95% posterior probability that <span class="math inline">\(\theta\)</span> lies in this range.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>b <span class="ot">&lt;-</span> a <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="co"># prior parameter</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">10</span> ; y <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="co"># data</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">qbeta</span>(<span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>), a <span class="sc">+</span> y, b <span class="sc">+</span> n <span class="sc">-</span> y)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.06021773 0.51775585</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>a_post <span class="ot">&lt;-</span> a <span class="sc">+</span> y</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>b_post <span class="ot">&lt;-</span> b <span class="sc">+</span> (n <span class="sc">-</span> y)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 95% quantile-based credible interval</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>ci <span class="ot">&lt;-</span> <span class="fu">qbeta</span>(<span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>), a_post, b_post)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>ci_low <span class="ot">&lt;-</span> ci[<span class="dv">1</span>]</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>ci_high <span class="ot">&lt;-</span> ci[<span class="dv">2</span>]</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Grid for plotting posterior density</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>theta <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">2000</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">theta =</span> theta, <span class="at">density =</span> <span class="fu">dbeta</span>(theta, a_post, b_post))</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot: posterior density curve + two vertical CI bars</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> theta, <span class="at">y =</span> density)) <span class="sc">+</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> ci_low, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> ci_high, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Beta Posterior with 95% Quantile-Based Credible Interval"</span>,</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="fu">sprintf</span>(</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Data: n=%d, y=%d | Prior: Beta(%d,%d) | Posterior: Beta(%d,%d) | 95%% CI: [%.3f, %.3f]"</span>,</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>      n, y, a, b, a_post, b_post, ci_low, ci_high</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">expression</span>(theta),</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">expression</span>(<span class="fu">p</span>(theta <span class="sc">*</span> <span class="st">"|"</span> <span class="sc">*</span> y))</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03_bi-1par_files/figure-html/binomoial-uniform-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<p><strong>Highest posterior density (HPD) region</strong></p>
+<p>The Figure above illustrates the posterior distribution of <span class="math inline">\(\theta\)</span> for the binomial example with a uniform prior, together with a 95% quantile-based credible interval. Notice an important feature of the plot:</p>
+<blockquote class="blockquote">
+<p>There exist values of <span class="math inline">\(\theta\)</span> <em>outside</em> the quantile-based interval that have <em>higher posterior density</em> than some values <em>inside</em> the interval.</p>
+</blockquote>
+<p>This observation suggests that the quantile-based interval may not be the most efficient way to summarize posterior uncertainty. In particular, it motivates a more restrictive type of credible region that concentrates on the most plausible parameter values.</p>
+<div class="callout-definition" title="HPD region">
+<p>A <span class="math inline">\(100(1-\alpha)\%\)</span> <em>HPD region</em> is a subset of the sample space, <span class="math inline">\(s(y) \subset \Theta\)</span> such that:</p>
+<ol type="1">
+<li><span class="math inline">\(\Pr(\theta \in s(y) \mid Y = y) = 1 - \alpha\)</span>, and</li>
+<li>If <span class="math inline">\(\theta_a \in s(y)\)</span> and <span class="math inline">\(\theta_b \notin s(y)\)</span>, then <span class="math inline">\(p(\theta_a \mid Y = y) \ge p(\theta_b \mid Y = y).\)</span></li>
+</ol>
+<p>In words, an HPD region contains the parameter values with the <em>largest posterior density</em>, subject to containing probability mass <span class="math inline">\(1-\alpha\)</span>.</p>
+</div>
+<p>Observed that, all points inside an HPD region are at least as plausible as any point outside the region, according to the posterior distribution. This property distinguishes HPD regions from quantile-based intervals, which are defined purely by cumulative probability and may include low-density values while excluding higher-density ones.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03_bi-1par_files/figure-html/HPD-region-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>An HPD region can be constructed conceptually as follows:</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Algorithm to construct an HPD region">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Algorithm to construct an HPD region
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li>Begin with a horizontal line above the posterior density curve.</li>
+<li>Gradually lower the line.</li>
+<li>At each height, include all values of <span class="math inline">\(\theta\)</span> whose posterior density exceeds the line.</li>
+<li>Stop lowering the line once the total posterior probability of the included region reaches <span class="math inline">\(1-\alpha\)</span>.</li>
+</ol>
+</div>
+</div>
+<p>This procedure guarantees that the retained region consists of the most probable values of <span class="math inline">\(\theta\)</span>.</p>
+<p><strong>HPD Regions and Multimodality</strong></p>
+<p>If the posterior density is <strong>unimodal</strong>, the HPD region will typically be a single interval. However, if the posterior density is <strong>multimodal</strong> (having multiple peaks), the HPD region need not be an interval; it may consist of several disjoint subsets of the parameter space.</p>
+<div class="callout-example" title="(Continue) Binomial Sampling with a Uniform Prior">
+<p>In the binomial example with <span class="math inline">\(n=10\)</span>, <span class="math inline">\(Y=2\)</span>, and a uniform prior, the posterior distribution is <span class="math inline">\(\mathrm{Beta}(3,9)\)</span>.</p>
+<p>For this posterior:</p>
+<ul>
+<li>The 95% quantile-based credible interval is approximately <span class="math inline">\([0.06,\,0.52]\)</span>.</li>
+<li>The 95% HPD region is approximately <span class="math inline">\([0.04,\,0.48]\)</span>.</li>
+</ul>
+<p>The HPD region is <em>narrower</em>, and therefore more precise, than the quantile-based interval, while still containing 95% of the posterior probability.</p>
+<p>Both intervals are valid Bayesian credible intervals, but they summarize posterior uncertainty in different ways.</p>
+</div>
+</section>
+<section id="the-poisson-model" class="level2" data-number="3.5">
+<h2 data-number="3.5" class="anchored" data-anchor-id="the-poisson-model"><span class="header-section-number">3.5</span> The Poisson Model</h2>
+<p>Another commonly used distribution is the <em>Poisson</em>, in this case, the measurement are the integer numbers. Some examples include number of coin tosses, the number of friends they have, or the number of birthday celebrations have a person have. In these situations, the sample space is <span class="math inline">\(\mathcal{Y}=\{0,1,2,\ldots\}.\)</span> There are other possible models for those situation, but perhaps the simplest probability model on <span class="math inline">\(\mathcal{Y}\)</span> is the Poisson model.</p>
+<p><strong>Poisson distribution</strong></p>
+<p>Recall that a random variable <span class="math inline">\(Y\)</span> has a Poisson distribution with mean <span class="math inline">\(\theta\)</span> if <span class="math display">\[
+\Pr(Y=y\mid \theta)=\mathrm{dpois}(y,\theta)=\frac{\theta^y e^{-\theta}}{y!},
+\qquad y\in\{0,1,2,\ldots\}.
+\]</span></p>
+<p>For such a random variable, we have,</p>
+<ul>
+<li><span class="math inline">\(\mathbb{E}(Y)=\theta\)</span></li>
+<li><span class="math inline">\(\mathrm{Var}(Y)=\theta.\)</span></li>
+</ul>
+<p>People sometimes use the Poisson distribution to model count data because of its simplicity and its ability to model events that occur independently over a fixed interval of time or space. The Poisson distribution is particularly useful when the events being counted are rare or infrequent, and when the average rate of occurrence is known. Note that, in this model, the mean and the variance are the same, which is a property that can be useful in certain applications; One may call this property as “mean-variance relationship”.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03_bi-1par_files/figure-html/poisson-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="inference-on-the-posterior-for-poisson-model" class="level3" data-number="3.5.1">
+<h3 data-number="3.5.1" class="anchored" data-anchor-id="inference-on-the-posterior-for-poisson-model"><span class="header-section-number">3.5.1</span> Inference on the Posterior for Poisson Model</h3>
+<p>Suppose we observe data <span class="math inline">\(Y_1, \ldots, Y_n\)</span> and model them as conditionally independent Poisson random variables with common mean <span class="math inline">\(\theta\)</span>, i.e., <span class="math display">\[
+Y_i \mid \theta \sim \text{Poisson}(\theta), \qquad i = 1,\ldots,n.
+\]</span></p>
+<p>The joint probability mass function of the data, given <span class="math inline">\(\theta\)</span>, is <span class="math display">\[
+\Pr(Y_1 = y_1, \ldots, Y_n = y_n \mid \theta)
+= \prod_{i=1}^n p(y_i \mid \theta).
+\]</span></p>
+<p>Using the Poisson pmf, <span class="math display">\[
+p(y_i \mid \theta) = \frac{\theta^{y_i} e^{-\theta}}{y_i!},
+\]</span> we obtain <span class="math display">\[
+\begin{aligned}
+\Pr(Y_1 = y_1, \ldots, Y_n = y_n \mid \theta)
+&amp;= \prod_{i=1}^n \frac{\theta^{y_i} e^{-\theta}}{y_i!}\\
+&amp;= c(y_1,\ldots,y_n)\,\theta^{\sum_{i=1}^n y_i} e^{-n\theta},
+\end{aligned}
+\]</span> where <span class="math display">\[
+c(y_1,\ldots,y_n) = \prod_{i=1}^n \frac{1}{y_i!},
+\]</span> which does not depend on <span class="math inline">\(\theta\)</span>. This expression shows that the likelihood depends on the data only through the statistic <span class="math inline">\(S = \sum_{i=1}^n Y_i.\)</span></p>
+<p>As in the binomial model, the statistic <span class="math inline">\(S = \sum_{i=1}^n Y_i\)</span> contains all information in the data about <span class="math inline">\(\theta\)</span>.<br>
+Indeed, <span class="math display">\[
+\sum_{i=1}^n Y_i \mid \theta \sim \text{Poisson}(n\theta),
+\]</span> and we therefore say that <span class="math inline">\(S\)</span> is a sufficient statistic for <span class="math inline">\(\theta\)</span>.</p>
+</section>
+<section id="comparing-posterior-beliefs" class="level3" data-number="3.5.2">
+<h3 data-number="3.5.2" class="anchored" data-anchor-id="comparing-posterior-beliefs"><span class="header-section-number">3.5.2</span> Comparing posterior beliefs</h3>
+<p>To compare two values <span class="math inline">\(\theta_a\)</span> and <span class="math inline">\(\theta_b\)</span> <em>a posteriori</em>, consider the posterior odds: <span class="math display">\[
+\frac{p(\theta_a \mid y_1,\ldots,y_n)}
+     {p(\theta_b \mid y_1,\ldots,y_n)}.
+\]</span></p>
+<p>By Bayes’ rule, <span class="math display">\[
+p(\theta \mid y_1,\ldots,y_n)
+\propto \pi(\theta)\,p(y_1,\ldots,y_n \mid \theta)
+\propto \pi(\theta)\,\theta^{\sum_{i=1}^n y_i} e^{-n\theta}.
+\]</span></p>
+<p>Therefore, <span class="math display">\[
+\frac{p(\theta_a \mid y)}
+     {p(\theta_b \mid y)}
+=
+\frac{\theta_a^{\sum y_i} e^{-n\theta_a} p(\theta_a)}
+     {\theta_b^{\sum y_i} e^{-n\theta_b} p(\theta_b)}.
+\]</span></p>
+<p>This expression highlights how posterior beliefs balance prior information with evidence from the data.</p>
+<p><strong>Conjugate prior for the Poisson model</strong></p>
+<p>We now seek a prior distribution for <span class="math inline">\(\theta\)</span> that leads to a posterior distribution of the same functional form. From the likelihood, <span class="math display">\[
+p(\theta \mid y)
+\propto p(\theta)\,\theta^{\sum y_i} e^{-n\theta},
+\]</span> we see that a conjugate prior must involve terms of the form <span class="math display">\[
+\theta^{c_1} e^{-c_2 \theta}
+\]</span> for some constants <span class="math inline">\(c_1\)</span> and <span class="math inline">\(c_2\)</span>. The simplest family of distributions with this structure is the family of Gamma distributions, also called <strong>Gamma family</strong>.</p>
+</section>
+<section id="gamma-distribution" class="level3" data-number="3.5.3">
+<h3 data-number="3.5.3" class="anchored" data-anchor-id="gamma-distribution"><span class="header-section-number">3.5.3</span> Gamma distribution</h3>
+<p>A positive random variable <span class="math inline">\(\theta\)</span> has a Gamma<span class="math inline">\((a,b)\)</span> distribution if <span class="math display">\[
+\pi(\theta)
+=
+\frac{b^a}{\Gamma(a)} \theta^{a-1} e^{-b\theta},
+\qquad \theta &gt; 0,
+\]</span> where <span class="math inline">\(a &gt; 0\)</span> is the shape parameter and <span class="math inline">\(b &gt; 0\)</span> is the rate parameter.</p>
+<p>For a Gamma<span class="math inline">\((a,b)\)</span> random variable,</p>
+<ul>
+<li><span class="math inline">\(\mathbb{E}(\theta) = a/b,\)</span></li>
+<li><span class="math inline">\(\mathrm{Var}(\theta) = a/b^2.\)</span></li>
+<li><span class="math inline">\(\operatorname{mode}[\theta]=\left\{\begin{array}{cc}
+(a-1) / b &amp; \text { if } a&gt;1 \\
+0 &amp; \text { if } a \leq 1
+\end{array} .\right.\)</span></li>
+</ul>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03_bi-1par_files/figure-html/gamma-densities-ggplot-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="posterior-distribution-of-theta" class="level3" data-number="3.5.4">
+<h3 data-number="3.5.4" class="anchored" data-anchor-id="posterior-distribution-of-theta"><span class="header-section-number">3.5.4</span> Posterior distribution of <span class="math inline">\(\theta\)</span></h3>
+<p>If the prior is <span class="math inline">\(\theta \sim \text{Gamma}(a,b),\)</span> then combining the prior with the Poisson likelihood yields <span class="math display">\[
+\begin{aligned}
+p\left(\theta \mid y_1, \ldots, y_n\right) &amp; =\pi(\theta) \times p\left(y_1, \ldots, y_n \mid \theta\right) / p\left(y_1, \ldots, y_n\right) \\
+&amp; =\left\{\theta^{a-1} e^{-b \theta}\right\} \times\left\{\theta^{\sum y_i} e^{-n \theta}\right\} \times c\left(y_1, \ldots, y_n, a, b\right) \\
+&amp; =\left\{\theta^{a+\sum y_i-1} e^{-(b+n) \theta}\right\} \times c\left(y_1, \ldots, y_n, a, b\right)\\
+&amp;\propto
+\theta^{a+\sum y_i-1} e^{-(b+n)\theta}.
+\end{aligned}
+\]</span></p>
+<p>Thus, by the uniqueness theorem (of the density), the posterior distribution is <span class="math display">\[
+\theta \mid y_1,\ldots,y_n
+\sim \text{Gamma}\big(a + \sum_{i=1}^n y_i,\; b + n\big).
+\]</span></p>
+<p>This shows that the Gamma distribution is <strong>conjugate</strong> to the Poisson likelihood.</p>
+<p><strong>Interpretation</strong></p>
+<p>Posterior inference for the Poisson model is therefore straightforward:</p>
+<ul>
+<li><p>The data enter only through the sufficient statistic <span class="math inline">\(\sum Y_i\)</span>;</p></li>
+<li><p>The posterior mean is <span class="math display">\[
+\begin{aligned}
+\mathrm{E}\left[\theta \mid y_1, \ldots, y_n\right] &amp; =\frac{a+\sum y_i}{b+n} \\
+&amp; =\frac{b}{b+n} \frac{a}{b}+\frac{n}{b+n} \frac{\sum y_i}{n}
+\end{aligned}
+\]</span></p></li>
+<li><p>This decomposition shows that it is a <strong>convex combination</strong> of the prior mean <span class="math inline">\(a/b\)</span> and the sample mean <span class="math inline">\(\bar{y}\)</span>, and gives a useful information</p></li>
+<li><p><span class="math inline">\(b\)</span> acts like the <strong>number of prior observations</strong>;</p></li>
+<li><p><span class="math inline">\(a\)</span> acts like the <strong>total count</strong> from those <span class="math inline">\(b\)</span> observations;</p></li>
+<li><p><span class="math inline">\(a/b\)</span> is the prior mean.</p></li>
+<li><p>Increasing the sample size <span class="math inline">\(n\)</span> reduces posterior uncertainty, because the ifnromation from the data <em>dominates</em> the prior belief. To see this, we have, for <span class="math inline">\(n\gg b\)</span>, we have</p></li>
+<li><p><span class="math inline">\(\mathrm{E}[\theta \mid y] \approx \bar{y}\)</span>,</p></li>
+<li><p><span class="math inline">\(\mathrm{Var}(\theta \mid y) \approx \bar{y}/n\)</span>.</p></li>
+</ul>
+<p>This conjugate structure makes the Poisson–Gamma model a convenient and interpretable starting point for Bayesian analysis of <em>count data.</em></p>
+</section>
+<section id="posterior-predictive-distribution-for-poisson-model" class="level3" data-number="3.5.5">
+<h3 data-number="3.5.5" class="anchored" data-anchor-id="posterior-predictive-distribution-for-poisson-model"><span class="header-section-number">3.5.5</span> Posterior predictive distribution for Poisson Model</h3>
+<p>We have seen that, the Bayesian prediction for a future observation <span class="math inline">\(\tilde{y}\)</span> is based on the <strong>posterior predictive distribution</strong>. In Gamma-Poisson model, we have <span class="math display">\[
+p(\tilde{y} \mid y_1,\ldots,y_n)
+=
+\int_0^\infty
+p(\tilde{y} \mid \theta, y)\,
+p(\theta \mid y_1,\ldots,y_n)
+\, d\theta.
+\]</span></p>
+<p>For the Poisson model, <span class="math display">\[
+p(\tilde{y} \mid \theta) = \text{Poisson}(\theta),
+\qquad
+p(\theta \mid y) = \text{Gamma}\!\left(a + \sum y_i,\; b + n\right).
+\]</span></p>
+<p>Substituting, <span class="math display">\[
+p(\tilde{y} \mid y)
+=
+\int_0^\infty
+\text{dpois}(\tilde{y},\theta)\,
+\text{dgamma}\!\left(\theta,\; a + \sum y_i,\; b + n\right)
+\, d\theta.
+\]</span></p>
+<p>Writing this integral explicitly, <span class="math display">\[
+p(\tilde{y} \mid y)
+=
+\int_0^\infty
+\frac{\theta^{\tilde{y}} e^{-\theta}}{\tilde{y}!}
+\cdot
+\frac{(b+n)^{a+\sum y_i}}{\Gamma(a+\sum y_i)}
+\theta^{a+\sum y_i-1} e^{-(b+n)\theta}
+\, d\theta.
+\]</span></p>
+<p>Combining terms, we have <span class="math display">\[
+p(\tilde{y} \mid y)
+=
+\frac{(b+n)^{a+\sum y_i}}{\tilde{y}!\,\Gamma(a+\sum y_i)}
+\int_0^\infty
+\theta^{a+\sum y_i+\tilde{y}-1}
+e^{-(b+n+1)\theta}
+\, d\theta.
+\]</span></p>
+<p>The integral term seems difficult to evaluate in a glance, but there is actually a clear “trick” to help use. Recall the density of a Gamma distribution: <span class="math display">\[
+1 = \int_0^\infty \frac{\beta^\alpha}{\Gamma(\alpha)} \theta^{\alpha-1} e^{-\beta\theta}\, d\theta, \quad, \alpha,\beta&gt;0,
+\]</span> which implies <span class="math display">\[
+\int_0^\infty \theta^{\alpha-1} e^{-\beta\theta}\, d\theta
+=
+\frac{\Gamma(\alpha)}{\beta^\alpha},
+\qquad \alpha,\beta&gt;0.
+\]</span></p>
+<p>Applying this with <span class="math display">\[
+\alpha = a + \sum y_i + \tilde{y},
+\qquad
+\beta = b + n + 1,
+\]</span> we obtain <span class="math display">\[
+\int_0^\infty
+\theta^{a+\sum y_i+\tilde{y}-1}
+e^{-(b+n+1)\theta}
+\, d\theta
+=
+\frac{\Gamma(a+\sum y_i+\tilde{y})}{(b+n+1)^{a+\sum y_i+\tilde{y}}}.
+\]</span></p>
+<p>Substituting back and simplifying, <span class="math display">\[
+p(\tilde{y} \mid y_1,\ldots,y_n)
+=
+\frac{\Gamma(a+\sum y_i+\tilde{y})}{\Gamma(a+\sum y_i)\,\tilde{y}!}
+\left(\frac{b+n}{b+n+1}\right)^{a+\sum y_i}
+\left(\frac{1}{b+n+1}\right)^{\tilde{y}},
+\]</span> for <span class="math inline">\(\tilde{y} \in \{0,1,2,\ldots\}\)</span>. We relieazed that it is a <strong>negative binomial distribution</strong> with parameters <span class="math inline">\((a + \sum y_i, b + n)\)</span>. That is, <span class="math inline">\(\tilde{Y} \mid y_1,\ldots,y_n \sim \text{NB}(a + \sum y_i, b + n)\)</span>. As a result, we have the mean and variance of the posterior predictive distribution</p>
+<p><span class="math display">\[\mathbb{E}(\tilde{Y} \mid y) = \frac{a + \sum y_i}{b + n}=\mathbb{E}[\theta \mid y], \]</span></p>
+<p>and</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathrm{Var}\left[\tilde{Y} \mid y_1, \ldots, y_n\right]
+&amp; =\frac{a+\sum y_i}{b+n} \frac{b+n+1}{b+n}\\
+&amp;=\operatorname{Var}\left[\theta \mid y_1, \ldots y_n\right] \times(b+n+1) \\
+&amp; =\mathbb{E}\left[\theta \mid y_1, \ldots, y_n\right] \times \frac{b+n+1}{b+n} \\
+&amp; = \frac{a + \sum y_i}{b + n} \times \frac{b + n + 1}{b + n}
+\end{aligned},
+\]</span> respectively</p>
+<p><strong>Interpretation and Take away</strong></p>
+<p>Recall that the predictive variance is to some extent a measure of our posterior uncertainty about a new observation <span class="math inline">\(\tilde{Y}\)</span>. It reflects <strong>two sources of uncertainty</strong>:</p>
+<ol type="1">
+<li><p><strong>Sampling variability</strong> (Sampling) For a Poisson model, the variance of <span class="math inline">\(Y\)</span> given <span class="math inline">\(\theta\)</span> is equal to <span class="math inline">\(\theta\)</span>.</p></li>
+<li><p><strong>Parameter uncertainty</strong> (Population) When <span class="math inline">\(\theta\)</span> is unknown, uncertainty about <span class="math inline">\(\theta\)</span> inflates the variance of future observations.</p></li>
+</ol>
+<p>For large <span class="math inline">\(n\)</span>, the data dominate the prior: <span class="math display">\[
+\frac{b + n + 1}{b + n} \approx 1,
+\]</span> so predictive uncertainty is driven primarily by sampling variability. In this case, the uncertainy abbout <span class="math inline">\(\theta\)</span> is small which for the Possion model is equal to <span class="math inline">\(theta\)</span></p>
+<p>For small <span class="math inline">\(n\)</span>, posterior uncertainty about <span class="math inline">\(\theta\)</span> is substantial, and <span class="math display">\[
+\frac{b + n + 1}{b + n} &gt; 1,
+\]</span> leading to larger predictive variance than under a fixed-<span class="math inline">\(\theta\)</span> Poisson model (i.e., larger than just the sampling variability).</p>
+<ul>
+<li>Bayesian prediction naturally incorporates both <strong>sampling variability</strong> and <strong>parameter uncertainty</strong>.</li>
+</ul>
+<p>This completes posterior inference and prediction for the Gamma-Poisson model.</p>
+</section>
+</section>
+<section id="example-birth-rates" class="level2" data-number="3.6">
+<h2 data-number="3.6" class="anchored" data-anchor-id="example-birth-rates"><span class="header-section-number">3.6</span> Example: Birth rates</h2>
+<div class="callout-example" title="Birth rates">
+<p>Over the course of the 1990s, the General Social Survey collected data on the educational attainment and number of children of women who were 40 years old at the time of participation in the survey. These women were in their 20s during the 1970s, a period of historically low fertility rates in the United States.</p>
+<p>In this example, we compare women <strong>with</strong> a bachelor’s degree to those <strong>without</strong> a bachelor’s degree in terms of their numbers of children.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03_bi-1par_files/figure-html/birth-rates-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Sampling models</strong></p>
+<p>Let</p>
+<ul>
+<li><span class="math inline">\(Y_{i,1}\)</span> denote the number of children for woman <span class="math inline">\(i\)</span> <strong>without</strong> a bachelor’s degree, <span class="math inline">\(i=1,\dots,n_1\)</span>,</li>
+<li><span class="math inline">\(Y_{i,2}\)</span> denote the number of children for woman <span class="math inline">\(i\)</span> <strong>with</strong> a bachelor’s degree, <span class="math inline">\(i=1,\dots,n_2\)</span>.</li>
+</ul>
+<p>Then, since it is a coint data, we assume the following Poisson sampling models:</p>
+<p><span class="math display">\[
+Y_{1,1}, \ldots, Y_{n_1,1} \mid \theta_1 \sim \text{i.i.d. Poisson}(\theta_1),
+\]</span></p>
+<p><span class="math display">\[
+Y_{1,2}, \ldots, Y_{n_2,2} \mid \theta_2 \sim \text{i.i.d. Poisson}(\theta_2).
+\]</span></p>
+<p>Here, <span class="math inline">\(\theta_1\)</span> and <span class="math inline">\(\theta_2\)</span> represent the population mean birth rates for the two groups.</p>
+<p><strong>Data summaries</strong></p>
+<p>The empirical summaries of the data are:</p>
+<ul>
+<li><p>No college degree: <span class="math display">\[
+n_1 = 111, \qquad \sum_{i=1}^{n_1} Y_{i,1} = 217, \qquad \bar{Y}_1 = 1.95
+\]</span></p></li>
+<li><p>Bachelor’s degree or higher: <span class="math display">\[
+n_2 = 44, \qquad \sum_{i=1}^{n_2} Y_{i,2} = 66, \qquad \bar{Y}_2 = 1.50
+\]</span></p></li>
+</ul>
+<p><strong>Prior distributions</strong></p>
+<p>We place independent Gamma priors on the two population means:</p>
+<p><span class="math display">\[
+\theta_1, \theta_2 \sim \text{i.i.d. Gamma}(a=2, b=1),
+\]</span></p>
+<p>where the Gamma distribution is parameterized by <strong>shape</strong> <span class="math inline">\(a\)</span> and <strong>rate</strong> <span class="math inline">\(b\)</span>.</p>
+<p>The prior mean is <span class="math inline">\(a/b = 2\)</span>, representing weak prior information corresponding to roughly one prior observation with an average count of two. (Why?)</p>
+<p><strong>Posterior distributions</strong></p>
+<p>Under the Poisson–Gamma conjugate model, the posterior distributions are</p>
+<p><span class="math display">\[
+\theta_1 \mid y \sim \text{Gamma}(a + \sum Y_{i,1}, \, b + n_1)
+= \text{Gamma}(219, 112),
+\]</span></p>
+<p><span class="math display">\[
+\theta_2 \mid y \sim \text{Gamma}(a + \sum Y_{i,2}, \, b + n_2)
+= \text{Gamma}(68, 45).
+\]</span></p>
+<p>These posteriors summarize our updated beliefs about the two population mean birth rates after observing the data. From the Gamma posterior distributions, we can compute posterior means, modes, and 95% quantile-based credible intervals.</p>
+<ul>
+<li><p>Posterior means: <span class="math display">\[
+\mathbb{E}(\theta_1 \mid y) = \frac{219}{112} \approx 1.96,
+\qquad
+\mathbb{E}(\theta_2 \mid y) = \frac{68}{45} \approx 1.51
+\]</span></p></li>
+<li><p>Posterior modes: <span class="math display">\[
+\text{mode}(\theta_1 \mid y) = \frac{218}{112} \approx 1.95,
+\qquad
+\text{mode}(\theta_2 \mid y) = \frac{67}{45} \approx 1.49
+\]</span></p></li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Poisson–Gamma model: two-group posterior summaries</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Prior:  theta ~ Gamma(a, b)  with shape = a, rate = b</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Data:   Yi | theta ~ i.i.d. Poisson(theta)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Posterior: theta | y ~ Gamma(a + sum(y), b + n)</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co"># ----------------------------</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 1) Inputs: prior + data</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># ----------------------------</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>b <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>group <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">group =</span> <span class="fu">c</span>(<span class="st">"Less than bachelor's"</span>, <span class="st">"Bachelor's or higher"</span>),</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">n     =</span> <span class="fu">c</span>(<span class="dv">111</span>, <span class="dv">44</span>),</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">sum_y =</span> <span class="fu">c</span>(<span class="dv">217</span>, <span class="dv">66</span>)</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="co"># ----------------------------</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="co"># 2) Posterior functions</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="co"># ----------------------------</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>post_shape <span class="ot">&lt;-</span> <span class="cf">function</span>(a, sum_y) a <span class="sc">+</span> sum_y</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>post_rate  <span class="ot">&lt;-</span> <span class="cf">function</span>(b, n)     b <span class="sc">+</span> n</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>post_mean <span class="ot">&lt;-</span> <span class="cf">function</span>(shape, rate) shape <span class="sc">/</span> rate</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>post_mode <span class="ot">&lt;-</span> <span class="cf">function</span>(shape, rate) <span class="fu">ifelse</span>(shape <span class="sc">&gt;</span> <span class="dv">1</span>, (shape <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">/</span> rate, <span class="dv">0</span>)</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>post_ci <span class="ot">&lt;-</span> <span class="cf">function</span>(shape, rate, <span class="at">level =</span> <span class="fl">0.95</span>) {</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>  alpha <span class="ot">&lt;-</span> (<span class="dv">1</span> <span class="sc">-</span> level) <span class="sc">/</span> <span class="dv">2</span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">qgamma</span>(<span class="fu">c</span>(alpha, <span class="dv">1</span> <span class="sc">-</span> alpha), <span class="at">shape =</span> shape, <span class="at">rate =</span> rate)</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a><span class="co"># ----------------------------</span></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a><span class="co"># 3) Compute summaries</span></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a><span class="co"># ----------------------------</span></span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>out <span class="ot">&lt;-</span> <span class="fu">within</span>(group, {</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>  shape_post <span class="ot">&lt;-</span> <span class="fu">post_shape</span>(a, sum_y)</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>  rate_post  <span class="ot">&lt;-</span> <span class="fu">post_rate</span>(b, n)</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>  mean_post  <span class="ot">&lt;-</span> <span class="fu">post_mean</span>(shape_post, rate_post)</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>  mode_post  <span class="ot">&lt;-</span> <span class="fu">post_mode</span>(shape_post, rate_post)</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>  ci_post    <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">mapply</span>(post_ci, shape_post, rate_post))</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>  ci_lower   <span class="ot">&lt;-</span> ci_post[, <span class="dv">1</span>]</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>  ci_upper   <span class="ot">&lt;-</span> ci_post[, <span class="dv">2</span>]</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a><span class="co"># ----------------------------</span></span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a><span class="co"># 4) Print results clearly</span></span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a><span class="co"># ----------------------------</span></span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Prior: theta ~ Gamma(shape = "</span>, a, <span class="st">", rate = "</span>, b, <span class="st">")</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Prior: theta ~ Gamma(shape = 2, rate = 1)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(out))) {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"------------------------------------------------------------</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Group: "</span>, out<span class="sc">$</span>group[i], <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"n = "</span>, out<span class="sc">$</span>n[i], <span class="st">",  sum(y) = "</span>, out<span class="sc">$</span>sum_y[i], <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Posterior: theta | y ~ Gamma(shape = "</span>, out<span class="sc">$</span>shape_post[i],</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">", rate = "</span>, out<span class="sc">$</span>rate_post[i], <span class="st">")</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"Posterior mean = %.6f</span><span class="sc">\n</span><span class="st">"</span>, out<span class="sc">$</span>mean_post[i]))</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"Posterior mode = %.6f</span><span class="sc">\n</span><span class="st">"</span>, out<span class="sc">$</span>mode_post[i]))</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"Posterior 95%% CI = [%.6f, %.6f]</span><span class="sc">\n</span><span class="st">"</span>, out<span class="sc">$</span>ci_lower[i], out<span class="sc">$</span>ci_upper[i]))</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>------------------------------------------------------------
+Group: Less than bachelor's
+n = 111,  sum(y) = 217
+Posterior: theta | y ~ Gamma(shape = 219, rate = 112)
+Posterior mean = 1.955357
+Posterior mode = 1.946429
+Posterior 95% CI = [1.704943, 2.222679]
+------------------------------------------------------------
+Group: Bachelor's or higher
+n = 44,  sum(y) = 66
+Posterior: theta | y ~ Gamma(shape = 68, rate = 45)
+Posterior mean = 1.511111
+Posterior mode = 1.488889
+Posterior 95% CI = [1.173437, 1.890836]</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>summary_tbl <span class="ot">&lt;-</span> out[, <span class="fu">c</span>(<span class="st">"group"</span>, <span class="st">"n"</span>, <span class="st">"sum_y"</span>, <span class="st">"mean_post"</span>, <span class="st">"mode_post"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>)]</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(summary_tbl, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                group   n sum_y mean_post mode_post ci_lower ci_upper
+ Less than bachelor's 111   217  1.955357  1.946429 1.704943 2.222679
+ Bachelor's or higher  44    66  1.511111  1.488889 1.173437 1.890836</code></pre>
+</div>
+</div>
+<p>The posterior distributions indicate <strong>strong evidence</strong> that the mean birth rate is higher for women without a bachelor’s degree (i.e., <span class="math inline">\(\theta_1&gt;\theta_2\)</span>). For example,</p>
+<p><span class="math display">\[
+\Pr(\theta_1 &gt; \theta_2 \mid y) \approx 0.97.
+\]</span></p>
+<p><strong>Posterior predictive distributions</strong></p>
+<p>Now consider two randomly sampled future individuals:</p>
+<ul>
+<li><span class="math inline">\(\tilde{Y}_1\)</span>: a woman without a bachelor’s degree,</li>
+<li><span class="math inline">\(\tilde{Y}_2\)</span>: a woman with a bachelor’s degree.</li>
+</ul>
+<blockquote class="blockquote">
+<p><strong>Question</strong>: To what extent do we expect the one without the college degree to have more children than the other?</p>
+</blockquote>
+<p>The posterior predictive distributions integrate over uncertainty in <span class="math inline">\(\theta\)</span>:</p>
+<p><span class="math display">\[
+p(\tilde{y} \mid y) = \int p(\tilde{y} \mid \theta)\, p(\theta \mid y)\, d\theta.
+\]</span></p>
+<p>Under the Poisson–Gamma model, the posterior predictive distributions are <strong>Negative Binomial</strong>:</p>
+<p><span class="math display">\[
+\tilde{Y}_1 \mid y \sim \text{NegBin}(a + \sum Y_{i,1}, \, b + n_1),
+\]</span></p>
+<p><span class="math display">\[
+\tilde{Y}_2 \mid y \sim \text{NegBin}(a + \sum Y_{i,2}, \, b + n_2).
+\]</span></p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 9
+  group                    n sum_y shape  rate post_mean post_mode  q025  q975
+  &lt;chr&gt;                &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 Less than bachelor's   111   217   219   112      1.96      1.95  1.70  2.22
+2 Bachelor's or higher    44    66    68    45      1.51      1.49  1.17  1.89</code></pre>
+</div>
+<div class="cell-output-display">
+<div id="fig-birth-rates-post" class="quarto-float quarto-figure quarto-figure-center anchored" width="672">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-birth-rates-post-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="03_bi-1par_files/figure-html/fig-birth-rates-post-1.png" id="fig-birth-rates-post" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-birth-rates-post-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3.1
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>y &lt;- 0:10</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Group 1: Less than bachelor's</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>size = 219   mu = 1.955357 </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] 1.427473e-01 2.766518e-01 2.693071e-01 1.755660e-01 8.622930e-02
+ [6] 3.403387e-02 1.124423e-02 3.198421e-03 7.996053e-04 1.784763e-04
+[11] 3.601115e-05</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Group 2: Bachelor's or higher</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>size = 68   mu = 1.511111 </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] 2.243460e-01 3.316420e-01 2.487315e-01 1.261681e-01 4.868444e-02
+ [6] 1.524035e-02 4.030961e-03 9.263700e-04 1.887982e-04 3.465861e-05
+[11] 5.801551e-06</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    y Less.than.bachelor.s Bachelor.s.or.higher
+1   0         1.427473e-01         2.243460e-01
+2   1         2.766518e-01         3.316420e-01
+3   2         2.693071e-01         2.487315e-01
+4   3         1.755660e-01         1.261681e-01
+5   4         8.622930e-02         4.868444e-02
+6   5         3.403387e-02         1.524035e-02
+7   6         1.124423e-02         4.030961e-03
+8   7         3.198421e-03         9.263700e-04
+9   8         7.996053e-04         1.887982e-04
+10  9         1.784763e-04         3.465861e-05
+11 10         3.601115e-05         5.801551e-06</code></pre>
+</div>
+</div>
+<p><strong>Interpretation and Conclusion</strong></p>
+<p>Although the posterior distributions of <span class="math inline">\(\theta_1\)</span> and <span class="math inline">\(\theta_2\)</span> are clearly separated, the posterior predictive distributions for <span class="math inline">\(\tilde{Y}_1\)</span> and <span class="math inline">\(\tilde{Y}_2\)</span> exhibit substantial overlap.</p>
+<p>For example,</p>
+<p><span class="math display">\[
+\Pr(\tilde{Y}_1 &gt; \tilde{Y}_2 \mid y) \approx 0.48,
+\qquad
+\Pr(\tilde{Y}_1 = \tilde{Y}_2 \mid y) \approx 0.22.
+\]</span></p>
+<p>This illustrates an important distinction:</p>
+<blockquote class="blockquote">
+<p>Strong evidence that population means differ does <strong>not</strong> imply that the difference is large or easily detectable at the individual level.</p>
+</blockquote>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Population-level effects and individual-level variability are fundamentally different sources of uncertainty.</p>
+</div>
+</div>
+</section>
+<section id="exponential-family" class="level2" data-number="3.7">
+<h2 data-number="3.7" class="anchored" data-anchor-id="exponential-family"><span class="header-section-number">3.7</span> Exponential Family</h2>
+<p>Many common sampling models belong to the <strong>exponential family</strong> of distributions, including the binomial and Poisson distribution we saw in this chapter. A one-parameter exponential family has probability density (or mass) function of the form <span class="math display">\[
+\begin{aligned}
+p(y \mid \phi)
+&amp;= h(y) \exp\{ \phi t(y) - A(\phi) \} \\
+&amp;= h(y) c(\phi) \exp\{\phi t(y)\},
+\end{aligned}
+\]</span> where <span class="math inline">\(\phi\)</span> is the unknown parameter, <span class="math inline">\(t(y)\)</span> is a sufficient statistic, and <span class="math inline">\(h(y)\)</span>, <span class="math inline">\(A(\phi)\)</span>, and <span class="math inline">\(c(\phi)\)</span> are known functions. Diaconis and Ylvisaker (1979) studied conjugate priors for exponential family models and showed that they have the general form <span class="math display">\[
+p(\phi \mid n_0, t_0) = \kappa (n_0,t_0) c(\phi)^{n_0} \exp \{n_0t_0 \phi\},
+\]</span> where <span class="math inline">\(n_0 &gt; 0\)</span> and <span class="math inline">\(t_0\)</span> are hyperparameters.</p>
+<p>With this result, and suppose the data consist of <span class="math inline">\(n\)</span> independent observations <span class="math inline">\(y_1,\ldots,y_n\)</span> are sampled from <span class="math inline">\(Y_1,\dots,Y_n \stackrel{iid}{\sim} p(y\mid \theta)\)</span>. Combining the prior with the likelihood gives the posterior distribution <span class="math display">\[
+p(\phi \mid y_1, \ldots, y_n)
+\;\propto\;
+p(\phi)\, p(y_1, \ldots, y_n \mid \phi).
+\]</span></p>
+<p>Substituting the exponential-family form, <span class="math display">\[
+\begin{aligned}
+p(\phi \mid y_1, \ldots, y_n)
+&amp;\propto
+c(\phi)^{\,n_0+n}
+\exp\left\{
+\phi \left[
+n_0 t_0 + \sum_{i=1}^n t(y_i)
+\right]
+\right\} \\
+&amp;\propto
+p\!\left(\phi \mid n_0 + n,\;
+n_0 t_0 + n \,\bar t(y)\right),
+\end{aligned}
+\]</span> where <span class="math display">\[
+\bar t(y) = \frac{1}{n}\sum_{i=1}^n t(y_i).
+\]</span></p>
+<p>Thus, the posterior distribution has the <strong>same functional form</strong> as the prior. This is why such priors are called <em>conjugate</em>.</p>
+<hr>
+<section id="interpretation-of-n_0-and-t_0" class="level3" data-number="3.7.1">
+<h3 data-number="3.7.1" class="anchored" data-anchor-id="interpretation-of-n_0-and-t_0"><span class="header-section-number">3.7.1</span> Interpretation of <span class="math inline">\(n_0\)</span> and <span class="math inline">\(t_0\)</span></h3>
+<p>The similarity between the prior and posterior distributions suggests an interpretation of the hyperparameters:</p>
+<ul>
+<li><span class="math inline">\(n_0\)</span> can be interpreted as a <strong>prior sample size</strong>,</li>
+<li><span class="math inline">\(t_0\)</span> can be interpreted as a <strong>prior guess</strong> of <span class="math inline">\(t(Y)\)</span>.</li>
+</ul>
+<p>This interpretation can be made more precise. Diaconis and Ylvisaker (1979) show that <span class="math display">\[
+\mathbb{E}[t(Y)]
+=
+\mathbb{E}\!\left[\,\mathbb{E}[t(Y)\mid \phi]\,\right]
+=
+\mathbb{E}\!\left[-\frac{c'(\phi)}{c(\phi)}\right]
+=
+t_0.
+\]</span> (See also Exercise 3.6 in Hopf, 2009)</p>
+<p>Thus, <span class="math inline">\(t_0\)</span> represents the <strong>prior expected value</strong> of the sufficient statistic <span class="math inline">\(t(Y)\)</span>.</p>
+<p>The parameter <span class="math inline">\(n_0\)</span> measures how informative the prior is. One way to see this is to note that, as a function of <span class="math inline">\(\phi\)</span>, <span class="math inline">\(p(\phi \mid n_0, t_0)\)</span> has the same shape as a likelihood <span class="math inline">\(p(\tilde y_1, \ldots, \tilde y_{n_0} \mid \phi)\)</span> based on <span class="math inline">\(n_0\)</span> hypothetical “prior observations” <span class="math inline">\(\tilde y_1, \ldots, \tilde y_{n_0}\)</span> satisfying <span class="math display">\[
+\frac{1}{n_0}\sum_{i=1}^{n_0} t(\tilde y_i) = t_0.
+\]</span></p>
+<p>In this sense, the prior distribution <span class="math inline">\(p(\phi \mid n_0, t_0)\)</span> contains the same amount of information as would be obtained from <span class="math inline">\(n_0\)</span> independent observations from the population.</p>
+<div class="callout-example" title="Binomial model in Exponential Family">
+<p>The exponential family representation of the binomial<span class="math inline">\((\theta)\)</span> model can be obtained from the density of a single Bernoulli random variable:</p>
+<p><span class="math display">\[
+p(y \mid \theta)
+=
+\theta^y (1-\theta)^{1-y}.
+\]</span></p>
+<p>Rewrite this as</p>
+<p><span class="math display">\[
+\begin{aligned}
+p(y \mid \theta)
+&amp;=
+\left( \frac{\theta}{1-\theta} \right)^y (1-\theta) \\
+&amp;=
+\exp\left\{
+y \log\left( \frac{\theta}{1-\theta} \right)
+\right\}
+(1-\theta).
+\end{aligned}
+\]</span></p>
+<p>Let</p>
+<p><span class="math display">\[
+\phi = \log\left( \frac{\theta}{1-\theta} \right),
+\]</span></p>
+<p>the <strong>log-odds</strong>. Then</p>
+<p><span class="math display">\[
+\theta = \frac{e^\phi}{1+e^\phi},
+\qquad
+1-\theta = \frac{1}{1+e^\phi}.
+\]</span></p>
+<p>Substituting gives</p>
+<p><span class="math display">\[
+p(y \mid \phi)
+=
+e^{\phi y} (1+e^\phi)^{-1}.
+\]</span></p>
+<p>Thus the Bernoulli model is an exponential family model with</p>
+<ul>
+<li><span class="math inline">\(t(y) = y\)</span>,</li>
+<li><span class="math inline">\(c(\phi) = (1+e^\phi)^{-1}\)</span>,</li>
+<li><span class="math inline">\(h(y) = 1\)</span>.</li>
+</ul>
+<p><strong>Conjugate prior</strong></p>
+<p>The conjugate prior for <span class="math inline">\(\phi\)</span> has the form</p>
+<p><span class="math display">\[
+p(\phi \mid n_0, t_0)
+\propto
+(1+e^\phi)^{-n_0}
+\exp\{ n_0 t_0 \phi \}.
+\]</span></p>
+<p>Since <span class="math inline">\(t(y)=y\)</span>, the parameter <span class="math inline">\(t_0\)</span> represents the prior expectation of <span class="math inline">\(Y\)</span>, or equivalently,</p>
+<p><span class="math display">\[
+t_0 = \mathbb{E}(\theta).
+\]</span></p>
+<p>Using a change of variables back to <span class="math inline">\(\theta\)</span>, the prior becomes</p>
+<p><span class="math display">\[
+p(\theta \mid n_0, t_0)
+\propto
+\theta^{n_0 t_0 - 1}
+(1-\theta)^{n_0 (1-t_0) - 1},
+\]</span></p>
+<p>which is a Beta distribution:</p>
+<p><span class="math display">\[
+\theta \sim \text{Beta}(n_0 t_0,\; n_0(1-t_0)).
+\]</span></p>
+<p>A weakly informative prior can be obtained by setting</p>
+<ul>
+<li><span class="math inline">\(t_0\)</span> equal to our prior expectation,</li>
+<li><span class="math inline">\(n_0 = 1\)</span>.</li>
+</ul>
+<p>For example, if our prior expectation is <span class="math inline">\(1/2\)</span>, this gives</p>
+<p><span class="math display">\[
+\theta \sim \text{Beta}(1/2, 1/2),
+\]</span></p>
+<p>which is Jeffreys’ prior for the binomial model.</p>
+<p>Under this prior, the posterior distribution is</p>
+<p><span class="math display">\[
+\theta \mid y_1, \ldots, y_n
+\sim
+\text{Beta}
+\left(
+t_0 + \sum y_i,
+\;
+(1-t_0) + \sum (1-y_i)
+\right).
+\]</span></p>
+</div>
+<div class="callout-example" title="Poisson Model in Exponential Family">
+<p>The Poisson<span class="math inline">\((\theta)\)</span> model can also be written in exponential family form.</p>
+<p>The Poisson pmf is</p>
+<p><span class="math display">\[
+p(y \mid \theta)
+=
+\frac{\theta^y e^{-\theta}}{y!}.
+\]</span></p>
+<p>Rewrite as</p>
+<p><span class="math display">\[
+p(y \mid \theta)
+=
+\frac{1}{y!}
+\exp\{ y \log\theta - \theta \}.
+\]</span></p>
+<p>Thus it is an exponential family with</p>
+<ul>
+<li><span class="math inline">\(t(y) = y\)</span>,</li>
+<li><span class="math inline">\(\phi = \log\theta\)</span>,</li>
+<li><span class="math inline">\(c(\phi) = \exp(-e^\phi)\)</span>,</li>
+<li><span class="math inline">\(h(y) = 1/y!\)</span>.</li>
+</ul>
+<p><strong>Conjugate prior</strong></p>
+<p>The conjugate prior for <span class="math inline">\(\phi\)</span> has the form</p>
+<p><span class="math display">\[
+p(\phi \mid n_0, t_0)
+\propto
+\exp\{ n_0 t_0 \phi - n_0 e^\phi \}.
+\]</span></p>
+<p>Transforming back to <span class="math inline">\(\theta = e^\phi\)</span>, this becomes</p>
+<p><span class="math display">\[
+p(\theta \mid n_0, t_0)
+\propto
+\theta^{n_0 t_0 - 1}
+e^{-n_0 \theta},
+\]</span></p>
+<p>which is a Gamma distribution:</p>
+<p><span class="math display">\[
+\theta \sim \text{Gamma}(n_0 t_0,\; n_0).
+\]</span></p>
+<p>A weakly informative prior can be obtained by setting</p>
+<ul>
+<li><span class="math inline">\(t_0\)</span> equal to the prior expectation of <span class="math inline">\(\theta\)</span>,</li>
+<li><span class="math inline">\(n_0 = 1\)</span>,</li>
+</ul>
+<p>giving</p>
+<p><span class="math display">\[
+\theta \sim \text{Gamma}(t_0, 1).
+\]</span></p>
+<p>Under this prior, the posterior distribution is</p>
+<p><span class="math display">\[
+\theta \mid y_1, \ldots, y_n
+\sim
+\text{Gamma}
+\left(
+t_0 + \sum y_i,
+\;
+n_0 + n
+\right).
+\]</span></p>
+</div>
+</section>
+</section>
+<section id="discussion" class="level2" data-number="3.8">
+<h2 data-number="3.8" class="anchored" data-anchor-id="discussion"><span class="header-section-number">3.8</span> Discussion</h2>
+<p>The notion of conjugacy for classes of prior distributions was developed in Raiffa and Schlaifer (1961). Important results on conjugacy for exponential families appear in Diaconis and Ylvisaker (1979) and Diaconis and Ylvisaker (1985). They show that any prior distribution may be approximated by a mixture of conjugate priors.</p>
+<p>Most authors refer to intervals of high posterior probability as <strong>credible intervals</strong>, as opposed to confidence intervals. However, credible intervals do not necessarily have frequentist coverage properties. In many common models they are numerically similar to classical intervals, but this is not guaranteed.</p>
+<p>Some authors argue that accurate frequentist coverage can guide the construction of prior distributions. See Kass and Wasserman (1996) for a review of formal methods for selecting prior distributions.</p>
+<hr>
+<p>This Chapter follows closely with Chapter 3 in Hoff (2009).</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./02_probability.html" class="pagination-link" aria-label="Belief function and Probability Review">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Belief function and Probability Review</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./04_MC.html" class="pagination-link" aria-label="Monte Carlo Methods">
+        <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Monte Carlo Methods</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
