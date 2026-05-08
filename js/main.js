@@ -19,11 +19,7 @@
 
     var btn = document.getElementById('theme-toggle');
     if (btn) {
-      btn.setAttribute(
-        'aria-label',
-        theme === 'dark' ? '切換為淺色模式' : '切換為深色模式'
-      );
-      btn.setAttribute('title', theme === 'dark' ? '淺色模式' : '深色模式');
+      btn.removeAttribute('title');
     }
   }
 
