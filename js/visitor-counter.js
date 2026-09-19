@@ -1,17 +1,47 @@
 (function () {
   var counter = document.getElementById('site-visitor-count');
   var value = document.getElementById('site-view-count');
-  if (!counter || !value) return;
+  var status = document.getElementById('site-view-status');
+  if (!counter || !value || !status) return;
+
+  var lastTotal = Number(counter.getAttribute('data-counter-total'));
+  var lastUpdated = counter.getAttribute('data-counter-updated');
+  var storageKey = 'site-view-total:' + counter.getAttribute('data-counter-host');
+  var requestNumber = 0;
+
+  function validTotal(total) {
+    return Number.isSafeInteger(total) && total >= 0;
+  }
+
+  function showSaved(preview) {
+    value.textContent = lastTotal.toLocaleString('en-US');
+    status.textContent = ' (' + (preview ? 'preview · ' : '') + 'saved ' + lastUpdated.slice(0, 10) + ')';
+    counter.title = 'Last confirmed cumulative total, saved ' + lastUpdated + '. '
+      + (preview ? 'Local preview visits are not counted.'
+        : 'Live counting may be blocked or unavailable; blocked visits are not recorded.');
+  }
+
+  // The HTML snapshot also works on a first visit with scripts or trackers blocked.
+  // Keep it visible while loading; never manufacture an increment locally.
+  if (!validTotal(lastTotal) || !Number.isFinite(Date.parse(lastUpdated))) return;
 
   // Preview traffic must never enter the public website's visitor count.
   if (window.location.hostname !== counter.getAttribute('data-counter-host') || window.location.port) {
-    value.textContent = 'Preview';
-    counter.title = 'Local preview is not counted. Open the published website for the total.';
+    showSaved(true);
     return;
   }
 
-  var lastTotal = null;
-  var requestNumber = 0;
+  // Storage can be denied in private browsing or by privacy settings.
+  try {
+    var saved = JSON.parse(window.localStorage.getItem(storageKey));
+    if (saved && validTotal(saved.total) && typeof saved.updated === 'string' && Number.isFinite(Date.parse(saved.updated))
+        && saved.total >= lastTotal && Date.parse(saved.updated) >= Date.parse(lastUpdated)
+        && Date.parse(saved.updated) <= Date.now()) {
+      lastTotal = saved.total;
+      lastUpdated = saved.updated;
+    }
+  } catch (error) { /* The published snapshot remains available. */ }
+  showSaved(false);
 
   function recordView() {
     var requestId = ++requestNumber;
@@ -35,32 +65,39 @@
       cleanup();
       if (requestId !== requestNumber) return;
       value.setAttribute('aria-busy', 'false');
-      if (lastTotal === null) value.textContent = 'Unavailable';
-      counter.title = lastTotal === null
-        ? 'The counting service is temporarily unavailable. Please try again on your next visit.'
-        : 'The counting service is temporarily unavailable; the last retrieved total is shown.';
+      showSaved(false);
     }
 
     window[callback] = function (data) {
       if (finished) return;
-      if (!data || !Number.isSafeInteger(data.site_pv) || data.site_pv < 0) {
+      if (!data || !validTotal(data.site_pv)) {
         unavailable();
         return;
       }
       cleanup();
       // Responses can arrive out of order after rapid section navigation.
-      lastTotal = lastTotal === null ? data.site_pv : Math.max(lastTotal, data.site_pv);
-      value.textContent = lastTotal.toLocaleString('en-US');
+      if (data.site_pv >= lastTotal) {
+        lastTotal = data.site_pv;
+        lastUpdated = new Date().toISOString();
+        value.textContent = lastTotal.toLocaleString('en-US');
+        status.textContent = '';
+        counter.title = 'Cumulative recorded page views, including repeat visits and section views';
+        try {
+          window.localStorage.setItem(storageKey, JSON.stringify({total: lastTotal, updated: lastUpdated}));
+        } catch (error) { /* Counting still works without browser storage. */ }
+      } else if (requestId === requestNumber) {
+        showSaved(false);
+      }
       if (requestId === requestNumber) {
         value.setAttribute('aria-busy', 'false');
-        counter.title = 'Cumulative recorded page views, including repeat visits and section views';
       }
     };
 
     // Use the same persistent site_pv total as the official Busuanzi client.
     // One request both records this view and returns the site's running total.
     script.src = 'https://busuanzi.ibruce.info/busuanzi?jsonpCallback=' + callback;
-    script.referrerPolicy = 'no-referrer-when-downgrade';
+    // Site totals only need the origin; Firefox rejects less restrictive policies.
+    script.referrerPolicy = 'strict-origin-when-cross-origin';
     script.async = true;
     script.onerror = unavailable;
     timeout = window.setTimeout(unavailable, 15000);
