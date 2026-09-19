@@ -47,6 +47,7 @@
 
     function showPanel(key) {
       if (!hasPanel(key)) key = defaultKey;
+      var changed = activeKey && activeKey !== key;
       activeKey = key;
       panels.forEach(function (panel) {
         var selected = panel.getAttribute('data-panel-key') === key;
@@ -63,6 +64,7 @@
         tab.setAttribute('aria-selected', String(selected));
         tab.tabIndex = selected ? 0 : -1;
       });
+      if (changed) document.dispatchEvent(new Event('site:pageview'));
     }
 
     function syncFromUrl() {
