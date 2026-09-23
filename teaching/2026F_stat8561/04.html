@@ -357,6 +357,52 @@ window.Quarto = {
 <li>partial and sequential sums of squares</li>
 </ul></li>
 </ul>
+<div class="callout callout-style-default callout-note callout-titled" title="Optional motivation: does measuring tree height add useful information?">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Optional motivation: does measuring tree height add useful information?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Suppose a forestry team wants to estimate timber volume before felling a tree. Diameter is already available; measuring height requires additional effort. Does height contribute information beyond diameter?</p>
+<p>The real <code>trees</code> dataset in R lets us explore this question with measurements on 31 felled black cherry trees. Consider three candidate mean models:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Information used</th>
+<th>Mean volume</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(M_0\)</span></td>
+<td>No tree measurements</td>
+<td><span class="math inline">\(\beta_0\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(M_1\)</span></td>
+<td>Diameter</td>
+<td><span class="math inline">\(\beta_0+\beta_1\,\mathrm{Diameter}\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(M_2\)</span></td>
+<td>Diameter and height</td>
+<td><span class="math inline">\(\beta_0+\beta_1\,\mathrm{Diameter}+\beta_2\,\mathrm{Height}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Discuss before calculating:</strong> Which comparison answers whether height adds information? Why is choosing the smallest training SSE insufficient? Keep these questions in mind; the optional data example below returns to them with fitted models.</p>
+</div>
+</div>
 <p><strong>Review of the Linear Model</strong></p>
 <p>Recall the normal linear model</p>
 <p><span class="math display">\[
@@ -379,6 +425,7 @@ window.Quarto = {
 \mathbf{e} = \mathbf{Y} - \hat{\mathbf{Y}}.
 \]</span></p>
 <p>From Chapter 2, we know that <span class="math inline">\(\hat{\mathbf{Y}}\)</span> and <span class="math inline">\(\mathbf{e}\)</span> are orthogonal. From Chapter 3, we know that this leads to useful distributional results for inference. In this chapter, we organize these ideas into the ANOVA framework.</p>
+<p><strong>Vector notation.</strong> Following the convention used in this course, <span class="math inline">\(\mathbf a=(a_1,a_2,a_3)\)</span> denotes a column vector, while <span class="math inline">\(\mathbf a^\top=(a_1\;a_2\;a_3)\)</span> denotes a row vector. Commas distinguish the column-vector tuple; spaces separate entries of the row vector.</p>
 <section id="total-explained-and-unexplained-variation" class="level2" data-number="4.1">
 <h2 data-number="4.1" class="anchored" data-anchor-id="total-explained-and-unexplained-variation"><span class="header-section-number">4.1</span> Total, Explained, and Unexplained Variation</h2>
 <p>A central question in regression is: How much of the variation in the response can be explained by the model? To answer this, we decompose the total variation in <span class="math inline">\(\mathbf{Y}\)</span> into:</p>
@@ -439,6 +486,12 @@ window.Quarto = {
 <p><span class="math display">\[
 \mathrm{SST} = \mathrm{SSR} + \mathrm{SSE}.
 \]</span></p>
+<div id="exr-identify-anova-deviations" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 4.1 (In Class: One Observation, Three Deviations)</strong></span> For one observation, <span class="math inline">\(y_i=1\)</span>, <span class="math inline">\(\hat y_i=1.2\)</span>, and <span class="math inline">\(\bar y=3\)</span>. In one minute, identify the total, explained, and residual deviations. Does the squared total deviation equal the sum of the other two squared deviations for this observation?</p>
+</div>
+<div id="sol-identify-anova-deviations" class="proof solution">
+<p><span class="proof-title"><em>Solution 4.1</em>. </span>The deviations are <span class="math inline">\(y_i-\bar y=-2\)</span>, <span class="math inline">\(\hat y_i-\bar y=-1.8\)</span>, and <span class="math inline">\(y_i-\hat y_i=-0.2\)</span>. They add as signed deviations: <span class="math inline">\(-2=-1.8-0.2\)</span>. Their squares do not add: <span class="math inline">\(4\ne3.24+0.04\)</span>. The ANOVA identity holds after summing over all observations because the fitted and residual vectors are orthogonal; it is not a point-by-point identity for squared deviations.</p>
+</div>
 <p><strong>Degrees of Freedom</strong></p>
 <p>The ANOVA decomposition is accompanied by a decomposition of degrees of freedom. When the model includes an intercept and <span class="math inline">\(\mathbf{X}\)</span> has rank <span class="math inline">\(p\)</span>, we have:</p>
 <ul>
@@ -487,6 +540,12 @@ F=\frac{\mathrm{SSR}/(p-1)}{\mathrm{SSE}/(n-p)}
 <li>how much noise remains in the residuals.</li>
 </ul>
 <p>If the predictors have no effect, then both quantities should be of similar size, and the ratio should not be unusually large. If the predictors explain substantial variation, then the numerator should be much larger than the denominator.</p>
+<div id="exr-overall-f-question" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 4.2 (In Class: What Does an Overall Rejection Mean?)</strong></span> An intercept model with two predictors is fitted to <span class="math inline">\(n=25\)</span> observations using a full-rank design. Write the overall null hypothesis and the F reference degrees of freedom under the normal linear model. If the test rejects, must both individual slope tests also reject?</p>
+</div>
+<div id="sol-overall-f-question" class="proof solution">
+<p><span class="proof-title"><em>Solution 4.2</em>. </span>Here <span class="math inline">\(p=3\)</span>, so <span class="math inline">\(H_0:\beta_1=\beta_2=0\)</span> and the reference distribution is <span class="math inline">\(F_{2,22}\)</span>. Rejection gives evidence that the two slopes are not jointly zero. It does not show that both are nonzero, and it does not require either individual test to reject at the same level. Joint and individual tests answer different questions, especially when predictors are correlated.</p>
+</div>
 <p><strong>Relationship to the Intercept-Only Model</strong></p>
 <p>The overall <span class="math inline">\(F\)</span> test compares two models:</p>
 <ul>
@@ -535,6 +594,12 @@ F=\frac{(\mathrm{SSE}_R-\mathrm{SSE}_F)/(p_F-p_R)}{\mathrm{SSE}_F/(n-p_F)}
 <div class="callout-body-container callout-body">
 <p>Different missing-value patterns can cause two R fits to use different observations. Construct a common analysis dataset before comparing them. For one added coefficient, the partial F statistic equals the square of its two-sided t-test statistic from the full model.</p>
 </div>
+</div>
+<div id="exr-partial-f-short-calculation" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 4.3 (In Class: A Better Fit, but Enough Improvement?)</strong></span> Two nested models use the same <span class="math inline">\(n=30\)</span> observations. The reduced model has rank <span class="math inline">\(p_R=2\)</span> and <span class="math inline">\(\mathrm{SSE}_R=90\)</span>; the full model has rank <span class="math inline">\(p_F=4\)</span> and <span class="math inline">\(\mathrm{SSE}_F=78\)</span>. Compute the extra sum of squares, its degrees of freedom, the full-model MSE, and the partial F statistic. Does a reduction in SSE by itself justify rejecting the reduced model?</p>
+</div>
+<div id="sol-partial-f-short-calculation" class="proof solution">
+<p><span class="proof-title"><em>Solution 4.3</em>. </span>The improvement is <span class="math inline">\(90-78=12\)</span> on <span class="math inline">\(4-2=2\)</span> degrees of freedom. The full-model MSE is <span class="math inline">\(78/(30-4)=3\)</span>, so <span class="math inline">\(F=(12/2)/3=2\)</span>. Under the normal-model null, compare this with <span class="math inline">\(F_{2,26}\)</span>; the upper-tail p-value is about <span class="math inline">\(0.156\)</span>. The improvement is insufficient for rejection at the 5% level. More flexibility always weakly reduces training SSE, including when the added coefficients are zero.</p>
 </div>
 <p><strong>Connection with General Linear Hypotheses</strong></p>
 <p>Nested column-space models correspond to linear restrictions on the full-model coefficients. More generally, Chapter 3 allows a specified affine restriction of the form</p>
@@ -617,6 +682,12 @@ R^2_{\mathrm{adj}}
 </tbody>
 </table>
 <p>The model has <span class="math inline">\(R^2=7.2/8=0.9\)</span>, yet the F-test p-value is <span class="math inline">\(P(F_{1,2}\ge18)\approx0.0513\)</span>. With only two residual degrees of freedom, a high training <span class="math inline">\(R^2\)</span> does not automatically give evidence at the 5% significance level.</p>
+</div>
+<div id="exr-r-squared-versus-adjustment" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 4.4 (In Class: Can Two Fit Summaries Disagree?)</strong></span> For the same <span class="math inline">\(n=10\)</span> observations with <span class="math inline">\(\mathrm{SST}=100\)</span>, an intercept model has rank 2 and SSE 20. Adding a predictor whose column is linearly independent of the existing columns increases the rank to 3 and reduces SSE to 19. Compute <span class="math inline">\(R^2\)</span> and adjusted <span class="math inline">\(R^2\)</span> for both fits. Did the one-unit reduction in SSE improve both summaries?</p>
+</div>
+<div id="sol-r-squared-versus-adjustment" class="proof solution">
+<p><span class="proof-title"><em>Solution 4.4</em>. </span>Ordinary <span class="math inline">\(R^2\)</span> increases from <span class="math inline">\(1-20/100=0.80\)</span> to <span class="math inline">\(1-19/100=0.81\)</span>. Adjusted <span class="math inline">\(R^2\)</span> decreases from <span class="math inline">\(1-(20/8)/(100/9)=0.775\)</span> to <span class="math inline">\(1-(19/7)/(100/9)\approx0.756\)</span>. The extra predictor reduces SSE but increases residual mean square, from <span class="math inline">\(2.5\)</span> to about <span class="math inline">\(2.714\)</span>. Neither summary alone establishes better prediction on new observations.</p>
 </div>
 <p><strong>ANOVA Table Structure</strong></p>
 <p>A standard regression ANOVA table has the following structure:</p>
@@ -896,6 +967,114 @@ F-statistic: 49.46 on 2 and 5 DF,  p-value: 0.0005079</code></pre>
 <li><code>summary(fit)</code> reports the overall <span class="math inline">\(F\)</span> statistic, <span class="math inline">\(R^2\)</span>, and adjusted <span class="math inline">\(R^2\)</span>.</li>
 </ul>
 <p>Students should understand that these outputs are not separate topics. They are all built from the same least squares geometry and distribution theory.</p>
+<div id="exm-timber-volume" class="theorem example">
+<p><span class="theorem-title"><strong>Example 4.3 (Optional Real-Data Example: Is Tree Height Useful Beyond Diameter?)</strong></span> Return to the forestry question. R’s <code>trees</code> data contain timber volume in cubic feet, height in feet, and a variable named <code>Girth</code> that is actually <strong>diameter in inches</strong>, measured 4 feet 6 inches above the ground. We rename it <code>Diameter</code> to avoid that labeling trap. Each row represents one of 31 felled black cherry trees. See the <a href="https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/trees.html">official dataset documentation</a> for the source and measurement definitions.</p>
+<p><strong>State the question first.</strong> Comparing <span class="math inline">\(M_0\)</span> with <span class="math inline">\(M_2\)</span> asks whether diameter and height together improve on a constant mean. Comparing <span class="math inline">\(M_1\)</span> with <span class="math inline">\(M_2\)</span> asks whether height contributes after adjusting for diameter. For the second question, <span class="math inline">\(H_0:\beta_{\mathrm{Height}}=0\)</span>. These are distinct questions even though both use an F test.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>tree_dat <span class="ot">&lt;-</span> datasets<span class="sc">::</span>trees</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>tree_dat<span class="sc">$</span>Diameter <span class="ot">&lt;-</span> tree_dat<span class="sc">$</span>Girth</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>tree_dat <span class="ot">&lt;-</span> tree_dat[, <span class="fu">c</span>(<span class="st">"Volume"</span>, <span class="st">"Diameter"</span>, <span class="st">"Height"</span>)]</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="sc">!</span><span class="fu">anyNA</span>(tree_dat))</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>fit_tree0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> tree_dat)</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>fit_tree_d <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Diameter, <span class="at">data =</span> tree_dat)</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>fit_tree_dh <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Diameter <span class="sc">+</span> Height, <span class="at">data =</span> tree_dat)</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">"Constant mean"</span>, <span class="st">"Diameter"</span>, <span class="st">"Diameter + height"</span>),</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">Rank =</span> <span class="fu">c</span>(fit_tree0<span class="sc">$</span>rank, fit_tree_d<span class="sc">$</span>rank, fit_tree_dh<span class="sc">$</span>rank),</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">SSE =</span> <span class="fu">c</span>(<span class="fu">deviance</span>(fit_tree0), <span class="fu">deviance</span>(fit_tree_d),</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>          <span class="fu">deviance</span>(fit_tree_dh))), <span class="at">digits =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Model</th>
+<th style="text-align: right;">Rank</th>
+<th style="text-align: right;">SSE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Constant mean</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">8106.08</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Diameter</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">524.30</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Diameter + height</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">421.92</td>
+</tr>
+</tbody>
+</table>
+</div>
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(fit_tree_d, fit_tree_dh)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Variance Table
+
+Model 1: Volume ~ Diameter
+Model 2: Volume ~ Diameter + Height
+  Res.Df    RSS Df Sum of Sq      F  Pr(&gt;F)  
+1     29 524.30                              
+2     28 421.92  1    102.38 6.7943 0.01449 *
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p><strong>Read the comparison.</strong> The SSE drops from about <span class="math inline">\(524.30\)</span> to <span class="math inline">\(421.92\)</span>. The added term uses one degree of freedom, and the full model has <span class="math inline">\(31-3=28\)</span> residual degrees of freedom. Thus</p>
+<p><span class="math display">\[
+F=\frac{(524.30-421.92)/1}{421.92/28}\approx6.79,
+\qquad p\approx0.0145.
+\]</span></p>
+<p>Under the stated normal, common-variance error model, this provides evidence against a zero height coefficient after accounting for diameter. It is not the overall test of both slopes.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>op <span class="ot">&lt;-</span> <span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">4</span>, <span class="fl">2.2</span>, <span class="fl">0.6</span>),</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">mgp =</span> <span class="fu">c</span>(<span class="fl">2.4</span>, <span class="fl">0.7</span>, <span class="dv">0</span>))</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>tree_models <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="st">"Diameter only"</span> <span class="ot">=</span> fit_tree_d,</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"Diameter + height"</span> <span class="ot">=</span> fit_tree_dh)</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>volume_limits <span class="ot">&lt;-</span> <span class="fu">range</span>(<span class="fu">c</span>(tree_dat<span class="sc">$</span>Volume, <span class="fu">fitted</span>(fit_tree_d),</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>                         <span class="fu">fitted</span>(fit_tree_dh)))</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (label <span class="cf">in</span> <span class="fu">names</span>(tree_models)) {</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>  prediction <span class="ot">&lt;-</span> <span class="fu">fitted</span>(tree_models[[label]])</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(tree_dat<span class="sc">$</span>Diameter, tree_dat<span class="sc">$</span>Volume, <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">cex =</span> <span class="fl">0.65</span>,</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylim =</span> volume_limits, <span class="at">xlab =</span> <span class="st">"Diameter (inches)"</span>,</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylab =</span> <span class="st">"Timber volume (cubic feet)"</span>, <span class="at">main =</span> label)</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">segments</span>(tree_dat<span class="sc">$</span>Diameter, tree_dat<span class="sc">$</span>Volume,</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>           tree_dat<span class="sc">$</span>Diameter, prediction, <span class="at">col =</span> <span class="st">"darkorange3"</span>)</span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">points</span>(tree_dat<span class="sc">$</span>Diameter, prediction, <span class="at">pch =</span> <span class="dv">1</span>,</span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>         <span class="at">col =</span> <span class="st">"steelblue4"</span>, <span class="at">cex =</span> <span class="fl">0.8</span>)</span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">legend</span>(<span class="st">"topleft"</span>, <span class="fu">c</span>(<span class="st">"Observed"</span>, <span class="st">"Fitted"</span>), <span class="at">pch =</span> <span class="fu">c</span>(<span class="dv">16</span>, <span class="dv">1</span>),</span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"black"</span>, <span class="st">"steelblue4"</span>), <span class="at">bty =</span> <span class="st">"n"</span>, <span class="at">cex =</span> <span class="fl">0.8</span>)</span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(op)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-tree-model-comparison" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-tree-model-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="04_files/figure-html/fig-tree-model-comparison-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-tree-model-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4.2: The same 31 trees under two mean models. Black dots are measured volumes; blue circles are fitted volumes. Orange segments show residuals. Adding height reduces the sum of squared residual lengths, but the F test asks whether that improvement is large relative to the estimated noise.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Check your understanding.</strong> Why use 28 rather than 29 in the variance estimate? What would change if some trees had missing heights? The denominator comes from the full model. With missing heights, first form one common dataset and refit both models on it; comparing fits on different observations confounds the added predictor with a changed sample.</p>
+<p><strong>What this example does not settle.</strong> These are observational measurements, so the comparison is not a causal effect of making a tree taller. A statistically significant height term also does not decide whether measuring height is worth its cost or how much it helps predict new trees. Those decisions require practical error tolerances and validation. Inspect residuals and the mean function before using the raw-scale linear model operationally; transformations and model assessment appear later in the course.</p>
+</div>
 <p><strong>In-Class Discussion Questions</strong></p>
 <ol type="1">
 <li>Why does the ANOVA decomposition require an intercept for the usual SST = SSR + SSE identity?</li>
