@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Appendix G — Mixed-Effects Models (Optional) – STAT8561 - Linear Statistical Analysis I</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./App_F-quantile-regression.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-de3257830c0d0a37460d18c755b5b021.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+<link href="./Assignment1.html" rel="next">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT8561 - Linear Statistical Analysis I</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8561"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="././STAT8561---Linear-Statistical-Analysis-I.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./App_A-matrix.html">Appendices</a></li><li class="breadcrumb-item"><a href="./App_G-mixed-effects.html"><span class="chapter-number">G</span>&nbsp; <span class="chapter-title">Mixed-Effects Models (Optional)</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01_matrix_representation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Matrix Representation and Notation</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_LSE.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Least Squares Estimation</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_OLS_inference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Distribution Theory of OLS and Inference</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Model Comparison, Partial F Tests, and ANOVA</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendix</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./App_A-matrix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Matrix Algebra Review</span></a>
+  </div>
+</li>
+      <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./App_F-quantile-regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Quantile Regression (Optional)</span></a>
+  </div>
+</li>
+<li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./App_G-mixed-effects.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Mixed-Effects Models (Optional)</span></a>
+  </div>
+</li>
+</ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Assessments</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Assignment1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assignment 1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Assignment2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assignment 2</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#why-group-membership-changes-the-analysis" id="toc-why-group-membership-changes-the-analysis" class="nav-link active" data-scroll-target="#why-group-membership-changes-the-analysis"><span class="header-section-number">G.1</span> Why group membership changes the analysis</a></li>
+  <li><a href="#partial-pooling-and-shrinkage" id="toc-partial-pooling-and-shrinkage" class="nav-link" data-scroll-target="#partial-pooling-and-shrinkage"><span class="header-section-number">G.2</span> Partial pooling and shrinkage</a></li>
+  <li><a href="#optional-application-repeated-measurements-and-random-slopes" id="toc-optional-application-repeated-measurements-and-random-slopes" class="nav-link" data-scroll-target="#optional-application-repeated-measurements-and-random-slopes"><span class="header-section-number">G.3</span> Optional application: repeated measurements and random slopes</a></li>
+  <li><a href="#inference-model-checks-and-further-reading" id="toc-inference-model-checks-and-further-reading" class="nav-link" data-scroll-target="#inference-model-checks-and-further-reading"><span class="header-section-number">G.4</span> Inference, model checks, and further reading</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./App_A-matrix.html">Appendices</a></li><li class="breadcrumb-item"><a href="./App_G-mixed-effects.html"><span class="chapter-number">G</span>&nbsp; <span class="chapter-title">Mixed-Effects Models (Optional)</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span id="sec-mixed-effects" class="quarto-section-identifier">Appendix G — Mixed-Effects Models (Optional)</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-default callout-note callout-titled" title="Optional self-study appendix">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Optional self-study appendix
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This reading extends linear models to grouped and repeated observations. It is supplementary to the main lecture sequence. Chapters 1, 3, and 7 supply the useful prerequisites: covariance, inference, and the experimental unit. The R examples use <code>lme4</code>; install it once with <code>install.packages("lme4")</code> if needed. The covariance connection to GLS is developed here, so the GLS appendix is not a prerequisite.</p>
+</div>
+</div>
+<section id="why-group-membership-changes-the-analysis" class="level2" data-number="G.1">
+<h2 data-number="G.1" class="anchored" data-anchor-id="why-group-membership-changes-the-analysis"><span class="header-section-number">G.1</span> Why group membership changes the analysis</h2>
+<p>Measurements from the same person, classroom, clinic, or production batch often share influences. Treating all rows as independent can give misleading standard errors. Repeated measurements provide information about within-unit change, but they do not create additional independently sampled or randomized units.</p>
+<p>A linear mixed-effects model combines shared regression coefficients with group-specific deviations. <strong>Fixed effects</strong> describe common coefficients, possibly including measured group characteristics. <strong>Random effects</strong> represent latent group deviations through a distribution. These terms describe components of the model; they do not mean that a predictor must be nonrandom or that treatment assignment was randomized.</p>
+<div id="def-random-intercept" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition G.1 (A Random-Intercept Model)</strong></span> For observation <span class="math inline">\(i\)</span> in group <span class="math inline">\(j\)</span>, let</p>
+<p><span class="math display">\[
+\begin{gathered}
+Y_{ij}=\beta_0+\beta_1x_{ij}+b_j+\varepsilon_{ij},\\
+b_j\overset{\mathrm{iid}}{\sim}N(0,\tau^2),\qquad
+\varepsilon_{ij}\overset{\mathrm{iid}}{\sim}N(0,\sigma^2).
+\end{gathered}
+\]</span></p>
+<p>Condition on the observed predictors. Assume that the group effects and residual errors are mutually independent, with the displayed distributions unchanged after conditioning on those predictors. Conditional on <span class="math inline">\(b_j\)</span>, the group has intercept <span class="math inline">\(\beta_0+b_j\)</span>. After integrating over <span class="math inline">\(b_j\)</span>, its mean is <span class="math inline">\(\beta_0+\beta_1x_{ij}\)</span>.</p>
+</div>
+<p>For two distinct observations in the same group, the shared <span class="math inline">\(b_j\)</span> gives covariance <span class="math inline">\(\tau^2\)</span>; their marginal variances are <span class="math inline">\(\tau^2+\sigma^2\)</span>. Therefore the within-group correlation in this simple model is</p>
+<p><span class="math display">\[
+\operatorname{ICC}=\frac{\tau^2}{\tau^2+\sigma^2}.
+\]</span></p>
+<p>This intraclass correlation describes the fraction of conditional-on-predictors variation attributable to a shared group intercept. It is not a universal correlation formula: random slopes or additional residual correlation change it.</p>
+<p><strong>Connection to the course.</strong> In matrix notation,</p>
+<p><span class="math display">\[
+\begin{gathered}
+Y=X\beta+Zb+\varepsilon,\qquad b\sim N(0,G),\qquad
+\varepsilon\sim N(0,R),\\
+\operatorname{Var}(Y\mid X,Z)=ZGZ^\top+R,
+\end{gathered}
+\]</span></p>
+<p>with <span class="math inline">\(b\)</span> and <span class="math inline">\(\varepsilon\)</span> independent and the design conditioned on. For a known covariance <span class="math inline">\(V=ZGZ^\top+R\)</span>, estimation of <span class="math inline">\(\beta\)</span> has the GLS form. In practice, the covariance parameters are estimated too, so the exact OLS t/F theory does not transfer unchanged.</p>
+<div class="callout callout-style-default callout-important callout-titled" title="A random intercept does not repair every dependence problem">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>A random intercept does not repair every dependence problem
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The basic model assumes independent groups and independent residual errors conditional on the random effects. Serial correlation, household relationships across groups, or an omitted random slope may require a different covariance structure. A random-effects model also does not remove confounding: correlation between group effects and predictors can invalidate its interpretation unless modeled appropriately.</p>
+</div>
+</div>
+</section>
+<section id="partial-pooling-and-shrinkage" class="level2" data-number="G.2">
+<h2 data-number="G.2" class="anchored" data-anchor-id="partial-pooling-and-shrinkage"><span class="header-section-number">G.2</span> Partial pooling and shrinkage</h2>
+<p>Three possible analyses of group means illustrate what the random-effects assumption adds:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Approach</th>
+<th>What is shared?</th>
+<th>Main tradeoff</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Complete pooling</td>
+<td>One mean for every group</td>
+<td>Ignores genuine group differences.</td>
+</tr>
+<tr class="even">
+<td>Separate group means</td>
+<td>Each group has its own unrestricted mean</td>
+<td>Small groups can have very noisy estimates.</td>
+</tr>
+<tr class="odd">
+<td>Partial pooling</td>
+<td>Groups share a distribution of deviations</td>
+<td>Stabilizes estimates using an explicit exchangeability assumption.</td>
+</tr>
+</tbody>
+</table>
+<div id="prp-random-intercept-shrinkage" class="theorem proposition">
+<p><span class="theorem-title"><strong>Proposition G.1 (Shrinkage in the Intercept-Only Model)</strong></span> For <span class="math inline">\(Y_{ij}=\mu+b_j+\varepsilon_{ij}\)</span> under the Gaussian assumptions above, suppose <span class="math inline">\(\mu\)</span>, <span class="math inline">\(\tau^2&gt;0\)</span>, and <span class="math inline">\(\sigma^2&gt;0\)</span> are known. If group <span class="math inline">\(j\)</span> has <span class="math inline">\(n_j\)</span> observations, then</p>
+<p><span class="math display">\[
+\mathbb{E}(\mu+b_j\mid\bar Y_j)
+=\mu+w_j(\bar Y_j-\mu),\qquad
+w_j=\frac{\tau^2}{\tau^2+\sigma^2/n_j}.
+\]</span></p>
+<p>The conditional group mean is a weighted average of the observed group mean and the common mean. Small groups have less precise sample means and receive more shrinkage toward the common mean. Larger between-group variation reduces shrinkage.</p>
+</div>
+<p><strong>Why the weight appears.</strong> The sample mean contains a group signal <span class="math inline">\(b_j\)</span> with variance <span class="math inline">\(\tau^2\)</span> and averaged residual noise with variance <span class="math inline">\(\sigma^2/n_j\)</span>. Conditioning a jointly normal pair yields the signal-to-total-variance weight. Plugging estimated parameters into this expression gives an empirical best linear unbiased prediction (empirical BLUP) in this simple model. More general random-slope models have a matrix version rather than this scalar weight.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8561</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>n_group <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">12</span>, <span class="dv">16</span>, <span class="dv">20</span>, <span class="dv">24</span>, <span class="dv">30</span>, <span class="dv">40</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>group <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">rep</span>(LETTERS[<span class="fu">seq_along</span>(n_group)], n_group))</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>b_true <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(n_group), <span class="at">sd =</span> <span class="dv">2</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>dat_group <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(group,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="dv">12</span> <span class="sc">+</span> b_true[<span class="fu">as.integer</span>(group)] <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(group), <span class="at">sd =</span> <span class="dv">3</span>))</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>fit_pool <span class="ot">&lt;-</span> lme4<span class="sc">::</span><span class="fu">lmer</span>(y <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> group), <span class="at">data =</span> dat_group,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                       <span class="at">REML =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>mu_hat <span class="ot">&lt;-</span> <span class="fu">unname</span>(lme4<span class="sc">::</span><span class="fu">fixef</span>(fit_pool)[<span class="dv">1</span>])</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>tau2_hat <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(lme4<span class="sc">::</span><span class="fu">VarCorr</span>(fit_pool)<span class="sc">$</span>group[<span class="dv">1</span>, <span class="dv">1</span>])</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>sigma2_hat <span class="ot">&lt;-</span> <span class="fu">sigma</span>(fit_pool)<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>raw_mean <span class="ot">&lt;-</span> <span class="fu">tapply</span>(dat_group<span class="sc">$</span>y, dat_group<span class="sc">$</span>group, mean)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>shrunk_mean <span class="ot">&lt;-</span> mu_hat <span class="sc">+</span> lme4<span class="sc">::</span><span class="fu">ranef</span>(fit_pool)<span class="sc">$</span>group[, <span class="st">"(Intercept)"</span>]</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>w_hat <span class="ot">&lt;-</span> tau2_hat <span class="sc">/</span> (tau2_hat <span class="sc">+</span> sigma2_hat <span class="sc">/</span> n_group)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">data.frame</span>(<span class="at">n =</span> n_group, raw_mean, <span class="at">mixed_mean =</span> shrunk_mean,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>                 <span class="at">weight_on_group_mean =</span> w_hat), <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>   n raw_mean mixed_mean weight_on_group_mean
+A  3   16.277     14.780                0.647
+B  4    9.330     10.117                0.709
+C  5   15.146     14.380                0.753
+D  6   12.371     12.300                0.786
+E  8   12.053     12.051                0.830
+F 10   11.601     11.663                0.859
+G 12    7.901      8.399                0.880
+H 16   11.816     11.837                0.907
+I 20   12.033     12.033                0.924
+J 24   16.297     16.025                0.936
+K 30    8.738      8.909                0.948
+L 40   11.989     11.991                0.961</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">ICC =</span> tau2_hat <span class="sc">/</span> (tau2_hat <span class="sc">+</span> sigma2_hat))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>      ICC 
+0.3790268 </code></pre>
+</div>
+</div>
+<p>The syntax <code>(1 | group)</code> requests a random intercept for each group. The shared intercept is returned by <code>fixef()</code>, while <code>ranef()</code> returns estimated group deviations. These are different quantities; adding them gives the fitted group mean in this intercept-only example. See the <a href="https://lme4.github.io/lme4/reference/lmer.html"><code>lmer()</code> reference</a> for model syntax.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>j <span class="ot">&lt;-</span> <span class="fu">seq_along</span>(n_group)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(raw_mean, j, <span class="at">pch =</span> <span class="dv">1</span>, <span class="at">xlim =</span> <span class="fu">range</span>(<span class="fu">c</span>(raw_mean, shrunk_mean)),</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylim =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fu">length</span>(j) <span class="sc">+</span> <span class="dv">2</span>), <span class="at">yaxt =</span> <span class="st">"n"</span>, <span class="at">xlab =</span> <span class="st">"Group mean"</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">"Group and sample size"</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">axis</span>(<span class="dv">2</span>, <span class="at">at =</span> j, <span class="at">labels =</span> <span class="fu">paste0</span>(<span class="fu">levels</span>(group), <span class="st">" ("</span>, n_group, <span class="st">")"</span>),</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">las =</span> <span class="dv">1</span>, <span class="at">cex.axis =</span> <span class="fl">0.75</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">segments</span>(raw_mean, j, shrunk_mean, j, <span class="at">col =</span> <span class="st">"gray60"</span>, <span class="at">lwd =</span> <span class="fl">1.5</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(shrunk_mean, j, <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">col =</span> <span class="st">"steelblue4"</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="fu">segments</span>(mu_hat, <span class="fl">0.5</span>, mu_hat, <span class="fu">length</span>(j) <span class="sc">+</span> <span class="fl">0.35</span>,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">"darkorange3"</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"top"</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Separate means"</span>, <span class="st">"Partial pooling"</span>),</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">16</span>), <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"black"</span>, <span class="st">"steelblue4"</span>),</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">horiz =</span> <span class="cn">TRUE</span>, <span class="at">cex =</span> <span class="fl">0.85</span>, <span class="at">bty =</span> <span class="st">"n"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-mixed-partial-pooling" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mixed-partial-pooling-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="App_G-mixed-effects_files/figure-html/fig-mixed-partial-pooling-1.png" class="img-fluid figure-img" width="624">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mixed-partial-pooling-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;G.1: Unpooled sample means and partially pooled group means in simulated data. The dashed line is the fitted common mean. The amount of shrinkage reflects group sample size and the estimated variance components.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>What shrinkage does not establish.</strong> It is not evidence that a small group’s true mean equals the common mean. It reflects uncertainty and the assumed distribution of group effects. Point predictions of group deviations are also not confidence intervals or a justified ranking of all groups.</p>
+</section>
+<section id="optional-application-repeated-measurements-and-random-slopes" class="level2" data-number="G.3">
+<h2 data-number="G.3" class="anchored" data-anchor-id="optional-application-repeated-measurements-and-random-slopes"><span class="header-section-number">G.3</span> Optional application: repeated measurements and random slopes</h2>
+<div class="callout callout-style-default callout-note callout-titled" title="Optional application: reaction times during sleep restriction">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Optional application: reaction times during sleep restriction
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The public <code>sleepstudy</code> data bundled with <code>lme4</code> contain repeated reaction-time measurements for 18 subjects. <code>Reaction</code> is the average reaction time for a subject on a recorded day, measured in milliseconds. Days 0–1 are adaptation/training and day 2 is baseline. We use baseline and later measurements, with <code>day = Days - 2</code>. The independent grouping unit is the subject. This linear-trend example is not an estimate of a randomized treatment contrast. See the <a href="https://lme4.github.io/lme4/reference/sleepstudy.html">dataset documentation</a> for the study and variables.</p>
+</div>
+</div>
+<p>A random intercept shifts a subject’s line vertically. A <strong>random slope</strong> also allows the subject’s rate of change to vary:</p>
+<p><span class="math display">\[
+Y_{ij}=\beta_0+\beta_1t_{ij}+b_{0j}+b_{1j}t_{ij}+\varepsilon_{ij},
+\qquad
+\begin{pmatrix}b_{0j}\\b_{1j}\end{pmatrix}\sim N_2(0,G).
+\]</span></p>
+<p>Here <span class="math inline">\(\beta_1\)</span> describes the average linear trend across the modeled subject population, while <span class="math inline">\(\beta_1+b_{1j}\)</span> is the subject-specific slope. Allowing covariance between <span class="math inline">\(b_{0j}\)</span> and <span class="math inline">\(b_{1j}\)</span> recognizes that baseline level and rate of change may be related.</p>
+<p><strong>A covariance model as well as a mean model.</strong> For two measurements on the same subject, at distinct occasions <span class="math inline">\(t\)</span> and <span class="math inline">\(s\)</span>, the covariance contributed by the random effects is <span class="math inline">\(g_{00}+(t+s)g_{01}+tsg_{11}\)</span>. Thus correlations can depend on the observation times. One constant random-intercept ICC no longer summarizes the whole dependence structure.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"sleepstudy"</span>, <span class="at">package =</span> <span class="st">"lme4"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>study <span class="ot">&lt;-</span> <span class="fu">subset</span>(sleepstudy, Days <span class="sc">&gt;=</span> <span class="dv">2</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>study<span class="sc">$</span>day <span class="ot">&lt;-</span> study<span class="sc">$</span>Days <span class="sc">-</span> <span class="dv">2</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>fit_sleep <span class="ot">&lt;-</span> lme4<span class="sc">::</span><span class="fu">lmer</span>(Reaction <span class="sc">~</span> day <span class="sc">+</span> (day <span class="sc">|</span> Subject),</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                        <span class="at">data =</span> study, <span class="at">REML =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>lme4<span class="sc">::</span><span class="fu">fixef</span>(fit_sleep)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>(Intercept)         day 
+  267.96742    11.43543 </code></pre>
+</div>
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>lme4<span class="sc">::</span><span class="fu">VarCorr</span>(fit_sleep)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> Groups   Name        Std.Dev. Corr  
+ Subject  (Intercept) 30.9573        
+          day          6.7659  0.178 
+ Residual             25.5264        </code></pre>
+</div>
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>lme4<span class="sc">::</span><span class="fu">isSingular</span>(fit_sleep)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] FALSE</code></pre>
+</div>
+</div>
+<p>In <code>(day | Subject)</code>, the random intercept is included along with the random slope, and their covariance is estimated. This is a model for continuous Gaussian responses. Binary or count outcomes with random effects lead to <strong>generalized linear mixed models</strong>, which add a link and response family; they require further study beyond this appendix.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>subjects <span class="ot">&lt;-</span> <span class="fu">levels</span>(study<span class="sc">$</span>Subject)[<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>]</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>plot_grid <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">day =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">7</span>, <span class="at">length.out =</span> <span class="dv">40</span>),</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>                         <span class="at">Subject =</span> subjects)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>plot_grid<span class="sc">$</span>conditional <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit_sleep, <span class="at">newdata =</span> plot_grid)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>plot_grid<span class="sc">$</span>population <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit_sleep, <span class="at">newdata =</span> plot_grid,</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>                                <span class="at">re.form =</span> <span class="cn">NA</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>op <span class="ot">&lt;-</span> <span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="fl">3.5</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="fl">0.5</span>),</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">mgp =</span> <span class="fu">c</span>(<span class="fl">2.4</span>, <span class="fl">0.7</span>, <span class="dv">0</span>))</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (subject <span class="cf">in</span> subjects) {</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> study[study<span class="sc">$</span>Subject <span class="sc">==</span> subject, ]</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  g <span class="ot">&lt;-</span> plot_grid[plot_grid<span class="sc">$</span>Subject <span class="sc">==</span> subject, ]</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(d<span class="sc">$</span>day, d<span class="sc">$</span>Reaction, <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">ylim =</span> <span class="fu">range</span>(study<span class="sc">$</span>Reaction),</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab =</span> <span class="st">"Days since baseline"</span>, <span class="at">ylab =</span> <span class="st">"Reaction time (ms)"</span>,</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">main =</span> <span class="fu">paste</span>(<span class="st">"Subject"</span>, subject))</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(g<span class="sc">$</span>day, g<span class="sc">$</span>conditional, <span class="at">col =</span> <span class="st">"steelblue4"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(g<span class="sc">$</span>day, g<span class="sc">$</span>population, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(op)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-mixed-subject-trends" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mixed-subject-trends-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="App_G-mixed-effects_files/figure-html/fig-mixed-subject-trends-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mixed-subject-trends-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;G.2: Four subjects from the sleepstudy data. Blue lines include each subject’s fitted random effects; dashed lines use only the common fixed effects. A common linear trend does not require identical subject trajectories.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Prediction target.</strong> For a previously observed subject, predictions can use that subject’s estimated random effects. For a new subject with no response data yet, those deviations are unknown; setting them to zero gives the population mean in this Gaussian identity-link model. A prediction interval for the new subject must still include between-subject and residual variation, together with parameter uncertainty. A fixed-effect line alone is not such an interval. With a nonlinear GLMM link, setting random effects to zero generally does not equal averaging the response over their distribution.</p>
+</section>
+<section id="inference-model-checks-and-further-reading" class="level2" data-number="G.4">
+<h2 data-number="G.4" class="anchored" data-anchor-id="inference-model-checks-and-further-reading"><span class="header-section-number">G.4</span> Inference, model checks, and further reading</h2>
+<p><strong>ML and REML.</strong> Maximum likelihood estimates regression and covariance parameters through the marginal model. Restricted maximum likelihood (REML) accounts for the estimation of fixed effects when fitting covariance parameters. When comparing different fixed-effect structures by likelihood, use ML fits on the same observations and keep the specified random-effects structure comparable; the REML criterion is not directly comparable across different fixed-effect designs.</p>
+<p>The following comparison asks whether the average linear trend is zero while allowing the same subject-specific random intercept and slope structure in both models. Its likelihood-ratio reference is asymptotic, not Chapter 4’s exact F distribution.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>fit_sleep_ml <span class="ot">&lt;-</span> <span class="fu">update</span>(fit_sleep, <span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>fit_no_trend_ml <span class="ot">&lt;-</span> lme4<span class="sc">::</span><span class="fu">lmer</span>(Reaction <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (day <span class="sc">|</span> Subject),</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>                             <span class="at">data =</span> study, <span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(fit_no_trend_ml, fit_sleep_ml, <span class="at">refit =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Data: study
+Models:
+fit_no_trend_ml: Reaction ~ 1 + (day | Subject)
+fit_sleep_ml: Reaction ~ day + (day | Subject)
+                npar    AIC    BIC  logLik -2*log(L)  Chisq Df Pr(&gt;Chisq)    
+fit_no_trend_ml    5 1444.4 1459.3 -717.21    1434.4                         
+fit_sleep_ml       6 1425.2 1443.0 -706.58    1413.2 21.266  1  3.997e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled" title="Variance components require special care">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Variance components require special care
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Testing whether a random-effect variance is zero places the null parameter on a boundary. The usual chi-square rule based only on the parameter-count difference need not apply. Small numbers of independent groups also limit large-sample approximations. Methods such as parametric bootstrap or appropriate small-sample corrections need additional justification. Do not use the ordinary OLS F test simply because the model contains a linear predictor.</p>
+</div>
+</div>
+<p><strong>Check what the design can support.</strong> Examine conditional residuals versus fitted values, residual patterns across time and groups, convergence messages, and near-singularity. A singular fit means the fitted random-effects covariance is on or near a lower-dimensional boundary, such as an estimated variance near zero or a redundant intercept/slope combination. It is not synonymous with an optimizer failing to converge. Review the design and model complexity before changing optimizer settings. See <a href="https://lme4.github.io/lme4/reference/isSingular.html"><code>isSingular()</code></a>.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>op <span class="ot">&lt;-</span> <span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="fl">0.5</span>),</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">mgp =</span> <span class="fu">c</span>(<span class="fl">2.4</span>, <span class="fl">0.7</span>, <span class="dv">0</span>))</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">fitted</span>(fit_sleep), <span class="fu">resid</span>(fit_sleep), <span class="at">pch =</span> <span class="dv">16</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="fu">adjustcolor</span>(<span class="st">"steelblue4"</span>, <span class="fl">0.5</span>),</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Conditional fitted value"</span>, <span class="at">ylab =</span> <span class="st">"Conditional residual"</span>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(<span class="fu">resid</span>(fit_sleep), <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">cex =</span> <span class="fl">0.65</span>,</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">main =</span> <span class="st">"Residual Q-Q plot"</span>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="fu">qqline</span>(<span class="fu">resid</span>(fit_sleep), <span class="at">col =</span> <span class="st">"darkorange3"</span>)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(op)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-mixed-diagnostics" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mixed-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="App_G-mixed-effects_files/figure-html/fig-mixed-diagnostics-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mixed-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;G.3: Basic conditional-residual checks for the fitted sleepstudy model. These plots can reveal mean or residual-distribution problems, but they do not prove that the full dependence structure is correct.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Plots of estimated random effects can be informative, but they display shrunken estimates with unequal uncertainty, not directly observed independent normal draws. With few groups, distributional checks are particularly limited. For prediction to new subjects, evaluate with subject-level holdouts; random row-wise splitting can let the same subject appear in both training and test data.</p>
+<p><strong>Self-study questions.</strong></p>
+<ol type="1">
+<li>Derive the covariance and ICC for the random-intercept model. Explain why increasing observations within a group is different from adding new independent groups.</li>
+<li>In the simulation, verify that <code>mu_hat + w_hat * (raw_mean - mu_hat)</code> matches the mixed-model group predictions. Explain the role of <span class="math inline">\(n_j\)</span>.</li>
+<li>Write down the fixed and random portions of the <code>sleepstudy</code> model. Explain what changes if <code>(day | Subject)</code> is replaced with <code>(1 | Subject)</code>.</li>
+<li>Explain why a new subject’s prediction interval is wider than an interval that conditions on known subject effects, and why a row-wise validation split may answer the wrong question.</li>
+<li>State the null hypothesis in the ML comparison and explain why testing a random-effect variance of zero is a different inferential problem.</li>
+</ol>
+<p><strong>Suggested reading.</strong> The authors’ <a href="https://lme4.github.io/lme4/articles/lmer.html">Fitting Linear Mixed-Effects Models Using lme4</a> develops the model and computation. The package’s <a href="https://lme4.github.io/lme4/reference/pvalues.html">inference guide</a> discusses likelihood, bootstrap, and small-sample approaches. Continue to generalized mixed models only after distinguishing conditional and marginal prediction targets in the Gaussian case.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    
+    document
+    .querySelectorAll('div.solution.proof[id^="sol-"]')
+    .forEach(function (solution) {
+      
+      // Get Quarto's automatically generated title,
+      // e.g. "Solution 2.1"
+      const proofTitle = solution.querySelector(".proof-title");
+
+      let titleText = "Solution";
+
+      if (proofTitle) {
+        titleText = proofTitle.textContent
+          .trim()
+          .replace(/\.$/, "");
+
+        // Remove the original inline title
+        proofTitle.remove();
+      }
+
+      // Create collapsible <details>
+      const details = document.createElement("details");
+      details.className = "solution-collapse";
+
+      // Keep the original ID so cross-references still work
+      details.id = solution.id;
+
+      const summary = document.createElement("summary");
+      summary.textContent = titleText;
+
+      const body = document.createElement("div");
+      body.className = "solution-collapse-body";
+
+      // Move the original solution contents into the collapsible body
+      while (solution.firstChild) {
+        body.appendChild(solution.firstChild);
+      }
+
+      // Remove an empty first paragraph if Quarto leaves one behind
+      const firstParagraph = body.querySelector(":scope > p:first-child");
+
+      if (
+        firstParagraph &&
+        firstParagraph.textContent.trim() === "" &&
+        firstParagraph.children.length === 0
+      ) {
+        firstParagraph.remove();
+      }
+
+      details.appendChild(summary);
+      details.appendChild(body);
+
+      solution.replaceWith(details);
+    });
+
+});
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./App_F-quantile-regression.html" class="pagination-link" aria-label="Quantile Regression (Optional)">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">F</span>&nbsp; <span class="chapter-title">Quantile Regression (Optional)</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+<a href="./Assignment1.html" class="pagination-link" aria-label="Assignment 1"><span class="nav-page-text">Assignment 1</span> <i class="bi bi-arrow-right-short"></i></a>
+</div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
