@@ -1,0 +1,214 @@
+---
+title: "Drug discovery: statistics and AI agents"
+date: "2026-09-25"
+description: "Statistical models, uncertainty, and AI agents for drug discovery, with equations and reproducible illustrations."
+slug: "drug_discovery"
+tags: ["drug discovery", "statistics", "AI agents"]
+categories: ["resources", "Research"]
+math: true
+toc_collapsed: true
+output:
+  blogdown::html_page:
+    toc: false
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE,
+                     fig.width = 8, fig.height = 4.7, dpi = 180,
+                     out.width = '100%', fig.align = 'center')
+theme_set(theme_minimal(base_size = 13, base_family = 'sans') +
+  theme(plot.background = element_rect(fill = 'white', colour = NA),
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(face = 'bold', size = 17, colour = '#18283B'),
+        plot.subtitle = element_text(size = 11, colour = '#536477'),
+        axis.title = element_text(colour = '#27394C'),
+        legend.position = 'bottom', legend.title = element_blank(),
+        plot.margin = margin(14, 18, 10, 12)))
+blue <- '#155DA0'
+gold <- '#B56D06'
+orange <- '#C34828'
+
+# A one-dimensional simulated response, not a molecular dataset.
+set.seed(20260925)
+response <- function(x) 0.6 * sin(1.1 * x) + 0.3 * cos(2 * x) + 0.08 * x
+noise_sd <- 0.12
+x_train <- c(0.5, 1.5, 3.2, 5.0, 7.1, 9.2)
+y_train <- response(x_train) + rnorm(length(x_train), sd = noise_sd)
+kernel <- function(a, b) exp(-0.5 * (outer(a, b, '-') / 1.1)^2)
+K <- kernel(x_train, x_train) + diag(noise_sd^2, length(x_train))
+L <- chol(K)
+weights <- backsolve(L, forwardsolve(t(L), y_train))
+predict_gp <- function(x) {
+  cross <- kernel(x_train, x)
+  v <- forwardsolve(t(L), cross)
+  data.frame(x = x, mean = drop(t(cross) %*% weights),
+             sd = sqrt(pmax(1 - colSums(v^2), 0)))
+}
+grid <- predict_gp(seq(0, 10, length.out = 501))
+grid$truth <- response(grid$x)
+grid$lower <- grid$mean - 1.96 * grid$sd
+grid$upper <- grid$mean + 1.96 * grid$sd
+observed <- data.frame(x = x_train, y = y_train)
+incumbent <- max(predict_gp(x_train)$mean)
+improvement <- grid$mean - incumbent
+z <- improvement / pmax(grid$sd, .Machine$double.eps)
+grid$ei <- improvement * pnorm(z) + grid$sd * dnorm(z)
+grid$ei[grid$sd == 0] <- pmax(improvement[grid$sd == 0], 0)
+selected <- grid[which.max(grid$ei), , drop = FALSE]
+stopifnot(all(is.finite(grid$sd)), all(grid$ei >= -1e-12))
+
+# Independent calibration and test samples from the same distribution.
+set.seed(20260926)
+n_cal <- 199
+alpha <- 0.1
+x_cal <- runif(n_cal, 0, 10)
+y_cal <- response(x_cal) + rnorm(n_cal, sd = noise_sd)
+scores <- abs(y_cal - predict_gp(x_cal)$mean)
+k <- ceiling((n_cal + 1) * (1 - alpha))
+qhat <- if (k <= n_cal) sort(scores)[k] else Inf
+x_test <- sort(runif(30, 0, 10))
+intervals <- predict_gp(x_test)
+intervals$observed <- response(x_test) + rnorm(30, sd = noise_sd)
+intervals$lower <- intervals$mean - qhat
+intervals$upper <- intervals$mean + qhat
+intervals$candidate <- seq_len(nrow(intervals))
+intervals$covered <- intervals$observed >= intervals$lower &
+                     intervals$observed <= intervals$upper
+intervals$status <- factor(ifelse(intervals$covered, 'Inside interval', 'Outside interval'),
+                           levels = c('Inside interval', 'Outside interval'))
+stopifnot(k == 180, all(intervals$lower <= intervals$upper))
+```
+
+Drug discovery connects biological understanding with evidence about candidate compounds, including activity, toxicity, and how compounds behave in the body. These early investigations precede later stages of drug development. [[1]](#ref-fda) A statistical question runs through this process: **which candidate or experiment should we investigate next, given limited data and resources?**
+
+The examples below introduce prediction, experiment selection, and uncertainty calibration, then show how an AI agent could connect them. **All three figures use simulated data in arbitrary units; they are teaching illustrations, not results from a drug-screening study.**
+
+# 1. Model the response and its uncertainty
+
+Let $x_i$ describe a candidate or experimental condition and $y_i$ be its measured response. A simple working model is
+
+\[
+y_i = f(x_i) + \varepsilon_i,\qquad
+\varepsilon_i \overset{\mathrm{iid}}{\sim} N(0,\sigma^2).
+\]
+
+Here $f$ is the underlying response and $\sigma^2$ represents measurement noise. The Gaussian noise assumption is illustrative; real assays may require another observation model.
+
+A Gaussian process (GP) provides a predictive distribution for the latent response, conditional on observations $\mathcal D_t=\{(x_i,y_i)\}_{i=1}^t$:
+
+\[
+f(x)\mid\mathcal D_t \sim
+N\!\left(\mu_t(x),s_t^2(x)\right).
+\]
+
+The posterior mean $\mu_t(x)$ estimates the response, while $s_t(x)$ describes uncertainty about it under the chosen GP model. This is a standard statistical component of Bayesian optimization. [[2]](#ref-snoek)
+
+```{r gp-uncertainty, fig.cap='Simulated response learning. The blue band is a pointwise 95% posterior credible interval for the latent response, conditional on fixed GP hyperparameters. It is not a prediction interval for a new noisy measurement. The dashed curve is the simulation truth, available here only for illustration.', fig.alt='Six observed responses with a blue Gaussian-process posterior mean and a shaded credible band; a dashed curve shows the simulated underlying response.'}
+ggplot(grid, aes(x = x)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = blue, alpha = 0.16) +
+  geom_line(aes(y = truth, colour = 'Simulation truth', linetype = 'Simulation truth'), linewidth = 0.8) +
+  geom_line(aes(y = mean, colour = 'Posterior mean', linetype = 'Posterior mean'), linewidth = 1) +
+  geom_point(data = observed, aes(y = y, colour = 'Observed response'), size = 2.8) +
+  scale_colour_manual(values = c('Posterior mean' = blue, 'Simulation truth' = '#66727D', 'Observed response' = '#18283B')) +
+  scale_linetype_manual(values = c('Posterior mean' = 'solid', 'Simulation truth' = 'dashed'), guide = 'none') +
+  labs(title = 'Learning a response from a few experiments',
+       subtitle = 'Illustrative GP fit | six observations | shaded band: latent-response uncertainty',
+       x = 'Candidate descriptor x (one-dimensional illustration)',
+       y = 'Response (arbitrary units)')
+```
+
+For a new measurement $Y(x)$, the model-based predictive variance is $s_t^2(x)+\sigma^2$. The distinction matters: uncertainty about an average response and variability in the next observation answer different questions.
+
+# 2. Choose the next experiment
+
+For an objective we want to maximize, **expected improvement** (EI) rewards candidates with a promising mean, useful uncertainty, or both. [[2]](#ref-snoek) With a fixed benchmark $b_t$,
+
+\[
+\begin{aligned}
+\operatorname{EI}_t(x)
+&=\mathbb E[(f(x)-b_t)_+\mid\mathcal D_t] \\
+&=(\mu_t(x)-b_t)\Phi(z_t(x))+s_t(x)\phi(z_t(x)),\\
+z_t(x)&=\frac{\mu_t(x)-b_t}{s_t(x)}.
+\end{aligned}
+\]
+
+Here $(u)_+=\max(u,0)$, and $\Phi$ and $\phi$ are the standard normal distribution and density functions. When $s_t(x)=0$, EI is $\max\{\mu_t(x)-b_t,0\}$. For this noisy illustration, $b_t$ is the largest posterior mean among the tested candidates, a plug-in benchmark.
+
+The next candidate on the search grid is
+
+\[
+x_{t+1}=\operatorname*{arg\,max}_{x\in\mathcal X}
+\operatorname{EI}_t(x).
+\]
+
+```{r expected-improvement, fig.cap='Expected improvement computed from the GP above. The marked maximum selects the next candidate on a fixed grid. This is one proposed next experiment, not evidence that the candidate is effective or safe.', fig.alt='An expected-improvement curve with a vertical dashed line and a point marking its maximum; small marks along the bottom identify previously tested candidates.'}
+ggplot(grid, aes(x, ei)) +
+  geom_area(fill = '#F1D49F', alpha = 0.7) +
+  geom_line(colour = gold, linewidth = 1) +
+  geom_rug(data = observed, aes(x = x), inherit.aes = FALSE, sides = 'b', colour = '#66727D') +
+  geom_vline(xintercept = selected$x, colour = blue, linetype = 'dashed', linewidth = 0.65) +
+  geom_point(data = selected, colour = blue, size = 3.4) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.12))) +
+  labs(title = 'Which experiment should come next?',
+       subtitle = sprintf('Maximum EI at x = %.2f | bottom marks: previously tested candidates', selected$x),
+       x = 'Candidate descriptor x (same scale as Figure 1)',
+       y = 'Expected improvement (response units)')
+```
+
+In chemical synthesis, Shields et al. studied Bayesian optimization for selecting reaction conditions. [[3]](#ref-shields) Drug-discovery decisions can involve additional objectives, such as toxicity, cost, or synthesizability; the single-response example here omits those constraints. See also the [introduction to optimal regression design](/resources/opt_design/).
+
+# 3. Calibrate intervals for future observations
+
+**Split conformal prediction** calibrates a fixed predictor $\widehat f$ using $m$ held-out responses. Let $r_i=|y_i-\widehat f(x_i)|$ and let $r_{(k)}$ be their $k$th order statistic. [[4]](#ref-conformal)
+
+\[
+\begin{aligned}
+k&=\lceil(m+1)(1-\alpha)\rceil,\qquad \widehat q=r_{(k)},\\
+C_\alpha(x)&=[\widehat f(x)-\widehat q,\;
+                  \widehat f(x)+\widehat q].
+\end{aligned}
+\]
+
+Set $\widehat q=\infty$ if $k>m$. When calibration and future observations are exchangeable, with the predictor fitted independently of calibration data,
+
+\[
+\Pr\{Y_{\mathrm{new}}\in C_\alpha(X_{\mathrm{new}})\}
+\geq 1-\alpha.
+\]
+
+This is a **marginal** guarantee, not a guarantee for each compound or a fixed realized test sample. Adaptive candidate selection and shifts to a new chemical population can invalidate exchangeability and require additional methods. [[4]](#ref-conformal)
+
+```{r calibrated-intervals, fig.cap='Prediction intervals for 30 simulated test observations, calibrated using 199 independent observations with a 90% nominal coverage target. Points are realized responses; triangles mark misses. This figure uses the same response-generating function as Figures 1–2 but an independent, non-adaptive test sample.', fig.alt='Thirty vertical conformal prediction intervals with observed responses. Blue circles lie inside their intervals and orange triangles identify responses outside the intervals.'}
+ggplot(intervals, aes(candidate)) +
+  geom_linerange(aes(ymin = lower, ymax = upper), colour = '#ADBCCD', linewidth = 1) +
+  geom_point(aes(y = observed, colour = status, shape = status), size = 2.6) +
+  scale_colour_manual(values = c('Inside interval' = blue, 'Outside interval' = orange), drop = FALSE) +
+  scale_shape_manual(values = c('Inside interval' = 16, 'Outside interval' = 17), drop = FALSE) +
+  scale_x_continuous(breaks = seq(5, 30, 5)) +
+  labs(title = 'Calibrating uncertainty for a future measurement',
+       subtitle = sprintf('90%% nominal target | %d/30 covered in this simulated sample', sum(intervals$covered)),
+       x = 'Test candidate (ordered by descriptor x)',
+       y = 'Response (arbitrary units)')
+```
+
+# 4. Connect the tools with an AI agent
+
+An AI agent plans steps, calls tools, inspects their outputs, and revises its next action. Coscientist demonstrated an LLM-based system that connected tools for planning and performing chemical experiments. [[5]](#ref-coscientist) Retrieval-augmented generation (RAG) can connect a language model to retrieved documents when generating an answer. [[6]](#ref-rag)
+
+A possible workflow is **retrieve evidence → fit and check a model → propose an experiment → researcher review and measurement → update the data**. The equations above belong to the statistical tools used within that workflow. A language model's confident wording is not a substitute for a calibrated uncertainty estimate.
+
+Research questions include how to preserve citations through retrieval, propagate uncertainty between tools, choose informative experiments under constraints, and evaluate an agent on reproducibility and scientific value. The proposed workflow connects statistical learning, optimal design, RAG, and LLM alignment; it is not a claim that these components already form a validated drug-discovery system.
+
+# Reproduce the figures
+
+All figures are generated from this article's [R Markdown source](/resources/Drug_discovery.Rmd), using R and ggplot2 with fixed seeds. The GP uses a zero mean, a squared-exponential kernel with unit signal variance and length scale 1.1, and noise standard deviation 0.12. These are chosen teaching settings, not fitted biological parameters. The calibration sample and the 30 test points are generated independently after fixing the predictor; no test points were selected based on their outcomes.
+
+# References
+
+1. <a id="ref-fda"></a> U.S. Food and Drug Administration. [Step 1: Discovery and development](https://www.fda.gov/patients/drug-development-process/step-1-discovery-and-development).
+2. <a id="ref-snoek"></a> Snoek, J., Larochelle, H. & Adams, R. P. (2012). [Practical Bayesian optimization of machine learning algorithms](https://proceedings.neurips.cc/paper/2012/hash/05311655a15b75fab86956663e1819cd-Abstract.html). *Advances in Neural Information Processing Systems*, **25**.
+3. <a id="ref-shields"></a> Shields, B. J. et al. (2021). [Bayesian reaction optimization as a tool for chemical synthesis](https://doi.org/10.1038/s41586-021-03213-y). *Nature*, **590**, 89–96.
+4. <a id="ref-conformal"></a> Angelopoulos, A. N. & Bates, S. (2021). [A gentle introduction to conformal prediction and distribution-free uncertainty quantification](https://arxiv.org/abs/2107.07511). *arXiv:2107.07511*.
+5. <a id="ref-coscientist"></a> Boiko, D. A., MacKnight, R., Kline, B. & Gomes, G. (2023). [Autonomous chemical research with large language models](https://doi.org/10.1038/s41586-023-06792-0). *Nature*, **624**, 570–578.
+6. <a id="ref-rag"></a> Lewis, P. et al. (2020). [Retrieval-augmented generation for knowledge-intensive NLP tasks](https://proceedings.neurips.cc/paper/2020/hash/6b493230205f780e1bc26945df7481e5-Abstract.html). *Advances in Neural Information Processing Systems*, **33**.
