@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>Optimal Regression Design - Chi-Kuang Yeh 葉啓光</title><link rel="apple-touch-icon" sizes="192x192" href="/favicon-192x192.png">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>Optimal regression design: an introduction - Chi-Kuang Yeh 葉啓光</title><link rel="apple-touch-icon" sizes="192x192" href="/favicon-192x192.png">
 	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 	<link rel="manifest" href="/site.webmanifest">
@@ -15,16 +15,16 @@
 	</script>
 	<meta property="og:url" content="https://chikuang.github.io/resources/opt_design/">
 <meta property="og:site_name" content="Chi-Kuang Yeh 葉啓光">
-<meta property="og:title" content="Optimal Regression Design">
-<meta property="og:description" content="A short tutorial to optimal regression design">
+<meta property="og:title" content="Optimal regression design: an introduction">
+<meta property="og:description" content="An illustrated introduction to optimal design for calibration, concentration-response experiments, group testing, and multiple objectives, with models, workflows, and reproducible R examples.">
 <meta property="og:locale" content="en_us">
 <meta property="og:type" content="article">
-<meta property="article:published_time" content="2026-05-09">
-<meta property="article:modified_time" content="2026-05-09">
+<meta property="article:published_time" content="2026-09-26">
+<meta property="article:modified_time" content="2026-09-26">
 
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Optimal Regression Design">
-  <meta name="twitter:description" content="A short tutorial to optimal regression design">
+  <meta name="twitter:title" content="Optimal regression design: an introduction">
+  <meta name="twitter:description" content="An illustrated introduction to optimal design for calibration, concentration-response experiments, group testing, and multiple objectives, with models, workflows, and reproducible R examples.">
 <link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,700,300italic,400italic,700italic&amp;display=swap" rel="stylesheet">
 
 	<link rel="stylesheet" href="/css/normalize.css"><link rel="stylesheet" href="/css/main.css?v=b31782984b9841fe5a0b6593b7313c6f">
@@ -97,14 +97,14 @@
     <a class="resource-back" href="/#resources">← All resources</a>
 	<div class="introduction resource-article" id="resources"><article class="resource-post">
 			<div class="post-content resource-post-content">
-				<h1 class="resource-page-title">Optimal Regression Design</h1>
+				<h1 class="resource-page-title">Optimal regression design: an introduction</h1>
 				
-				<p class="resource-subtitle">A short tutorial to optimal regression design</p>
+				<p class="resource-subtitle">An illustrated introduction to optimal design for calibration, concentration-response experiments, group testing, and multiple objectives, with models, workflows, and reproducible R examples.</p>
 				
 				
-				<div class="resource-meta-date">2026-05-09</div>
+				<div class="resource-meta-date">2026-09-26</div>
 				<div class="resource-toc resource-toc--top" role="navigation" aria-label="Table of contents">
-					<details class="resource-toc__box" open>
+					<details class="resource-toc__box">
 						<summary class="resource-toc__summary">Table of Contents</summary>
 						<div class="resource-toc__inner">
 							
@@ -150,134 +150,712 @@
 					
 
 
-<style type="text/css">
-/*
- * R Markdown / pandoc: indent content under # / ## / ### (div.section.level1–3).
- * Used by: (1) Hugo resources/single.html <link>, (2) knitr chunk in .Rmd output.
- */
-div.section.level1 > :not(h1),
-div.section.level2 > :not(h2),
-div.section.level3 > :not(h3),
-#resource-body div.section.level1 > :not(h1),
-#resource-body div.section.level2 > :not(h2),
-#resource-body div.section.level3 > :not(h3) {
-	margin-left: 1.15rem;
-	box-sizing: border-box;
+<style>
+#resource-body table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+}
+#resource-body th, #resource-body td {
+  padding: 0.35rem 0.5rem;
+  vertical-align: top;
+}
+#resource-body .code-fold {
+  margin: 0.75rem 0;
+}
+#resource-body .code-fold > summary {
+  display: list-item;
+  list-style-position: inside;
+  cursor: pointer;
+  font-weight: 600;
+}
+#resource-body .code-fold > summary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+#resource-body .code-fold pre {
+  margin-top: 0.5rem;
+}
+#resource-body .design-illustration {
+  margin: 1.1rem 0 1.4rem;
+}
+#resource-body .design-illustration > a {
+  display: block;
+  border-radius: 12px;
+}
+#resource-body .design-illustration img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+#resource-body .design-illustration figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+#resource-body .illustration-credit {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.85em;
+  opacity: 0.75;
 }
 </style>
-<div id="introduction-to-optimal-regression-design" class="section level1">
-<h1>Introduction to Optimal Regression Design</h1>
-<p>In statistical modeling, especially in regression analysis, we often face the question:</p>
-<blockquote>
-<p><em>“Where and how should we collect data to obtain the most accurate parameter estimates?”</em></p>
-</blockquote>
-<p>This question is answered by <strong>Optimal Experimental Design</strong>, a field that seeks to identify <strong>the best sampling scheme</strong> under a specified statistical model.</p>
-</div>
-<div id="general-objective" class="section level1">
-<h1>🎯 General Objective</h1>
-<p>Let the model be a linear regression:</p>
-<p><span class="math display">\[
-Y_i = g(x_i;\boldsymbol{\beta})  + \varepsilon_i,\quad \varepsilon_i \sim \mathcal{N}(0, \sigma^2)
-\]</span>
-where:</p>
+<p><strong>Which experimental settings should we use, and how often should we repeat each one?</strong> Optimal regression design answers this question by connecting a scientific goal to a statistical model and a limited experimental budget. The settings might be concentrations, sampling times, temperatures, or pool sizes. The goal might be precise parameter estimation, reliable response prediction, or learning a particular contrast.</p>
+<p>The field combines statistical inference, matrix theory, and optimization. A design is optimal <strong>for a stated model, objective, and set of constraints</strong>; changing any of these can change the answer. Pukelsheim’s monograph develops the underlying theory. <a href="#ref-pukelsheim">[1]</a></p>
+<figure class="design-illustration">
+<a href="/resources/opt-design-illustrations/applications-cute.jpg" aria-label="Open the experimental-design applications illustration at full size">
+<img src="/resources/opt-design-illustrations/applications-cute.jpg" width="1774" height="887" decoding="async" alt="Cute illustrated instruments, pipettes, and specimen tubes show three applications: calibrating instruments, learning concentration-response curves, and estimating prevalence with pooled specimens.">
+</a>
+<figcaption>
+<strong>Why design matters.</strong> Reference solutions, assay wells, and collected specimens all consume resources. Choosing informative measurements helps a limited experiment answer the scientific question more precisely.
+<small class="illustration-credit">Select the image to enlarge.</small>
+</figcaption>
+</figure>
+<p>The examples below show how this translates into study plans:</p>
 <ul>
-<li>Note <span class="math inline">\(\boldsymbol{\beta}\in \mathbb{R}^p\)</span> are the parameters to estimate,</li>
-<li><span class="math inline">\(g(\cdot)\)</span> is mean function,</li>
-<li><span class="math inline">\(x_i \in \mathcal{X}\)</span> are the design points in a compact design space.</li>
+<li><strong>Laboratory calibration:</strong> where should 30 measurements be collected to learn an instrument response accurately?</li>
+<li><strong>Concentration-response experiments:</strong> which concentrations make 60 assays informative about a compound’s half-maximal response?</li>
+<li><strong>Prevalence surveys:</strong> how should pool size balance specimen costs, assay costs, and estimation precision?</li>
+<li><strong>Multiple objectives:</strong> how much precision at a routinely used concentration can we gain while protecting estimation of the full response curve?</li>
 </ul>
-<p>The <strong>Fisher Information Matrix</strong> for a weighted design <span class="math inline">\(\xi = \{(x_i, w_i)\}\)</span> is:</p>
+<p>Each example specifies a model, compares feasible allocations, and quantifies a consequence for precision.</p>
+<div id="from-a-regression-model-to-a-design" class="section level1">
+<h1>1. From a regression model to a design</h1>
+<p>Consider a regression that is linear in its unknown coefficients:</p>
 <p><span class="math display">\[
-M(\xi) = \int_\mathcal{X}\frac{\partial g}{\partial \boldsymbol{\beta}}\frac{\partial g}{\partial \boldsymbol{\beta}^\top} \mu(d\xi),
+\begin{aligned}
+Y_i&amp;=f(x_i)^\top\beta+\varepsilon_i,\\
+\mathbb E(\varepsilon_i)&amp;=0,\qquad
+\operatorname{Var}(\varepsilon_i)=\sigma^2.
+\end{aligned}
 \]</span></p>
-<p>We wish to <strong>choose design weights</strong> <span class="math inline">\(w_i \geq 0\)</span>, <span class="math inline">\(\sum w_i = 1\)</span>, to maximize information about <span class="math inline">\(\boldsymbol{\beta}\)</span>.</p>
+<p>Assume independent errors, a known regression basis <span class="math inline">\(f(x)\in\mathbb R^p\)</span>, and a controllable setting <span class="math inline">\(x\)</span> in a feasible region <span class="math inline">\(\mathcal X\)</span>. Throughout, vectors are column vectors. For quadratic regression, write the basis directly as</p>
+<p><span class="math display">\[
+f(x)=\begin{pmatrix}1\\x\\x^2\end{pmatrix}.
+\]</span></p>
+<p>The model is still <em>linear in the parameters</em> even though its response curve can bend. Transposes below indicate inner products or matrix products.</p>
+<p>An <strong>approximate design</strong> records support points and allocation proportions:</p>
+<p><span class="math display">\[
+\begin{gathered}
+\xi=\{(x_1,w_1),\ldots,(x_k,w_k)\},\\
+w_j\geq0,\quad\sum_{j=1}^k w_j=1.
+\end{gathered}
+\]</span></p>
+<p>For <span class="math inline">\(N\)</span> observations, an <strong>exact design</strong> instead specifies integer replication counts <span class="math inline">\(n_j\)</span> with <span class="math inline">\(\sum_j n_j=N\)</span>. Its proportions are <span class="math inline">\(w_j=n_j/N\)</span>. Approximate designs let us optimize continuously; implementing them requires integer allocations. Rounding and exact-design optimization are substantive parts of the problem. <a href="#ref-sagnol">[2]</a></p>
+<p>Define the normalized information matrix</p>
+<p><span class="math display">\[
+M(\xi)=\sum_{j=1}^k w_j f(x_j)f(x_j)^\top.
+\]</span></p>
+<p>When <span class="math inline">\(M(\xi)\)</span> is nonsingular and the allocations are realized exactly, ordinary least squares gives</p>
+<p><span class="math display">\[
+\operatorname{Cov}(\widehat\beta)=\frac{\sigma^2}{N}M(\xi)^{-1}.
+\]</span></p>
+<p>This covariance identity needs the stated mean and variance assumptions, not Gaussian errors. With Gaussian errors, the Fisher information for <span class="math inline">\(\beta\)</span> is <span class="math inline">\(N M(\xi)/\sigma^2\)</span>. A singular matrix means that the full coefficient vector cannot be identified from that design.</p>
 </div>
-<div id="common-optimality-criteria" class="section level1">
-<h1>🧮 Common Optimality Criteria</h1>
+<div id="match-the-criterion-to-the-scientific-question" class="section level1">
+<h1>2. Match the criterion to the scientific question</h1>
+<p>The usual criteria summarize different aspects of information. In the table, <span class="math inline">\(M=M(\xi)\)</span> is nonsingular, <span class="math inline">\(c\)</span> is a specified contrast vector, and <span class="math inline">\(\nu\)</span> is a chosen probability measure describing where prediction matters. <a href="#ref-pukelsheim">[1]</a></p>
 <table>
 <colgroup>
-<col width="18%" />
-<col width="36%" />
-<col width="46%" />
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th align="center">Criterion</th>
-<th align="center">Objective</th>
-<th align="center">Interpretation</th>
+<th align="left">Criterion</th>
+<th align="left">Optimization target</th>
+<th align="left">Scientific emphasis</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center"><strong><span class="math inline">\(D\)</span>-optimality</strong></td>
-<td align="center">Maximize <span class="math inline">\(\det M(\xi)\)</span></td>
-<td align="center">Minimize volume of confidence ellipsoid</td>
+<td align="left"><strong>D</strong></td>
+<td align="left">Maximize <span class="math inline">\(\log\det M\)</span></td>
+<td align="left">Joint precision of all coefficients; smaller confidence ellipsoid under the usual Gaussian or asymptotic approximation.</td>
 </tr>
 <tr class="even">
-<td align="center"><strong><span class="math inline">\(A\)</span>-optimality</strong></td>
-<td align="center">Minimize <span class="math inline">\(\operatorname{tr}\{M(\xi)^{-1}\}\)</span></td>
-<td align="center">Minimize average variance of estimates</td>
+<td align="left"><strong>A</strong></td>
+<td align="left">Minimize <span class="math inline">\(\operatorname{tr}(M^{-1})\)</span></td>
+<td align="left">Total coefficient variance on the chosen parameter scale.</td>
 </tr>
 <tr class="odd">
-<td align="center"><strong><span class="math inline">\(E\)</span>-optimality</strong></td>
-<td align="center">Maximize <span class="math inline">\(\lambda_{\min}\{M(\xi)\}\)</span></td>
-<td align="center">Minimize worst-case variance direction</td>
+<td align="left"><strong>E</strong></td>
+<td align="left">Maximize <span class="math inline">\(\lambda_{\min}(M)\)</span></td>
+<td align="left">Protect the least precisely estimated unit-length coefficient direction.</td>
+</tr>
+<tr class="even">
+<td align="left"><strong>c</strong></td>
+<td align="left">Minimize <span class="math inline">\(c^\top M^{-1}c\)</span></td>
+<td align="left">Precision of the particular quantity <span class="math inline">\(c^\top\beta\)</span>.</td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>G</strong></td>
+<td align="left">Minimize <span class="math inline">\(\max_{x\in\mathcal X} f(x)^\top M^{-1}f(x)\)</span></td>
+<td align="left">Worst-case variance of the estimated <strong>mean response</strong> over the design region.</td>
+</tr>
+<tr class="even">
+<td align="left"><strong>I</strong></td>
+<td align="left">Minimize <span class="math inline">\(\int f(x)^\top M^{-1}f(x)\,d\nu(x)\)</span></td>
+<td align="left">Average mean-response variance over a target region or population.</td>
 </tr>
 </tbody>
 </table>
-<p>Each criterion reflects a different goal:</p>
-<ul>
-<li><strong><span class="math inline">\(D\)</span>-opt</strong> aims for overall information efficiency.</li>
-<li><strong><span class="math inline">\(A\)</span>-opt</strong> targets average estimation precision.</li>
-<li><strong><span class="math inline">\(E\)</span>-opt</strong> guards against poorly estimated directions.</li>
-</ul>
-<p>There are other criteria that are more complex, for example, the minimax criterion. If the model is mis-specified, then the OLSE would be biased. In this case, we would have <span class="math inline">\(bias(\hat{\boldsymbol{\beta}})=E[\hat{\boldsymbol{\beta}}]-\boldsymbol{\beta}\)</span>. Then the minimax D- and A-optimality are
-<span class="math display">\[
-  \min_{w \in \mathbb{R}^n} \max_{\boldsymbol{\beta}\in \mathbb{R}^p} \log\det\{MSE(\hat{\boldsymbol{\beta}})\}
-\]</span>
-and
-<span class="math display">\[
-\min_{w \in \mathbb{R}^n} \max_{\boldsymbol{\beta}\in \mathbb{R}^p} \operatorname{tr}\{MSE(\hat{\boldsymbol{\beta}})\}.
-\]</span></p>
-<p>There are other criteria, such as <strong><span class="math inline">\(c\)</span>-optimality</strong> (minimizing the variance of a linear combination of parameters), <strong><span class="math inline">\(G\)</span>-optimality</strong> (minimizing the maximum variance across all parameter estimates), Bayesian optimal design, <span class="math inline">\(K\)</span>-optimality (minimizing the condition number), and others.</p>
-<hr />
+<p>For example, estimating curvature suggests a contrast involving the quadratic coefficient; predicting throughout an operating range suggests a prediction criterion. A- and E-optimality depend on parameter scaling. D-optimal designs are invariant to a fixed nonsingular linear reparameterization. For c-optimality, singular designs can also be admissible when the specified contrast remains estimable; that requires a generalized-inverse formulation.</p>
 </div>
-<div id="problem-statement" class="section level1">
-<h1>⚙️ Problem Statement</h1>
-<p>The optimal design problem is thus:</p>
+<div id="laboratory-calibration-get-more-precision-from-30-measurements" class="section level1">
+<h1>3. Laboratory calibration: get more precision from 30 measurements</h1>
+<p><strong>The decision.</strong> A laboratory has already checked that a quadratic model adequately describes its instrument response over concentrations <span class="math inline">\(z\in[0,100]\,\mu\mathrm M\)</span>. It now plans a focused follow-up experiment with 30 independent measurements to estimate that curve more precisely. Calibration relates known reference quantities to instrument responses; the choice of model is consequential for subsequent measurement. <a href="#ref-calibration">[9]</a></p>
+<p>Use the coded concentration <span class="math inline">\(x=(z-50)/50\)</span> and the model</p>
+<p><span class="math display">\[
+Y=\beta_0+\beta_1x+\beta_2x^2+\varepsilon.
+\]</span></p>
+<p>The intercept describes the mean signal at the center of the range; the other coefficients describe its slope and curvature on the coded scale. Assume constant error variance and compare two allocations with the same <span class="math inline">\(N=30\)</span>:</p>
+<ul>
+<li><strong>Equally spaced:</strong> one measurement at each of 30 concentrations spanning 0 to 100 <span class="math inline">\(\mu\mathrm M\)</span>.</li>
+<li><strong>D-optimal:</strong> ten independent measurements each at 0, 50, and 100 <span class="math inline">\(\mu\mathrm M\)</span>, corresponding to <span class="math inline">\(x=-1,0,1\)</span>.</li>
+</ul>
+<p>The second allocation corresponds to <span class="math inline">\(\xi_D=\{(-1,1/3),(0,1/3),(1,1/3)\}\)</span>. Here the approximate optimum is exactly implementable because 30 is divisible by three. Section 7 verifies optimality over the entire interval.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:design-allocation"></span>
+<img src="/resources/Opt_design_files/figure-html/design-allocation-1.png" alt="Two panels compare 30 equally spaced concentrations with one measurement each against a D-optimal design with ten measurements each at zero, 50, and 100 micromolar." width="100%" />
+<p class="caption">
+Figure 1: Figure 1. Two allocations of the same 30 observations. Height gives the number of independent observations at each setting. Replication at three carefully chosen locations is sufficient for the assumed three-parameter quadratic model.
+</p>
+</div>
+<p>To compare prediction precision, write <span class="math inline">\(\widehat m(x)=f(x)^\top\widehat\beta\)</span>. Then</p>
 <p><span class="math display">\[
 \begin{aligned}
-&amp;\max_{w \in \mathbb{R}^n} &amp;&amp; \Phi\{M(w)\} \\
-&amp;\text{s.t.} &amp;&amp; w_i \geq 0,\quad \sum_{i=1}^n w_i = 1
+\operatorname{Var}\{\widehat m(x)\}
+&amp;=\frac{\sigma^2}{N}\,d(x,\xi),\\
+d(x,\xi)&amp;=f(x)^\top M(\xi)^{-1}f(x).
 \end{aligned}
 \]</span></p>
-<p>where <span class="math inline">\(\Phi\)</span> is one of the optimality criteria (e.g., <span class="math inline">\(\lambda_{\min}(M)\)</span> for <span class="math inline">\(E\)</span>-optimality).</p>
-<p>This leads to a <strong>convex optimization problem</strong>, especially suitable for numerical methods using packages such as <code>CVXR</code>.</p>
-<hr />
-<p>In the following sections, we demonstrate how to solve this optimization problem in <strong>R</strong>, using <strong><span class="math inline">\(E\)</span>-optimality</strong> as a case study.</p>
+<p>The curves below show <span class="math inline">\(d(x,\xi)\)</span>, so they do not require selecting a noise variance. Predicting an independent <strong>new observation</strong>, rather than its mean, adds <span class="math inline">\(\sigma^2\)</span> to the displayed variance after rescaling.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:prediction-variance"></span>
+<img src="/resources/Opt_design_files/figure-html/prediction-variance-1.png" alt="Two symmetric curves show scaled mean-response variance across concentrations zero to 100 micromolar. The D-optimal curve never exceeds three, touching three at zero, 50, and 100 micromolar. The equally spaced design has much larger variance near the endpoints." width="100%" />
+<p class="caption">
+Figure 2: Figure 2. Scaled variance of the estimated mean response, computed directly from each design matrix. Multiply the vertical axis by sigma squared / 30 to obtain the mean-estimation variance. The dashed line at p = 3 is the D/G-optimality bound for this unconstrained linear-model problem.
+</p>
 </div>
-<div id="my-computational-packages" class="section level1">
-<h1>My computational packages</h1>
+<p>A useful summary is <strong>D-efficiency</strong> relative to the optimum:</p>
+<p><span class="math display">\[
+\operatorname{Eff}_D(\xi)
+=\left\{\frac{\det M(\xi)}{\det M(\xi_D)}\right\}^{1/p}.
+\]</span></p>
+<table>
+<colgroup>
+<col width="21%" />
+<col width="25%" />
+<col width="18%" />
+<col width="34%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Design</th>
+<th align="right">Distinct settings</th>
+<th align="right">D-efficiency</th>
+<th align="right">Maximum scaled variance</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Equally spaced</td>
+<td align="right">30</td>
+<td align="right">62.4%</td>
+<td align="right">7.899</td>
+</tr>
+<tr class="even">
+<td align="left">D-optimal</td>
+<td align="right">3</td>
+<td align="right">100.0%</td>
+<td align="right">3.000</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why this matters.</strong> If the instrument noise standard deviation is 2 signal units, the worst-case standard error of the estimated mean signal falls from <strong>1.026 to 0.632</strong>, about <strong>38.4% lower</strong>, using the same 30 measurements. The design also uses three distinct reference concentrations instead of thirty. These SEs concern the forward mean signal; uncertainty in an unknown concentration inferred by inverting the curve is a different design target.</p>
+<p>This is a focused estimation design after model validation. Three distinct settings leave no lack-of-fit degrees of freedom beyond the quadratic mean model. If checking departures from quadratic behavior matters, allocate observations to additional settings or optimize a criterion that explicitly includes model checking.</p>
+</div>
+<div id="concentration-response-experiments-spend-wells-where-the-curve-is-informative" class="section level1">
+<h1>4. Concentration-response experiments: spend wells where the curve is informative</h1>
+<p><strong>The decision.</strong> A laboratory has 60 independent assay runs for learning a compound’s concentration-response curve between 0 and 100 <span class="math inline">\(\mu\mathrm M\)</span>. Estimating the half-maximal concentration can help compare compounds and plan the next assay range. Measurements all near a plateau provide little information about where the curve starts to rise.</p>
+<p>A useful saturating model is the <strong>Emax model</strong> <a href="#ref-emax">[10]</a>:</p>
+<p><span class="math display">\[
+\begin{aligned}
+Y_i&amp;=E_0+E_{\max}\frac{d_i}{K+d_i}+\varepsilon_i,\\
+\varepsilon_i&amp;\overset{\mathrm{iid}}{\sim}N(0,\sigma^2).
+\end{aligned}
+\]</span></p>
+<p>Here <span class="math inline">\(d\)</span> is concentration, <span class="math inline">\(E_0\)</span> is baseline response, <span class="math inline">\(E_{\max}\)</span> is the increase above baseline at saturation, and <span class="math inline">\(K\)</span> is the concentration giving half that increase, often called <span class="math inline">\(EC_{50}\)</span>. Assume pilot information suggests <span class="math inline">\(E_0=10\)</span>, <span class="math inline">\(E_{\max}=80\)</span>, <span class="math inline">\(K=20\,\mu\mathrm M\)</span>, and <span class="math inline">\(\sigma=5\)</span> signal units. These are chosen planning values for a hypothetical laboratory assay.</p>
+<p>For the parameter vector <span class="math inline">\(\theta\)</span>, the gradient is a column vector:</p>
+<p><span class="math display">\[
+\theta=\begin{pmatrix}E_0\\E_{\max}\\K\end{pmatrix},
+\qquad
+h(d;\theta)=\begin{pmatrix}
+1\\[2pt]
+\dfrac{d}{K+d}\\[4pt]
+-\dfrac{E_{\max}d}{(K+d)^2}
+\end{pmatrix}.
+\]</span></p>
+<p>With <span class="math inline">\(n_j\)</span> runs at concentration <span class="math inline">\(d_j\)</span>, the local information approximation gives</p>
+<p><span class="math display">\[
+\operatorname{Cov}(\widehat\theta)
+\approx\sigma^2\left\{\sum_j n_j
+h(d_j;\theta)h(d_j;\theta)^\top\right\}^{-1}.
+\]</span></p>
+<p><strong>Compare two plans.</strong> The baseline uses ten runs at each of 0, 20, 40, 60, 80, and 100 <span class="math inline">\(\mu\mathrm M\)</span>. With an upper concentration <span class="math inline">\(D=100\)</span>, the local D-optimal plan uses equal allocation at</p>
+<p><span class="math display">\[
+d_1=0,\qquad d_2=\frac{DK}{D+2K},\qquad d_3=D.
+\]</span></p>
+<p>Thus, allocate twenty runs each at 0, approximately 14.29, and 100 <span class="math inline">\(\mu\mathrm M\)</span>. One way to derive this result is to transform concentration to <span class="math inline">\(t=d/(K+d)\)</span>. The three gradient components span a quadratic basis in <span class="math inline">\(t\)</span>, whose D-optimal support consists of the two endpoints and their midpoint. Equal spacing on this transformed scale is not equal spacing in concentration.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:emax-allocation"></span>
+<img src="/resources/Opt_design_files/figure-html/emax-allocation-1.png" alt="Two panels show the same saturating concentration-response curve. The baseline samples six equally spaced concentrations; the local design samples zero, approximately 14.29, and 100 micromolar, with more replication per concentration." width="100%" />
+<p class="caption">
+Figure 3: Figure 3. A hypothetical Emax response curve and two ways to allocate 60 independent assays. Dots lie on the assumed planning curve; they are not measured outcomes. Each dot represents 10 runs in the upper panel or 20 runs in the lower panel. The local design depends on the assumed K = 20 micromolar.
+</p>
+</div>
+<table style="width:100%;">
+<colgroup>
+<col width="60%" />
+<col width="17%" />
+<col width="22%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Parameter</th>
+<th align="right">Baseline SE</th>
+<th align="right">Local design SE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Baseline E0 (signal units)</td>
+<td align="right">1.58</td>
+<td align="right">1.12</td>
+</tr>
+<tr class="even">
+<td align="left">Maximum increase Emax (signal units)</td>
+<td align="right">2.99</td>
+<td align="right">2.31</td>
+</tr>
+<tr class="odd">
+<td align="left">Half-maximal concentration K (micromolar)</td>
+<td align="right">2.66</td>
+<td align="right">1.97</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why this matters.</strong> Under these planning assumptions, the approximate standard error for <span class="math inline">\(K\)</span> falls from <strong>2.66 to 1.97 <span class="math inline">\(\mu\mathrm M\)</span></strong>, a <strong>25.8% reduction</strong>, with no increase in assay count. These are local Fisher-information planning SEs. The design optimizes joint parameter precision; if only <span class="math inline">\(K\)</span> matters, a c-optimal criterion targets that question directly.</p>
+<p>A practical plan would assess several plausible <span class="math inline">\(K\)</span> values, allow additional concentrations for model checking, and account for plate or batch effects. A changed <span class="math inline">\(K\)</span>, concentration-dependent noise, or a sigmoidal rather than Emax response changes the preferred design. Independent replication and randomized run order help separate the concentration response from laboratory drift.</p>
+</div>
+<div id="group-testing-balance-assay-cost-against-prevalence-precision" class="section level1">
+<h1>5. Group testing: balance assay cost against prevalence precision</h1>
+<p><strong>The decision.</strong> A prevalence survey can combine specimens into pools and record whether each pooled assay is positive. The aim is to estimate the population prevalence, rather than identify every positive individual. Pool size changes both the chance of a positive assay and the cost of obtaining that information. This is the setting of group-testing design research. <a href="#ref-huang">[11]</a> <a href="#ref-group">[8]</a></p>
+<p>Assume independently sampled specimens with prevalence <span class="math inline">\(\pi\)</span>, disjoint pools of size <span class="math inline">\(s\)</span>, assay sensitivity <span class="math inline">\(\mathrm{Se}\)</span>, and specificity <span class="math inline">\(\mathrm{Sp}\)</span>. Define <span class="math inline">\(a_s=(1-\pi)^s\)</span>, the probability that a pool contains no positive specimens. Then</p>
+<p><span class="math display">\[
+\begin{aligned}
+q_s(\pi)&amp;=\mathrm{Se}(1-a_s)+(1-\mathrm{Sp})a_s,\\
+Z_s&amp;\sim\operatorname{Binomial}(n_s,q_s(\pi)),
+\end{aligned}
+\]</span></p>
+<p>where <span class="math inline">\(Z_s\)</span> counts positive assays among <span class="math inline">\(n_s\)</span> pools. For this first calculation, take sensitivity and specificity as <strong>known and constant across pool sizes</strong>. The information per pooled assay about <span class="math inline">\(\pi\)</span> is</p>
+<p><span class="math display">\[
+\begin{aligned}
+q_s&#39;(\pi)&amp;=s(\mathrm{Se}+\mathrm{Sp}-1)(1-\pi)^{s-1},\\
+I_s(\pi)&amp;=\frac{\{q_s&#39;(\pi)\}^2}{q_s(\pi)\{1-q_s(\pi)\}},\\
+\operatorname{SE}(\widehat\pi)&amp;\approx\{n_s I_s(\pi)\}^{-1/2}.
+\end{aligned}
+\]</span></p>
+<p><strong>A budgeted illustration.</strong> Suppose the planning prevalence is 2%, sensitivity is 95%, and specificity is 99%. Use a hypothetical budget of <strong>5,000 cost units</strong>, with <strong>20 units per pooled assay plus 1 per specimen</strong>, including the modeled collection and preparation cost. For a plan using a single pool size,</p>
+<p><span class="math display">\[
+n_s=\left\lfloor\frac{5000}{20+s}\right\rfloor,
+\qquad s\in\{1,\ldots,50\}.
+\]</span></p>
+<p>All plans below respect the same total budget. They differ in both the number of assays and the number of specimens collected.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:pooling-budget"></span>
+<img src="/resources/Opt_design_files/figure-html/pooling-budget-1.png" alt="A curve shows prevalence standard error falling as pool size increases from one, then flattening and rising slightly. The best single-size plan under the specified budget is highlighted at pool size 31." width="100%" />
+<p class="caption">
+Figure 4: Figure 4. Approximate prevalence-estimation standard error for each single-pool-size plan under a 5,000-unit budget. The highlighted minimum is over integer sizes 1 to 50 only; mixed-size plans were not optimized. Sensitivity and specificity are assumed known, with no dilution effect. Values are calculated at a 2% planning prevalence.
+</p>
+</div>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Pool size</th>
+<th align="right">Assays</th>
+<th align="right">Specimens</th>
+<th align="right">SE (percentage points)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">238</td>
+<td align="right">238</td>
+<td align="right">1.153</td>
+</tr>
+<tr class="even">
+<td align="right">10</td>
+<td align="right">166</td>
+<td align="right">1660</td>
+<td align="right">0.382</td>
+</tr>
+<tr class="odd">
+<td align="right">31</td>
+<td align="right">98</td>
+<td align="right">3038</td>
+<td align="right">0.316</td>
+</tr>
+<tr class="even">
+<td align="right">50</td>
+<td align="right">71</td>
+<td align="right">3550</td>
+<td align="right">0.332</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why this matters.</strong> Individual testing spends almost all of this budget on assays and gives a planning SE of <strong>1.153 percentage points</strong>. The best single-size plan in this comparison uses <strong>98 pools of 31</strong>, covering <strong>3038 specimens</strong>, with an SE of <strong>0.316 percentage points</strong>. Collecting more specimens is explicitly charged to the budget. The calculation illustrates how optimizing <em>information per unit cost</em> can change the study plan; it does not establish 31 as a generally preferred pool size.</p>
+<p>For implementation, specify dilution-dependent sensitivity, specimen availability, overhead, and any individual follow-up testing that the study requires. If sensitivity and specificity must also be estimated, one pool size supplies only one positive-assay probability for three unknowns. It cannot identify all three parameters. Multiple pool sizes or external validation data are then needed, leading naturally to the multi-parameter and multi-objective designs in the <a href="/#publications">gtDesign research</a>. <a href="#ref-huang">[11]</a> <a href="#ref-group">[8]</a></p>
+</div>
+<div id="multi-objective-design-protect-the-curve-and-improve-a-routine-measurement" class="section level1">
+<h1>6. Multi-objective design: protect the curve and improve a routine measurement</h1>
+<p><strong>The decision.</strong> Return to the quadratic calibration experiment in Section 3. Suppose the laboratory routinely checks samples at <strong>50 <span class="math inline">\(\mu\mathrm M\)</span></strong>, but still needs to estimate the response curve across the full 0–100 range. Its 30 measurements now serve two purposes:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Joint parameter precision:</strong> estimate the intercept, slope, and curvature using a D-criterion.</li>
+<li><strong>Precision at the routine concentration:</strong> estimate the mean signal at 50 <span class="math inline">\(\mu\mathrm M\)</span>, where <span class="math inline">\(x=0\)</span> and <span class="math inline">\(m(0)=\beta_0\)</span>, using a c-criterion with <span class="math inline">\(c=\begin{pmatrix}1\\0\\0\end{pmatrix}\)</span>.</li>
+</ol>
+<p>These goals favor different allocations. A D-optimal plan spreads replication evenly across the three settings; estimating only the center mean would put every measurement at the center and leave slope and curvature unidentified. <strong>Multi-objective design makes the compromise explicit.</strong> Compound criteria combine objectives using priorities; constrained criteria instead specify a minimum acceptable efficiency for one objective and optimize the other. <a href="#ref-compound">[12]</a></p>
+<figure class="design-illustration">
+<a href="/resources/opt-design-illustrations/multiobjective-cute.jpg" aria-label="Open the multi-objective design illustration at full size">
+<img src="/resources/opt-design-illustrations/multiobjective-cute.jpg" width="1774" height="887" loading="lazy" decoding="async" alt="A smiling illustrated balance weighs whole-curve precision against precision at one target concentration, with a shared tray representing one experiment budget.">
+</a>
+<figcaption>
+<strong>One experiment, two goals.</strong> Moving measurements toward a routinely used concentration can improve its precision while weakening estimation elsewhere. The balance represents choosing scientific priorities; the equations and Pareto plot below quantify the trade-off.
+<small class="illustration-credit">Select the image to enlarge.</small>
+</figcaption>
+</figure>
+<div id="a-transparent-model-for-the-trade-off" class="section level2">
+<h2>A transparent model for the trade-off</h2>
+<p>For this illustration, restrict attention to symmetric allocations at 0, 50, and 100 <span class="math inline">\(\mu\mathrm M\)</span>. Let <span class="math inline">\(u\)</span> be the total fraction at the two endpoints, so the coded design is</p>
+<p><span class="math display">\[
+\begin{gathered}
+\xi(u)=\{(-1,u/2),(0,1-u),(1,u/2)\},\\
+0&lt;u&lt;1,\qquad
+M(u)=\begin{pmatrix}
+1&amp;0&amp;u\\
+0&amp;u&amp;0\\
+u&amp;0&amp;u
+\end{pmatrix}.
+\end{gathered}
+\]</span></p>
+<p>Direct calculation gives <span class="math inline">\(\det M(u)=u^2(1-u)\)</span> and <span class="math inline">\(c^\top M(u)^{-1}c=1/(1-u)\)</span>. Normalize each objective by its own single-objective optimum:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\operatorname{Eff}_D(u)
+&amp;=\left\{\frac{27}{4}u^2(1-u)\right\}^{1/3},\\
+\operatorname{Eff}_c(u)&amp;=1-u,\\
+\operatorname{SE}\{\widehat m(0)\}
+&amp;=\frac{\sigma}{\sqrt{N(1-u)}}.
+\end{aligned}
+\]</span></p>
+<p>The D-efficiency reference is the equal-allocation design, <span class="math inline">\(u=2/3\)</span>. The c-efficiency reference is the all-center design: it estimates the center mean with variance <span class="math inline">\(\sigma^2/N\)</span> even though its full information matrix is singular. Both efficiencies are dimensionless; higher is better. The displayed SE concerns the <strong>estimated mean</strong>, not a future noisy observation or an inversely estimated concentration.</p>
+<p>One compound criterion is a weighted sum of log efficiencies:</p>
+<p><span class="math display">\[
+\begin{gathered}
+\max_{0&lt;u&lt;1}\;\Phi_\lambda(u),\\
+\begin{aligned}
+\Phi_\lambda(u)
+&amp;=\lambda\log\operatorname{Eff}_D(u)\\
+&amp;\quad +(1-\lambda)\log\operatorname{Eff}_c(u),
+\end{aligned}
+\end{gathered}
+\]</span></p>
+<p>where <span class="math inline">\(0&lt;\lambda\leq1\)</span> encodes the chosen priority on joint precision. It is <strong>not</strong> the fraction of the budget spent on that objective. Differentiation yields</p>
+<p><span class="math display">\[
+\begin{aligned}
+\Phi_\lambda&#39;(u)
+&amp;=\frac{2\lambda}{3u}
+-\frac{1-2\lambda/3}{1-u},\\
+u_\lambda&amp;=\frac{2\lambda}{3}.
+\end{aligned}
+\]</span></p>
+<p>The criterion is strictly concave in <span class="math inline">\(u\)</span>, so this is its unique optimum in the stated family. At <span class="math inline">\(\lambda=1\)</span> it recovers the D-optimal allocation; smaller positive weights move measurements toward the center. As <span class="math inline">\(\lambda\)</span> tends to zero, the design tends to the singular all-center reference. This derivation is specific to the quadratic model, the center target, and the allowed symmetric three-setting plans.</p>
+</div>
+<div id="what-would-the-laboratory-actually-run" class="section level2">
+<h2>What would the laboratory actually run?</h2>
+<p>Keep <span class="math inline">\(N=30\)</span> and <span class="math inline">\(\sigma=2\)</span> signal units. These three compound designs have exact integer allocations, so no rounding is needed:</p>
+<table>
+<colgroup>
+<col width="19%" />
+<col width="12%" />
+<col width="26%" />
+<col width="15%" />
+<col width="12%" />
+<col width="14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Plan</th>
+<th align="left"><span class="math inline">\(\lambda\)</span></th>
+<th align="center">Runs at 0 / 50 / 100</th>
+<th align="right">D-efficiency</th>
+<th align="right">Center SE</th>
+<th align="right">Endpoint SE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">D-optimal</td>
+<td align="left">1.0</td>
+<td align="center">10 / 10 / 10</td>
+<td align="right">100.0%</td>
+<td align="right">0.632</td>
+<td align="right">0.632</td>
+</tr>
+<tr class="even">
+<td align="left">Compromise</td>
+<td align="left">0.8</td>
+<td align="center">8 / 14 / 8</td>
+<td align="right">96.4%</td>
+<td align="right">0.535</td>
+<td align="right">0.707</td>
+</tr>
+<tr class="odd">
+<td align="left">Center emphasis</td>
+<td align="left">0.5</td>
+<td align="center">5 / 20 / 5</td>
+<td align="right">79.4%</td>
+<td align="right">0.447</td>
+<td align="right">0.894</td>
+</tr>
+</tbody>
+</table>
+<p>Both SE columns use signal units; the endpoint value applies at either 0 or 100 <span class="math inline">\(\mu\mathrm M\)</span>. The <strong>8 / 14 / 8 compromise</strong> retains <strong>96.4% D-efficiency</strong> while reducing the center SE from <strong>0.632 to 0.535</strong>, a <strong>15.5% reduction</strong>. The cost is visible: each endpoint SE increases from <strong>0.632 to 0.707</strong>. A small loss of D-efficiency does not mean that every individual variance changes by the same small percentage.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:multiobjective-frontier"></span>
+<img src="/resources/Opt_design_files/figure-html/multiobjective-frontier-1.png" alt="A trade-off curve shows center standard error increasing as D-efficiency approaches 100 percent. The 8, 14, 8 compromise lies above the 95 percent efficiency requirement, with smaller center standard error than the 10, 10, 10 D-optimal design." width="100%" />
+<p class="caption">
+Figure 5: Figure 5. The Pareto trade-off within symmetric three-setting calibration designs with 30 runs and noise SD 2. Higher D-efficiency and lower center SE are preferred. The continuous curve uses approximate allocations; the highlighted plans have integer run counts. The dashed line marks a 95% D-efficiency requirement. The all-center endpoint is a singular reference that cannot estimate the full curve.
+</p>
+</div>
+<p>The curve is a <strong>Pareto frontier within this design family</strong>: for <span class="math inline">\(0&lt;u\leq2/3\)</span>, improving joint efficiency worsens precision at the center. Values <span class="math inline">\(u&gt;2/3\)</span> are dominated by the D-optimal plan because they worsen both objectives. The frontier helps choose a scientifically acceptable compromise; it does not select the priorities for the researcher.</p>
+</div>
+<div id="choose-an-efficiency-requirement-instead-of-a-weight" class="section level2">
+<h2>Choose an efficiency requirement instead of a weight</h2>
+<p>A laboratory may find the requirement <strong>“retain at least 95% D-efficiency, then minimize the center SE”</strong> easier to justify than choosing <span class="math inline">\(\lambda\)</span>. For an exact symmetric plan, put <span class="math inline">\(k\)</span> observations at each endpoint and <span class="math inline">\(30-2k\)</span> at the center:</p>
+<p><span class="math display">\[
+\begin{gathered}
+\min_{k\in\{1,\ldots,14\}}
+\frac{2}{\sqrt{30-2k}}\\
+\text{subject to}\quad
+\operatorname{Eff}_D(2k/30)\geq0.95.
+\end{gathered}
+\]</span></p>
+<p>Enumerating these fourteen feasible full-rank allocations gives <strong><span class="math inline">\(k=8\)</span></strong>, hence <strong>8 / 14 / 8</strong> again. This is the best center precision subject to the 95% requirement <strong>among these symmetric integer plans</strong>, rather than an unverified claim over arbitrary locations or other experimental constraints.</p>
+<details class="code-fold">
+<summary>
+R code: multi-objective design
+</summary>
+<pre class="r"><code># Standalone base-R example: 30 runs at 0, 50, and 100 micromolar.
+multi_N &lt;- 30
+multi_sigma &lt;- 2
+multi_D_eff &lt;- function(u) ((27 / 4) * u^2 * (1 - u))^(1 / 3)
+multi_center_se &lt;- function(u) multi_sigma / sqrt(multi_N * (1 - u))
+multi_score &lt;- function(u, lambda) {
+  lambda * log(multi_D_eff(u)) + (1 - lambda) * log(1 - u)
+}
+
+# u is the total fraction assigned to the two endpoints.
+# The analytic compound optimum is u = 2 * lambda / 3.
+multi_lambda &lt;- c(1, 0.8, 0.5)
+multi_u &lt;- 2 * multi_lambda / 3
+multi_choices &lt;- data.frame(
+  plan = c(&#39;D-optimal&#39;, &#39;Compromise&#39;, &#39;Center emphasis&#39;),
+  lambda = multi_lambda,
+  u = multi_u,
+  n0 = round(multi_N * multi_u / 2),
+  n50 = round(multi_N * (1 - multi_u)),
+  n100 = round(multi_N * multi_u / 2),
+  D_eff = multi_D_eff(multi_u),
+  center_se = multi_center_se(multi_u),
+  endpoint_se = multi_sigma / sqrt(multi_N * multi_u / 2))
+
+# Search all full-rank, symmetric integer allocations on these settings.
+multi_integer &lt;- data.frame(n_end = 1:14)
+multi_integer$u &lt;- 2 * multi_integer$n_end / multi_N
+multi_integer$D_eff &lt;- multi_D_eff(multi_integer$u)
+multi_integer$center_se &lt;- multi_center_se(multi_integer$u)
+multi_feasible &lt;- subset(multi_integer, D_eff &gt;= 0.95)
+multi_best &lt;- multi_feasible[which.min(multi_feasible$center_se), ]
+
+# Independently check the formulas against regression information matrices.
+multi_F &lt;- cbind(1, c(-1, 0, 1), c(1, 0, 1))
+for (i in seq_along(multi_lambda)) {
+  u &lt;- multi_u[i]
+  M &lt;- crossprod(sweep(multi_F, 1, sqrt(c(u / 2, 1 - u, u / 2)), &#39;*&#39;))
+  V &lt;- multi_sigma^2 / multi_N * solve(M)
+  numeric_u &lt;- optimize(function(v) -multi_score(v, multi_lambda[i]),
+                        c(1e-6, 1 - 1e-6), tol = 1e-10)$minimum
+  stopifnot(abs(det(M) - u^2 * (1 - u)) &lt; 1e-12,
+            abs(sqrt(V[1, 1]) - multi_choices$center_se[i]) &lt; 1e-10,
+            abs(numeric_u - u) &lt; 1e-6)
+}
+stopifnot(all(with(multi_choices, n0 + n50 + n100) == multi_N),
+          multi_best$n_end == 8)
+multi_choices</code></pre>
+</details>
+<p><strong>The same idea extends to screening studies.</strong> When prevalence, sensitivity, and specificity all need estimation, form efficiencies for those separate targets and choose either scientific priority weights or minimum acceptable efficiencies. Recompute the information matrix, account for assay and specimen costs, and check identifiability. The calibration formulas above do not carry over unchanged; this is where multi-objective group-testing methods become useful. <a href="#ref-group">[8]</a></p>
+</div>
+</div>
+<div id="verify-optimality-with-an-equivalence-theorem" class="section level1">
+<h1>7. Verify optimality with an equivalence theorem</h1>
+<p>For an unconstrained approximate design in a full-rank linear model with continuous <span class="math inline">\(f\)</span> on compact <span class="math inline">\(\mathcal X\)</span>, the <strong>Kiefer–Wolfowitz equivalence theorem</strong> connects D-optimality, G-optimality, and the sensitivity bound <a href="#ref-kiefer">[3]</a>:</p>
+<p><span class="math display">\[
+\xi^*\text{ is D-optimal}
+\quad\Longleftrightarrow\quad
+\max_{x\in\mathcal X}d(x,\xi^*)=p.
+\]</span></p>
+<p>At support points carrying positive weight, <span class="math inline">\(d(x,\xi^*)=p\)</span>. Intuitively, no feasible location offers a positive first-order improvement in log-determinant information when a small amount of allocation is moved there. The general theory extends beyond D-optimality. <a href="#ref-pukelsheim">[1]</a></p>
+<p>For our proposed quadratic design, direct matrix inversion gives</p>
+<p><span class="math display">\[
+\begin{gathered}
+M(\xi_D)=
+\begin{pmatrix}
+1&amp;0&amp;2/3\\
+0&amp;2/3&amp;0\\
+2/3&amp;0&amp;2/3
+\end{pmatrix},\\[4pt]
+d(x,\xi_D)=3-\frac{9}{2}x^2(1-x^2)\leq3.
+\end{gathered}
+\]</span></p>
+<p>The inequality holds for every <span class="math inline">\(x\in[-1,1]\)</span>, with equality at <span class="math inline">\(-1,0,1\)</span>. This is an analytic certificate of optimality, not just a successful numerical search. In more complicated problems, evaluating sensitivity on a dense grid is a useful diagnostic but does not certify a continuous region unless the gaps between grid points are also controlled. Added cost or allocation constraints require the corresponding constrained optimality conditions.</p>
+</div>
+<div id="computing-a-design" class="section level1">
+<h1>8. Computing a design</h1>
+<p>On a fixed candidate set <span class="math inline">\(x_1,\ldots,x_m\)</span>, information is affine in the weights. For example, D-optimality solves</p>
+<p><span class="math display">\[
+\max_{w\geq0,\;\mathbf1^\top w=1}
+\log\det\!\left\{\sum_{j=1}^m w_j f(x_j)f(x_j)^\top\right\}.
+\]</span></p>
+<p>This is convex optimization in the standard sense of maximizing a concave objective over a convex feasible set. Linear restrictions on allocation can be included. E-optimality also has a semidefinite formulation: maximize <span class="math inline">\(t\)</span> subject to <span class="math inline">\(M(w)-tI_p\succeq0\)</span> and the weight constraints. Integer run counts and freely moving support locations introduce additional computational issues. <a href="#ref-sagnol">[2]</a></p>
+<p>Exchange algorithms modify support points or allocations; conic optimization provides another route. <strong>CVXR</strong> lets R users express supported convex objectives and constraints and pass them to numerical solvers. <a href="#ref-cvxr">[4]</a> Regardless of the algorithm, inspect feasibility, matrix rank, sensitivity, and the efficiency of the final integer allocation.</p>
+</div>
+<div id="beyond-ordinary-linear-regression" class="section level1">
+<h1>9. Beyond ordinary linear regression</h1>
+<p>For independent observations from a parametric model, replace the outer product <span class="math inline">\(f(x)f(x)^\top\)</span> by the appropriate per-observation Fisher information <span class="math inline">\(I(x;\theta)\)</span>. In homoscedastic Gaussian nonlinear regression with mean <span class="math inline">\(g(x;\theta)\)</span>,</p>
+<p><span class="math display">\[
+\begin{aligned}
+I(x;\theta)&amp;=\frac{1}{\sigma^2}
+\nabla_\theta g(x;\theta)\nabla_\theta g(x;\theta)^\top,\\
+M(\xi;\theta)&amp;=\sum_j w_j I(x_j;\theta).
+\end{aligned}
+\]</span></p>
+<p>For logistic regression, <span class="math inline">\(I(x;\beta)=\pi(x)\{1-\pi(x)\}f(x)f(x)^\top\)</span>, with <span class="math inline">\(\pi(x)=\operatorname{logit}^{-1}\{f(x)^\top\beta\}\)</span>. The information now depends on unknown parameters, making design and prior scientific knowledge closely connected. Atkinson &amp; Woods review design for generalized linear models. <a href="#ref-glm">[5]</a></p>
 <ul>
-<li><code>gtDesign</code></li>
-<li><code>SLSEdesign</code></li>
+<li><strong>Local design:</strong> optimize at a nominal parameter value supported by prior evidence.</li>
+<li><strong>Prior-averaged design:</strong> average an information criterion over a specified parameter distribution.</li>
+<li><strong>Maximin design:</strong> protect performance across a scientifically chosen parameter set.</li>
+<li><strong>Sequential design:</strong> update parameter estimates or distributions after an initial stage and redesign subsequent stages.</li>
 </ul>
+<p>For example, two information-based objectives are</p>
+<p><span class="math display">\[
+\begin{gathered}
+\max_\xi\int\log\det M(\xi;\theta)\,d\Pi(\theta),\\[4pt]
+\max_\xi\min_{\theta\in\Theta}
+\operatorname{Eff}_D(\xi;\theta).
+\end{gathered}
+\]</span></p>
+<p>In the second expression, efficiency is relative to the local optimum at each <span class="math inline">\(\theta\)</span>. The first is often called pseudo-Bayesian D-optimality; it is distinct from a fully Bayesian expected-utility calculation that averages over future data and posterior decisions. <a href="#ref-bayes">[6]</a></p>
+<p>Uncertainty about parameters also differs from <strong>model misspecification</strong>. If the assumed mean or variance structure is wrong, evaluate the resulting bias and covariance under explicit alternatives. A mean squared error criterion combines both:</p>
+<p><span class="math display">\[
+\operatorname{MSE}(\widehat\beta)
+=\operatorname{Cov}(\widehat\beta)
++\operatorname{Bias}(\widehat\beta)\operatorname{Bias}(\widehat\beta)^\top.
+\]</span></p>
+<p>The target parameter and the allowed departures from the model must be defined before a worst-case MSE problem is meaningful.</p>
 </div>
-<div id="todo" class="section level1">
-<h1>TODO</h1>
+<div id="from-these-examples-to-a-research-study" class="section level1">
+<h1>10. From these examples to a research study</h1>
+<p><strong>The estimator matters.</strong> My work with Julie Zhou studies designs under the <strong>second-order least squares estimator (SLSE)</strong>, including equivalence theorems, support-point properties, and scale invariance. Applications include fractional polynomial, spline, and trigonometric regression models. <a href="#ref-slse">[7]</a> The <a href="https://github.com/chikuang/SLSEdesign">SLSEdesign package</a> implements A- and D-optimal design calculations for this setting. Its information and covariance structure should not be replaced by the ordinary least-squares matrix used in the illustration above.</p>
+<p><strong>Group testing introduces costs and multiple targets.</strong> In pooled testing, the design chooses pool sizes and their allocation. Prevalence estimation, assay sensitivity, and assay specificity can compete for the same budget. My work with Weng Kee Wong &amp; Julie Zhou considers single- and multi-objective criteria, approximate designs, and efficient exact allocations under budget constraints. <a href="#ref-group">[8]</a> The accompanying <a href="https://github.com/chikuang/gtDesign">gtDesign package</a> provides computational tools and optimality checks.</p>
+<p><strong>Modern experimental workflows require more than one objective.</strong> Response-surface learning, dose-response estimation, and resource-constrained screening all motivate careful allocation. Connections to active learning and <a href="/resources/drug_discovery/">drug discovery with statistical models and AI agents</a> raise further questions: how should an experiment trade off learning, cost, and performance; how should uncertain models affect the next measurement; and how can an adaptive procedure be checked? An information criterion is one component of such a workflow, alongside domain knowledge, feasibility, and model assessment.</p>
+<div id="turn-the-calculation-into-an-implementable-plan" class="section level2">
+<h2>Turn the calculation into an implementable plan</h2>
+<figure class="design-illustration">
+<a href="/resources/opt-design-illustrations/workflow-cute.jpg" aria-label="Open the experimental-design workflow illustration at full size">
+<img src="/resources/opt-design-illustrations/workflow-cute.jpg" width="1942" height="809" loading="lazy" decoding="async" alt="Five cute illustrated steps run from Question to Model, Design, Experiment, and Check. A return arrow from Check to Model says Update assumptions, showing how evidence informs the next design cycle.">
+</a>
+<figcaption>
+<strong>From a question to an informative experiment.</strong> Define the target, specify a model, allocate measurements, run the experiment, and check assumptions and uncertainty. Findings can update the model and guide the next design cycle.
+<small class="illustration-credit">Select the image to enlarge.</small>
+</figcaption>
+</figure>
 <ol style="list-style-type: decimal">
-<li>Add examples</li>
-<li>Add SLSE</li>
-<li>Add more optimality criteria</li>
-<li>Equivalence theorem</li>
+<li><strong>State the decision target.</strong> Choose between estimating a full curve, a specific concentration, prevalence, or several competing quantities.</li>
+<li><strong>Specify what consumes the budget.</strong> Include independent preparations, assay runs, specimen collection, batch setup, and any required validation or follow-up.</li>
+<li><strong>Use pilot information.</strong> Examine plausible response shapes, noise levels, and parameter values; compute the design under alternatives.</li>
+<li><strong>Compare feasible integer allocations.</strong> Report expected precision and costs against the current plan, including rounding losses and operational restrictions.</li>
+<li><strong>Reserve capacity for checking assumptions.</strong> Include additional settings where needed, randomize or block runs appropriately, and update later stages using what the first stage teaches.</li>
 </ol>
 </div>
-<div id="reference" class="section level1">
-<h1>Reference</h1>
+</div>
+<div id="references-and-further-reading" class="section level1">
+<h1>References and further reading</h1>
 <ol style="list-style-type: decimal">
-<li>Pukelsheim, F. (2006). Optimal Design of Experiments: A Case Study Approach. SIAM.</li>
-<li>Atkinson, A. C., &amp; Donev, A. N. (1992). Optimum Experimental Designs. Oxford University Press.</li>
-<li>Kiefer, J. (1959). Optimum Experimental Designs. Journal of the Royal Statistical Society: Series B (Methodological), 21(2), 272-304.</li>
+<li><a id="ref-pukelsheim"></a> Pukelsheim, F. (2006). <a href="https://doi.org/10.1137/1.9780898719109">Optimal design of experiments</a>. SIAM, Classics in Applied Mathematics, <strong>50</strong>. A systematic treatment of information matrices, design criteria, and equivalence theory.</li>
+<li><a id="ref-sagnol"></a> Sagnol, G. &amp; Harman, R. (2015). <a href="https://arxiv.org/abs/1307.4953">Computing exact D-optimal designs by mixed integer second-order cone programming</a>. <em>The Annals of Statistics</em>, <strong>43</strong>, 2198–2224.</li>
+<li><a id="ref-kiefer"></a> Kiefer, J. &amp; Wolfowitz, J. (1960). <a href="https://doi.org/10.4153/CJM-1960-030-4">The equivalence of two extremum problems</a>. <em>Canadian Journal of Mathematics</em>, <strong>12</strong>, 363–366.</li>
+<li><a id="ref-cvxr"></a> Fu, A., Narasimhan, B. &amp; Boyd, S. (2020). <a href="https://doi.org/10.18637/jss.v094.i14">CVXR: An R package for disciplined convex optimization</a>. <em>Journal of Statistical Software</em>, <strong>94</strong>(14), 1–34.</li>
+<li><a id="ref-glm"></a> Atkinson, A. C. &amp; Woods, D. C. (2015). <a href="https://arxiv.org/abs/1510.05253">Designs for generalized linear models</a>. In <em>Handbook of Design and Analysis of Experiments</em>, A. Dean, M. Morris, J. Stufken &amp; D. Bingham (eds.), chapter 13. Chapman &amp; Hall/CRC.</li>
+<li><a id="ref-bayes"></a> Chaloner, K. &amp; Verdinelli, I. (1995). <a href="https://doi.org/10.1214/ss/1177009939">Bayesian experimental design: A review</a>. <em>Statistical Science</em>, <strong>10</strong>, 273–304.</li>
+<li><a id="ref-slse"></a> Yeh, C.-K. &amp; Zhou, J. (2021). <a href="https://doi.org/10.1007/s00362-018-01076-6">Properties of optimal regression designs under the second-order least squares estimator</a>. <em>Statistical Papers</em>, <strong>62</strong>, 75–92.</li>
+<li><a id="ref-group"></a> Yeh, C.-K., Wong, W. K. &amp; Zhou, J. (2025; revised 2026). <a href="https://arxiv.org/abs/2508.08445">Single and multi-objective optimal designs for group testing experiments with a focus on screening for an infectious disease</a>. Preprint, arXiv:2508.08445.</li>
+<li><a id="ref-calibration"></a> Sander, L. C. (2019). <a href="https://www.nist.gov/publications/calibration">Calibration</a>. <em>Journal of Research of the National Institute of Standards and Technology</em>, <strong>124</strong>, 124027.</li>
+<li><a id="ref-emax"></a> Bretz, F., Dette, H. &amp; Pinheiro, J. C. (2010). <a href="https://doi.org/10.1002/sim.3802">Practical considerations for optimal designs in clinical dose finding studies</a>. <em>Statistics in Medicine</em>, <strong>29</strong>, 731–742.</li>
+<li><a id="ref-huang"></a> Huang, S.-H., Huang, M.-N. L., Shedden, K. &amp; Wong, W. K. (2017 preprint). <a href="https://arxiv.org/abs/1701.00888">Optimal group testing designs for estimating prevalence with uncertain testing errors</a>. arXiv:1701.00888.</li>
+<li><a id="ref-compound"></a> Cook, R. D. &amp; Wong, W. K. (1994). <a href="https://doi.org/10.1080/01621459.1994.10476794">On the equivalence of constrained and compound optimal designs</a>. <em>Journal of the American Statistical Association</em>, <strong>89</strong>(426), 687–692.</li>
 </ol>
+</div>
+<div id="notes-and-reproducibility" class="section level1">
+<h1>Notes and reproducibility</h1>
+<p>The numerical examples and five numbered plots are reproducible teaching calculations under stated assumptions, not measured gains from a real study. The laboratory Emax example here uses its own illustrative parameters and allocations. The calibration trade-off above is a worked illustration with its own specified model and priorities.</p>
+<p>The three AI-generated illustrations provide conceptual context.</p>
+<p>The source code checks the analytic formulas against matrix calculations and compares the compound optimum with numerical optimization.</p>
+<p>The folded R code below computes the information matrices and checks the analytic result using <strong>base R</strong>; it does not require an optimization package. The complete <a href="/resources/Opt_design.Rmd">R Markdown source</a> reproduces all four examples, their comparison tables, and all five figures using base R and ggplot2. All calculations are deterministic.</p>
+<details class="code-fold">
+<summary>
+R code: reproduce the quadratic example
+</summary>
+<pre class="r"><code># Quadratic regression with independent, constant-variance errors.
+basis &lt;- function(x) cbind(1, x, x^2)
+information &lt;- function(x, w) {
+  F &lt;- basis(x)
+  crossprod(sweep(F, 1, sqrt(w), &#39;*&#39;))
+}
+scaled_variance &lt;- function(x, M) {
+  F &lt;- basis(x)
+  rowSums((F %*% solve(M)) * F)
+}
+
+N &lt;- 30
+x_equal &lt;- seq(-1, 1, length.out = N)
+x_opt &lt;- c(-1, 0, 1)
+w_opt &lt;- rep(1 / 3, 3)
+M_equal &lt;- information(x_equal, rep(1 / N, N))
+M_opt &lt;- information(x_opt, w_opt)
+x_grid &lt;- seq(-1, 1, length.out = 1001)
+d_equal &lt;- scaled_variance(x_grid, M_equal)
+d_opt &lt;- scaled_variance(x_grid, M_opt)
+D_efficiency &lt;- exp((as.numeric(determinant(M_equal)$modulus) -
+                     as.numeric(determinant(M_opt)$modulus)) / 3)
+
+# Check the analytic sensitivity function and support-point equality.
+stopifnot(max(abs(d_opt - (3 - 4.5 * x_grid^2 * (1 - x_grid^2)))) &lt; 1e-10,
+          max(d_opt) &lt;= 3 + 1e-10,
+          max(abs(scaled_variance(x_opt, M_opt) - 3)) &lt; 1e-10,
+          D_efficiency &gt; 0, D_efficiency &lt; 1)</code></pre>
+</details>
 </div>
 
 				</div><script>
