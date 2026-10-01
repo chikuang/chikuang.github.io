@@ -611,28 +611,141 @@ F=\frac{\mathrm{SSR}/(p-1)}{\mathrm{SSE}/(n-p)}
 </section>
 <section id="nested-models" class="level2" data-number="4.3">
 <h2 data-number="4.3" class="anchored" data-anchor-id="nested-models"><span class="header-section-number">4.3</span> Nested Models</h2>
+<p>Before comparing models, we need to say what their regression parameters mean.</p>
+<div id="def-regression-parameter-meaning" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 4.3 (Regression Coefficients and the Mean Response)</strong></span> For fixed predictor values, consider the additive model</p>
+<p><span class="math display">\[
+Y_i=\beta_0+\beta_1x_{i1}+\beta_2x_{i2}+\varepsilon_i,
+\qquad \mathbb E(\varepsilon_i)=0.
+\]</span></p>
+<p>The <strong>mean response function</strong> is <span class="math inline">\(\mu(x_1,x_2)=\beta_0+\beta_1x_1+\beta_2x_2\)</span>. If predictors are random, read this as a conditional mean, with <span class="math inline">\(\mathbb E(\varepsilon\mid x_1,x_2)=0\)</span>.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 19%">
+<col style="width: 80%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Parameter</th>
+<th style="text-align: left;">Interpretation in this additive model</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\beta_0\)</span></td>
+<td style="text-align: left;">The intercept: mean response when both <span class="math inline">\(x_1=0\)</span> and <span class="math inline">\(x_2=0\)</span>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><span class="math inline">\(\beta_1\)</span></td>
+<td style="text-align: left;">Difference in mean response for a one-unit increase in <span class="math inline">\(x_1\)</span>, holding <span class="math inline">\(x_2\)</span> fixed.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\beta_2\)</span></td>
+<td style="text-align: left;">Difference in mean response for a one-unit increase in <span class="math inline">\(x_2\)</span>, holding <span class="math inline">\(x_1\)</span> fixed.</td>
+</tr>
+</tbody>
+</table>
+<p>For example,</p>
+<p><span class="math display">\[
+\mu(x_1+h,x_2)-\mu(x_1,x_2)=h\beta_1.
+\]</span></p>
+<p>Thus a positive <span class="math inline">\(\beta_1\)</span> means a higher mean response at larger <span class="math inline">\(x_1\)</span> when <span class="math inline">\(x_2\)</span> is fixed; a negative value means a lower mean. Its units are <strong>response units per unit of <span class="math inline">\(x_1\)</span></strong>. A zero coefficient means no change in this model’s mean as <span class="math inline">\(x_1\)</span> varies with <span class="math inline">\(x_2\)</span> fixed; it does not rule out an unadjusted association between <span class="math inline">\(x_1\)</span> and <span class="math inline">\(Y\)</span>.</p>
+</div>
+<p><strong>Parameter, estimate, and observation.</strong> The coefficients <span class="math inline">\(\beta_0,\beta_1,\beta_2\)</span> are unknown model parameters. The fitted coefficients <span class="math inline">\(\hat\beta_0,\hat\beta_1,\hat\beta_2\)</span> are estimates calculated from a sample and vary across samples. Substituting them gives a fitted mean <span class="math inline">\(\hat\mu\)</span>. An individual observed response also contains its error term, so a slope does not prescribe the exact difference between two observations. These mean comparisons do not by themselves establish a causal effect.</p>
+<div id="exm-regression-parameter-meaning" class="theorem example">
+<p><span class="theorem-title"><strong>Example 4.1 (Read a Fitted Equation in Its Units)</strong></span> For the trees introduced earlier in this chapter, a fitted equation is</p>
+<p><span class="math display">\[
+\widehat{\mathrm{Volume}}
+=-57.988+0.339\,\mathrm{Height}+4.708\,\mathrm{Diameter}.
+\]</span></p>
+<p>Volume is in cubic feet, height in feet, and diameter in inches.</p>
+<ul>
+<li><span class="math inline">\(\hat\beta_{\mathrm{Height}}=0.339\)</span>: at the <strong>same diameter</strong>, trees one foot apart in height differ by an estimated 0.339 cubic feet in mean volume. A five-foot difference corresponds to <span class="math inline">\(5(0.339)=1.695\)</span> cubic feet, using the rounded slope.</li>
+<li><span class="math inline">\(\hat\beta_{\mathrm{Diameter}}=4.708\)</span>: at the <strong>same height</strong>, a one-inch diameter difference corresponds to an estimated 4.708-cubic-foot difference in mean volume.</li>
+<li><span class="math inline">\(\hat\beta_0=-57.988\)</span>: the fitted mean at height zero and diameter zero. Those values are outside the observed data, so this intercept is an extrapolated baseline, not a useful prediction for an actual tree.</li>
+</ul>
+<p>The larger numerical diameter coefficient does not by itself make diameter the more important predictor: the predictors have different units and ranges, and the two coefficients describe different comparisons. The fitted coefficients also do not tell us their own uncertainty; that requires the standard errors and inference from Chapter 3.</p>
+</div>
+<p>We can now ask how these interpretations change when a predictor is added.</p>
 <div id="def-nested-linear-models" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 4.3 (Nested Linear Models)</strong></span> For the same response vector and observations, let the reduced and full models have mean spaces <span class="math inline">\(\mathcal C(\mathbf X_R)\)</span> and <span class="math inline">\(\mathcal C(\mathbf X_F)\)</span>. The models are <strong>nested</strong> when</p>
+<p><span class="theorem-title"><strong>Definition 4.4 (Nested Linear Models)</strong></span> For the same response vector and observations, let the reduced and full models have mean spaces <span class="math inline">\(\mathcal C(\mathbf X_R)\)</span> and <span class="math inline">\(\mathcal C(\mathbf X_F)\)</span>. The models are <strong>nested</strong> when</p>
 <p><span class="math display">\[
 \mathcal C(\mathbf X_R)\subseteq\mathcal C(\mathbf X_F).
 \]</span></p>
 <p>Thus every mean vector allowed by the reduced model is also allowed by the full model. A strict comparison requires ranks <span class="math inline">\(p_R&lt;p_F\)</span>; adding columns that are linear combinations of existing columns does not enlarge the mean space.</p>
 </div>
 <div id="exm-nested-regression-models" class="theorem example">
-<p><span class="theorem-title"><strong>Example 4.1 (Adding a Predictor)</strong></span> Consider the reduced model <span class="math inline">\(Y_i=\beta_0+\beta_1x_{i1}+\varepsilon_i\)</span> and the full model <span class="math inline">\(Y_i=\beta_0+\beta_1x_{i1}+\beta_2x_{i2}+\varepsilon_i\)</span>. Setting <span class="math inline">\(\beta_2=0\)</span> recovers the reduced model. If the <span class="math inline">\(x_2\)</span> column is not in the span of the intercept and <span class="math inline">\(x_1\)</span>, the full model adds one degree of freedom.</p>
+<p><span class="theorem-title"><strong>Example 4.2 (Adding a Predictor)</strong></span> Use different parameter symbols to keep the two candidate mean models distinct:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mu_R(x_1)&amp;=\alpha_0+\alpha_1x_1,\\
+\mu_F(x_1,x_2)&amp;=\beta_0+\beta_1x_1+\beta_2x_2.
+\end{aligned}
+\]</span></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 19%">
+<col style="width: 80%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Coefficient</th>
+<th style="text-align: left;">Mean comparison described by its model</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\alpha_1\)</span></td>
+<td style="text-align: left;">A one-unit difference in <span class="math inline">\(x_1\)</span>, without adjusting for <span class="math inline">\(x_2\)</span>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><span class="math inline">\(\beta_1\)</span></td>
+<td style="text-align: left;">A one-unit difference in <span class="math inline">\(x_1\)</span>, holding <span class="math inline">\(x_2\)</span> fixed.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\beta_2\)</span></td>
+<td style="text-align: left;">A one-unit difference in <span class="math inline">\(x_2\)</span>, holding <span class="math inline">\(x_1\)</span> fixed.</td>
+</tr>
+</tbody>
+</table>
+<p>The reduced intercept is the mean at <span class="math inline">\(x_1=0\)</span> under the reduced model; the full intercept is the mean at <span class="math inline">\(x_1=x_2=0\)</span> under the full model. Each interpretation depends on the specified mean function and on whether its baseline is supported by the data.</p>
+<p>Setting <span class="math inline">\(\beta_2=0\)</span> recovers the reduced mean function, with <span class="math inline">\(\alpha_0=\beta_0\)</span> and <span class="math inline">\(\alpha_1=\beta_1\)</span> <strong>under that restriction</strong>. If the <span class="math inline">\(x_2\)</span> column is not in the span of the intercept and <span class="math inline">\(x_1\)</span>, the full model adds one degree of freedom.</p>
+<p>When we fit the two models separately, OLS re-estimates every free coefficient. Nestedness therefore does <strong>not</strong> require <span class="math inline">\(\hat\alpha_1=\hat\beta_1\)</span>. Even if the reduced model is true, fitting the unrestricted full model can give different estimates in a finite sample. <a href="./05.html#exm-ch5-tree-adjustment">Chapter 5</a> illustrates this with the same height measurements before and after adjustment for diameter.</p>
+</div>
+<div class="callout callout-style-default callout-note callout-titled" title="Interpret the restriction in the full model">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Interpret the restriction in the full model
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>For the models above, the partial F comparison tests <span class="math inline">\(H_0:\beta_2=0\)</span>: does <span class="math inline">\(x_2\)</span> contribute to the mean after accounting for <span class="math inline">\(x_1\)</span>? It does not directly test equality of the two fitted <span class="math inline">\(x_1\)</span> coefficients. A change in the size, sign, or p-value of the <span class="math inline">\(x_1\)</span> coefficient can accompany the change in adjustment; compare the scientific questions before comparing printed numbers.</p>
+</div>
+</div>
+<div id="exr-nested-parameter-interpretation" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 4.4 (In Class: Which Parameter Is Being Tested?)</strong></span> Compare <code>Volume ~ Height</code> with <code>Volume ~ Height + Diameter</code> on the same trees. Which null hypothesis does their partial F test address?</p>
+<p>A. The two fitted height coefficients are equal.</p>
+<p>B. The diameter coefficient in the full model is zero, after accounting for height.</p>
+<p>C. The height coefficient in the full model is zero, after accounting for diameter.</p>
+</div>
+<div id="sol-nested-parameter-interpretation" class="proof solution">
+<p><span class="proof-title"><em>Solution 4.4</em>. </span><strong>B.</strong> Diameter is the added predictor. Statement C would instead compare <code>Volume ~ Diameter</code> with <code>Volume ~ Diameter + Height</code>. Neither comparison is a direct test that the height estimates from two different models are equal.</p>
 </div>
 <div id="def-extra-sum-of-squares" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 4.4 (Extra Sum of Squares)</strong></span> For nested models fitted by OLS to the same response and observations, define the <strong>extra sum of squares</strong> for the full model relative to the reduced model as</p>
+<p><span class="theorem-title"><strong>Definition 4.5 (Extra Sum of Squares)</strong></span> For nested models fitted by OLS to the same response and observations, define the <strong>extra sum of squares</strong> for the full model relative to the reduced model as</p>
 <p><span class="math display">\[
 \mathrm{SS}_{\mathrm{extra}}=\mathrm{SSE}_R-\mathrm{SSE}_F.
 \]</span></p>
 <p>Its associated degrees of freedom are <span class="math inline">\(p_F-p_R\)</span>, where <span class="math inline">\(p_R\)</span> and <span class="math inline">\(p_F\)</span> are the design-matrix ranks.</p>
 </div>
 <div id="exr-nested-sse-discussion" class="theorem exercise">
-<p><span class="theorem-title"><strong>Exercise 4.4 (In-Class Discussion: Can the Larger Model Fit Worse?)</strong></span> Why must <span class="math inline">\(\mathrm{SSE}_F\le\mathrm{SSE}_R\)</span> when nested models are fitted by OLS to the same observations? Must the inequality be strict whenever a genuinely new predictor direction is added?</p>
+<p><span class="theorem-title"><strong>Exercise 4.5 (In-Class Discussion: Can the Larger Model Fit Worse?)</strong></span> Why must <span class="math inline">\(\mathrm{SSE}_F\le\mathrm{SSE}_R\)</span> when nested models are fitted by OLS to the same observations? Must the inequality be strict whenever a genuinely new predictor direction is added?</p>
 </div>
 <div id="sol-nested-sse-discussion" class="proof solution">
-<p><span class="proof-title"><em>Solution 4.4</em>. </span>Every fitted mean vector allowed by the reduced model is also available to the full model. Minimizing the same residual sum of squares over this larger set cannot give a larger minimum. Equality is possible even if the model space grows: for the observed response, the added directions may provide no further reduction in residual variation. Thus greater flexibility guarantees a weak improvement in training fit, not a strictly positive improvement or a useful predictor.</p>
+<p><span class="proof-title"><em>Solution 4.5</em>. </span>Every fitted mean vector allowed by the reduced model is also available to the full model. Minimizing the same residual sum of squares over this larger set cannot give a larger minimum. Equality is possible even if the model space grows: for the observed response, the added directions may provide no further reduction in residual variation. Thus greater flexibility guarantees a weak improvement in training fit, not a strictly positive improvement or a useful predictor.</p>
 </div>
 <p>A positive extra sum of squares alone is not evidence against the reduced model: the F test scales that improvement by its degrees of freedom and the estimated noise variance.</p>
 <div id="thm-partial-f" class="theorem">
@@ -657,10 +770,10 @@ F=\frac{(\mathrm{SSE}_R-\mathrm{SSE}_F)/(p_F-p_R)}{\mathrm{SSE}_F/(n-p_F)}
 </div>
 </div>
 <div id="exr-partial-f-short-calculation" class="theorem exercise">
-<p><span class="theorem-title"><strong>Exercise 4.5 (In Class: A Better Fit, but Enough Improvement?)</strong></span> Two nested models use the same <span class="math inline">\(n=30\)</span> observations. The reduced model has rank <span class="math inline">\(p_R=2\)</span> and <span class="math inline">\(\mathrm{SSE}_R=90\)</span>; the full model has rank <span class="math inline">\(p_F=4\)</span> and <span class="math inline">\(\mathrm{SSE}_F=78\)</span>. Compute the extra sum of squares, its degrees of freedom, the full-model MSE, and the partial F statistic. Does a reduction in SSE by itself justify rejecting the reduced model?</p>
+<p><span class="theorem-title"><strong>Exercise 4.6 (In Class: A Better Fit, but Enough Improvement?)</strong></span> Two nested models use the same <span class="math inline">\(n=30\)</span> observations. The reduced model has rank <span class="math inline">\(p_R=2\)</span> and <span class="math inline">\(\mathrm{SSE}_R=90\)</span>; the full model has rank <span class="math inline">\(p_F=4\)</span> and <span class="math inline">\(\mathrm{SSE}_F=78\)</span>. Compute the extra sum of squares, its degrees of freedom, the full-model MSE, and the partial F statistic. Does a reduction in SSE by itself justify rejecting the reduced model?</p>
 </div>
 <div id="sol-partial-f-short-calculation" class="proof solution">
-<p><span class="proof-title"><em>Solution 4.5</em>. </span>The improvement is <span class="math inline">\(90-78=12\)</span> on <span class="math inline">\(4-2=2\)</span> degrees of freedom. The full-model MSE is <span class="math inline">\(78/(30-4)=3\)</span>, so <span class="math inline">\(F=(12/2)/3=2\)</span>. Under the normal-model null, compare this with <span class="math inline">\(F_{2,26}\)</span>; the upper-tail p-value is about <span class="math inline">\(0.156\)</span>. The improvement is insufficient for rejection at the 5% level. More flexibility always weakly reduces training SSE, including when the added coefficients are zero.</p>
+<p><span class="proof-title"><em>Solution 4.6</em>. </span>The improvement is <span class="math inline">\(90-78=12\)</span> on <span class="math inline">\(4-2=2\)</span> degrees of freedom. The full-model MSE is <span class="math inline">\(78/(30-4)=3\)</span>, so <span class="math inline">\(F=(12/2)/3=2\)</span>. Under the normal-model null, compare this with <span class="math inline">\(F_{2,26}\)</span>; the upper-tail p-value is about <span class="math inline">\(0.156\)</span>. The improvement is insufficient for rejection at the 5% level. More flexibility always weakly reduces training SSE, including when the added coefficients are zero.</p>
 </div>
 <p><strong>Connection with General Linear Hypotheses</strong></p>
 <p>Nested column-space models correspond to linear restrictions on the full-model coefficients. More generally, <a href="./03_OLS_inference.html">Chapter 3 — Distribution Theory of OLS and Inference</a> allows a specified affine restriction of the form</p>
@@ -669,7 +782,7 @@ H_0: \mathbf{C}\boldsymbol{\beta} = \mathbf{d}.
 \]</span></p>
 <p>So the ANOVA comparison of nested models is another way of expressing the general <span class="math inline">\(F\)</span> test from <a href="./03_OLS_inference.html">Chapter 3 — Distribution Theory of OLS and Inference</a>. In practice, this is one of the most common uses of regression ANOVA tables.</p>
 <div id="def-sequential-partial-sums-of-squares" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 4.5 (Sequential and Partial Sums of Squares)</strong></span> For a term in a specified regression model, both quantities are extra sums of squares from a nested comparison on the same observations:</p>
+<p><span class="theorem-title"><strong>Definition 4.6 (Sequential and Partial Sums of Squares)</strong></span> For a term in a specified regression model, both quantities are extra sums of squares from a nested comparison on the same observations:</p>
 <ul>
 <li><strong>Sequential sum of squares:</strong> the reduction in SSE when the term is added after the preceding terms in a specified order.</li>
 <li><strong>Partial sum of squares:</strong> the increase in SSE when the specified term is removed from a full model while the other specified terms are retained.</li>
@@ -677,7 +790,7 @@ H_0: \mathbf{C}\boldsymbol{\beta} = \mathbf{d}.
 </div>
 <p>When predictors are correlated, sequential sums of squares can depend on their order. Partial sums of squares answer a comparison conditional on the terms retained in the reduced model. With interactions or rank deficiency, state the exact restriction and respect model hierarchy rather than relying only on a Type I, II, or III label.</p>
 <div id="def-coefficient-of-determination" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 4.6 (Coefficient of Determination)</strong></span> For an OLS fit with an intercept and <span class="math inline">\(\mathrm{SST}&gt;0\)</span>, the <strong>coefficient of determination</strong> is</p>
+<p><span class="theorem-title"><strong>Definition 4.7 (Coefficient of Determination)</strong></span> For an OLS fit with an intercept and <span class="math inline">\(\mathrm{SST}&gt;0\)</span>, the <strong>coefficient of determination</strong> is</p>
 <p><span class="math display">\[
 R^2=\frac{\mathrm{SSR}}{\mathrm{SST}}
 =1-\frac{\mathrm{SSE}}{\mathrm{SST}}.
@@ -691,7 +804,7 @@ R^2=\frac{\mathrm{SSR}}{\mathrm{SST}}
 </ul>
 <p>However, <span class="math inline">\(R^2\)</span> alone does not guarantee that the model is appropriate. A high <span class="math inline">\(R^2\)</span> does not ensure that assumptions are satisfied, and a low <span class="math inline">\(R^2\)</span> does not necessarily imply the model is useless.</p>
 <div id="def-adjusted-r-squared" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 4.7 (Adjusted Coefficient of Determination)</strong></span> For an OLS fit with an intercept, <span class="math inline">\(\mathrm{SST}&gt;0\)</span>, and design rank <span class="math inline">\(p&lt;n\)</span>, define the <strong>adjusted coefficient of determination</strong> as</p>
+<p><span class="theorem-title"><strong>Definition 4.8 (Adjusted Coefficient of Determination)</strong></span> For an OLS fit with an intercept, <span class="math inline">\(\mathrm{SST}&gt;0\)</span>, and design rank <span class="math inline">\(p&lt;n\)</span>, define the <strong>adjusted coefficient of determination</strong> as</p>
 <p><span class="math display">\[
 R^2_{\mathrm{adj}}
 =1-\frac{\mathrm{SSE}/(n-p)}{\mathrm{SST}/(n-1)}.
@@ -699,7 +812,7 @@ R^2_{\mathrm{adj}}
 </div>
 <p>Ordinary <span class="math inline">\(R^2\)</span> cannot decrease when the model space is enlarged on the same data. Adjusted <span class="math inline">\(R^2\)</span> accounts for the loss of residual degrees of freedom and can decrease or become negative. It compares residual mean square with the sample variance of the response; it is not a literal proportion of explained variation or an estimate of out-of-sample predictive performance.</p>
 <div id="exm-anova-by-hand" class="theorem example">
-<p><span class="theorem-title"><strong>Example 4.2 (A Small ANOVA Calculation)</strong></span> For the column vectors <span class="math inline">\(\mathbf x=(0,1,2,3)\)</span> and <span class="math inline">\(\mathbf y=(1,3,3,5)\)</span>, the fitted line is <span class="math inline">\(\hat y=1.2+1.2x\)</span>. Therefore <span class="math inline">\(\hat{\mathbf y}=(1.2,2.4,3.6,4.8)\)</span>, <span class="math inline">\(\mathbf e=(-0.2,0.6,-0.6,0.2)\)</span>, and <span class="math inline">\(\bar y=3\)</span>.</p>
+<p><span class="theorem-title"><strong>Example 4.3 (A Small ANOVA Calculation)</strong></span> For the column vectors <span class="math inline">\(\mathbf x=(0,1,2,3)\)</span> and <span class="math inline">\(\mathbf y=(1,3,3,5)\)</span>, the fitted line is <span class="math inline">\(\hat y=1.2+1.2x\)</span>. Therefore <span class="math inline">\(\hat{\mathbf y}=(1.2,2.4,3.6,4.8)\)</span>, <span class="math inline">\(\mathbf e=(-0.2,0.6,-0.6,0.2)\)</span>, and <span class="math inline">\(\bar y=3\)</span>.</p>
 <p><span class="math display">\[
 \begin{aligned}
 \mathrm{SST}&amp;=(1-3)^2+(3-3)^2+(3-3)^2+(5-3)^2=8,\\
@@ -745,10 +858,10 @@ R^2_{\mathrm{adj}}
 <p>The model has <span class="math inline">\(R^2=7.2/8=0.9\)</span>, yet the F-test p-value is <span class="math inline">\(P(F_{1,2}\ge18)\approx0.0513\)</span>. With only two residual degrees of freedom, a high training <span class="math inline">\(R^2\)</span> does not automatically give evidence at the 5% significance level.</p>
 </div>
 <div id="exr-r-squared-versus-adjustment" class="theorem exercise">
-<p><span class="theorem-title"><strong>Exercise 4.6 (In Class: Can Two Fit Summaries Disagree?)</strong></span> For the same <span class="math inline">\(n=10\)</span> observations with <span class="math inline">\(\mathrm{SST}=100\)</span>, an intercept model has rank 2 and SSE 20. Adding a predictor whose column is linearly independent of the existing columns increases the rank to 3 and reduces SSE to 19. Compute <span class="math inline">\(R^2\)</span> and adjusted <span class="math inline">\(R^2\)</span> for both fits. Did the one-unit reduction in SSE improve both summaries? Why can relying on <span class="math inline">\(R^2\)</span> alone be misleading?</p>
+<p><span class="theorem-title"><strong>Exercise 4.7 (In Class: Can Two Fit Summaries Disagree?)</strong></span> For the same <span class="math inline">\(n=10\)</span> observations with <span class="math inline">\(\mathrm{SST}=100\)</span>, an intercept model has rank 2 and SSE 20. Adding a predictor whose column is linearly independent of the existing columns increases the rank to 3 and reduces SSE to 19. Compute <span class="math inline">\(R^2\)</span> and adjusted <span class="math inline">\(R^2\)</span> for both fits. Did the one-unit reduction in SSE improve both summaries? Why can relying on <span class="math inline">\(R^2\)</span> alone be misleading?</p>
 </div>
 <div id="sol-r-squared-versus-adjustment" class="proof solution">
-<p><span class="proof-title"><em>Solution 4.6</em>. </span>Ordinary <span class="math inline">\(R^2\)</span> increases from <span class="math inline">\(1-20/100=0.80\)</span> to <span class="math inline">\(1-19/100=0.81\)</span>. Adjusted <span class="math inline">\(R^2\)</span> decreases from <span class="math inline">\(1-(20/8)/(100/9)=0.775\)</span> to <span class="math inline">\(1-(19/7)/(100/9)\approx0.756\)</span>. The extra predictor reduces SSE but increases residual mean square, from <span class="math inline">\(2.5\)</span> to about <span class="math inline">\(2.714\)</span>. Training <span class="math inline">\(R^2\)</span> cannot decrease when the model space grows, even when the new term only fits noise. A high <span class="math inline">\(R^2\)</span> also does not establish a correct mean function, appropriate error assumptions, or causality. Neither summary alone establishes better prediction on new observations.</p>
+<p><span class="proof-title"><em>Solution 4.7</em>. </span>Ordinary <span class="math inline">\(R^2\)</span> increases from <span class="math inline">\(1-20/100=0.80\)</span> to <span class="math inline">\(1-19/100=0.81\)</span>. Adjusted <span class="math inline">\(R^2\)</span> decreases from <span class="math inline">\(1-(20/8)/(100/9)=0.775\)</span> to <span class="math inline">\(1-(19/7)/(100/9)\approx0.756\)</span>. The extra predictor reduces SSE but increases residual mean square, from <span class="math inline">\(2.5\)</span> to about <span class="math inline">\(2.714\)</span>. Training <span class="math inline">\(R^2\)</span> cannot decrease when the model space grows, even when the new term only fits noise. A high <span class="math inline">\(R^2\)</span> also does not establish a correct mean function, appropriate error assumptions, or causality. Neither summary alone establishes better prediction on new observations.</p>
 </div>
 <p><strong>ANOVA Table Structure</strong></p>
 <p>A standard regression ANOVA table has the following structure:</p>
@@ -1037,7 +1150,7 @@ F-statistic: 49.46 on 2 and 5 DF,  p-value: 0.0005079</code></pre>
 </ul>
 <p>Students should understand that these outputs are not separate topics. They are all built from the same least squares geometry and distribution theory.</p>
 <div id="exm-timber-volume" class="theorem example">
-<p><span class="theorem-title"><strong>Example 4.3 (Optional Real-Data Example: Is Tree Height Useful Beyond Diameter?)</strong></span> Return to the forestry question. R’s <code>trees</code> data contain timber volume in cubic feet, height in feet, and a variable named <code>Girth</code> that is actually <strong>diameter in inches</strong>, measured 4 feet 6 inches above the ground. We rename it <code>Diameter</code> to avoid that labeling trap. Each row represents one of 31 felled black cherry trees. See the <a href="https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/trees.html">official dataset documentation</a> for the source and measurement definitions.</p>
+<p><span class="theorem-title"><strong>Example 4.4 (Optional Real-Data Example: Is Tree Height Useful Beyond Diameter?)</strong></span> Return to the forestry question. R’s <code>trees</code> data contain timber volume in cubic feet, height in feet, and a variable named <code>Girth</code> that is actually <strong>diameter in inches</strong>, measured 4 feet 6 inches above the ground. We rename it <code>Diameter</code> to avoid that labeling trap. Each row represents one of 31 felled black cherry trees. See the <a href="https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/trees.html">official dataset documentation</a> for the source and measurement definitions.</p>
 <p><strong>State the question first.</strong> Comparing <span class="math inline">\(M_0\)</span> with <span class="math inline">\(M_2\)</span> asks whether diameter and height together improve on a constant mean. Comparing <span class="math inline">\(M_1\)</span> with <span class="math inline">\(M_2\)</span> asks whether height contributes after adjusting for diameter. For the second question, <span class="math inline">\(H_0:\beta_{\mathrm{Height}}=0\)</span>. These are distinct questions even though both use an F test.</p>
 <div class="cell">
 <details class="code-fold">
