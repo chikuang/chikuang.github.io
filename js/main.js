@@ -1,12 +1,17 @@
 (function () {
   var STORAGE_KEY = 'ck-site-theme';
+  var THEME_COLORS = { light: '#ffffff', dark: '#16181d', 'milk-tea': '#fbf5eb' };
+
+  function isTheme(theme) {
+    return Object.prototype.hasOwnProperty.call(THEME_COLORS, theme);
+  }
 
   function getMetaThemeColor() {
     return document.querySelector('meta[name="theme-color"]');
   }
 
   function applyTheme(theme) {
-    if (theme !== 'light' && theme !== 'dark') theme = 'light';
+    if (!isTheme(theme)) theme = 'light';
     document.documentElement.setAttribute('data-theme', theme);
     try {
       localStorage.setItem(STORAGE_KEY, theme);
@@ -14,18 +19,12 @@
 
     var meta = getMetaThemeColor();
     if (meta) {
-      meta.setAttribute('content', theme === 'dark' ? '#16181d' : '#ffffff');
+      meta.setAttribute('content', THEME_COLORS[theme]);
     }
 
-    var btn = document.getElementById('theme-toggle');
-    if (btn) {
-      btn.removeAttribute('title');
-    }
-  }
-
-  function toggleTheme() {
-    var cur = document.documentElement.getAttribute('data-theme') || 'light';
-    applyTheme(cur === 'dark' ? 'light' : 'dark');
+    document.querySelectorAll('[data-color-theme]').forEach(function (btn) {
+      btn.setAttribute('aria-pressed', String(btn.getAttribute('data-color-theme') === theme));
+    });
   }
 
   function initSections() {
@@ -117,15 +116,16 @@
 
   function init() {
     initSections();
-    var btn = document.getElementById('theme-toggle');
-    if (btn) {
-      btn.addEventListener('click', toggleTheme);
-    }
+    document.querySelectorAll('[data-color-theme]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        applyTheme(btn.getAttribute('data-color-theme'));
+      });
+    });
     var stored = null;
     try {
       stored = localStorage.getItem(STORAGE_KEY);
     } catch (e) {}
-    if (stored === 'light' || stored === 'dark') {
+    if (isTheme(stored)) {
       applyTheme(stored);
     } else {
       applyTheme(
