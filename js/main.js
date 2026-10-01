@@ -11,7 +11,7 @@
   }
 
   function applyTheme(theme) {
-    if (!isTheme(theme)) theme = 'light';
+    if (!isTheme(theme)) theme = 'milk-tea';
     document.documentElement.setAttribute('data-theme', theme);
     try {
       localStorage.setItem(STORAGE_KEY, theme);
@@ -129,7 +129,7 @@
       applyTheme(stored);
     } else {
       applyTheme(
-        document.documentElement.getAttribute('data-theme') || 'light'
+        document.documentElement.getAttribute('data-theme') || 'milk-tea'
       );
     }
   }
