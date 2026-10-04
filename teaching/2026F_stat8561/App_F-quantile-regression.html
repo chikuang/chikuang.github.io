@@ -399,9 +399,9 @@ window.Quarto = {
 <div id="def-conditional-quantile" class="theorem definition">
 <p><span class="theorem-title"><strong>Definition 1 (Conditional Quantile)</strong></span> For <span class="math inline">\(0&lt;\tau&lt;1\)</span>, define</p>
 <p><span class="math display">\[
-Q_\tau(Y\mid X=x)=\inf\{q:P(Y\le q\mid X=x)\ge\tau\}.
+Q_\tau(Y\mid \mathbf{X}=\mathbf{x})=\inf\{q:P(Y\le q\mid \mathbf{X}=\mathbf{x})\ge\tau\}.
 \]</span></p>
-<p>A linear quantile model specifies <span class="math inline">\(Q_\tau(Y\mid X=x)=x^\top\beta_\tau\)</span>. The coefficients may vary with <span class="math inline">\(\tau\)</span>. At <span class="math inline">\(\tau=0.5\)</span>, the target is a conditional median.</p>
+<p>Here <span class="math inline">\(Y\)</span> is a scalar response, <span class="math inline">\(\mathbf{X}\)</span> is a random predictor vector, and <span class="math inline">\(\mathbf{x}\)</span> is its observed value. A linear quantile model specifies <span class="math inline">\(Q_\tau(Y\mid \mathbf{X}=\mathbf{x})=\mathbf{x}^\top\boldsymbol{\beta}_\tau\)</span>. The coefficients may vary with <span class="math inline">\(\tau\)</span>. At <span class="math inline">\(\tau=0.5\)</span>, the target is a conditional median.</p>
 </div>
 <p><strong>Interpretation.</strong> Without an interaction involving <span class="math inline">\(x_j\)</span>, <span class="math inline">\(\beta_{\tau,j}\)</span> is the change in the modeled conditional <span class="math inline">\(\tau\)</span>-quantile for a one-unit change in <span class="math inline">\(x_j\)</span>, holding the other predictors fixed. This compares conditional distributions. It does not track a particular person who remains at the same percentile, and it is not automatically a causal effect.</p>
 <div class="callout callout-style-default callout-important callout-titled" title="Use all observations to estimate a conditional quantile">
@@ -417,19 +417,19 @@ Q_\tau(Y\mid X=x)=\inf\{q:P(Y\le q\mid X=x)\ge\tau\}.
 <p>Fitting the 90th percentile does not mean selecting the largest 10% of responses and fitting OLS to them. Quantile regression uses the full dataset with a loss function that gives different penalties to positive and negative residuals. A marginal percentile of all responses is also different from a percentile conditional on the predictors.</p>
 </div>
 </div>
-<p><strong>Why a different loss?</strong> Least squares penalizes a residual <span class="math inline">\(u=y-x^\top b\)</span> by <span class="math inline">\(u^2\)</span>. Quantile regression instead uses the check loss, also called pinball loss:</p>
+<p><strong>Why a different loss?</strong> Least squares penalizes a residual <span class="math inline">\(u=y-\mathbf{x}^\top\mathbf{b}\)</span> by <span class="math inline">\(u^2\)</span>. Quantile regression instead uses the check loss, also called pinball loss:</p>
 <p><span class="math display">\[
 \begin{aligned}
-\rho_\tau(u)&amp;=u\{\tau-\mathbf{1}(u&lt;0)\}
+\rho_\tau(u)&amp;=u\{\tau-\mathbb{1}\{u&lt;0\}\}
 =\begin{cases}\tau u,&amp;u\ge0,\\(1-\tau)(-u),&amp;u&lt;0,\end{cases}\\
-\hat\beta_\tau&amp;\in\arg\min_b\sum_{i=1}^n\rho_\tau(y_i-x_i^\top b).
+\hat{\boldsymbol{\beta}}_\tau&amp;\in\arg\min_{\mathbf{b}}\sum_{i=1}^n\rho_\tau(y_i-\mathbf{x}_i^\top\mathbf{b}).
 \end{aligned}
 \]</span></p>
 <p>At <span class="math inline">\(\tau=0.5\)</span>, minimizing check loss is equivalent to minimizing the sum of absolute residuals. At <span class="math inline">\(\tau=0.9\)</span>, underpredicting the response costs nine times as much per unit as overpredicting it. The fitted target consequently moves toward the upper tail.</p>
 <div id="prp-check-loss-quantile" class="theorem proposition">
-<p><span class="theorem-title"><strong>Proposition 1 (Why Check Loss Targets a Quantile)</strong></span> If <span class="math inline">\(\mathbb{E}(|Y|)&lt;\infty\)</span>, the minimizers of <span class="math inline">\(\mathbb{E}\{\rho_\tau(Y-a)\}\)</span> are characterized by <span class="math inline">\(F(a-)\le\tau\le F(a)\)</span>; the conditional-quantile definition above selects the lower endpoint when the minimizer is not unique. Where <span class="math inline">\(F\)</span> is continuous, the derivative with respect to <span class="math inline">\(a\)</span> is <span class="math inline">\(F(a)-\tau\)</span>. It is nonpositive below a minimizing quantile and nonnegative above it. The same argument applies to the conditional distribution at a fixed <span class="math inline">\(x\)</span>.</p>
+<p><span class="theorem-title"><strong>Proposition 1 (Why Check Loss Targets a Quantile)</strong></span> If <span class="math inline">\(\mathbb{E}(|Y|)&lt;\infty\)</span>, the minimizers of <span class="math inline">\(\mathbb{E}\{\rho_\tau(Y-a)\}\)</span> are characterized by <span class="math inline">\(F(a-)\le\tau\le F(a)\)</span>; the conditional-quantile definition above selects the lower endpoint when the minimizer is not unique. Where <span class="math inline">\(F\)</span> is continuous, the derivative with respect to <span class="math inline">\(a\)</span> is <span class="math inline">\(F(a)-\tau\)</span>. It is nonpositive below a minimizing quantile and nonnegative above it. The same argument applies to the conditional distribution at a fixed <span class="math inline">\(\mathbf{x}\)</span>.</p>
 </div>
-<p><strong>Scope of the linear model.</strong> The population argument allows a different quantile at every <span class="math inline">\(x\)</span>. A linear quantile regression restricts these values to one linear function. If the true conditional quantile is nonlinear, the fitted line is a best approximation under the chosen loss, rather than an exact description at every predictor value.</p>
+<p><strong>Scope of the linear model.</strong> The population argument allows a different quantile at every <span class="math inline">\(\mathbf{x}\)</span>. A linear quantile regression restricts these values to one linear function. If the true conditional quantile is nonlinear, the fitted line is a best approximation under the chosen loss, rather than an exact description at every predictor value.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
