@@ -78,7 +78,7 @@ In a notebook, enter a code cell and press **Shift+Enter** to execute it. A note
 
 ```{code-cell} python
 sample_size = 10
-course_name = "Teaching-GenAI"
+course_name = "STAT XXXX Generate AI"
 words = ["data", "models", "learning"]
 
 print(course_name)

@@ -78,7 +78,7 @@ Open `http://localhost:8767` in a browser. Keep the terminal running while you b
 | `docs/index.md` | Homepage and chapter navigation. |
 | `docs/chapters/` | Canonical lesson text and Python code cells. |
 | `docs/conf.py` | Python configuration for Sphinx and notebook execution. |
-| `docs/_static/waterloo.css` | Black, yellow, and mathematics pink styling. |
+| `docs/_static/course.css` | White backgrounds, readable typography, and yellow/pink accents. |
 | `scripts/build.py` | Python entry point for execution, rendering, and notebook export. |
 | `requirements.txt` | Python package dependencies. |
 | `_build/html/` | Generated website; rebuild it rather than editing it. |

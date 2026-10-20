@@ -1,7 +1,7 @@
 
 # Course outline
 
-**Topic Course: Generative AI through the lens of statisticians**
+**STAT XXXX Generate AI**
 
 This sequence assumes a strong statistics background and begins at an introductory level in deep learning and GenAI. Modules are learning units, not calendar weeks. Work through them at a comfortable pace, returning to the mathematics when it clarifies an experiment. All proposed implementations use **Python**, progressing from NumPy to PyTorch and then selected pretrained-model tools.
 

@@ -1,4 +1,4 @@
-# Generative AI through a statistical lens
+# STAT XXXX Generate AI
 
 ```{raw} html
 <div class="course-hero">
@@ -37,10 +37,6 @@ Every chapter starts with a concrete question, develops a statistical formulatio
 4. Follow the [14-chapter course outline](syllabus.md) as the remaining lessons develop.
 
 **Current materials:** Chapter 1 is a complete lesson. Chapters 2–14 have individual pages with questions, learning objectives, statistical connections, and planned Python practice; they are explicitly marked as outlines. The [short Python warm-up](01-python-lab.md) remains available as a supplement.
-
-```{raw} html
-<p class="math-heritage">Black and yellow recall Waterloo; pink celebrates my Faculty of Mathematics background. The palette follows <a href="https://uwaterloo.ca/brand/how-express-our-brand/colour">Waterloo's published colour guide</a>. This is a personal course website.</p>
-```
 
 ```{toctree}
 :caption: Course guide
