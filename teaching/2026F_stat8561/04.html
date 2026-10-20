@@ -373,6 +373,12 @@ window.Quarto = {
   <li><a href="#r-demonstration" id="toc-r-demonstration" class="nav-link" data-scroll-target="#r-demonstration"><span class="header-section-number">4.4</span> R Demonstration</a></li>
   <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">4.5</span> Summary</a></li>
   <li><a href="#practice-problems" id="toc-practice-problems" class="nav-link" data-scroll-target="#practice-problems"><span class="header-section-number">4.6</span> Practice Problems</a></li>
+  <li><a href="#sec-f-test-appendix" id="toc-sec-f-test-appendix" class="nav-link" data-scroll-target="#sec-f-test-appendix">Appendix: From the SSE Difference to the Overall F Test</a>
+  <ul class="collapse">
+  <li><a href="#why-subtract-the-two-residual-sums-of-squares" id="toc-why-subtract-the-two-residual-sums-of-squares" class="nav-link" data-scroll-target="#why-subtract-the-two-residual-sums-of-squares">Why subtract the two residual sums of squares?</a></li>
+  <li><a href="#recovering-theorem-4.2-from-theorem-4.3" id="toc-recovering-theorem-4.2-from-theorem-4.3" class="nav-link" data-scroll-target="#recovering-theorem-4.2-from-theorem-4.3">Recovering Theorem 4.2 from Theorem 4.3</a></li>
+  <li><a href="#why-does-the-ratio-have-an-f-distribution" id="toc-why-does-the-ratio-have-an-f-distribution" class="nav-link" data-scroll-target="#why-does-the-ratio-have-an-f-distribution">Why does the ratio have an F distribution?</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -802,6 +808,7 @@ F=\frac{(\mathrm{SSE}_R-\mathrm{SSE}_F)/(p_F-p_R)}{\mathrm{SSE}_F/(n-p_F)}
 \]</span></p>
 <p>Large values give evidence against the reduced mean model. The numerator measures improvement per added degree of freedom; the denominator estimates the unexplained variance under the full model.</p>
 </div>
+<p>The <a href="#sec-f-test-appendix">appendix at the end of this chapter</a> derives <span class="math inline">\(\mathrm{SSE}_R-\mathrm{SSE}_F\)</span> geometrically and shows how <a href="#thm-overall-f" class="quarto-xref">Theorem&nbsp;<span>4.2</span></a> is the special case of <a href="#thm-partial-f" class="quarto-xref">Theorem&nbsp;<span>4.3</span></a> in which the reduced model contains only an intercept.</p>
 <div class="callout callout-style-default callout-important callout-titled" title="Compare the models, not just the printed p-values">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1040,71 +1047,49 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <pre><code>[1] 3.330669e-16</code></pre>
 </div>
 </div>
-<p><strong>See the three sources of variation.</strong> Each vertical segment below represents one deviation. Squaring and adding the four segment lengths gives the corresponding sum of squares.</p>
+<p><strong>See the three sources of variation.</strong> Read the panels from top to bottom. Each panel highlights a different pair of endpoints: observed versus mean, fitted versus mean, or observed versus fitted. The axes have the same scale in all three panels. Labels give the <strong>signed differences</strong>; squaring and adding the four differences within a panel gives its sum of squares.</p>
 <div class="cell">
-<details class="code-fold">
-<summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>variation <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(x, y, yhat, <span class="at">start =</span> ybar, <span class="at">end =</span> y, <span class="at">component =</span> <span class="st">"Total"</span>),</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(x, y, yhat, <span class="at">start =</span> ybar, <span class="at">end =</span> yhat, <span class="at">component =</span> <span class="st">"Explained"</span>),</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(x, y, yhat, <span class="at">start =</span> yhat, <span class="at">end =</span> y, <span class="at">component =</span> <span class="st">"Residual"</span>))</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>variation<span class="sc">$</span>component <span class="ot">&lt;-</span> <span class="fu">factor</span>(variation<span class="sc">$</span>component,</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>                              <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Total"</span>, <span class="st">"Explained"</span>, <span class="st">"Residual"</span>))</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(variation, <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> ybar, <span class="at">colour =</span> <span class="st">"grey60"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="fu">coef</span>(fit)[<span class="dv">1</span>], <span class="at">slope =</span> <span class="fu">coef</span>(fit)[<span class="dv">2</span>],</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>              <span class="at">colour =</span> <span class="st">"steelblue4"</span>, <span class="at">linewidth =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">xend =</span> x, <span class="at">y =</span> start, <span class="at">yend =</span> end, <span class="at">colour =</span> component),</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>               <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> <span class="fu">subset</span>(variation, component <span class="sc">==</span> <span class="st">"Explained"</span>),</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>             <span class="fu">aes</span>(<span class="at">y =</span> yhat), <span class="at">shape =</span> <span class="dv">1</span>, <span class="at">colour =</span> <span class="st">"steelblue4"</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">Total =</span> <span class="st">"grey35"</span>, <span class="at">Explained =</span> <span class="st">"steelblue4"</span>,</span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">Residual =</span> <span class="st">"darkorange3"</span>)) <span class="sc">+</span></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> component, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">5.5</span>)) <span class="sc">+</span></span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"x"</span>, <span class="at">y =</span> <span class="st">"y"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
 <div class="cell-output-display">
-<div id="fig-anova-variation" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="fig-anova-variation" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Three vertically stacked panels with identical axes. Panel A connects the mean 3 to observed values, with differences minus 2, 0, 0, and 2. Panel B connects the mean to fitted values, with differences minus 1.8, minus 0.6, 0.6, and 1.8. Panel C connects fitted to observed values, with residuals minus 0.2, 0.6, minus 0.6, and 0.2. Each endpoint type has a distinct shape, and every difference is labeled.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-anova-variation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="04_files/figure-html/fig-anova-variation-1.png" class="img-fluid figure-img" width="672">
+<img src="04_files/figure-html/fig-anova-variation-1.png" class="img-fluid figure-img" style="width:100.0%" data-fig-pos="H" alt="Three vertically stacked panels with identical axes. Panel A connects the mean 3 to observed values, with differences minus 2, 0, 0, and 2. Panel B connects the mean to fitted values, with differences minus 1.8, minus 0.6, 0.6, and 1.8. Panel C connects fitted to observed values, with residuals minus 0.2, 0.6, minus 0.6, and 0.2. Each endpoint type has a distinct shape, and every difference is labeled.">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-anova-variation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4.2: Total deviations from the sample mean, explained deviations of fitted values from the mean, and residual deviations from the fitted line. SST = SSR + SSE holds after summing across observations; it is not a point-by-point identity between squared deviations.
+Figure&nbsp;4.2: Three different distances on the same response scale. Filled circles are observed responses, open circles are fitted values, and squares are the sample mean. Thick colored segments show the relevant deviations, with their signed values printed beside them. The dashed line marks the mean; the thin gray line shows the fitted regression where relevant. Squaring and summing within each panel gives SST = 8.0, SSR = 7.2, and SSE = 0.8. Their sum-of-squares identity holds across observations, not separately at each point.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
+<p>For example, at <span class="math inline">\(x=1\)</span>, the observed value equals the mean, so the <strong>total deviation is zero</strong>. Nevertheless, the explained deviation is <span class="math inline">\(2.4-3=-0.6\)</span> and the residual is <span class="math inline">\(3-2.4=+0.6\)</span>. They cancel as signed differences: <span class="math inline">\(0=-0.6+0.6\)</span>. Their squares do not cancel. Only after summing across all four observations do we obtain <span class="math inline">\(8.0=7.2+0.8\)</span>.</p>
 <p><strong>Compute R squared manually</strong></p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>R2 <span class="ot">&lt;-</span> SSR <span class="sc">/</span> SST</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>R2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>R2 <span class="ot">&lt;-</span> SSR <span class="sc">/</span> SST</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>R2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.9</code></pre>
 </div>
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit)<span class="sc">$</span>r.squared</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit)<span class="sc">$</span>r.squared</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.9</code></pre>
 </div>
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit)<span class="sc">$</span>adj.r.squared</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit)<span class="sc">$</span>adj.r.squared</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.85</code></pre>
 </div>
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pf</span>(<span class="dv">18</span>, <span class="at">df1 =</span> <span class="dv">1</span>, <span class="at">df2 =</span> <span class="dv">2</span>, <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pf</span>(<span class="dv">18</span>, <span class="at">df1 =</span> <span class="dv">1</span>, <span class="at">df2 =</span> <span class="dv">2</span>, <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.0513167</code></pre>
@@ -1114,16 +1099,16 @@ Figure&nbsp;4.2: Total deviations from the sample mean, explained deviations of 
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">7</span>, <span class="dv">10</span>, <span class="dv">8</span>, <span class="dv">12</span>, <span class="dv">13</span>, <span class="dv">14</span>),</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">x1 =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">7</span>, <span class="dv">8</span>),</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">x2 =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">2</span>, <span class="dv">5</span>, <span class="dv">4</span>, <span class="dv">6</span>, <span class="dv">5</span>)</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>fit_reduced <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1, <span class="at">data =</span> dat)</span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>fit_full <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, <span class="at">data =</span> dat)</span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(fit_reduced, fit_full)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">7</span>, <span class="dv">10</span>, <span class="dv">8</span>, <span class="dv">12</span>, <span class="dv">13</span>, <span class="dv">14</span>),</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">x1 =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">7</span>, <span class="dv">8</span>),</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">x2 =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">2</span>, <span class="dv">5</span>, <span class="dv">4</span>, <span class="dv">6</span>, <span class="dv">5</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>fit_reduced <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1, <span class="at">data =</span> dat)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>fit_full <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, <span class="at">data =</span> dat)</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(fit_reduced, fit_full)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Analysis of Variance Table
@@ -1139,7 +1124,7 @@ Model 2: y ~ x1 + x2
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_reduced)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_reduced)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -1163,7 +1148,7 @@ F-statistic: 79.21 on 1 and 6 DF,  p-value: 0.0001121</code></pre>
 </div>
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_full)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_full)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -1201,18 +1186,18 @@ F-statistic: 49.46 on 2 and 5 DF,  p-value: 0.0005079</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>tree_dat <span class="ot">&lt;-</span> datasets<span class="sc">::</span>trees</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>tree_dat<span class="sc">$</span>Diameter <span class="ot">&lt;-</span> tree_dat<span class="sc">$</span>Girth</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>tree_dat <span class="ot">&lt;-</span> tree_dat[, <span class="fu">c</span>(<span class="st">"Volume"</span>, <span class="st">"Diameter"</span>, <span class="st">"Height"</span>)]</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="sc">!</span><span class="fu">anyNA</span>(tree_dat))</span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>fit_tree0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> tree_dat)</span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>fit_tree_d <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Diameter, <span class="at">data =</span> tree_dat)</span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>fit_tree_dh <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Diameter <span class="sc">+</span> Height, <span class="at">data =</span> tree_dat)</span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">"Constant mean"</span>, <span class="st">"Diameter"</span>, <span class="st">"Diameter + height"</span>),</span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">Rank =</span> <span class="fu">c</span>(fit_tree0<span class="sc">$</span>rank, fit_tree_d<span class="sc">$</span>rank, fit_tree_dh<span class="sc">$</span>rank),</span>
-<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">SSE =</span> <span class="fu">c</span>(<span class="fu">deviance</span>(fit_tree0), <span class="fu">deviance</span>(fit_tree_d),</span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>          <span class="fu">deviance</span>(fit_tree_dh))), <span class="at">digits =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>tree_dat <span class="ot">&lt;-</span> datasets<span class="sc">::</span>trees</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>tree_dat<span class="sc">$</span>Diameter <span class="ot">&lt;-</span> tree_dat<span class="sc">$</span>Girth</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>tree_dat <span class="ot">&lt;-</span> tree_dat[, <span class="fu">c</span>(<span class="st">"Volume"</span>, <span class="st">"Diameter"</span>, <span class="st">"Height"</span>)]</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="sc">!</span><span class="fu">anyNA</span>(tree_dat))</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>fit_tree0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> tree_dat)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>fit_tree_d <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Diameter, <span class="at">data =</span> tree_dat)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>fit_tree_dh <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Diameter <span class="sc">+</span> Height, <span class="at">data =</span> tree_dat)</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">"Constant mean"</span>, <span class="st">"Diameter"</span>, <span class="st">"Diameter + height"</span>),</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">Rank =</span> <span class="fu">c</span>(fit_tree0<span class="sc">$</span>rank, fit_tree_d<span class="sc">$</span>rank, fit_tree_dh<span class="sc">$</span>rank),</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">SSE =</span> <span class="fu">c</span>(<span class="fu">deviance</span>(fit_tree0), <span class="fu">deviance</span>(fit_tree_d),</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>          <span class="fu">deviance</span>(fit_tree_dh))), <span class="at">digits =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1244,7 +1229,7 @@ F-statistic: 49.46 on 2 and 5 DF,  p-value: 0.0005079</code></pre>
 </div>
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(fit_tree_d, fit_tree_dh)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(fit_tree_d, fit_tree_dh)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Analysis of Variance Table
@@ -1267,25 +1252,25 @@ F=\frac{(524.30-421.92)/1}{421.92/28}\approx6.79,
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>tree_comparison <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transform</span>(tree_dat, <span class="at">prediction =</span> <span class="fu">fitted</span>(fit_tree_d),</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">model =</span> <span class="st">"Diameter only"</span>),</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transform</span>(tree_dat, <span class="at">prediction =</span> <span class="fu">fitted</span>(fit_tree_dh),</span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">model =</span> <span class="st">"Diameter + height"</span>))</span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>tree_comparison<span class="sc">$</span>model <span class="ot">&lt;-</span> <span class="fu">factor</span>(tree_comparison<span class="sc">$</span>model,</span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>                                <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Diameter only"</span>,</span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>                                  <span class="st">"Diameter + height"</span>))</span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(tree_comparison, <span class="fu">aes</span>(Diameter, Volume)) <span class="sc">+</span></span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">xend =</span> Diameter, <span class="at">yend =</span> prediction),</span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>               <span class="at">colour =</span> <span class="st">"darkorange3"</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">shape =</span> <span class="st">"Observed"</span>, <span class="at">colour =</span> <span class="st">"Observed"</span>), <span class="at">size =</span> <span class="fl">1.8</span>) <span class="sc">+</span></span>
-<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> prediction, <span class="at">shape =</span> <span class="st">"Fitted"</span>, <span class="at">colour =</span> <span class="st">"Fitted"</span>),</span>
-<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_shape_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">Observed =</span> <span class="dv">16</span>, <span class="at">Fitted =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">Observed =</span> <span class="st">"black"</span>, <span class="at">Fitted =</span> <span class="st">"steelblue4"</span>)) <span class="sc">+</span></span>
-<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> model, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Diameter (inches)"</span>, <span class="at">y =</span> <span class="st">"Timber volume (cubic feet)"</span>,</span>
-<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">shape =</span> <span class="cn">NULL</span>, <span class="at">colour =</span> <span class="cn">NULL</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>tree_comparison <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transform</span>(tree_dat, <span class="at">prediction =</span> <span class="fu">fitted</span>(fit_tree_d),</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">model =</span> <span class="st">"Diameter only"</span>),</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transform</span>(tree_dat, <span class="at">prediction =</span> <span class="fu">fitted</span>(fit_tree_dh),</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">model =</span> <span class="st">"Diameter + height"</span>))</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>tree_comparison<span class="sc">$</span>model <span class="ot">&lt;-</span> <span class="fu">factor</span>(tree_comparison<span class="sc">$</span>model,</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>                                <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Diameter only"</span>,</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>                                  <span class="st">"Diameter + height"</span>))</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(tree_comparison, <span class="fu">aes</span>(Diameter, Volume)) <span class="sc">+</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">xend =</span> Diameter, <span class="at">yend =</span> prediction),</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>               <span class="at">colour =</span> <span class="st">"darkorange3"</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">shape =</span> <span class="st">"Observed"</span>, <span class="at">colour =</span> <span class="st">"Observed"</span>), <span class="at">size =</span> <span class="fl">1.8</span>) <span class="sc">+</span></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> prediction, <span class="at">shape =</span> <span class="st">"Fitted"</span>, <span class="at">colour =</span> <span class="st">"Fitted"</span>),</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_shape_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">Observed =</span> <span class="dv">16</span>, <span class="at">Fitted =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">Observed =</span> <span class="st">"black"</span>, <span class="at">Fitted =</span> <span class="st">"steelblue4"</span>)) <span class="sc">+</span></span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> model, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Diameter (inches)"</span>, <span class="at">y =</span> <span class="st">"Timber volume (cubic feet)"</span>,</span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">shape =</span> <span class="cn">NULL</span>, <span class="at">colour =</span> <span class="cn">NULL</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div id="fig-tree-model-comparison" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -1358,8 +1343,109 @@ Figure&nbsp;4.3: The same 31 trees under two mean models. Black dots are measure
 <li>compare two nested models using an extra sum of squares test;</li>
 <li>interpret both <span class="math inline">\(R^2\)</span> and adjusted <span class="math inline">\(R^2\)</span> for a chosen dataset.</li>
 </ul>
+</section>
+<section id="sec-f-test-appendix" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="sec-f-test-appendix">Appendix: From the SSE Difference to the Overall F Test</h2>
+<p>The expression <span class="math inline">\(\mathrm{SSE}_R-\mathrm{SSE}_F\)</span> in <a href="#thm-partial-f" class="quarto-xref">Theorem&nbsp;<span>4.3</span></a> measures the variation explained by the <strong>additional model directions</strong>. The <span class="math inline">\(\mathrm{SSR}\)</span> in <a href="#thm-overall-f" class="quarto-xref">Theorem&nbsp;<span>4.2</span></a> is this same quantity when the starting model is intercept only. The steps below connect the two formulas.</p>
+<section id="why-subtract-the-two-residual-sums-of-squares" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="why-subtract-the-two-residual-sums-of-squares">Why subtract the two residual sums of squares?</h3>
+<p>Fit nested OLS models to the same response vector and observations. Write <span class="math inline">\(\mathbf P_R\)</span> and <span class="math inline">\(\mathbf P_F\)</span> for the orthogonal projections onto their mean spaces, so</p>
+<p><span class="math display">\[
+\hat{\mathbf Y}_R=\mathbf P_R\mathbf Y,\qquad
+\hat{\mathbf Y}_F=\mathbf P_F\mathbf Y,\qquad
+\mathbf e_R=\mathbf Y-\hat{\mathbf Y}_R,\qquad
+\mathbf e_F=\mathbf Y-\hat{\mathbf Y}_F.
+\]</span></p>
+<p>The reduced-model residual splits into two parts:</p>
+<p><span class="math display">\[
+\underbrace{\mathbf Y-\hat{\mathbf Y}_R}_{\mathbf e_R}
+=
+\underbrace{\hat{\mathbf Y}_F-\hat{\mathbf Y}_R}_{\text{change in fitted values}}
++
+\underbrace{\mathbf Y-\hat{\mathbf Y}_F}_{\mathbf e_F}.
+\]</span></p>
+<p>Both fitted vectors belong to the full-model space. Their difference therefore lies in that space and is orthogonal to <span class="math inline">\(\mathbf e_F\)</span>. Taking squared lengths gives</p>
+<p><span class="math display">\[
+\mathrm{SSE}_R
+=\|\hat{\mathbf Y}_F-\hat{\mathbf Y}_R\|^2+\mathrm{SSE}_F,
+\]</span></p>
+<p>and hence</p>
+<p><span class="math display">\[
+\boxed{\mathrm{SSE}_R-\mathrm{SSE}_F
+=\|\hat{\mathbf Y}_F-\hat{\mathbf Y}_R\|^2
+=\mathbf Y^\top(\mathbf P_F-\mathbf P_R)\mathbf Y.}
+\]</span></p>
+<p>This proves that the difference is nonnegative. It is the part of the reduced-model residual that the larger model can fit. All coefficients are re-estimated in each fit; the improvement is not generally obtained by holding the old coefficients fixed and adding one fitted term. This identity requires nested OLS fits on common observations, but does <strong>not</strong> require normal errors or an intercept.</p>
+</section>
+<section id="recovering-theorem-4.2-from-theorem-4.3" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="recovering-theorem-4.2-from-theorem-4.3">Recovering Theorem 4.2 from Theorem 4.3</h3>
+<p>Now choose the reduced model to be <strong>intercept only</strong>, with rank <span class="math inline">\(p_R=1\)</span>. Its fitted value for every observation is <span class="math inline">\(\bar Y\)</span>, so</p>
+<p><span class="math display">\[
+\hat{\mathbf Y}_R=\bar Y\mathbf 1,\qquad
+\mathrm{SSE}_R=\sum_{i=1}^n(Y_i-\bar Y)^2=\mathrm{SST}.
+\]</span></p>
+<p>Let the full model contain an intercept and have rank <span class="math inline">\(p_F=p\)</span>. Then</p>
+<p><span class="math display">\[
+\mathrm{SSE}_F=\mathrm{SSE},\qquad
+\mathrm{SSE}_R-\mathrm{SSE}_F
+=\mathrm{SST}-\mathrm{SSE}
+=\mathrm{SSR},\qquad
+p_F-p_R=p-1.
+\]</span></p>
+<p>Substituting these quantities into <a href="#thm-partial-f" class="quarto-xref">Theorem&nbsp;<span>4.3</span></a> gives exactly <a href="#thm-overall-f" class="quarto-xref">Theorem&nbsp;<span>4.2</span></a>:</p>
+<p><span class="math display">\[
+\underbrace{\frac{(\mathrm{SSE}_R-\mathrm{SSE}_F)/(p_F-p_R)}
+{\mathrm{SSE}_F/(n-p_F)}}_{\text{partial F statistic}}
+=
+\underbrace{\frac{\mathrm{SSR}/(p-1)}{\mathrm{SSE}/(n-p)}}_{\text{overall F statistic}}.
+\]</span></p>
+<p>The null hypothesis also becomes the overall null: the full-model mean is constant, or equivalently, all its non-intercept coefficients are zero.</p>
+<p>For the four observations in <a href="#fig-anova-variation" class="quarto-xref">Figure&nbsp;<span>4.2</span></a>, the intercept-only fit has <span class="math inline">\(\mathrm{SSE}_R=8.0\)</span>, and the fitted line has <span class="math inline">\(\mathrm{SSE}_F=0.8\)</span>. Thus</p>
+<p><span class="math display">\[
+F=\frac{(8.0-0.8)/(2-1)}{0.8/(4-2)}
+=\frac{7.2}{0.4}=18,
+\]</span></p>
+<p>which is the same calculation as <span class="math inline">\(\mathrm{MSR}/\mathrm{MSE}\)</span> in <a href="#exm-anova-by-hand" class="quarto-xref">Example&nbsp;<span>4.3</span></a>.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="When the reduced model already has predictors">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>When the reduced model already has predictors
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>If both models contain an intercept, they share the same centered <span class="math inline">\(\mathrm{SST}\)</span>. Therefore</p>
+<p><span class="math display">\[
+\mathrm{SSE}_R-\mathrm{SSE}_F
+=(\mathrm{SST}-\mathrm{SSR}_R)-(\mathrm{SST}-\mathrm{SSR}_F)
+=\mathrm{SSR}_F-\mathrm{SSR}_R.
+\]</span></p>
+<p>The numerator uses the <strong>additional</strong> explained variation beyond the reduced model. It is generally not the full model’s entire <span class="math inline">\(\mathrm{SSR}_F\)</span>. For example, adding height to diameter explains about <span class="math inline">\(524.30-421.92=102.38\)</span> additional squared-volume units; the variation already explained by diameter is excluded.</p>
+</div>
+</div>
+</section>
+<section id="why-does-the-ratio-have-an-f-distribution" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="why-does-the-ratio-have-an-f-distribution">Why does the ratio have an F distribution?</h3>
+<p>Let <span class="math inline">\(q=p_F-p_R\)</span> and assume the normal, common-variance model in <a href="#thm-partial-f" class="quarto-xref">Theorem&nbsp;<span>4.3</span></a>. Under <span class="math inline">\(H_0\)</span>, the mean vector <span class="math inline">\(\boldsymbol\mu\)</span> lies in the reduced-model space. Nestedness implies</p>
+<p><span class="math display">\[
+\mathbf P_F\mathbf P_R=\mathbf P_R\mathbf P_F=\mathbf P_R.
+\]</span></p>
+<p>Consequently, <span class="math inline">\(\mathbf A=\mathbf P_F-\mathbf P_R\)</span> and <span class="math inline">\(\mathbf B=\mathbf I-\mathbf P_F\)</span> are symmetric idempotent matrices of ranks <span class="math inline">\(q\)</span> and <span class="math inline">\(n-p_F\)</span>. Also, <span class="math inline">\(\mathbf A\mathbf B=\mathbf0\)</span>, <span class="math inline">\(\mathbf A\boldsymbol\mu=\mathbf0\)</span>, and <span class="math inline">\(\mathbf B\boldsymbol\mu=\mathbf0\)</span>. The normal projection results from <a href="./03_OLS_inference.html">Chapter 3</a> therefore give</p>
+<p><span class="math display">\[
+\frac{\mathrm{SSE}_R-\mathrm{SSE}_F}{\sigma^2}
+=\frac{\mathbf Y^\top\mathbf A\mathbf Y}{\sigma^2}
+\sim\chi^2_q,\qquad
+\frac{\mathrm{SSE}_F}{\sigma^2}
+=\frac{\mathbf Y^\top\mathbf B\mathbf Y}{\sigma^2}
+\sim\chi^2_{n-p_F},
+\]</span></p>
+<p>independently. Their ratio, after dividing each by its degrees of freedom, has distribution <span class="math inline">\(F_{q,n-p_F}\)</span>.</p>
+<p>Under <span class="math inline">\(H_0\)</span>, both mean squares estimate <span class="math inline">\(\sigma^2\)</span>. The full-model residual provides an independent noise estimate; <span class="math inline">\(\mathrm{SSE}_R\)</span> includes the improvement being tested. The geometric identity alone does not establish the F distribution: normal, common-variance errors are also required.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
