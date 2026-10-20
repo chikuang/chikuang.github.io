@@ -1294,99 +1294,157 @@ M_{\min}=\max_{0&lt;y&lt;1}6y(1-y)=\frac{3}{2}.
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>proposal <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="dv">1500</span>)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>height <span class="ot">&lt;-</span> <span class="fl">1.5</span> <span class="sc">*</span> <span class="fu">runif</span>(<span class="dv">1500</span>)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>accepted <span class="ot">&lt;-</span> height <span class="sc">&lt;=</span> <span class="fu">dbeta</span>(proposal, <span class="dv">2</span>, <span class="dv">2</span>)</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>proposal_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(proposal, height, accepted)</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>panel_levels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Acceptance-rejection"</span>, <span class="st">"Accepted sample vs. target"</span>)</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>proposal_data<span class="sc">$</span>panel <span class="ot">&lt;-</span> <span class="fu">factor</span>(panel_levels[<span class="dv">1</span>], <span class="at">levels =</span> panel_levels)</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>accepted_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">value =</span> proposal[accepted],</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">panel =</span> <span class="fu">factor</span>(panel_levels[<span class="dv">2</span>], <span class="at">levels =</span> panel_levels)</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>target_data <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">value =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">501</span>),</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">panel =</span> <span class="fu">factor</span>(panel_levels, <span class="at">levels =</span> panel_levels)</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>target_data<span class="sc">$</span>density <span class="ot">&lt;-</span> <span class="fu">dbeta</span>(target_data<span class="sc">$</span>value, <span class="dv">2</span>, <span class="dv">2</span>)</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>envelope_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">panel =</span> <span class="fu">factor</span>(panel_levels[<span class="dv">1</span>], <span class="at">levels =</span> panel_levels),</span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">density =</span> <span class="fl">1.5</span></span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
-<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> proposal_data,</span>
-<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(proposal, height, <span class="at">color =</span> <span class="fu">ifelse</span>(accepted, <span class="st">"Accepted"</span>, <span class="st">"Rejected"</span>)),</span>
-<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">size =</span> <span class="fl">1.2</span></span>
-<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(</span>
-<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> envelope_data, <span class="fu">aes</span>(<span class="at">yintercept =</span> density),</span>
-<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey40"</span></span>
-<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(</span>
-<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> accepted_data,</span>
-<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(value, <span class="fu">after_stat</span>(density)),</span>
-<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">binwidth =</span> <span class="fl">0.05</span>, <span class="at">boundary =</span> <span class="dv">0</span>,</span>
-<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"steelblue"</span>, <span class="at">color =</span> <span class="st">"white"</span>, <span class="at">alpha =</span> <span class="fl">0.25</span></span>
-<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(</span>
-<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> accepted_data,</span>
-<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(value, <span class="at">color =</span> <span class="st">"Accepted-sample density"</span>),</span>
-<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">bounds =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">key_glyph =</span> <span class="st">"path"</span></span>
-<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(</span>
-<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> target_data,</span>
-<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(value, density, <span class="at">color =</span> <span class="st">"Target Beta(2,2)"</span>),</span>
-<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"longdash"</span></span>
-<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> panel, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(</span>
-<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(</span>
-<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Rejected"</span> <span class="ot">=</span> <span class="st">"grey70"</span>, <span class="st">"Accepted"</span> <span class="ot">=</span> <span class="st">"steelblue"</span>,</span>
-<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Accepted-sample density"</span> <span class="ot">=</span> <span class="st">"steelblue"</span>,</span>
-<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Target Beta(2,2)"</span> <span class="ot">=</span> <span class="st">"black"</span></span>
-<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">c</span>(<span class="st">"Rejected"</span>, <span class="st">"Accepted"</span>, <span class="st">"Accepted-sample density"</span>, <span class="st">"Target Beta(2,2)"</span>)</span>
-<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">by =</span> <span class="fl">0.25</span>)) <span class="sc">+</span></span>
-<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>), <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.05</span>))) <span class="sc">+</span></span>
-<span id="cb14-60"><a href="#cb14-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"y"</span>, <span class="at">y =</span> <span class="st">"Density"</span>, <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb14-61"><a href="#cb14-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(<span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">byrow =</span> <span class="cn">TRUE</span>)) <span class="sc">+</span></span>
-<span id="cb14-62"><a href="#cb14-62" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>, <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="dv">1500</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="fl">1.5</span> <span class="sc">*</span> u</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>accepted <span class="ot">&lt;-</span> v <span class="sc">&lt;=</span> <span class="fu">dbeta</span>(proposal, <span class="dv">2</span>, <span class="dv">2</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>proposal_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(proposal, v, accepted)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>accepted_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">value =</span> proposal[accepted])</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>target_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">value =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">501</span>))</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>target_data<span class="sc">$</span>density <span class="ot">&lt;-</span> <span class="fu">dbeta</span>(target_data<span class="sc">$</span>value, <span class="dv">2</span>, <span class="dv">2</span>)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>left_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(proposal_data, <span class="fu">aes</span>(proposal, v)) <span class="sc">+</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(accepted, <span class="st">"Accepted"</span>, <span class="st">"Rejected"</span>)),</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>             <span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">1.5</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey40"</span>) <span class="sc">+</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> target_data, <span class="fu">aes</span>(value, density),</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"longdash"</span>) <span class="sc">+</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Rejected"</span> <span class="ot">=</span> <span class="st">"grey70"</span>, <span class="st">"Accepted"</span> <span class="ot">=</span> <span class="st">"steelblue"</span>),</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>                     <span class="at">breaks =</span> <span class="fu">c</span>(<span class="st">"Rejected"</span>, <span class="st">"Accepted"</span>)) <span class="sc">+</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">by =</span> <span class="fl">0.25</span>)) <span class="sc">+</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">1.75</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fl">1.6</span>, <span class="at">by =</span> <span class="fl">0.4</span>),</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>                     <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>))) <span class="sc">+</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Acceptance-rejection"</span>, <span class="at">x =</span> <span class="st">"Proposal y"</span>,</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Auxiliary ordinate v</span><span class="sc">\n</span><span class="st">(density scale)"</span>, <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(<span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">byrow =</span> <span class="cn">TRUE</span>)) <span class="sc">+</span></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>, <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>))</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>right_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">data =</span> accepted_data, <span class="fu">aes</span>(value, <span class="fu">after_stat</span>(density)),</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>                 <span class="at">binwidth =</span> <span class="fl">0.05</span>, <span class="at">boundary =</span> <span class="dv">0</span>,</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>                 <span class="at">fill =</span> <span class="st">"steelblue"</span>, <span class="at">color =</span> <span class="st">"white"</span>, <span class="at">alpha =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">data =</span> accepted_data,</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>               <span class="fu">aes</span>(value, <span class="at">color =</span> <span class="st">"Accepted-sample density"</span>),</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>               <span class="at">bounds =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">key_glyph =</span> <span class="st">"path"</span>) <span class="sc">+</span></span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> target_data, <span class="fu">aes</span>(value, density, <span class="at">color =</span> <span class="st">"Target Beta(2,2)"</span>),</span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>            <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"longdash"</span>) <span class="sc">+</span></span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Accepted-sample density"</span> <span class="ot">=</span> <span class="st">"steelblue"</span>,</span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>                                 <span class="st">"Target Beta(2,2)"</span> <span class="ot">=</span> <span class="st">"black"</span>),</span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>                     <span class="at">breaks =</span> <span class="fu">c</span>(<span class="st">"Accepted-sample density"</span>, <span class="st">"Target Beta(2,2)"</span>)) <span class="sc">+</span></span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">by =</span> <span class="fl">0.25</span>)) <span class="sc">+</span></span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">1.75</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fl">1.6</span>, <span class="at">by =</span> <span class="fl">0.4</span>),</span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>                     <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>))) <span class="sc">+</span></span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Accepted sample vs. target"</span>, <span class="at">x =</span> <span class="st">"Accepted y"</span>, <span class="at">y =</span> <span class="st">"Density"</span>, <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(<span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">byrow =</span> <span class="cn">TRUE</span>)) <span class="sc">+</span></span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>, <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>))</span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a><span class="co"># Use separate plots so the two vertical axes describe different quantities.</span></span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a>grid<span class="sc">::</span><span class="fu">grid.newpage</span>()</span>
+<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a>grid<span class="sc">::</span><span class="fu">pushViewport</span>(grid<span class="sc">::</span><span class="fu">viewport</span>(<span class="at">layout =</span> grid<span class="sc">::</span><span class="fu">grid.layout</span>(<span class="dv">1</span>, <span class="dv">2</span>)))</span>
+<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(left_plot, <span class="at">newpage =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a>      <span class="at">vp =</span> grid<span class="sc">::</span><span class="fu">viewport</span>(<span class="at">layout.pos.row =</span> <span class="dv">1</span>, <span class="at">layout.pos.col =</span> <span class="dv">1</span>))</span>
+<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(right_plot, <span class="at">newpage =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a>      <span class="at">vp =</span> grid<span class="sc">::</span><span class="fu">viewport</span>(<span class="at">layout.pos.row =</span> <span class="dv">1</span>, <span class="at">layout.pos.col =</span> <span class="dv">2</span>))</span>
+<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a>grid<span class="sc">::</span><span class="fu">popViewport</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-rv-rejection" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Two panels with y axes labeled Density. The left panel shows accepted and rejected proposals under the envelope. The right panel overlays the accepted-sample density and a normalized histogram with the theoretical Beta(2,2) density.">
+<div id="fig-rv-rejection" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Two panels with distinct vertical-axis labels. Left: Auxiliary ordinate v (density scale), with accepted and rejected proposal points. Right: Density, with a normalized histogram and estimated density compared with the Beta(2,2) target.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-rv-rejection-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="04-generating-rv_files/figure-html/fig-rv-rejection-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Two panels with y axes labeled Density. The left panel shows accepted and rejected proposals under the envelope. The right panel overlays the accepted-sample density and a normalized histogram with the theoretical Beta(2,2) density." width="1440">
+<img src="04-generating-rv_files/figure-html/fig-rv-rejection-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Two panels with distinct vertical-axis labels. Left: Auxiliary ordinate v (density scale), with accepted and rejected proposal points. Right: Density, with a normalized histogram and estimated density compared with the Beta(2,2) target." width="1440">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rv-rejection-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4.6: Left: acceptance-rejection under the uniform envelope M g(y) = 1.5; point ordinates are auxiliary uniform draws on the density scale. Right: the density-normalized histogram and boundary-corrected density estimate of the accepted y values are compared with the original target Beta(2,2) density, f(y) = 6y(1-y), shown as a black dashed curve in both panels.
+Figure&nbsp;4.6: Left: each point is (Y, V), where Y is a uniform proposal and V = 1.5 U for an independent U ~ Uniform(0,1). Accept Y when V is below the normalized target f(Y); V is an auxiliary ordinate on the density scale, not a density estimate. Right: the density-normalized histogram and boundary-corrected density estimate of accepted Y values are compared with the normalized Beta(2,2) target f(y) = 6y(1-y), shown as a black dashed curve in both panels.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<div id="rv-density-normalization" class="callout callout-style-default callout-note callout-titled" title="A normalized density can exceed 1">
+<div id="rv-rejection-ordinates" class="callout callout-style-default callout-note callout-titled" title="What the left-hand points represent">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>A normalized density can exceed 1
+<span class="screen-reader-only">Note</span>What the left-hand points represent
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A probability density is <strong>normalized when its total area equals 1</strong>. Its height can exceed 1. The target <span class="math inline">\(\operatorname{Beta}(2,2)\)</span> density in <a href="#fig-rv-rejection" class="quarto-xref">Figure&nbsp;<span>4.6</span></a> is already normalized:</p>
+<p>Each point in the left panel of <a href="#fig-rv-rejection" class="quarto-xref">Figure&nbsp;<span>4.6</span></a> is <span class="math inline">\((Y,V)\)</span>. Generate a proposal <span class="math inline">\(Y\sim\operatorname{Uniform}(0,1)\)</span> and an independent decision variable <span class="math inline">\(U\sim\operatorname{Uniform}(0,1)\)</span>, then plot <span class="math inline">\(V=Mg(Y)U=1.5U\)</span>. Thus the plotted ordinate ranges from 0 to 1.5, while the original decision variable <span class="math inline">\(U\)</span> ranges from 0 to 1. The two acceptance rules are equivalent:</p>
 <p><span class="math display">\[
-f(y)=6y(1-y),\quad 0\leq y\leq 1,
-\qquad
-\int_0^1 f(y)\,dy
-=\left[3y^2-2y^3\right]_0^1=1.
+V\leq f(Y)
+\quad\Longleftrightarrow\quad
+U\leq\frac{f(Y)}{Mg(Y)}=4Y(1-Y).
 \]</span></p>
-<p>Nevertheless, its maximum is <span class="math inline">\(f(1/2)=3/2=1.5\)</span>. Probabilities are <strong>areas over intervals</strong>, such as <span class="math inline">\(P(a\leq Y\leq b)=\int_a^b f(y)\,dy\)</span>, rather than the height <span class="math inline">\(f(y)\)</span> at a point.</p>
-<p>The right-hand histogram is also normalized: each bar has height <span class="math inline">\(\text{count}/(n_{\text{accepted}}\times\text{bin width})\)</span>, so the bar areas sum to 1. For example, a density of <span class="math inline">\(1.6\)</span> over a bin of width <span class="math inline">\(0.05\)</span> represents probability <span class="math inline">\(1.6\times0.05=0.08\)</span>. Normalization therefore does not require the density’s maximum to equal 1.</p>
+<p>Blue points satisfy this rule. <strong>Save their horizontal coordinates <span class="math inline">\(Y\)</span>; discard <span class="math inline">\(U\)</span> and <span class="math inline">\(V\)</span>.</strong> A point’s ordinate is an auxiliary random value used for the decision, not <span class="math inline">\(f(Y)\)</span>, an estimated density, or an acceptance probability. The left axis therefore says <strong>Auxiliary ordinate v (density scale)</strong>. The right panel estimates the density of the retained <span class="math inline">\(Y\)</span> values, so its axis says <strong>Density</strong>. The horizontal envelope at 1.5 is a bound on <span class="math inline">\(f\)</span>, not a probability density with area 1.</p>
+</div>
+</div>
+<div id="rv-density-normalization" class="callout callout-style-default callout-note callout-titled" title="Normalized and unnormalized targets">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Normalized and unnormalized targets
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An <strong>unnormalized target</strong> is a nonnegative function <span class="math inline">\(q(y)\)</span> whose relative heights describe the desired distribution. Its total area is <span class="math inline">\(Z=\int q(y)\,dy\)</span>, where <span class="math inline">\(0&lt;Z&lt;\infty\)</span>. The <strong>normalized density</strong> is <span class="math inline">\(f(y)=q(y)/Z\)</span>, so <span class="math inline">\(\int f(y)\,dy=1\)</span>. Dividing by the area preserves the shape; it does not set the maximum to 1.</p>
+<p>For the Beta(2,2) example, choose <span class="math inline">\(q(y)=y(1-y)\)</span> on <span class="math inline">\([0,1]\)</span> and zero elsewhere. Then</p>
+<p><span class="math display">\[
+Z=\int_0^1 y(1-y)\,dy
+=\left[\frac{y^2}{2}-\frac{y^3}{3}\right]_0^1
+=\frac16,
+\qquad f(y)=\frac{q(y)}{1/6}=6y(1-y).
+\]</span></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Quantity</th>
+<th style="text-align: left;">Unnormalized target <span class="math inline">\(q\)</span></th>
+<th style="text-align: left;">Normalized density <span class="math inline">\(f=q/Z\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Function on <span class="math inline">\([0,1]\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(y(1-y)\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(6y(1-y)\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Total area</td>
+<td style="text-align: left;"><span class="math inline">\(1/6\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(1\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Maximum at <span class="math inline">\(y=1/2\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(1/4\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(3/2=1.5\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why use the normalized version in this figure?</strong> The right-hand histogram uses bar height <span class="math inline">\(\text{count}/(n_{\text{accepted}}\times\text{bin width})\)</span>, so its bar areas sum to 1; the smooth density estimate also has area 1. Overlaying <span class="math inline">\(f\)</span>, which also has area 1, makes a direct comparison possible. Overlaying <span class="math inline">\(q\)</span> would put the target six times too low even when the accepted sample is correct.</p>
+<p>Probabilities are <strong>areas over intervals</strong>: <span class="math inline">\(P(a\leq Y\leq b)=\int_a^b f(y)\,dy\)</span>. For example, a histogram density of <span class="math inline">\(1.6\)</span> over a bin of width <span class="math inline">\(0.05\)</span> represents relative frequency <span class="math inline">\(1.6\times0.05=0.08\)</span>. The target is already normalized even though its peak is 1.5.</p>
+</div>
+</div>
+<div id="rv-unnormalized-rejection" class="callout callout-style-default callout-note callout-titled" title="Rejection sampling can also use an unnormalized target">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Rejection sampling can also use an unnormalized target
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Normalization is needed for a density comparison, but the sampling algorithm need not know <span class="math inline">\(Z\)</span>. If the proposal density <span class="math inline">\(g\)</span> is normalized and a known constant <span class="math inline">\(C\)</span> satisfies <span class="math inline">\(q(y)\leq Cg(y)\)</span> everywhere, accept with probability <span class="math inline">\(q(y)/(Cg(y))\)</span>. Then</p>
+<p><span class="math display">\[
+P(\text{accept})=\frac{Z}{C},
+\qquad
+f_{Y\mid\text{accept}}(y)
+=\frac{g(y)\,q(y)/(Cg(y))}{Z/C}
+=\frac{q(y)}{Z}=f(y).
+\]</span></p>
+<p>Here <span class="math inline">\(g(y)=1\)</span>, <span class="math inline">\(q(y)=y(1-y)\)</span> and <span class="math inline">\(C=1/4\)</span>, giving acceptance probability <span class="math inline">\(4y(1-y)\)</span> and overall rate <span class="math inline">\((1/6)/(1/4)=2/3\)</span>. These are exactly the same as using normalized <span class="math inline">\(f\)</span> with <span class="math inline">\(M=3/2\)</span>. The corresponding unnormalized plot would use ordinate <span class="math inline">\(W=CU=U/4\)</span> and compare it with <span class="math inline">\(q(Y)\)</span>; both the target and envelope are one-sixth of the scales used in <a href="#fig-rv-rejection" class="quarto-xref">Figure&nbsp;<span>4.6</span></a>. <strong>Keep the target and envelope on the same scale.</strong> The formula <span class="math inline">\(1/M\)</span> for the overall acceptance rate assumes a normalized target; with <span class="math inline">\(q\)</span>, the rate is <span class="math inline">\(Z/C\)</span>.</p>
 </div>
 </div>
 <p>The full R function in the online notes stops at exactly <span class="math inline">\(n\)</span> accepted observations. The table compares its proposal counts with the expected cost <span class="math inline">\(nM\)</span>.</p>
@@ -1489,7 +1547,7 @@ f(y)=6y(1-y),\quad 0\leq y\leq 1,
 </div>
 </div>
 <div id="rv-block-29" class="callout callout-style-default callout-note callout-titled" title="Unnormalized Targets">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-14-contents" aria-controls="callout-14" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-16-contents" aria-controls="callout-16" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1498,7 +1556,7 @@ f(y)=6y(1-y),\quad 0\leq y\leq 1,
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-14" class="callout-14-contents callout-collapse collapse">
+<div id="callout-16" class="callout-16-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Sometimes we know only <span class="math inline">\(h(x)\)</span> where</p>
 <p><span class="math display">\[
@@ -1511,7 +1569,7 @@ f(x)=\frac{h(x)}{Z},
 </div>
 </div>
 <div id="rv-block-30" class="callout callout-style-default callout-note callout-titled" title="Connections and Limitations">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-15-contents" aria-controls="callout-15" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-17-contents" aria-controls="callout-17" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1520,7 +1578,7 @@ f(x)=\frac{h(x)}{Z},
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-15" class="callout-15-contents callout-collapse collapse">
+<div id="callout-17" class="callout-17-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p><strong>Connection to optimization.</strong> Finding the smallest bound involves maximizing <span class="math inline">\(f/g\)</span>, or its logarithm. A numerical optimizer or a finite grid may help explore this ratio, but does not by itself prove a global bound, especially on unbounded support.</p>
 <p><strong>Connection to importance sampling.</strong> Both methods use a proposal <span class="math inline">\(g\)</span> and the ratio <span class="math inline">\(f/g\)</span>. Rejection sampling discards proposals to obtain draws from the target; importance sampling keeps proposals and weights their contributions when estimating an expectation.</p>
@@ -2196,7 +2254,7 @@ Figure&nbsp;4.13: A matrix factor introduces scale and dependence; adding the me
 <p>The function also returns an <span class="math inline">\(n\times d\)</span> matrix for <span class="math inline">\(n=0\)</span> or <span class="math inline">\(n=1\)</span>. This matters when a component in a simulated mixture receives few or no observations.</p>
 </div>
 <div id="rv-block-58" class="callout callout-style-default callout-note callout-titled" title="Eigenvalues, PCA, and Reusing the Factorization">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-28-contents" aria-controls="callout-28" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-30-contents" aria-controls="callout-30" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -2205,7 +2263,7 @@ Figure&nbsp;4.13: A matrix factor introduces scale and dependence; adding the me
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-28" class="callout-28-contents callout-collapse collapse">
+<div id="callout-30" class="callout-30-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>The spectral decomposition is</p>
 <p><span class="math display">\[
@@ -2502,7 +2560,7 @@ Figure&nbsp;4.16: In two dimensions, normalized normals lie on the circle. Multi
 </div>
 </div>
 <div id="rv-block-68" class="callout callout-style-default callout-note callout-titled" title="Geometry in High Dimensions">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-32-contents" aria-controls="callout-32" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-34-contents" aria-controls="callout-34" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -2511,7 +2569,7 @@ Figure&nbsp;4.16: In two dimensions, normalized normals lie on the circle. Multi
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-32" class="callout-32-contents callout-collapse collapse">
+<div id="callout-34" class="callout-34-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Random directions appear in rotationally invariant perturbations, geometric Monte Carlo methods, and randomized algorithms. In high dimensions, a uniform point in a ball is typically close to its boundary: <span class="math inline">\(P(R\leq0.9)=0.9^d\)</span>. At <span class="math inline">\(d=100\)</span>, this probability is about <span class="math inline">\(0.000027\)</span>.</p>
 </div>
