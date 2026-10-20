@@ -1,0 +1,2187 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>5&nbsp; Monte Carlo Simulation and Variance Reduction – STAT 8670 -- Computational Methods in Statistics</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./Assignment1.html" rel="next">
+<link href="./04-generating-rv.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-d14fc70f2469ec0da4e09fb94d13d2e2.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+<link rel="stylesheet" href="chapter4-practice.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT 8670 – Computational Methods in Statistics</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8670/tree/2026F"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="./STAT-8670-Computational-Methods-in-Statistics.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./05-monte-carlo.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Monte Carlo Simulation and Variance Reduction</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01-R.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction to R</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02-computation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Intro to Computational Statistics</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03-optimization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Optimization</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04-generating-rv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Generating Random Variables</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05-monte-carlo.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Monte Carlo Simulation and Variance Reduction</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Assignment</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Assignment1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assignment 1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Assignment2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assignment 2</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Assignment3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assignment 3</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Exam</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Exam1-2026F.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Exam 1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Exam1-2025F.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Past Exam 1</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Project</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Project-Instructions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Instruction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Project-Report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Project-Package.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Package</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Project-Presentation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Presentation</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">5.1</span> Overview</a></li>
+  <li><a href="#sec-mc-integration" id="toc-sec-mc-integration" class="nav-link" data-scroll-target="#sec-mc-integration"><span class="header-section-number">5.2</span> From an Integral to an Expectation</a>
+  <ul class="collapse">
+  <li><a href="#probabilities-as-averages-of-indicators" id="toc-probabilities-as-averages-of-indicators" class="nav-link" data-scroll-target="#probabilities-as-averages-of-indicators"><span class="header-section-number">5.2.1</span> Probabilities as averages of indicators</a></li>
+  <li><a href="#integrals-over-a-finite-interval" id="toc-integrals-over-a-finite-interval" class="nav-link" data-scroll-target="#integrals-over-a-finite-interval"><span class="header-section-number">5.2.2</span> Integrals over a finite interval</a></li>
+  </ul></li>
+  <li><a href="#sec-mc-error" id="toc-sec-mc-error" class="nav-link" data-scroll-target="#sec-mc-error"><span class="header-section-number">5.3</span> Monte Carlo Error and Precision</a>
+  <ul class="collapse">
+  <li><a href="#a-monte-carlo-confidence-interval" id="toc-a-monte-carlo-confidence-interval" class="nav-link" data-scroll-target="#a-monte-carlo-confidence-interval"><span class="header-section-number">5.3.1</span> A Monte Carlo confidence interval</a></li>
+  <li><a href="#planning-the-number-of-replications" id="toc-planning-the-number-of-replications" class="nav-link" data-scroll-target="#planning-the-number-of-replications"><span class="header-section-number">5.3.2</span> Planning the number of replications</a></li>
+  </ul></li>
+  <li><a href="#sec-mc-normal-cdf" id="toc-sec-mc-normal-cdf" class="nav-link" data-scroll-target="#sec-mc-normal-cdf"><span class="header-section-number">5.4</span> One Target, Different Monte Carlo Estimators</a>
+  <ul class="collapse">
+  <li><a href="#method-1-indicators-of-normal-draws" id="toc-method-1-indicators-of-normal-draws" class="nav-link" data-scroll-target="#method-1-indicators-of-normal-draws"><span class="header-section-number">5.4.1</span> Method 1: indicators of normal draws</a></li>
+  <li><a href="#method-2-transform-a-bounded-integral" id="toc-method-2-transform-a-bounded-integral" class="nav-link" data-scroll-target="#method-2-transform-a-bounded-integral"><span class="header-section-number">5.4.2</span> Method 2: transform a bounded integral</a></li>
+  </ul></li>
+  <li><a href="#sec-mc-efficiency" id="toc-sec-mc-efficiency" class="nav-link" data-scroll-target="#sec-mc-efficiency"><span class="header-section-number">5.5</span> Variance Reduction and Fair Comparisons</a></li>
+  <li><a href="#sec-mc-antithetic" id="toc-sec-mc-antithetic" class="nav-link" data-scroll-target="#sec-mc-antithetic"><span class="header-section-number">5.6</span> Antithetic Variables</a>
+  <ul class="collapse">
+  <li><a href="#why-negative-correlation-helps" id="toc-why-negative-correlation-helps" class="nav-link" data-scroll-target="#why-negative-correlation-helps"><span class="header-section-number">5.6.1</span> Why negative correlation helps</a></li>
+  </ul></li>
+  <li><a href="#sec-mc-control" id="toc-sec-mc-control" class="nav-link" data-scroll-target="#sec-mc-control"><span class="header-section-number">5.7</span> Control Variates</a>
+  <ul class="collapse">
+  <li><a href="#choosing-the-coefficient" id="toc-choosing-the-coefficient" class="nav-link" data-scroll-target="#choosing-the-coefficient"><span class="header-section-number">5.7.1</span> Choosing the coefficient</a></li>
+  <li><a href="#when-the-optimal-coefficient-is-unknown" id="toc-when-the-optimal-coefficient-is-unknown" class="nav-link" data-scroll-target="#when-the-optimal-coefficient-is-unknown"><span class="header-section-number">5.7.2</span> When the optimal coefficient is unknown</a></li>
+  </ul></li>
+  <li><a href="#sec-mc-comparison" id="toc-sec-mc-comparison" class="nav-link" data-scroll-target="#sec-mc-comparison"><span class="header-section-number">5.8</span> Compare Methods at a Common Budget</a></li>
+  <li><a href="#sec-mc-practice" id="toc-sec-mc-practice" class="nav-link" data-scroll-target="#sec-mc-practice"><span class="header-section-number">5.9</span> Concept Checks and Practice</a></li>
+  <li><a href="#sec-mc-summary" id="toc-sec-mc-summary" class="nav-link" data-scroll-target="#sec-mc-summary"><span class="header-section-number">5.10</span> Chapter Summary</a></li>
+  <li><a href="#sec-mc-supplement" id="toc-sec-mc-supplement" class="nav-link" data-scroll-target="#sec-mc-supplement"><span class="header-section-number">5.11</span> Supplementary</a>
+  <ul class="collapse">
+  <li><a href="#other-variance-reduction-ideas" id="toc-other-variance-reduction-ideas" class="nav-link" data-scroll-target="#other-variance-reduction-ideas"><span class="header-section-number">5.11.1</span> Other variance-reduction ideas</a></li>
+  </ul></li>
+  <li><a href="#references-and-further-reading" id="toc-references-and-further-reading" class="nav-link" data-scroll-target="#references-and-further-reading">References and Further Reading</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span id="sec-monte-carlo" class="quarto-section-identifier"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Monte Carlo Simulation and Variance Reduction</span></span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- Adapted from 2025 master:04-monte-carlo.qmd at 392c7fb002c1b8b171a26deac8ffe69f294441bd. -->
+<p>In <a href="./04-generating-rv.html">Chapter 4: Generating Random Variables</a>, we learned how to draw observations from a probability model. We now use those draws to <strong>estimate an integral, expectation, or probability</strong>, and to quantify the numerical uncertainty in that estimate.</p>
+<p>The next question is not only how to generate more observations. It is <strong>how to get a more precise answer from the same computational effort</strong>. Antithetic variables and control variates do this by changing the random quantity we average while preserving its expectation.</p>
+<section id="overview" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">5.1</span> Overview</h2>
+<p>This chapter follows a common sequence: <strong>identify the target, construct an unbiased contribution, average independent units, and report Monte Carlo error</strong>.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Question</th>
+<th>Main tool</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>How can an integral become an average?</td>
+<td>Write it as an expectation</td>
+</tr>
+<tr class="even">
+<td>How uncertain is the numerical answer?</td>
+<td>Monte Carlo standard error (MCSE)</td>
+</tr>
+<tr class="odd">
+<td>How many replications are needed?</td>
+<td>The <span class="math inline">\(1/\sqrt{N}\)</span> rule and a pilot run</td>
+</tr>
+<tr class="even">
+<td>Can two evaluations cancel each other’s noise?</td>
+<td>Antithetic variables</td>
+</tr>
+<tr class="odd">
+<td>Can a known expectation remove predictable noise?</td>
+<td>Control variates</td>
+</tr>
+<tr class="even">
+<td>Which method should we prefer?</td>
+<td>Compare variance at a common computational budget</td>
+</tr>
+</tbody>
+</table>
+<p>We use <span class="math inline">\(N\)</span> for the number of contributions in an ordinary Monte Carlo average. In an antithetic calculation, <span class="math inline">\(K\)</span> is the number of <strong>independent pairs</strong>, with <span class="math inline">\(N=2K\)</span> function evaluations. When we repeat an entire simulation experiment to compare methods, <span class="math inline">\(B\)</span> denotes the number of independent experiments.</p>
+<div id="mc-reproducibility" class="callout callout-style-default callout-note callout-titled" title="Reproducible computation">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Reproducible computation
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Set the seed once before an experiment, then allow the random-number generator to advance. Resetting the same seed inside every replication repeats the same input and does not create independent replications.</p>
+<p>All examples below use a fixed seed for reproducibility. Closed-form answers are included as checks; Monte Carlo is useful when the corresponding answer is difficult to obtain analytically.</p>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div id="fig-mc-workflow" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Four boxes: specify the target, simulate independent inputs, evaluate one contribution per input, and report the average with MCSE.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mc-workflow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="05-monte-carlo_files/figure-html/fig-mc-workflow-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Four boxes: specify the target, simulate independent inputs, evaluate one contribution per input, and report the average with MCSE." width="1296">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mc-workflow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.1: A Monte Carlo estimate is an average of contributions whose expectation is the target. MCSE must be calculated from the independent units in that average.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="sec-mc-integration" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="sec-mc-integration"><span class="header-section-number">5.2</span> From an Integral to an Expectation</h2>
+<p>For a random input <span class="math inline">\(X\sim f\)</span>, define a contribution <span class="math inline">\(Y=H(X)\)</span> with</p>
+<p><span class="math display">\[
+\theta=\mathbb{E}_f[H(X)].
+\]</span></p>
+<p>If <span class="math inline">\(X_1,\ldots,X_N\)</span> are independent draws from <span class="math inline">\(f\)</span>, the ordinary Monte Carlo estimator is</p>
+<p><span class="math display">\[
+\widehat\theta_N=\frac{1}{N}\sum_{i=1}^N H(X_i)
+=\overline Y_N.
+\]</span></p>
+<p><strong>The function being averaged determines the target.</strong> Averaging the simulated inputs estimates <span class="math inline">\(\mathbb{E}[X]\)</span>; averaging their squares estimates <span class="math inline">\(\mathbb{E}[X^2]\)</span>; averaging an event indicator estimates a probability.</p>
+<div id="mc-mean-properties" class="callout-theorem" title="Why the Monte Carlo average works">
+<p>For independent, identically distributed contributions <span class="math inline">\(Y_i\)</span>:</p>
+<ul>
+<li>If <span class="math inline">\(\mathbb{E}|Y_i|&lt;\infty\)</span>, then <span class="math inline">\(\mathbb{E}[\overline Y_N]=\theta\)</span> and <span class="math inline">\(\overline Y_N\to\theta\)</span> almost surely by the strong law of large numbers.</li>
+<li>If also <span class="math inline">\(\operatorname{Var}(Y_i)=\sigma_Y^2&lt;\infty\)</span>, then</li>
+</ul>
+<p><span class="math display">\[
+\operatorname{Var}(\overline Y_N)=\frac{\sigma_Y^2}{N}.
+\]</span></p>
+<ul>
+<li>If <span class="math inline">\(0&lt;\sigma_Y^2&lt;\infty\)</span>, the central limit theorem gives</li>
+</ul>
+<p><span class="math display">\[
+\frac{\overline Y_N-\theta}{\sigma_Y/\sqrt{N}}
+\ \xrightarrow{d}\ N(0,1).
+\]</span></p>
+<p>Unbiasedness is a statement about repeated experiments. It does not mean that one simulated answer equals <span class="math inline">\(\theta\)</span>.</p>
+</div>
+<section id="probabilities-as-averages-of-indicators" class="level3" data-number="5.2.1">
+<h3 data-number="5.2.1" class="anchored" data-anchor-id="probabilities-as-averages-of-indicators"><span class="header-section-number">5.2.1</span> Probabilities as averages of indicators</h3>
+<p>For an event <span class="math inline">\(A\)</span>,</p>
+<p><span class="math display">\[
+P(X\in A)=\mathbb{E}\big[\mathbf{1}\{X\in A\}\big],
+\qquad
+\widehat p=\frac{1}{N}\sum_{i=1}^N\mathbf{1}\{X_i\in A\}.
+\]</span></p>
+<p>The contribution is 1 for a success and 0 otherwise. Thus <span class="math inline">\(\mathbb{E}[\widehat p]=p\)</span> and <span class="math inline">\(\operatorname{Var}(\widehat p)=p(1-p)/N\)</span>.</p>
+<div id="mc-example-pi" class="callout-example" title="Estimating pi from a quarter circle">
+<p>Generate independent points <span class="math inline">\((U_i,V_i)\)</span> uniformly in the unit square. A point lies in the quarter circle when <span class="math inline">\(U_i^2+V_i^2\leq1\)</span>. Since the circle occupies a proportion <span class="math inline">\(\pi/4\)</span> of the square,</p>
+<p><span class="math display">\[
+\pi=\mathbb{E}\left[4\mathbf{1}\{U^2+V^2\leq1\}\right],
+\qquad
+\widehat\pi=4\,\frac{\text{number of points inside}}{N}.
+\]</span></p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">4000</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">runif</span>(N)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="fu">runif</span>(N)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>pi_contributions <span class="ot">&lt;-</span> <span class="dv">4</span> <span class="sc">*</span> (u<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> v<span class="sc">^</span><span class="dv">2</span> <span class="sc">&lt;=</span> <span class="dv">1</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(pi_contributions)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 3.127</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pi_points <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">u =</span> u[<span class="dv">1</span><span class="sc">:</span><span class="dv">600</span>], <span class="at">v =</span> v[<span class="dv">1</span><span class="sc">:</span><span class="dv">600</span>],</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">location =</span> <span class="fu">ifelse</span>(pi_contributions[<span class="dv">1</span><span class="sc">:</span><span class="dv">600</span>] <span class="sc">==</span> <span class="dv">4</span>, <span class="st">"Inside"</span>, <span class="st">"Outside"</span>))</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>arc <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">u =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">301</span>))</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>arc<span class="sc">$</span>v <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="dv">1</span> <span class="sc">-</span> arc<span class="sc">$</span>u<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(pi_points, <span class="fu">aes</span>(u, v)) <span class="sc">+</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> location), <span class="at">alpha =</span> .<span class="dv">65</span>, <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> arc, <span class="at">linewidth =</span> .<span class="dv">8</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">Inside =</span> <span class="st">"#0072B2"</span>, <span class="at">Outside =</span> <span class="st">"#D55E00"</span>)) <span class="sc">+</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_equal</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Uniform coordinate U"</span>, <span class="at">y =</span> <span class="st">"Uniform coordinate V"</span>, <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-mc-pi" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="A quarter circle inside the unit square, with blue points inside and orange points outside.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mc-pi-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="05-monte-carlo_files/figure-html/fig-mc-pi-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="A quarter circle inside the unit square, with blue points inside and orange points outside." width="1152">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mc-pi-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.2: Uniform points turn the area ratio into a success probability. The plotted points are a subset of the simulation; the estimate uses all 4,000 points.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>We average <strong><span class="math inline">\(4I_i\)</span></strong>, not just <span class="math inline">\(I_i\)</span>, to estimate <span class="math inline">\(\pi\)</span>. Accordingly, <span class="math inline">\(\operatorname{Var}(\widehat\pi)=16(\pi/4)(1-\pi/4)/N\)</span>.</p>
+</div>
+</section>
+<section id="integrals-over-a-finite-interval" class="level3" data-number="5.2.2">
+<h3 data-number="5.2.2" class="anchored" data-anchor-id="integrals-over-a-finite-interval"><span class="header-section-number">5.2.2</span> Integrals over a finite interval</h3>
+<p>For <span class="math inline">\(X\sim\operatorname{Uniform}(a,b)\)</span>, its density is <span class="math inline">\(1/(b-a)\)</span> on the interval. Therefore,</p>
+<p><span class="math display">\[
+\theta=\int_a^b g(x)\,dx
+=(b-a)\mathbb{E}[g(X)],
+\qquad
+\widehat\theta_N=(b-a)\frac{1}{N}\sum_{i=1}^N g(X_i).
+\]</span></p>
+<p>Equivalently, draw <span class="math inline">\(U_i\sim\operatorname{Uniform}(0,1)\)</span> and set <span class="math inline">\(X_i=a+(b-a)U_i\)</span>. <strong>The width of the interval multiplies the average height.</strong></p>
+<div id="mc-finite-interval" class="callout-algorithm" title="Simple Monte Carlo integration">
+<ol type="1">
+<li>Identify <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>, and the integrand <span class="math inline">\(g\)</span>.</li>
+<li>Generate independent <span class="math inline">\(X_i\sim\operatorname{Uniform}(a,b)\)</span>.</li>
+<li>Form contributions <span class="math inline">\(Y_i=(b-a)g(X_i)\)</span>.</li>
+<li>Report <span class="math inline">\(\widehat\theta=\operatorname{mean}(Y)\)</span> and <span class="math inline">\(\operatorname{MCSE}=\operatorname{sd}(Y)/\sqrt{N}\)</span>.</li>
+</ol>
+</div>
+<div id="mc-example-exponential" class="callout-example" title="The same integrand on two intervals">
+<p>Consider the same integrand on two intervals:</p>
+<p><span class="math display">\[
+\theta_1=\int_0^1 e^{-x}\,dx=1-e^{-1},
+\qquad
+\theta_2=\int_2^4 e^{-x}\,dx=e^{-2}-e^{-4}.
+\]</span></p>
+<p>For the first integral, the contribution is <span class="math inline">\(e^{-U}\)</span>. For the second, it is <strong><span class="math inline">\(2e^{-X}\)</span></strong>, where <span class="math inline">\(X\sim\operatorname{Uniform}(2,4)\)</span>.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>y01 <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fu">runif</span>(N))</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>y24 <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fu">runif</span>(N, <span class="at">min =</span> <span class="dv">2</span>, <span class="at">max =</span> <span class="dv">4</span>))</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">interval_01 =</span> <span class="fu">mean</span>(y01), <span class="at">interval_24 =</span> <span class="fu">mean</span>(y24))</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; interval_01 interval_24 </span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   0.6293776   0.1166391</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Interval</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Estimate</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Exact</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">MCSE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">[0, 1]</td>
+<td style="text-align: right;">0.629378</td>
+<td style="text-align: right;">0.632121</td>
+<td style="text-align: right;">0.001814</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">[2, 4]</td>
+<td style="text-align: right;">0.116639</td>
+<td style="text-align: right;">0.117020</td>
+<td style="text-align: right;">0.000652</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>height_grid <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="dv">2</span>, <span class="dv">4</span>, <span class="at">length.out =</span> <span class="dv">301</span>))</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>height_grid<span class="sc">$</span>height <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="sc">-</span>height_grid<span class="sc">$</span>x)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>height_draws <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">runif</span>(<span class="dv">40</span>, <span class="dv">2</span>, <span class="dv">4</span>))</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>height_draws<span class="sc">$</span>height <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="sc">-</span>height_draws<span class="sc">$</span>x)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(height_grid, <span class="fu">aes</span>(x, height)) <span class="sc">+</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_area</span>(<span class="at">fill =</span> <span class="st">"#E6F2EC"</span>, <span class="at">alpha =</span> .<span class="dv">8</span>) <span class="sc">+</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> .<span class="dv">8</span>) <span class="sc">+</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="at">data =</span> height_draws, <span class="fu">aes</span>(<span class="at">xend =</span> x, <span class="at">y =</span> <span class="dv">0</span>, <span class="at">yend =</span> height),</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>               <span class="at">color =</span> <span class="st">"#0072B2"</span>, <span class="at">alpha =</span> .<span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">mean</span>(height_draws<span class="sc">$</span>height),</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>             <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"#D55E00"</span>, <span class="at">linewidth =</span> .<span class="dv">8</span>) <span class="sc">+</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"x"</span>, <span class="at">y =</span> <span class="st">"Integrand exp(-x)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-mc-average-height" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="The curve exp(-x) on 2 to 4, vertical segments at sampled x values, and a dashed horizontal line at the sampled average height.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mc-average-height-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="05-monte-carlo_files/figure-html/fig-mc-average-height-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="The curve exp(-x) on 2 to 4, vertical segments at sampled x values, and a dashed horizontal line at the sampled average height." width="1152">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mc-average-height-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.3: An integral is interval width times average height. Here the interval has width 2, so averaging exp(-X) alone estimates half the desired integral.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The curve here is an <strong>integrand</strong>, not a probability density on <span class="math inline">\([2,4]\)</span>. Its area is the quantity to be estimated and need not equal 1.</p>
+</div>
+<div id="exr-mc-width" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 5.1 (In Class: Find the Missing Factor)</strong></span> For <span class="math inline">\(\theta=\int_2^4e^{-x}\,dx\)</span>, a student generates <code>x &lt;- runif(N, 2, 4)</code> and reports <code>mean(exp(-x))</code>.</p>
+<ol type="1">
+<li>What does this average estimate?</li>
+<li>Correct both the estimate and its MCSE.</li>
+</ol>
+</div>
+<div id="sol-mc-width" class="proof solution">
+<p><span class="proof-title"><em>Solution 5.1</em>. </span></p>
+<ol type="1">
+<li>The uniform density is <span class="math inline">\(1/2\)</span>, so <span class="math inline">\(\mathbb{E}[e^{-X}]=\theta/2\)</span>.</li>
+<li>Use <code>y &lt;- 2 * exp(-x)</code>, then <code>mean(y)</code> and <code>sd(y) / sqrt(N)</code>. The factor 2 changes both the estimate and its standard error; it multiplies the variance by 4.</li>
+</ol>
+</div>
+</section>
+</section>
+<section id="sec-mc-error" class="level2" data-number="5.3">
+<h2 data-number="5.3" class="anchored" data-anchor-id="sec-mc-error"><span class="header-section-number">5.3</span> Monte Carlo Error and Precision</h2>
+<p>The variation of individual contributions and the uncertainty of their average are different quantities:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Quantity</th>
+<th>Meaning</th>
+<th>Estimate from independent contributions</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(\sigma_Y^2\)</span></td>
+<td>Variance of one contribution</td>
+<td><code>var(y)</code></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\sigma_Y^2/N\)</span></td>
+<td>Variance of the Monte Carlo estimator</td>
+<td><code>var(y) / N</code></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\sigma_Y/\sqrt{N}\)</span></td>
+<td>Monte Carlo standard error</td>
+<td><code>sd(y) / sqrt(N)</code></td>
+</tr>
+</tbody>
+</table>
+<p>R’s <code>var()</code> uses the sample-variance denominator <span class="math inline">\(N-1\)</span>. Consequently,</p>
+<p><span class="math display">\[
+s_Y^2=\frac{1}{N-1}\sum_{i=1}^N(Y_i-\overline Y)^2,
+\qquad
+\widehat{\operatorname{MCSE}}=\sqrt{\frac{s_Y^2}{N}}.
+\]</span></p>
+<p>A plug-in estimate using denominator <span class="math inline">\(N\)</span> differs by a factor <span class="math inline">\((N-1)/N\)</span> at the variance level. We use the sample-variance convention consistently throughout this chapter.</p>
+<section id="a-monte-carlo-confidence-interval" class="level3" data-number="5.3.1">
+<h3 data-number="5.3.1" class="anchored" data-anchor-id="a-monte-carlo-confidence-interval"><span class="header-section-number">5.3.1</span> A Monte Carlo confidence interval</h3>
+<p>With independent contributions and a finite variance, a large-sample approximate 95% Monte Carlo interval is</p>
+<p><span class="math display">\[
+\widehat\theta_N\ \pm\ 1.96\,\widehat{\operatorname{MCSE}}.
+\]</span></p>
+<p>This interval describes uncertainty from the <strong>simulation</strong>, with the model and its parameters held fixed. It is not automatically a confidence interval for a parameter estimated from real data.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>estimate <span class="ot">&lt;-</span> <span class="fu">mean</span>(y01)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>mcse <span class="ot">&lt;-</span> <span class="fu">sd</span>(y01) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">length</span>(y01))</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">estimate =</span> estimate, <span class="at">MCSE =</span> mcse,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">lower =</span> estimate <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> mcse, <span class="at">upper =</span> estimate <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> mcse)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    estimate        MCSE       lower       upper </span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0.629377598 0.001813567 0.625823007 0.632932190</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="mc-error-warning" class="callout callout-style-default callout-warning callout-titled" title="More digits are not more information">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>More digits are not more information
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Report precision consistent with MCSE. A long decimal expansion does not establish accuracy. More replications reduce Monte Carlo uncertainty, but they do not fix a wrong model, an incorrect contribution, or a coding error.</p>
+<p>For a rare event, zero simulated successes do not establish zero probability. The plug-in MCSE can also be zero. Use an appropriate binomial interval or a method designed for rare events.</p>
+</div>
+</div>
+</section>
+<section id="planning-the-number-of-replications" class="level3" data-number="5.3.2">
+<h3 data-number="5.3.2" class="anchored" data-anchor-id="planning-the-number-of-replications"><span class="header-section-number">5.3.2</span> Planning the number of replications</h3>
+<p>If <span class="math inline">\(\sigma_Y^2\)</span> is known, an MCSE target <span class="math inline">\(\varepsilon\)</span> suggests</p>
+<p><span class="math display">\[
+N\geq\frac{\sigma_Y^2}{\varepsilon^2}.
+\]</span></p>
+<p>If the goal is a 95% interval <strong>half-width</strong> at most <span class="math inline">\(h\)</span>, the corresponding planning rule is</p>
+<p><span class="math display">\[
+N\gtrsim\frac{1.96^2\sigma_Y^2}{h^2}.
+\]</span></p>
+<p>When <span class="math inline">\(\sigma_Y^2\)</span> is unknown, estimate it in a pilot run, choose a production sample size, and generate a fresh production run. A pilot estimate gives a planning approximation, not a guaranteed error bound.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>sigma2 <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.05</span>, <span class="fl">0.01</span>, <span class="fl">0.005</span>, <span class="fl">0.001</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">target_MCSE =</span> epsilon,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">required_N =</span> <span class="fu">ceiling</span>(sigma2 <span class="sc">/</span> epsilon<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   target_MCSE required_N</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1       0.100      2e+02</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2       0.050      8e+02</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3       0.010      2e+04</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4       0.005      8e+04</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5       0.001      2e+06</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Halving MCSE requires about <strong>four times</strong> as many replications. Reducing it from <span class="math inline">\(0.01\)</span> to <span class="math inline">\(0.0001\)</span> requires about <strong>10,000 times</strong> as many.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>precision_sizes <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">200</span>, <span class="dv">500</span>, <span class="dv">1000</span>, <span class="dv">2000</span>, <span class="dv">5000</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>variance_exp_minus <span class="ot">&lt;-</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="dv">2</span>)) <span class="sc">/</span> <span class="dv">2</span> <span class="sc">-</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="dv">1</span>))<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>precision_results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">N =</span> precision_sizes)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>precision_results<span class="sc">$</span>empirical <span class="ot">&lt;-</span> <span class="fu">vapply</span>(precision_sizes, <span class="cf">function</span>(n) {</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sd</span>(<span class="fu">replicate</span>(<span class="dv">400</span>, <span class="fu">mean</span>(<span class="fu">exp</span>(<span class="sc">-</span><span class="fu">runif</span>(n)))))</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>}, <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>precision_results<span class="sc">$</span>theoretical <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(variance_exp_minus <span class="sc">/</span> precision_sizes)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(precision_results, <span class="fu">aes</span>(N)) <span class="sc">+</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> theoretical, <span class="at">color =</span> <span class="st">"Theoretical MCSE"</span>), <span class="at">linewidth =</span> .<span class="dv">8</span>) <span class="sc">+</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> empirical, <span class="at">color =</span> <span class="st">"SD across experiments"</span>), <span class="at">size =</span> <span class="fl">2.7</span>) <span class="sc">+</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>(<span class="at">breaks =</span> precision_sizes) <span class="sc">+</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Theoretical MCSE"</span> <span class="ot">=</span> <span class="st">"black"</span>,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>                                <span class="st">"SD across experiments"</span> <span class="ot">=</span> <span class="st">"#0072B2"</span>)) <span class="sc">+</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Contributions per experiment N"</span>,</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Standard deviation of the estimate"</span>, <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-mc-precision" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Empirical standard deviations at increasing sample sizes track a decreasing theoretical curve on logarithmic axes.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mc-precision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="05-monte-carlo_files/figure-html/fig-mc-precision-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Empirical standard deviations at increasing sample sizes track a decreasing theoretical curve on logarithmic axes." width="1152">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mc-precision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.4: The standard deviation of Monte Carlo estimates across 400 independent experiments follows the theoretical 1/sqrt(N) curve. A single trajectory need not approach the truth monotonically.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div id="exr-mc-precision" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 5.2 (In Class: MCSE or Interval Width?)</strong></span> A pilot calculation gives MCSE <span class="math inline">\(0.02\)</span> using <span class="math inline">\(N=1000\)</span>. Approximately how many contributions are needed for MCSE <span class="math inline">\(0.005\)</span>? If <span class="math inline">\(0.005\)</span> instead refers to a 95% interval half-width, should the answer be larger or smaller?</p>
+</div>
+<div id="sol-mc-precision" class="proof solution">
+<p><span class="proof-title"><em>Solution 5.2</em>. </span>The MCSE must decrease by a factor of 4, so use <span class="math inline">\(4^2(1000)=16000\)</span> contributions. For a half-width of <span class="math inline">\(0.005\)</span>, the target MCSE is <span class="math inline">\(0.005/1.96\)</span>, so the required number is larger: approximately <span class="math inline">\(16000(1.96)^2=61466\)</span> after rounding up.</p>
+</div>
+</section>
+</section>
+<section id="sec-mc-normal-cdf" class="level2" data-number="5.4">
+<h2 data-number="5.4" class="anchored" data-anchor-id="sec-mc-normal-cdf"><span class="header-section-number">5.4</span> One Target, Different Monte Carlo Estimators</h2>
+<p>The standard normal CDF is</p>
+<p><span class="math display">\[
+\Phi(x)=\int_{-\infty}^{x}\phi(z)\,dz,
+\qquad
+\phi(z)=\frac{1}{\sqrt{2\pi}}e^{-z^2/2}.
+\]</span></p>
+<p>We cannot sample uniformly over <span class="math inline">\((-\infty,x]\)</span>. Instead, we can represent the same probability in two different ways.</p>
+<section id="method-1-indicators-of-normal-draws" class="level3" data-number="5.4.1">
+<h3 data-number="5.4.1" class="anchored" data-anchor-id="method-1-indicators-of-normal-draws"><span class="header-section-number">5.4.1</span> Method 1: indicators of normal draws</h3>
+<p>If <span class="math inline">\(Z\sim N(0,1)\)</span>, then <span class="math inline">\(\Phi(x)=\mathbb{E}[\mathbf{1}\{Z\leq x\}]\)</span>. Draw independent standard normals and average their indicators.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>indicator_y <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">rnorm</span>(N) <span class="sc">&lt;=</span> x)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">estimate =</span> <span class="fu">mean</span>(indicator_y),</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">MCSE =</span> <span class="fu">sd</span>(indicator_y) <span class="sc">/</span> <span class="fu">sqrt</span>(N),</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">exact =</span> <span class="fu">pnorm</span>(x))</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    estimate        MCSE       exact </span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0.978600000 0.001447209 0.977249868</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>For <span class="math inline">\(p=\Phi(x)\)</span>, the exact estimator variance is <span class="math inline">\(p(1-p)/N\)</span>. A commonly used plug-in MCSE is <span class="math inline">\(\sqrt{\widehat p(1-\widehat p)/N}\)</span>; <code>sd(indicator_y) / sqrt(N)</code> uses the sample-variance correction described above.</p>
+</section>
+<section id="method-2-transform-a-bounded-integral" class="level3" data-number="5.4.2">
+<h3 data-number="5.4.2" class="anchored" data-anchor-id="method-2-transform-a-bounded-integral"><span class="header-section-number">5.4.2</span> Method 2: transform a bounded integral</h3>
+<p>For <span class="math inline">\(x&gt;0\)</span>, symmetry and the substitution <span class="math inline">\(z=xu\)</span> give</p>
+<p><span class="math display">\[
+\Phi(x)=\frac12+\int_0^x\phi(z)\,dz
+=\frac12+\int_0^1x\phi(xu)\,du.
+\]</span></p>
+<p>Thus, for <span class="math inline">\(U\sim\operatorname{Uniform}(0,1)\)</span>, define</p>
+<p><span class="math display">\[
+H_x(U)=\frac12+x\phi(xU),
+\qquad
+\mathbb{E}[H_x(U)]=\Phi(x).
+\]</span></p>
+<p>For <span class="math inline">\(x&lt;0\)</span>, apply the positive-<span class="math inline">\(|x|\)</span> construction and use <span class="math inline">\(\Phi(x)=1-\Phi(|x|)\)</span>. At <span class="math inline">\(x=0\)</span>, the answer is exactly <span class="math inline">\(1/2\)</span>.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">runif</span>(N)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>uniform_y <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="sc">+</span> x <span class="sc">*</span> <span class="fu">dnorm</span>(x <span class="sc">*</span> u)  <span class="co"># x &gt; 0 here</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">estimate =</span> <span class="fu">mean</span>(uniform_y),</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">MCSE =</span> <span class="fu">sd</span>(uniform_y) <span class="sc">/</span> <span class="fu">sqrt</span>(N),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">exact =</span> <span class="fu">pnorm</span>(x))</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    estimate        MCSE       exact </span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0.973362243 0.002312272 0.977249868</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="mc-example-cdf" class="callout-example" title="Estimate Phi(2) and Phi(2.5)">
+<p>Both methods are unbiased for the same target. Their contributions have different variances, so their MCSEs need not be similar.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(N)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">runif</span>(N)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>cdf_results <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">c</span>(<span class="dv">2</span>, <span class="fl">2.5</span>), <span class="cf">function</span>(x) {</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  contributions <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">Indicator =</span> <span class="fu">as.numeric</span>(z <span class="sc">&lt;=</span> x),</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>                        <span class="at">Uniform =</span> <span class="fl">0.5</span> <span class="sc">+</span> x <span class="sc">*</span> <span class="fu">dnorm</span>(x <span class="sc">*</span> u))</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">names</span>(contributions), <span class="cf">function</span>(method) {</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    values <span class="ot">&lt;-</span> <span class="fu">mc_summary</span>(contributions[[method]])</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">x =</span> x, <span class="at">Method =</span> method, <span class="at">Estimate =</span> values[<span class="st">"estimate"</span>],</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>               <span class="at">MCSE =</span> values[<span class="st">"MCSE"</span>], <span class="at">Lower =</span> values[<span class="st">"lower"</span>],</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>               <span class="at">Upper =</span> values[<span class="st">"upper"</span>], <span class="at">Exact =</span> <span class="fu">pnorm</span>(x), <span class="at">row.names =</span> <span class="cn">NULL</span>)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  }))</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>}))</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(cdf_results, <span class="at">digits =</span> <span class="dv">5</span>, <span class="at">booktabs =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;" data-quarto-table-cell-role="th">x</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Method</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Estimate</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">MCSE</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Lower</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Upper</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Exact</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2.0</td>
+<td style="text-align: left;">Indicator</td>
+<td style="text-align: right;">0.97860</td>
+<td style="text-align: right;">0.00145</td>
+<td style="text-align: right;">0.97576</td>
+<td style="text-align: right;">0.98144</td>
+<td style="text-align: right;">0.97725</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2.0</td>
+<td style="text-align: left;">Uniform</td>
+<td style="text-align: right;">0.97524</td>
+<td style="text-align: right;">0.00230</td>
+<td style="text-align: right;">0.97074</td>
+<td style="text-align: right;">0.97975</td>
+<td style="text-align: right;">0.97725</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2.5</td>
+<td style="text-align: left;">Indicator</td>
+<td style="text-align: right;">0.99370</td>
+<td style="text-align: right;">0.00079</td>
+<td style="text-align: right;">0.99215</td>
+<td style="text-align: right;">0.99525</td>
+<td style="text-align: right;">0.99379</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2.5</td>
+<td style="text-align: left;">Uniform</td>
+<td style="text-align: right;">0.99073</td>
+<td style="text-align: right;">0.00329</td>
+<td style="text-align: right;">0.98428</td>
+<td style="text-align: right;">0.99718</td>
+<td style="text-align: right;">0.99379</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The interval is an approximate <strong>Monte Carlo interval for a fixed CDF value</strong>. It does not describe uncertainty about a population mean or variance.</p>
+</div>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>cdf_grid <span class="ot">&lt;-</span> <span class="fu">seq</span>(.<span class="dv">1</span>, <span class="dv">3</span>, <span class="at">length.out =</span> <span class="dv">100</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>cdf_variances <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> cdf_grid,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Indicator =</span> <span class="fu">pnorm</span>(cdf_grid) <span class="sc">*</span> <span class="fu">pnorm</span>(cdf_grid, <span class="at">lower.tail =</span> <span class="cn">FALSE</span>),</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Uniform =</span> <span class="fu">vapply</span>(cdf_grid, <span class="cf">function</span>(a) {</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">integrate</span>(<span class="cf">function</span>(u) (a <span class="sc">*</span> <span class="fu">dnorm</span>(a <span class="sc">*</span> u))<span class="sc">^</span><span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">1</span>)<span class="sc">$</span>value <span class="sc">-</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>      (<span class="fu">pnorm</span>(a) <span class="sc">-</span> .<span class="dv">5</span>)<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  }, <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>cdf_variance_long <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">x =</span> cdf_grid, <span class="at">variance =</span> cdf_variances<span class="sc">$</span>Indicator,</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>             <span class="at">Method =</span> <span class="st">"Normal indicator"</span>),</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">x =</span> cdf_grid, <span class="at">variance =</span> cdf_variances<span class="sc">$</span>Uniform,</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>             <span class="at">Method =</span> <span class="st">"Uniform integral"</span>)</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(cdf_variance_long, <span class="fu">aes</span>(x, variance, <span class="at">color =</span> Method)) <span class="sc">+</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> .<span class="dv">85</span>) <span class="sc">+</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Normal indicator"</span> <span class="ot">=</span> <span class="st">"#0072B2"</span>,</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>                                <span class="st">"Uniform integral"</span> <span class="ot">=</span> <span class="st">"#D55E00"</span>)) <span class="sc">+</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"CDF evaluation point x"</span>, <span class="at">y =</span> <span class="st">"Variance of one contribution"</span>,</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>       <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-mc-cdf-variance" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Contribution variance versus x, comparing indicator and uniform-integral methods; the curves cross as x increases.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mc-cdf-variance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="05-monte-carlo_files/figure-html/fig-mc-cdf-variance-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Contribution variance versus x, comparing indicator and uniform-integral methods; the curves cross as x increases." width="1152">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mc-cdf-variance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.5: Two unbiased estimators can have different variances. The uniform-integral contribution is more stable near zero; the indicator is more stable farther into the positive tail. Divide the plotted variances by N for the variance of an ordinary Monte Carlo average.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><a href="#fig-mc-cdf-variance" class="quarto-xref">Figure&nbsp;<span>5.5</span></a> compares exact contribution variances, evaluated by deterministic numerical integration where needed. A single estimate that happens to be closer to <code>pnorm(x)</code> is not evidence that its method is more efficient.</p>
+</section>
+</section>
+<section id="sec-mc-efficiency" class="level2" data-number="5.5">
+<h2 data-number="5.5" class="anchored" data-anchor-id="sec-mc-efficiency"><span class="header-section-number">5.5</span> Variance Reduction and Fair Comparisons</h2>
+<p>For unbiased estimators of the same <span class="math inline">\(\theta\)</span>, smaller variance means greater statistical precision. Variance reduction aims to improve precision <strong>without simply increasing the simulation budget</strong>.</p>
+<div style="page-break-after: always;"></div>
+<div id="mc-efficiency-definition" class="callout-definition" title="Variance reduction, relative efficiency, and standard error">
+<p>Let <span class="math inline">\(V_0\)</span> be the variance of a baseline estimator and <span class="math inline">\(V_1\)</span> the variance of a competing estimator at a specified common budget.</p>
+<p><span class="math display">\[
+\text{Fraction of variance removed}=1-\frac{V_1}{V_0},
+\qquad
+\text{Relative efficiency}=\frac{V_0}{V_1}.
+\]</span></p>
+<p>Multiply the first quantity by 100 to express it as a <strong>percentage</strong>. The standard-error ratio is <span class="math inline">\(\sqrt{V_1/V_0}\)</span>.</p>
+<p>For example, <span class="math inline">\(V_1=V_0/4\)</span> means 75% lower variance, twice the precision in standard-error terms, and relative efficiency 4. It means <strong>50% lower standard error</strong>, not 75%.</p>
+</div>
+<p>Three comparisons answer different questions:</p>
+<ol type="1">
+<li><strong>Same number of contributions:</strong> useful when contributions cost about the same.</li>
+<li><strong>Same number of expensive function evaluations:</strong> appropriate when evaluating the model dominates computation.</li>
+<li><strong>Same total computation time:</strong> include pilot runs, setup, and additional control calculations.</li>
+</ol>
+<p>If estimators are biased, variance alone is insufficient. Compare mean squared error, <span class="math inline">\(\operatorname{MSE}=\operatorname{Var}+\operatorname{Bias}^2\)</span>, as well as computational cost.</p>
+<div id="mc-repeated-experiments" class="callout callout-style-default callout-note callout-titled" title="How to compare methods in a simulation experiment">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>How to compare methods in a simulation experiment
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Repeat each complete estimator <span class="math inline">\(B\)</span> times using fresh random input. The variance <strong>across the <span class="math inline">\(B\)</span> estimates</strong> estimates the estimator’s variance. The standard deviation across estimates should be similar to their reported MCSEs when those MCSEs are appropriate.</p>
+<p>Within one run, <code>var(y)</code> estimates the variance of a contribution. It is not the variance of the estimate <code>mean(y)</code>.</p>
+</div>
+</div>
+</section>
+<section id="sec-mc-antithetic" class="level2" data-number="5.6">
+<h2 data-number="5.6" class="anchored" data-anchor-id="sec-mc-antithetic"><span class="header-section-number">5.6</span> Antithetic Variables</h2>
+<p>Suppose <span class="math inline">\(\theta=\mathbb{E}[H(U)]\)</span> for <span class="math inline">\(U\sim\operatorname{Uniform}(0,1)\)</span>. Both <span class="math inline">\(U\)</span> and <span class="math inline">\(1-U\)</span> are uniform, so both <span class="math inline">\(H(U)\)</span> and <span class="math inline">\(H(1-U)\)</span> have expectation <span class="math inline">\(\theta\)</span>.</p>
+<p>The construction deliberately makes these two contributions dependent. If a high value from one is often accompanied by a low value from the other, their average fluctuates less.</p>
+<div id="mc-antithetic-algorithm" class="callout-algorithm" title="Build pairs, then average pairs">
+<ol type="1">
+<li>Generate independent <span class="math inline">\(U_1,\ldots,U_K\sim\operatorname{Uniform}(0,1)\)</span>.</li>
+<li>Evaluate <span class="math inline">\(Y_k=H(U_k)\)</span> and <span class="math inline">\(Y'_k=H(1-U_k)\)</span>.</li>
+<li>Form the pair average <span class="math inline">\(A_k=(Y_k+Y'_k)/2\)</span>.</li>
+<li>Estimate <span class="math inline">\(\theta\)</span> by <span class="math inline">\(\overline A_K\)</span> and calculate MCSE as <span class="math inline">\(s_A/\sqrt{K}\)</span>.</li>
+</ol>
+<p>There are <strong><span class="math inline">\(K\)</span> independent units and <span class="math inline">\(2K\)</span> function evaluations</strong>.</p>
+</div>
+<section id="why-negative-correlation-helps" class="level3" data-number="5.6.1">
+<h3 data-number="5.6.1" class="anchored" data-anchor-id="why-negative-correlation-helps"><span class="header-section-number">5.6.1</span> Why negative correlation helps</h3>
+<p>Write <span class="math inline">\(\operatorname{Var}(Y_k)=\operatorname{Var}(Y'_k)=\sigma_Y^2&gt;0\)</span> and <span class="math inline">\(\operatorname{Corr}(Y_k,Y'_k)=\rho\)</span>. Then</p>
+<p><span class="math display">\[
+\operatorname{Var}(A_k)
+=\frac14\left(\sigma_Y^2+\sigma_Y^2+2\rho\sigma_Y^2\right)
+=\frac{\sigma_Y^2}{2}(1+\rho).
+\]</span></p>
+<p>At the common budget <span class="math inline">\(N=2K\)</span> evaluations,</p>
+<p><span class="math display">\[
+\operatorname{Var}(\widehat\theta_{\mathrm{anti}})
+=\frac{\sigma_Y^2}{N}(1+\rho),
+\qquad
+\operatorname{Var}(\widehat\theta_{\mathrm{plain}})
+=\frac{\sigma_Y^2}{N}.
+\]</span></p>
+<p>Thus, the variance ratio is <span class="math inline">\(1+\rho\)</span>. Negative correlation helps; zero correlation gives no variance gain at this budget; positive correlation makes the estimator worse.</p>
+<div id="mc-monotonicity" class="callout-theorem" title="A sufficient condition: a monotone contribution">
+<p>If <span class="math inline">\(H\)</span> is monotone on <span class="math inline">\((0,1)\)</span> and has finite variance, then</p>
+<p><span class="math display">\[
+\operatorname{Cov}\{H(U),H(1-U)\}\leq0.
+\]</span></p>
+<p>One function moves upward as <span class="math inline">\(U\)</span> increases while the other moves downward. More formally, for an independent copy <span class="math inline">\(V\)</span> of <span class="math inline">\(U\)</span>,</p>
+<p><span class="math display">\[
+2\operatorname{Cov}\{a(U),b(U)\}
+=\mathbb{E}[(a(U)-a(V))(b(U)-b(V))].
+\]</span></p>
+<p>The product is nonpositive when <span class="math inline">\(a\)</span> is increasing and <span class="math inline">\(b\)</span> is decreasing. Apply this to <span class="math inline">\(a(u)=H(u)\)</span> and <span class="math inline">\(b(u)=H(1-u)\)</span>, reversing both directions if <span class="math inline">\(H\)</span> is decreasing.</p>
+</div>
+<p>For inverse-transform generation, the relevant function is the <strong>whole contribution</strong> <span class="math inline">\(H(u)=g(F^{-1}(u))\)</span>. Negative correlation of the inputs <span class="math inline">\(U\)</span> and <span class="math inline">\(1-U\)</span> alone does not guarantee negative correlation of arbitrary outputs.</p>
+<p>The idea also extends to independent uniform coordinates: replace every coordinate <span class="math inline">\(U_j\)</span> by <span class="math inline">\(1-U_j\)</span>. A coordinatewise monotone contribution gives nonpositive covariance under this product distribution. For a more complicated simulation, check the dependence of the final contributions.</p>
+<div id="mc-example-antithetic-cdf" class="callout-example" title="Antithetic estimation of the normal CDF">
+<p>For <span class="math inline">\(x&gt;0\)</span>, use the decreasing contribution <span class="math inline">\(H_x(u)=1/2+x\phi(xu)\)</span> from <a href="#sec-mc-normal-cdf" class="quarto-xref"><span>Section 5.4</span></a>. The pair average is</p>
+<p><span class="math display">\[
+A_k=\frac12+\frac{x}{2}\{\phi(xU_k)+\phi(x(1-U_k))\}.
+\]</span></p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fl">1.95</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>K <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">runif</span>(K)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>pair_y <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="sc">+</span> x <span class="sc">*</span> (<span class="fu">dnorm</span>(x <span class="sc">*</span> u) <span class="sc">+</span> <span class="fu">dnorm</span>(x <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> u))) <span class="sc">/</span> <span class="dv">2</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">estimate =</span> <span class="fu">mean</span>(pair_y), <span class="at">MCSE =</span> <span class="fu">sd</span>(pair_y) <span class="sc">/</span> <span class="fu">sqrt</span>(K),</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">exact =</span> <span class="fu">pnorm</span>(x))</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     estimate         MCSE        exact </span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0.9743663875 0.0001434375 0.9744119405</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The full implementation below also handles negative <span class="math inline">\(x\)</span> by symmetry. <code>evaluations</code> counts function evaluations; <code>units</code> counts independent contributions or pair averages.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Full normal-CDF estimator with the correct independent units</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>mc_phi <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">evaluations =</span> <span class="dv">10000</span>, <span class="at">antithetic =</span> <span class="cn">TRUE</span>) {</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stopifnot</span>(<span class="fu">length</span>(x) <span class="sc">==</span> <span class="dv">1</span>L, <span class="fu">is.finite</span>(x),</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">length</span>(evaluations) <span class="sc">==</span> <span class="dv">1</span>L, <span class="fu">is.finite</span>(evaluations),</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    evaluations <span class="sc">&gt;=</span> <span class="dv">4</span>, evaluations <span class="sc">==</span> <span class="fu">floor</span>(evaluations),</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span>antithetic <span class="sc">||</span> evaluations <span class="sc">%%</span> <span class="dv">2</span> <span class="sc">==</span> <span class="dv">0</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  a <span class="ot">&lt;-</span> <span class="fu">abs</span>(x)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  units <span class="ot">&lt;-</span> <span class="cf">if</span> (antithetic) evaluations <span class="sc">/</span> <span class="dv">2</span> <span class="cf">else</span> evaluations</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  u <span class="ot">&lt;-</span> <span class="fu">runif</span>(units)</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  y <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="sc">+</span> a <span class="sc">*</span> <span class="fu">dnorm</span>(a <span class="sc">*</span> u)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (antithetic) {</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    reflected_y <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="sc">+</span> a <span class="sc">*</span> <span class="fu">dnorm</span>(a <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> u))</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    y <span class="ot">&lt;-</span> (y <span class="sc">+</span> reflected_y) <span class="sc">/</span> <span class="dv">2</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (x <span class="sc">&lt;</span> <span class="dv">0</span>) y <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> y</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="fu">mc_summary</span>(y), <span class="at">evaluations =</span> evaluations, <span class="at">units =</span> units)</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>phi_comparison <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">Plain =</span> <span class="fu">mc_phi</span>(<span class="fl">1.95</span>, <span class="at">evaluations =</span> <span class="dv">1000</span>, <span class="at">antithetic =</span> <span class="cn">FALSE</span>),</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">Antithetic =</span> <span class="fu">mc_phi</span>(<span class="fl">1.95</span>, <span class="at">evaluations =</span> <span class="dv">1000</span>, <span class="at">antithetic =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(phi_comparison[, <span class="fu">c</span>(<span class="st">"estimate"</span>, <span class="st">"MCSE"</span>, <span class="st">"evaluations"</span>, <span class="st">"units"</span>)],</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>             <span class="at">digits =</span> <span class="dv">6</span>, <span class="at">booktabs =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">estimate</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">MCSE</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">evaluations</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">units</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Plain</td>
+<td style="text-align: right;">0.972297</td>
+<td style="text-align: right;">0.007033</td>
+<td style="text-align: right;">1000</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Antithetic</td>
+<td style="text-align: right;">0.974625</td>
+<td style="text-align: right;">0.000443</td>
+<td style="text-align: right;">1000</td>
+<td style="text-align: right;">500</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="mc-antithetic-mcse" class="callout callout-style-default callout-warning callout-titled" title="Calculate MCSE from pairs">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Calculate MCSE from pairs
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The <span class="math inline">\(2K\)</span> values obtained by concatenating the two sides of the pairs are dependent. Do not apply the independent-observation formula to that concatenated vector.</p>
+<p>Use <code>sd(pair_y) / sqrt(K)</code>. For independent repeated experiments, the pairing is recreated with fresh uniforms in each experiment.</p>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>anti_u <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="dv">300</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>anti_cloud <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">first =</span> .<span class="dv">5</span> <span class="sc">+</span> <span class="fl">1.95</span> <span class="sc">*</span> <span class="fu">dnorm</span>(<span class="fl">1.95</span> <span class="sc">*</span> anti_u),</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>                        <span class="at">second =</span> .<span class="dv">5</span> <span class="sc">+</span> <span class="fl">1.95</span> <span class="sc">*</span> <span class="fu">dnorm</span>(<span class="fl">1.95</span> <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> anti_u)))</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>anti_runs <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">600</span>, <span class="fu">c</span>(</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Plain =</span> <span class="fu">unname</span>(<span class="fu">mc_phi</span>(<span class="fl">1.95</span>, <span class="dv">1000</span>, <span class="cn">FALSE</span>)[<span class="st">"estimate"</span>]),</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Antithetic =</span> <span class="fu">unname</span>(<span class="fu">mc_phi</span>(<span class="fl">1.95</span>, <span class="dv">1000</span>, <span class="cn">TRUE</span>)[<span class="st">"estimate"</span>])</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>))</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>anti_long <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Method =</span> <span class="fu">rep</span>(<span class="fu">rownames</span>(anti_runs), <span class="at">each =</span> <span class="fu">ncol</span>(anti_runs)),</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>                         <span class="at">Estimate =</span> <span class="fu">as.vector</span>(<span class="fu">t</span>(anti_runs)))</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>anti_left <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(anti_cloud, <span class="fu">aes</span>(first, second)) <span class="sc">+</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> .<span class="dv">45</span>, <span class="at">color =</span> <span class="st">"#0072B2"</span>, <span class="at">size =</span> <span class="fl">1.3</span>) <span class="sc">+</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"H(U)"</span>, <span class="at">y =</span> <span class="st">"H(1 - U)"</span>, <span class="at">title =</span> <span class="st">"Dependence within a pair"</span>)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>anti_right <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(anti_long, <span class="fu">aes</span>(Method, Estimate, <span class="at">fill =</span> Method)) <span class="sc">+</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">width =</span> .<span class="dv">5</span>, <span class="at">outlier.alpha =</span> .<span class="dv">25</span>) <span class="sc">+</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">pnorm</span>(<span class="fl">1.95</span>), <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">Plain =</span> <span class="st">"#0072B2"</span>, <span class="at">Antithetic =</span> <span class="st">"#D55E00"</span>)) <span class="sc">+</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Estimated Phi(1.95)"</span>, <span class="at">title =</span> <span class="st">"Variation across experiments"</span>) <span class="sc">+</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>grid<span class="sc">::</span><span class="fu">grid.newpage</span>()</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>grid<span class="sc">::</span><span class="fu">pushViewport</span>(grid<span class="sc">::</span><span class="fu">viewport</span>(<span class="at">layout =</span> grid<span class="sc">::</span><span class="fu">grid.layout</span>(<span class="dv">1</span>, <span class="dv">2</span>)))</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(anti_left, <span class="at">newpage =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>      <span class="at">vp =</span> grid<span class="sc">::</span><span class="fu">viewport</span>(<span class="at">layout.pos.row =</span> <span class="dv">1</span>, <span class="at">layout.pos.col =</span> <span class="dv">1</span>))</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(anti_right, <span class="at">newpage =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>      <span class="at">vp =</span> grid<span class="sc">::</span><span class="fu">viewport</span>(<span class="at">layout.pos.row =</span> <span class="dv">1</span>, <span class="at">layout.pos.col =</span> <span class="dv">2</span>))</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>grid<span class="sc">::</span><span class="fu">popViewport</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-mc-antithetic" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="A downward sloping scatterplot of paired contributions, followed by boxplots showing much less variation for antithetic estimates than for ordinary uniform-integral estimates.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mc-antithetic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="05-monte-carlo_files/figure-html/fig-mc-antithetic-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="A downward sloping scatterplot of paired contributions, followed by boxplots showing much less variation for antithetic estimates than for ordinary uniform-integral estimates." width="1440">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mc-antithetic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.6: Left: normal-CDF contributions at x = 1.95 are nearly opposites within a pair. Right: 600 independent experiments, each using 1,000 function evaluations. Pairing sharply reduces the spread of the estimates; the dashed line is the exact CDF.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Method</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">SD_across_experiments</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Variance</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Plain</td>
+<td style="text-align: right;">0.0068401</td>
+<td style="text-align: right;">4.68e-05</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Antithetic</td>
+<td style="text-align: right;">0.0004589</td>
+<td style="text-align: right;">2.00e-07</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The estimated variance reduction is <strong>99.55%</strong> at this evaluation budget. This is a reduction in variance, not the same percentage reduction in MCSE.</p>
+<div id="exr-mc-antithetic" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 5.3 (In Class: Does Reflection Always Help?)</strong></span> Let <span class="math inline">\(H(u)=(u-1/2)^2\)</span>. Compare <span class="math inline">\(H(U)\)</span> and <span class="math inline">\(H(1-U)\)</span>. At the same total number of function evaluations, will antithetic pairing improve this estimator?</p>
+</div>
+<div id="sol-mc-antithetic" class="proof solution">
+<p><span class="proof-title"><em>Solution 5.3</em>. </span>Since <span class="math inline">\(H(1-u)=(1/2-u)^2=H(u)\)</span>, the two contributions are identical. Their correlation is 1, so the antithetic-to-plain variance ratio is <span class="math inline">\(1+\rho=2\)</span>. Each pair repeats the same contribution; the estimator has only half as many independent pieces of information at this evaluation budget.</p>
+</div>
+</section>
+</section>
+<section id="sec-mc-control" class="level2" data-number="5.7">
+<h2 data-number="5.7" class="anchored" data-anchor-id="sec-mc-control"><span class="header-section-number">5.7</span> Control Variates</h2>
+<p>Suppose a contribution <span class="math inline">\(Y=g(X)\)</span> has expectation <span class="math inline">\(\theta\)</span>. We also compute a <strong>control</strong> <span class="math inline">\(C=h(X)\)</span> whose expectation <span class="math inline">\(\mu_C\)</span> is known under the same input distribution.</p>
+<p>If <span class="math inline">\(Y\)</span> tends to be high when <span class="math inline">\(C\)</span> is above its known mean, the deviation <span class="math inline">\(C-\mu_C\)</span> tells us something about the simulation noise. We can subtract a suitable multiple of that deviation.</p>
+<div id="mc-control-definition" class="callout-definition" title="A zero-mean adjustment">
+<p>For any fixed constant <span class="math inline">\(c\)</span>, define the adjusted contribution</p>
+<p><span class="math display">\[
+Y_c=Y+c(C-\mu_C).
+\]</span></p>
+<p>Since <span class="math inline">\(\mathbb{E}[C-\mu_C]=0\)</span>, we have <span class="math inline">\(\mathbb{E}[Y_c]=\theta\)</span>. For independent pairs <span class="math inline">\((Y_i,C_i)\)</span>, estimate <span class="math inline">\(\theta\)</span> with</p>
+<p><span class="math display">\[
+\widehat\theta_c=\frac{1}{N}\sum_{i=1}^N
+\{Y_i+c(C_i-\mu_C)\},
+\qquad
+\widehat{\operatorname{MCSE}}=\frac{s_{Y_c}}{\sqrt N}.
+\]</span></p>
+<p>We use the <strong>plus-<span class="math inline">\(c\)</span> convention</strong>. With a positively correlated control, the best <span class="math inline">\(c\)</span> will be negative.</p>
+</div>
+<section id="choosing-the-coefficient" class="level3" data-number="5.7.1">
+<h3 data-number="5.7.1" class="anchored" data-anchor-id="choosing-the-coefficient"><span class="header-section-number">5.7.1</span> Choosing the coefficient</h3>
+<p>Assuming finite variances and <span class="math inline">\(\operatorname{Var}(C)&gt;0\)</span>,</p>
+<p><span class="math display">\[
+\operatorname{Var}(Y_c)
+=\operatorname{Var}(Y)+c^2\operatorname{Var}(C)
++2c\operatorname{Cov}(Y,C).
+\]</span></p>
+<p>This is a quadratic in <span class="math inline">\(c\)</span>. Differentiating and setting the derivative to zero gives</p>
+<p><span class="math display">\[
+2c\operatorname{Var}(C)+2\operatorname{Cov}(Y,C)=0
+\quad\Longrightarrow\quad
+c^*=-\frac{\operatorname{Cov}(Y,C)}{\operatorname{Var}(C)}.
+\]</span></p>
+<p>Substituting <span class="math inline">\(c^*\)</span> into the variance formula yields</p>
+<p><span class="math display">\[
+\operatorname{Var}(Y_{c^*})
+=\operatorname{Var}(Y)
+-\frac{\operatorname{Cov}(Y,C)^2}{\operatorname{Var}(C)}
+=\operatorname{Var}(Y)(1-\rho_{YC}^2).
+\]</span></p>
+<p>The same ratio applies to averages of <span class="math inline">\(N\)</span> independent adjusted contributions. <strong>A large absolute correlation helps</strong>, whether it is positive or negative. The fraction of variance removed at the optimal fixed coefficient is <span class="math inline">\(\rho_{YC}^2\)</span>.</p>
+<div id="mc-example-control-exp" class="callout-example" title="Estimating E[exp(U)] with U as a control">
+<p>Consider the target</p>
+<p><span class="math display">\[
+\theta=\mathbb{E}[e^U]=\int_0^1e^u\,du=e-1,
+\qquad U\sim\operatorname{Uniform}(0,1).
+\]</span></p>
+<p>Use <span class="math inline">\(Y=e^U\)</span> and <span class="math inline">\(C=U\)</span>. The control’s mean and variance are <span class="math inline">\(\mu_C=1/2\)</span> and <span class="math inline">\(\operatorname{Var}(C)=1/12\)</span>. Integration by parts gives</p>
+<p><span class="math display">\[
+\mathbb{E}[Ue^U]
+=\left[(u-1)e^u\right]_0^1=1,
+\qquad
+\operatorname{Cov}(e^U,U)=1-\frac{e-1}{2}.
+\]</span></p>
+<p>Therefore,</p>
+<p><span class="math display">\[
+c^*=-12\left(1-\frac{e-1}{2}\right)
+=-12+6(e-1)
+\approx-1.690309.
+\]</span></p>
+<p>The ordinary and controlled contribution variances are</p>
+<p><span class="math display">\[
+\begin{aligned}
+\sigma_Y^2
+&amp;=\frac{e^2-1}{2}-(e-1)^2,\\
+\sigma_{\mathrm{control}}^2
+&amp;=\frac{e^2-1}{2}-(e-1)^2
+-12\left(1-\frac{e-1}{2}\right)^2.
+\end{aligned}
+\]</span></p>
+<p>The covariance term is <strong>squared</strong> in the variance reduction. The coefficient itself uses the covariance without squaring it.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>theta_exp <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="dv">1</span>) <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>var_exp <span class="ot">&lt;-</span> (<span class="fu">exp</span>(<span class="dv">2</span>) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">/</span> <span class="dv">2</span> <span class="sc">-</span> theta_exp<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>cov_exp_u <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> theta_exp <span class="sc">/</span> <span class="dv">2</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>c_star <span class="ot">&lt;-</span> <span class="sc">-</span>cov_exp_u <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">/</span> <span class="dv">12</span>)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>var_control <span class="ot">&lt;-</span> var_exp <span class="sc">-</span> cov_exp_u<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">/</span> <span class="dv">12</span>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">c_star =</span> c_star, <span class="at">plain_variance =</span> var_exp,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">controlled_variance =</span> var_control,</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">variance_reduction_percent =</span> <span class="dv">100</span> <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> var_control <span class="sc">/</span> var_exp))</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                     c_star             plain_variance </span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;               -1.690309029                0.242035607 </span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        controlled_variance variance_reduction_percent </span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                0.003940223               98.372048243</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The contribution variance falls from about <span class="math inline">\(0.2420356\)</span> to <span class="math inline">\(0.0039402\)</span>, a reduction of approximately <strong>98.37%</strong>. Divide both variances by <span class="math inline">\(N\)</span> for their estimator variances.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">runif</span>(N)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>plain_y <span class="ot">&lt;-</span> <span class="fu">exp</span>(u)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>controlled_y <span class="ot">&lt;-</span> <span class="fu">exp</span>(u) <span class="sc">+</span> c_star <span class="sc">*</span> (u <span class="sc">-</span> <span class="fl">0.5</span>)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(<span class="at">Plain =</span> <span class="fu">mc_summary</span>(plain_y),</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">Control =</span> <span class="fu">mc_summary</span>(controlled_y))</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         estimate         MCSE    lower    upper</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Plain   1.726714 0.0049413853 1.717029 1.736399</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Control 1.718739 0.0006251175 1.717514 1.719964</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>control_grid <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">301</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>control_curves <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">u =</span> control_grid, <span class="at">value =</span> <span class="fu">exp</span>(control_grid), <span class="at">Method =</span> <span class="st">"Original"</span>),</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">u =</span> control_grid,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">value =</span> <span class="fu">exp</span>(control_grid) <span class="sc">+</span> c_star <span class="sc">*</span> (control_grid <span class="sc">-</span> .<span class="dv">5</span>), <span class="at">Method =</span> <span class="st">"Controlled"</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(control_curves, <span class="fu">aes</span>(u, value, <span class="at">color =</span> Method)) <span class="sc">+</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> .<span class="dv">9</span>) <span class="sc">+</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> theta_exp, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey35"</span>) <span class="sc">+</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">Original =</span> <span class="st">"#0072B2"</span>, <span class="at">Controlled =</span> <span class="st">"#D55E00"</span>)) <span class="sc">+</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Uniform input U"</span>, <span class="at">y =</span> <span class="st">"Contribution"</span>, <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-mc-control" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="The original contribution exp(U) increases steeply; the adjusted contribution stays close to the expectation. Both are plotted on the same vertical scale.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mc-control-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="05-monte-carlo_files/figure-html/fig-mc-control-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="The original contribution exp(U) increases steeply; the adjusted contribution stays close to the expectation. Both are plotted on the same vertical scale." width="1152">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mc-control-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.7: The control removes much of the predictable linear variation in exp(U). Both curves have the same mean under Uniform(0,1), but the controlled contribution changes much less with U. The dashed line is the common expectation e - 1.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="when-the-optimal-coefficient-is-unknown" class="level3" data-number="5.7.2">
+<h3 data-number="5.7.2" class="anchored" data-anchor-id="when-the-optimal-coefficient-is-unknown"><span class="header-section-number">5.7.2</span> When the optimal coefficient is unknown</h3>
+<p>The expectation <span class="math inline">\(\mu_C\)</span> must be known, but the covariance needed for <span class="math inline">\(c^*\)</span> may be unknown. An independent <strong>pilot run</strong> can estimate the coefficient. Freeze that estimate, then use new draws in a production run.</p>
+<p>Conditional on the pilot, the coefficient is fixed and each production adjustment still has expectation zero. The production estimator is therefore unbiased, provided the control mean is correct.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>pilot_u <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="dv">1000</span>)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>c_hat <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fu">cov</span>(<span class="fu">exp</span>(pilot_u), pilot_u) <span class="sc">/</span> <span class="fu">var</span>(pilot_u)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>production_u <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="dv">10000</span>)  <span class="co"># fresh draws; do not reset the seed</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>production_y <span class="ot">&lt;-</span> <span class="fu">exp</span>(production_u) <span class="sc">+</span> c_hat <span class="sc">*</span> (production_u <span class="sc">-</span> <span class="fl">0.5</span>)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">coefficient =</span> c_hat, <span class="fu">mc_summary</span>(production_y))</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   coefficient      estimate          MCSE         lower         upper </span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -1.6987553233  1.7186253605  0.0006270268  1.7173963881  1.7198543330</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="mc-control-warning" class="callout callout-style-default callout-warning callout-titled" title="What must be known, and what must be independent?">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>What must be known, and what must be independent?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>The control mean must be known under the <strong>same model</strong> that generates the production draws. An incorrect mean generally introduces bias.</li>
+<li>Replacing <span class="math inline">\(\mu_C\)</span> by the mean of the same production controls makes their centered average exactly zero; the adjusted estimate then equals the original sample mean.</li>
+<li>Estimating <span class="math inline">\(c\)</span> and applying it to the same observations is not covered by the fixed-coefficient unbiasedness argument and need not be exactly unbiased. An independent pilot makes the argument transparent.</li>
+<li>Count pilot work and control calculations when comparing total computational cost.</li>
+</ul>
+</div>
+</div>
+<div id="exr-mc-control" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 5.4 (In Class: Which Sign Removes the Noise?)</strong></span> Use the convention <span class="math inline">\(Y_c=Y+c(C-\mu_C)\)</span>. Suppose <span class="math inline">\(\operatorname{Cov}(Y,C)=0.6\)</span> and <span class="math inline">\(\operatorname{Var}(C)=0.3\)</span>. Find <span class="math inline">\(c^*\)</span>. If <span class="math inline">\(Y=5\)</span>, <span class="math inline">\(C=1.4\)</span>, and <span class="math inline">\(\mu_C=1\)</span>, what is the adjusted contribution?</p>
+</div>
+<div id="sol-mc-control" class="proof solution">
+<p><span class="proof-title"><em>Solution 5.4</em>. </span><span class="math inline">\(c^*=-0.6/0.3=-2\)</span>. The adjusted contribution is <span class="math inline">\(5-2(1.4-1)=4.2\)</span>. Because <span class="math inline">\(Y\)</span> and <span class="math inline">\(C\)</span> are positively correlated, an above-average control suggests an above-average contribution, so the adjustment moves it downward.</p>
+</div>
+</section>
+</section>
+<section id="sec-mc-comparison" class="level2" data-number="5.8">
+<h2 data-number="5.8" class="anchored" data-anchor-id="sec-mc-comparison"><span class="header-section-number">5.8</span> Compare Methods at a Common Budget</h2>
+<p>We now estimate <span class="math inline">\(\theta=\mathbb{E}[e^U]=e-1\)</span> using ordinary Monte Carlo, antithetic pairs, and the control variate with the <strong>known analytic coefficient</strong> from the previous section.</p>
+<p>Each method is defined using <span class="math inline">\(N=1000\)</span> evaluations of the exponential function per experiment. Antithetic sampling uses <span class="math inline">\(K=500\)</span> independent pairs; the other methods use 1000 independent contributions. We repeat the experiment <span class="math inline">\(B=800\)</span> times.</p>
+<p>The methods share base uniforms within an experiment to make the comparison reproducible. Different experiments use fresh uniforms. This is a comparison at a common <strong>function-evaluation budget</strong>, not a claim that all methods have identical running time.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Repeated experiments with the correct MCSE for each method</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="dv">800</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>benchmark <span class="ot">&lt;-</span> <span class="fu">replicate</span>(B, {</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  u <span class="ot">&lt;-</span> <span class="fu">runif</span>(N)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  raw_y <span class="ot">&lt;-</span> <span class="fu">exp</span>(u)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  pair_index <span class="ot">&lt;-</span> <span class="fu">seq_len</span>(N <span class="sc">/</span> <span class="dv">2</span>)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  outputs <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">Plain =</span> raw_y,</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">Antithetic =</span> (raw_y[pair_index] <span class="sc">+</span> <span class="fu">exp</span>(<span class="dv">1</span> <span class="sc">-</span> u[pair_index])) <span class="sc">/</span> <span class="dv">2</span>,</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">Control =</span> raw_y <span class="sc">+</span> c_star <span class="sc">*</span> (u <span class="sc">-</span> .<span class="dv">5</span>)</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">vapply</span>(outputs, <span class="cf">function</span>(y) {</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c</span>(<span class="at">Estimate =</span> <span class="fu">mean</span>(y), <span class="at">MCSE =</span> <span class="fu">sd</span>(y) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">length</span>(y)))</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>  }, <span class="fu">numeric</span>(<span class="dv">2</span>))</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>benchmark_estimates <span class="ot">&lt;-</span> benchmark[<span class="st">"Estimate"</span>, , ]</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>benchmark_mcses <span class="ot">&lt;-</span> benchmark[<span class="st">"MCSE"</span>, , ]</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>benchmark_variances <span class="ot">&lt;-</span> <span class="fu">apply</span>(benchmark_estimates, <span class="dv">1</span>, var)</span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>benchmark_table <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">Method =</span> <span class="fu">rownames</span>(benchmark_estimates),</span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">Bias =</span> <span class="fu">rowMeans</span>(benchmark_estimates) <span class="sc">-</span> theta_exp,</span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">Empirical_SD =</span> <span class="fu">sqrt</span>(benchmark_variances),</span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">Mean_MCSE =</span> <span class="fu">rowMeans</span>(benchmark_mcses),</span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">Reduction_percent =</span> <span class="dv">100</span> <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> benchmark_variances <span class="sc">/</span> benchmark_variances[<span class="st">"Plain"</span>]),</span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">NULL</span></span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(benchmark_table, <span class="at">digits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">6</span>, <span class="dv">6</span>, <span class="dv">6</span>, <span class="dv">2</span>), <span class="at">booktabs =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Method"</span>, <span class="st">"Empirical bias"</span>, <span class="st">"SD of estimates"</span>, <span class="st">"Mean MCSE"</span>,</span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a>                <span class="st">"Variance removed (%)"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Method</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Empirical bias</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">SD of estimates</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Mean MCSE</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Variance removed (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Plain</td>
+<td style="text-align: right;">-0.000317</td>
+<td style="text-align: right;">0.015630</td>
+<td style="text-align: right;">0.015550</td>
+<td style="text-align: right;">0.00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Antithetic</td>
+<td style="text-align: right;">-0.000026</td>
+<td style="text-align: right;">0.002758</td>
+<td style="text-align: right;">0.002797</td>
+<td style="text-align: right;">96.89</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Control</td>
+<td style="text-align: right;">-0.000030</td>
+<td style="text-align: right;">0.002030</td>
+<td style="text-align: right;">0.001985</td>
+<td style="text-align: right;">98.31</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The reported MCSEs track the standard deviations across experiments. The small empirical biases fluctuate around zero; a nonzero average error from finitely many experiments is not, by itself, evidence of theoretical bias.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>benchmark_long <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Method =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="fu">rownames</span>(benchmark_estimates), <span class="at">each =</span> B),</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Plain"</span>, <span class="st">"Antithetic"</span>, <span class="st">"Control"</span>)),</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimate =</span> <span class="fu">as.vector</span>(<span class="fu">t</span>(benchmark_estimates))</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(benchmark_long, <span class="fu">aes</span>(Method, Estimate, <span class="at">fill =</span> Method)) <span class="sc">+</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">width =</span> .<span class="dv">5</span>, <span class="at">outlier.alpha =</span> .<span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> theta_exp, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">Plain =</span> <span class="st">"#0072B2"</span>, <span class="at">Antithetic =</span> <span class="st">"#D55E00"</span>,</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>                               <span class="at">Control =</span> <span class="st">"#009E73"</span>)) <span class="sc">+</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Estimated E[exp(U)]"</span>) <span class="sc">+</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-mc-method-comparison" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Boxplots for ordinary, antithetic, and controlled estimates, all centered near e minus one; the latter two have visibly smaller spread.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mc-method-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="05-monte-carlo_files/figure-html/fig-mc-method-comparison-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Boxplots for ordinary, antithetic, and controlled estimates, all centered near e minus one; the latter two have visibly smaller spread." width="1152">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mc-method-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.8: Eight hundred repeated estimates of E[exp(U)], using the same exponential-evaluation budget per method. The dashed line is e - 1. The control coefficient is known analytically here, so no pilot cost is hidden in the comparison.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div id="mc-method-choice" class="callout callout-style-default callout-note callout-titled" title="Which method should I try?">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Which method should I try?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Available structure</th>
+<th>Method to try</th>
+<th>Main check</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A simulator and an integrable contribution</td>
+<td>Ordinary Monte Carlo</td>
+<td>Correct target and independent units</td>
+</tr>
+<tr class="even">
+<td>A monotone contribution built from uniforms</td>
+<td>Antithetic variables</td>
+<td>Negative covariance of the outputs</td>
+</tr>
+<tr class="odd">
+<td>A correlated, inexpensive quantity with known mean</td>
+<td>Control variates</td>
+<td>Correct control mean and coefficient sign</td>
+</tr>
+<tr class="even">
+<td>Several candidate methods</td>
+<td>Repeated experiments</td>
+<td>Same target, cost accounting, and valid MCSE</td>
+</tr>
+</tbody>
+</table>
+<p>A method’s name does not guarantee a gain. Inspect the structure of the contribution and compare precision at the budget that matters for the problem.</p>
+</div>
+</div>
+</section>
+<section id="sec-mc-practice" class="level2" data-number="5.9">
+<h2 data-number="5.9" class="anchored" data-anchor-id="sec-mc-practice"><span class="header-section-number">5.9</span> Concept Checks and Practice</h2>
+<p>Explain your reasoning before opening a solution. Keep track of the target, the contribution being averaged, and the number of independent units.</p>
+<div id="exr-mc-concepts" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 5.5 (Concept Check: Choose or Mark True/False)</strong></span> &nbsp;</p>
+<ol type="1">
+<li><strong>T/F.</strong> An unbiased Monte Carlo estimator must move closer to the truth whenever more draws are added.</li>
+<li><strong>Multiple choice.</strong> For independent contributions, MCSE is <strong>(A)</strong> <code>sd(y)</code> or <strong>(B)</strong> <code>sd(y) / sqrt(length(y))</code>.</li>
+<li><strong>T/F.</strong> A 75% reduction in variance means a 75% reduction in standard error.</li>
+<li><strong>Multiple choice.</strong> With 400 antithetic pairs, calculate MCSE from <strong>(A)</strong> the 800 concatenated values or <strong>(B)</strong> the 400 pair averages.</li>
+<li><strong>T/F.</strong> A control with a strong negative correlation can be useful.</li>
+<li><strong>T/F.</strong> A control mean estimated from the same production observations can always be substituted for a known mean without changing the variance-reduction argument.</li>
+</ol>
+</div>
+<div id="sol-mc-concepts" class="proof solution">
+<p><span class="proof-title"><em>Solution 5.5</em>. </span></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 81%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Item</th>
+<th style="text-align: center;">Answer</th>
+<th style="text-align: left;">Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">F</td>
+<td style="text-align: left;">Unbiasedness concerns repeated experiments; convergence need not be monotone.</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">B</td>
+<td style="text-align: left;">The standard error describes the average, not an individual contribution.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">F</td>
+<td style="text-align: left;">The standard-error ratio is the square root of the variance ratio.</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">B</td>
+<td style="text-align: left;">Pair averages are the independent units.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">T</td>
+<td style="text-align: left;">The optimal variance reduction depends on squared correlation.</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">F</td>
+<td style="text-align: left;">Centering by that same sample mean makes the average adjustment zero.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="exr-mc-calculations" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 5.6 (Practice: Construct, Calculate, Diagnose)</strong></span> &nbsp;</p>
+<ol type="1">
+<li><strong>Integral and MCSE.</strong> Estimate <span class="math inline">\(\theta=\int_1^3x^2\,dx\)</span> using <span class="math inline">\(X\sim\operatorname{Uniform}(1,3)\)</span>. State the contribution, the exact target, and the MCSE formula. A run with <span class="math inline">\(N=2500\)</span> has contribution standard deviation 4.8; calculate an approximate 95% interval half-width.</li>
+<li><strong>Antithetic budget.</strong> Suppose <span class="math inline">\(\operatorname{Var}(Y)=9\)</span> and the correlation within a pair is <span class="math inline">\(-0.8\)</span>. With 2000 function evaluations, calculate the ordinary and antithetic estimator variances. What fraction of variance is removed?</li>
+<li><strong>Control coefficient.</strong> Suppose <span class="math inline">\(\operatorname{Var}(Y)=4\)</span>, <span class="math inline">\(\operatorname{Var}(C)=1\)</span>, and <span class="math inline">\(\operatorname{Cov}(Y,C)=-1.5\)</span>. Under the plus-<span class="math inline">\(c\)</span> convention, find <span class="math inline">\(c^*\)</span>, the controlled contribution variance, and the fraction of variance removed.</li>
+<li><strong>Diagnose the code.</strong> A student forms <code>u &lt;- runif(500)</code> and <code>y &lt;- c(exp(u), exp(1-u))</code>, then reports <code>sd(y)/sqrt(1000)</code> as MCSE. Give the corrected R calculation.</li>
+</ol>
+</div>
+<div id="sol-mc-calculations" class="proof solution">
+<p><span class="proof-title"><em>Solution 5.6</em>. </span></p>
+<ol type="1">
+<li><strong>Write the contribution first.</strong> <span class="math inline">\(Y=2X^2\)</span> and <span class="math inline">\(\theta=(3^3-1^3)/3=26/3\)</span>. MCSE is <code>sd(2*x^2)/sqrt(N)</code>. With the reported standard deviation, MCSE is <span class="math inline">\(4.8/50=0.096\)</span>, so the approximate 95% half-width is <span class="math inline">\(1.96(0.096)=0.18816\)</span>.</li>
+<li><strong>Count independent pairs.</strong> There are <span class="math inline">\(K=1000\)</span> pairs. Ordinary variance is <span class="math inline">\(9/2000=0.0045\)</span>; antithetic variance is <span class="math inline">\((9/2000)(1-0.8)=0.0009\)</span>. The fraction removed is <span class="math inline">\(1-0.0009/0.0045=0.8\)</span>, or 80%.</li>
+<li><strong>Use the covariance sign.</strong> <span class="math inline">\(c^*=-(-1.5)/1=1.5\)</span>. Controlled contribution variance is <span class="math inline">\(4-(-1.5)^2/1=1.75\)</span>. The fraction removed is <span class="math inline">\(1-1.75/4=0.5625\)</span>, or 56.25%.</li>
+<li><strong>Average within pairs first.</strong></li>
+</ol>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>pair_y <span class="ot">&lt;-</span> (<span class="fu">exp</span>(u) <span class="sc">+</span> <span class="fu">exp</span>(<span class="dv">1</span> <span class="sc">-</span> u)) <span class="sc">/</span> <span class="dv">2</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>estimate <span class="ot">&lt;-</span> <span class="fu">mean</span>(pair_y)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>mcse <span class="ot">&lt;-</span> <span class="fu">sd</span>(pair_y) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">length</span>(pair_y))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The estimate equals <code>mean(y)</code>, but the corrected MCSE respects the dependence within each pair.</p>
+</div>
+</section>
+<section id="sec-mc-summary" class="level2" data-number="5.10">
+<h2 data-number="5.10" class="anchored" data-anchor-id="sec-mc-summary"><span class="header-section-number">5.10</span> Chapter Summary</h2>
+<section id="main-ideas" class="level3 unnumbered unlisted">
+<h3 class="unnumbered unlisted anchored" data-anchor-id="main-ideas">Main Ideas</h3>
+<ul>
+<li><strong>Construct the right contribution.</strong> An integral becomes a Monte Carlo problem only after its expectation has been identified correctly.</li>
+<li><strong>Report simulation uncertainty.</strong> For independent contributions, MCSE is their sample standard deviation divided by the square root of their count.</li>
+<li><strong>Count the independent units.</strong> Antithetic sampling uses independent pair averages, not independent concatenated values.</li>
+<li><strong>Exploit known structure.</strong> Antithetic variables use negative dependence; control variates use a correlated quantity with a known mean.</li>
+<li><strong>Compare fairly.</strong> Distinguish variance reduction from standard-error reduction and account for evaluation, pilot, and control costs.</li>
+</ul>
+</section>
+<section id="connections-to-other-chapters" class="level3 unnumbered unlisted">
+<h3 class="unnumbered unlisted anchored" data-anchor-id="connections-to-other-chapters">Connections to Other Chapters</h3>
+<ul>
+<li><a href="./04-generating-rv.html"><strong>Chapter 4: Generating Random Variables</strong></a> supplies the simulation mechanisms used here.</li>
+<li><a href="./03-optimization.html"><strong>Chapter 3: Optimization</strong></a> explains the quadratic minimization that produces the optimal control coefficient.</li>
+<li>Later work on resampling and cross-validation will use repeated computations to study statistical procedures. The habit of identifying independent units and reporting simulation error remains useful.</li>
+</ul>
+</section>
+</section>
+<section id="sec-mc-supplement" class="level2" data-number="5.11">
+<h2 data-number="5.11" class="anchored" data-anchor-id="sec-mc-supplement"><span class="header-section-number">5.11</span> Supplementary</h2>
+<p>The content here won’t be on the exam</p>
+<section id="other-variance-reduction-ideas" class="level3" data-number="5.11.1">
+<h3 data-number="5.11.1" class="anchored" data-anchor-id="other-variance-reduction-ideas"><span class="header-section-number">5.11.1</span> Other variance-reduction ideas</h3>
+<p>Importance sampling and stratification are additional ways to change the simulation design while preserving the target.</p>
+<div id="mc-importance-preview" class="callout callout-style-default callout-note callout-titled" title="Importance sampling: change where you draw">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Importance sampling: change where you draw
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>To estimate <span class="math inline">\(\theta=\int g(x)f(x)\,dx\)</span>, draw from a normalized proposal density <span class="math inline">\(q\)</span> and average</p>
+<p><span class="math display">\[
+H(X)=g(X)\frac{f(X)}{q(X)},\qquad X\sim q.
+\]</span></p>
+<p>The proposal must be positive wherever <span class="math inline">\(g(x)f(x)\neq0\)</span> (up to null sets). The importance weights correct the change of distribution. For finite-variance MCSE calculations, we also need <span class="math inline">\(\int g(x)^2f(x)^2/q(x)\,dx&lt;\infty\)</span>.</p>
+<p>A proposal that rarely visits important regions can produce enormous weights and poor precision. Sampling more often in an important region helps only when the weights are included correctly.</p>
+<p>This ordinary importance estimator uses the <strong>normalized target density <span class="math inline">\(f\)</span></strong>. With only an unnormalized target, a self-normalized ratio estimator is a different construction; it is generally biased at finite sample sizes. The cancellation used in rejection sampling does not automatically justify omitting a constant here.</p>
+</div>
+</div>
+<div id="mc-stratification-preview" class="callout callout-style-default callout-note callout-titled" title="Stratification: ensure that every region is represented">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Stratification: ensure that every region is represented
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Partition the input space into strata with known probabilities <span class="math inline">\(w_h\)</span>. Estimate a conditional mean in each stratum, then combine the estimates:</p>
+<p><span class="math display">\[
+\widehat\theta_{\mathrm{strat}}
+=\sum_{h=1}^H w_h\overline Y_h.
+\]</span></p>
+<p>With independent samples across and within strata,</p>
+<p><span class="math display">\[
+\operatorname{Var}(\widehat\theta_{\mathrm{strat}})
+=\sum_{h=1}^H\frac{w_h^2\sigma_h^2}{n_h}.
+\]</span></p>
+<p>For a uniform integral, one can divide the interval into equal subintervals and draw separately within each one. This prevents an entire subinterval from being missed by chance. The weights must reflect the stratum probabilities; unequal allocations do not justify an unweighted average of all draws.</p>
+<p>Stratified importance sampling combines a changed sampling distribution with separate sampling within strata. Its weighting and variance calculation must reflect both choices.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="references-and-further-reading" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="references-and-further-reading">References and Further Reading</h2>
+<p>This chapter adapts the instructor’s <a href="https://github.com/chikuang/Teaching-Stat8670/blob/392c7fb002c1b8b171a26deac8ffe69f294441bd/04-monte-carlo.qmd">2025 Monte Carlo Simulation and Variance Reduction notes</a>, preserving the integral, normal-CDF, antithetic, and control-variate examples while updating their explanations, calculations, and presentation for 2026.</p>
+<ul>
+<li>Rizzo, M. L. (2007), <em>Statistical Computing with R</em>, Chapter 6, Chapman &amp; Hall/CRC.</li>
+<li>Wasserman, L. (2003), <a href="https://link.springer.com/book/10.1007/978-0-387-21736-9"><em>All of Statistics: A Concise Course in Statistical Inference</em></a>, Springer.</li>
+<li>For the R functions used here, consult <code>?runif</code>, <code>?rnorm</code>, <code>?pnorm</code>, <code>?integrate</code>, <code>?var</code>, and <code>?cov</code>.</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+
+    document
+    .querySelectorAll('div.solution.proof[id^="sol-"]')
+    .forEach(function (solution) {
+
+      // Get Quarto's automatically generated title,
+      // e.g. "Solution 2.1"
+      const proofTitle = solution.querySelector(".proof-title");
+
+      let titleText = "Solution";
+
+      if (proofTitle) {
+        titleText = proofTitle.textContent
+          .trim()
+          .replace(/\.$/, "");
+
+        // Remove the original inline title
+        proofTitle.remove();
+      }
+
+      // Create collapsible <details>
+      const details = document.createElement("details");
+      details.className = "solution-collapse";
+
+      // Keep the original ID so cross-references still work
+      details.id = solution.id;
+
+      const summary = document.createElement("summary");
+      summary.textContent = titleText;
+
+      const body = document.createElement("div");
+      body.className = "solution-collapse-body";
+
+      // Move the original solution contents into the collapsible body
+      while (solution.firstChild) {
+        body.appendChild(solution.firstChild);
+      }
+
+      // Remove an empty first paragraph if Quarto leaves one behind
+      const firstParagraph = body.querySelector(":scope > p:first-child");
+
+      if (
+        firstParagraph &&
+        firstParagraph.textContent.trim() === "" &&
+        firstParagraph.children.length === 0
+      ) {
+        firstParagraph.remove();
+      }
+
+      details.appendChild(summary);
+      details.appendChild(body);
+
+      solution.replaceWith(details);
+    });
+
+});
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./04-generating-rv.html" class="pagination-link" aria-label="Generating Random Variables">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Generating Random Variables</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./Assignment1.html" class="pagination-link" aria-label="Assignment 1">
+        <span class="nav-page-text">Assignment 1</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
