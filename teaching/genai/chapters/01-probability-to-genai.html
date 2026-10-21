@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=94999494" />
@@ -503,6 +503,36 @@
 </section>
 <section id="the-statistical-workflow-we-will-preserve">
 <h2>1.2 · The statistical workflow we will preserve<a class="headerlink" href="#the-statistical-workflow-we-will-preserve" title="Link to this heading">#</a></h2>
+<p><img alt="Three separate workflows: estimate probabilities from training observations, simulate from the fitted model, and score held-out observations." src="../_images/01-statistical-workflow.png" /></p>
+<p><strong>How to read the framework.</strong> Estimation produces a fitted distribution. Both the simulation row and the evaluation row use that distribution, but their inputs and questions differ. Simulation starts with a random-number generator and asks whether the implementation reproduces the model. Evaluation starts with new observations from the target population and asks whether the model predicts those observations well.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Stage</p></th>
+<th class="head text-left"><p>Object carried forward</p></th>
+<th class="head text-left"><p>Check before continuing</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>Define and split the data</p></td>
+<td class="text-left"><p>Training observations, held-out observations, fixed vocabulary</p></td>
+<td class="text-left"><p>No held-out counts enter the fit.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Estimate</p></td>
+<td class="text-left"><p>A vector of probabilities or a transition matrix</p></td>
+<td class="text-left"><p>Entries are nonnegative and each conditional row sums to one.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Generate</p></td>
+<td class="text-left"><p>Simulated outcomes conditional on the fitted probabilities</p></td>
+<td class="text-left"><p>Frequencies approach the fitted probabilities as simulation size grows.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Evaluate</p></td>
+<td class="text-left"><p>Held-out log losses and a baseline comparison</p></td>
+<td class="text-left"><p>The evaluation targets prediction, not agreement with one’s own simulator.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>In the bigram example, the main artifacts are the vocabulary, count matrix, smoothed transition matrix, generated strings, and held-out losses. Saving these separately makes it possible to locate a failure: a missing token is a representation issue; a zero predicted probability is an estimation issue; a wrong sampling frequency is an implementation issue.</p>
 <p>We will use the sequence</p>
 <div class="math notranslate nohighlight">
 \[

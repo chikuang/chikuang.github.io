@@ -16,6 +16,21 @@ A model receives numbers, not the meaning of a sentence. Tokenization defines th
 
 **Prerequisites:** Chapters 1–2 and singular value decomposition (SVD). **Outcomes:** distinguish words from tokens; handle unknown inputs; interpret an embedding lookup; explain why proximity is task-dependent. The corpus below consists of short, course-authored sentences, so no download is necessary.
 
+## Pipeline and framework
+
+![Learn a tokenizer, vocabulary and embedding table on training text; apply these fitted objects to new text before contextual modeling.](../_static/diagrams/03-representation.png)
+
+A representation pipeline contains **fitted preprocessing objects**, not just neural weights. The tokenizer defines what the IDs mean; the embedding matrix maps those IDs to vectors. Changing the vocabulary without changing the embedding table can preserve array shapes while silently changing the model's meaning.
+
+| Stage | Output artifact | Main check |
+|:--|:--|:--|
+| Normalize and tokenize | Rules, merge table, vocabulary, special-token policy | Apply exactly the same rules to training and new text. |
+| Encode | An integer sequence and an unknown-token strategy | Every ID indexes the intended row; document how information is lost. |
+| Fit embeddings | Co-occurrence statistics and a factorization, or a learned matrix | Estimate from the allowed training corpus and retain the version. |
+| Add position and context | Position-aware states, then contextual states | A lookup vector is context independent; an encoder output need not be. |
+
+The small BPE-style merge experiment and the PPMI/SVD experiment below illustrate **different parts** of this framework. They are not a claim that production tokenizers use the exact toy procedure or that transformer embeddings must be trained with SVD. For a new sentence, freeze the chosen preprocessing objects before looking up vectors; do not rebuild a vocabulary separately for every query.
+
 ## 3.1 · A vocabulary is an estimated preprocessing object
 
 We first use a word tokenizer that lowercases text and keeps alphabetic runs. This is a teaching choice, not a general text-processing standard: it discards punctuation, numbers, capitalization, and much non-English text.

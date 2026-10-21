@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=94999494" />
@@ -347,6 +347,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-estimand-and-the-unit">11.1 · Define the estimand and the unit</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#preserve-pairing-when-comparing-systems">11.2 · Preserve pairing when comparing systems</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#separate-factual-labels-from-judging-machinery">11.3 · Separate factual labels from judging machinery</a></li>
@@ -372,6 +373,39 @@
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/11-evaluation-uncertainty.ipynb">Download the executed notebook</a></p>
 <p>An evaluation begins with a target population and a loss, not with a leaderboard. We will compare paired system outcomes, estimate uncertainty by resampling questions, examine calibration and abstention, and construct finite-label conformal prediction sets. All numerical outcomes in this chapter are simulated; they illustrate statistical procedures rather than measure any commercial or pretrained model.</p>
 <p><strong>Prerequisites:</strong> Chapters 1, 6, and 10; sampling distributions and quantiles. <strong>Outcomes:</strong> define an estimand; preserve pairing; separate calibration from discrimination; interpret risk–coverage curves; state a conformal guarantee precisely.</p>
+<section id="pipeline-and-framework">
+<h2>Pipeline and framework<a class="headerlink" href="#pipeline-and-framework" title="Link to this heading">#</a></h2>
+<p><img alt="Define the task and sample unit, split and freeze choices, then calibrate on separate data and report final test metrics with uncertainty that respects dependence." src="../_images/11-evaluation.png" /></p>
+<p>Evaluation is a <strong>data-use protocol</strong>, not a final call to a metric function. Write down which sample is allowed to influence each choice before fitting anything. In the executable classifier example, temperature is fitted on a validation sample, the conformal threshold is computed on a different calibration sample, and both are evaluated on a test sample.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Data or artifact</p></th>
+<th class="head text-left"><p>Permitted role</p></th>
+<th class="head text-left"><p>Prohibited shortcut</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>Development data</p></td>
+<td class="text-left"><p>Choose prompts, architectures, retrieval settings, and stopping rules.</p></td>
+<td class="text-left"><p>Repeatedly choosing settings on the final test outcomes.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Probability-fitting data</p></td>
+<td class="text-left"><p>Fit a calibration map such as temperature scaling.</p></td>
+<td class="text-left"><p>Claiming out-of-sample calibration from fitted-sample reliability alone.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Conformal calibration data</p></td>
+<td class="text-left"><p>Compute a quantile after the score function is fixed.</p></td>
+<td class="text-left"><p>Reusing those labels to tune the same score function without an appropriate method.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Final test data</p></td>
+<td class="text-left"><p>Estimate locked-system performance and uncertainty.</p></td>
+<td class="text-left"><p>Treating multiple calls on one task as independent sampled tasks.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The framework has two outputs: a performance estimate and an account of what it generalizes to. For a system comparison, pair outputs on the same questions. For repeated agent trials, preserve the task cluster. For conformal sets, state the marginal guarantee and exchangeability requirement rather than reading the guarantee as certainty for every subgroup or individual question.</p>
+</section>
 <section id="define-the-estimand-and-the-unit">
 <h2>11.1 · Define the estimand and the unit<a class="headerlink" href="#define-the-estimand-and-the-unit" title="Link to this heading">#</a></h2>
 <p>Let <span class="math notranslate nohighlight">\(Q\)</span> be a question drawn from the intended task population and <span class="math notranslate nohighlight">\(U\)</span> represent generation randomness. A system’s risk is <span class="math notranslate nohighlight">\(R=\mathbb E[\ell(f(Q,U),Y)]\)</span>. A comparison might target <span class="math notranslate nohighlight">\(R_B-R_A\)</span> under a fixed model version, prompt, retrieval collection, and decoding budget. Changing any of these changes the procedure under evaluation.</p>
@@ -608,6 +642,7 @@ Empty / singleton / doubleton counts: [  0 290 310]
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-estimand-and-the-unit">11.1 · Define the estimand and the unit</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#preserve-pairing-when-comparing-systems">11.2 · Preserve pairing when comparing systems</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#separate-factual-labels-from-judging-machinery">11.3 · Separate factual labels from judging machinery</a></li>

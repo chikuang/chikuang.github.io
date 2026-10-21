@@ -18,6 +18,21 @@ The executable assistant uses deterministic planning and report templates. It is
 
 **Prerequisites:** Chapters 2, 11–13. **Outcomes:** write a scoped project specification; implement the complete evidence path; evaluate on held-out scenarios; report uncertainty and failures; define a meaningful generative extension.
 
+## Pipeline and framework
+
+![The capstone validates a structured request, runs an approved simulation and produces a numerical report; held-out scenarios are compared with independent references, and an optional LLM surrounds the same execution core.](../_static/diagrams/14-capstone.png)
+
+The first row is the executable system. The second row is the evaluation harness around it. The third row is an optional generative extension whose contribution must be measured against the deterministic baseline. Keeping these rows separate prevents fluent reporting from being confused with correct computation.
+
+| Boundary | Contract | Acceptance check |
+|:--|:--|:--|
+| User task to request | Family, sample size, repetitions, seed | Unsupported or excessive requests are rejected explicitly. |
+| Request to simulation | Validated values and an approved statistical procedure | The returned method, denominator, estimate, and Monte Carlo interval agree. |
+| Simulation to report | Structured evidence with the request attached | Every numeric claim can be traced to a returned field. |
+| System to evaluation | Locked scenarios and independent references | Report error and cost without retuning on those scenarios. |
+
+For an LLM extension, retain both the natural-language input and the proposed structured request. An incorrect translation can produce a perfectly executed answer to the wrong statistical question. Evaluate interpretation, numerical execution, and prose support separately, then report end-to-end task success. The framework gives a location for each failure instead of attributing all errors to “the model.”
+
 ## 14.1 · Specify the user, target, and loss
 
 The user is a statistics instructor preparing a simulation lesson. The question is: for iid samples from a specified distribution, how often does

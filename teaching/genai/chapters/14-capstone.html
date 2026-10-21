@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=94999494" />
@@ -347,6 +347,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#specify-the-user-target-and-loss">14.1 · Specify the user, target, and loss</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-development-and-evaluation-scenarios-first">14.2 · Create development and evaluation scenarios first</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implement-the-statistical-tool">14.3 · Implement the statistical tool</a></li>
@@ -374,6 +375,39 @@
 <p>This chapter completes a worked project: a bounded simulation assistant that investigates the coverage of an approximate confidence interval. It receives a structured request, runs an approved simulation, and returns an evidence-based report with Monte Carlo uncertainty. We compare it with a nominal-coverage baseline on scenarios excluded from development.</p>
 <p>The executable assistant uses deterministic planning and report templates. It is a baseline and execution core for a GenAI system, not a hidden LLM call. A language model can later translate a user’s request into the schema or explain the returned evidence, while the numerical claims remain controlled by the tested tool. This separation makes the project runnable without an API key and makes the contribution of an LLM an explicit ablation.</p>
 <p><strong>Prerequisites:</strong> Chapters 2, 11–13. <strong>Outcomes:</strong> write a scoped project specification; implement the complete evidence path; evaluate on held-out scenarios; report uncertainty and failures; define a meaningful generative extension.</p>
+<section id="pipeline-and-framework">
+<h2>Pipeline and framework<a class="headerlink" href="#pipeline-and-framework" title="Link to this heading">#</a></h2>
+<p><img alt="The capstone validates a structured request, runs an approved simulation and produces a numerical report; held-out scenarios are compared with independent references, and an optional LLM surrounds the same execution core." src="../_images/14-capstone.png" /></p>
+<p>The first row is the executable system. The second row is the evaluation harness around it. The third row is an optional generative extension whose contribution must be measured against the deterministic baseline. Keeping these rows separate prevents fluent reporting from being confused with correct computation.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Boundary</p></th>
+<th class="head text-left"><p>Contract</p></th>
+<th class="head text-left"><p>Acceptance check</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>User task to request</p></td>
+<td class="text-left"><p>Family, sample size, repetitions, seed</p></td>
+<td class="text-left"><p>Unsupported or excessive requests are rejected explicitly.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Request to simulation</p></td>
+<td class="text-left"><p>Validated values and an approved statistical procedure</p></td>
+<td class="text-left"><p>The returned method, denominator, estimate, and Monte Carlo interval agree.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Simulation to report</p></td>
+<td class="text-left"><p>Structured evidence with the request attached</p></td>
+<td class="text-left"><p>Every numeric claim can be traced to a returned field.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>System to evaluation</p></td>
+<td class="text-left"><p>Locked scenarios and independent references</p></td>
+<td class="text-left"><p>Report error and cost without retuning on those scenarios.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>For an LLM extension, retain both the natural-language input and the proposed structured request. An incorrect translation can produce a perfectly executed answer to the wrong statistical question. Evaluate interpretation, numerical execution, and prose support separately, then report end-to-end task success. The framework gives a location for each failure instead of attributing all errors to “the model.”</p>
+</section>
 <section id="specify-the-user-target-and-loss">
 <h2>14.1 · Specify the user, target, and loss<a class="headerlink" href="#specify-the-user-target-and-loss" title="Link to this heading">#</a></h2>
 <p>The user is a statistics instructor preparing a simulation lesson. The question is: for iid samples from a specified distribution, how often does</p>
@@ -764,6 +798,7 @@ exponential,120,0.9500,0.9580,0.9438
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#specify-the-user-target-and-loss">14.1 · Specify the user, target, and loss</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-development-and-evaluation-scenarios-first">14.2 · Create development and evaluation scenarios first</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implement-the-statistical-tool">14.3 · Implement the statistical tool</a></li>

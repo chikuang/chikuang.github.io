@@ -16,6 +16,21 @@ A language model specifies conditional token distributions. A prompt supplies co
 
 **Prerequisites:** Chapters 1–5. **Outcomes:** align shifted targets; distinguish teacher forcing from generation; evaluate held-out log loss; implement temperature, top-k, and nucleus sampling. We use a small recurrent model here to keep the training experiment short. Its conditional-likelihood objective is also used by causal transformers; the architecture is not the point of this experiment.
 
+## Pipeline and framework
+
+![Training fits and selects model parameters from shifted token targets; generation repeatedly predicts, decodes and appends the next token using frozen parameters.](../_static/diagrams/06-language-model.png)
+
+The output of training is a **parameterized conditional distribution**. The output of decoding is a sequence drawn or selected using that distribution. Prompting supplies a prefix; it does not run an optimizer. This chapter uses a GRU so the two procedures can be inspected on a CPU, while the same distinction applies to transformer language models.
+
+| Stage | Artifact | Question to ask |
+|:--|:--|:--|
+| Construct examples | Sequences, shifted targets, and padding mask | Which positions contribute to the likelihood? |
+| Fit and select | Training trace and validation-selected checkpoint | Was the test split excluded from all choices? |
+| Score | Token losses under the frozen checkpoint | Are tokenization, special symbols, and averaging conventions comparable? |
+| Decode | Prompt, decoding rule, seed, stop rule, output tokens | Did a change alter model probabilities or only the sampling procedure? |
+
+Inside the generation loop, the newly appended token becomes part of the next prefix. Stop on an end token or an explicit maximum length. A key/value cache in a transformer can avoid recomputing earlier states; it is an implementation optimization, not a new statistical estimator. The experiment below records unchanged weights to make the training/prompting distinction concrete.
+
 ## 6.1 · The likelihood and the training distribution
 
 The autoregressive factorization is

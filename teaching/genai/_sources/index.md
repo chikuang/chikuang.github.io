@@ -29,6 +29,8 @@ This is a self-paced **Topic Course** for independent study, with material that 
 
 Every chapter starts with a concrete question, develops a statistical formulation, and connects it to a small Python experiment. NumPy makes the mathematics visible; later chapters introduce PyTorch for neural networks.
 
+Each chapter also includes a **pipeline or framework diagram** with the inputs, outputs, and checks at each stage. Read these alongside the code to distinguish fitting from prediction, model generation from evaluation, and an agent's proposals from tool execution. The [RAG chapter](chapters/10-rag.md) follows one question through indexing, retrieval, context selection, prompt construction, response validation, and evaluation.
+
 ## Study and experiment
 
 1. [Set up Python and JupyterLab](python-workflow.md). You can also read the rendered lessons without installing anything.

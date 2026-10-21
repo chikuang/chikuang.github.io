@@ -52,6 +52,19 @@ The distinction between *generative* and *discriminative* needs context. In clas
 
 ## 1.2 · The statistical workflow we will preserve
 
+![Three separate workflows: estimate probabilities from training observations, simulate from the fitted model, and score held-out observations.](../_static/diagrams/01-statistical-workflow.png)
+
+**How to read the framework.** Estimation produces a fitted distribution. Both the simulation row and the evaluation row use that distribution, but their inputs and questions differ. Simulation starts with a random-number generator and asks whether the implementation reproduces the model. Evaluation starts with new observations from the target population and asks whether the model predicts those observations well.
+
+| Stage | Object carried forward | Check before continuing |
+|:--|:--|:--|
+| Define and split the data | Training observations, held-out observations, fixed vocabulary | No held-out counts enter the fit. |
+| Estimate | A vector of probabilities or a transition matrix | Entries are nonnegative and each conditional row sums to one. |
+| Generate | Simulated outcomes conditional on the fitted probabilities | Frequencies approach the fitted probabilities as simulation size grows. |
+| Evaluate | Held-out log losses and a baseline comparison | The evaluation targets prediction, not agreement with one's own simulator. |
+
+In the bigram example, the main artifacts are the vocabulary, count matrix, smoothed transition matrix, generated strings, and held-out losses. Saving these separately makes it possible to locate a failure: a missing token is a representation issue; a zero predicted probability is an estimation issue; a wrong sampling frequency is an implementation issue.
+
 We will use the sequence
 
 $$

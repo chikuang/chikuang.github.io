@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=94999494" />
@@ -347,6 +347,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#arrays-shapes-and-broadcasting">2.1 · Arrays, shapes, and broadcasting</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-logistic-regression-to-learned-features">2.2 · From logistic regression to learned features</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#check-automatic-differentiation-on-a-known-answer">2.3 · Check automatic differentiation on a known answer</a></li>
@@ -374,6 +375,39 @@
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/02-python-neural-networks.ipynb">Download the executed notebook</a> · <a class="reference internal" href="../python-workflow.html"><span class="std std-doc">Python setup</span></a></p>
 <p>A neural network is a parameterized function fitted by an optimization procedure. Its hidden layers are learned basis expansions. This chapter starts with array operations, connects logistic regression to a small network, and makes the training loop visible. We will compare both models on the same simulated classification problem, using a validation set to select a checkpoint and a separate test set for final evaluation.</p>
 <p><strong>Prerequisites:</strong> Chapter 1, matrix multiplication, likelihood, and differentiation. <strong>Outcomes:</strong> read tensor shapes; check a gradient; implement minibatch training; distinguish optimization error from generalization error. All cells run on a CPU using NumPy, Matplotlib, and PyTorch. Run them in order.</p>
+<section id="pipeline-and-framework">
+<h2>Pipeline and framework<a class="headerlink" href="#pipeline-and-framework" title="Link to this heading">#</a></h2>
+<p><img alt="Training minibatches produce optimizer updates; validation selects a checkpoint, and a separate test set evaluates the frozen model." src="../_images/02-neural-training.png" /></p>
+<p>The <strong>inner loop</strong> updates parameters using training minibatches. The <strong>outer selection loop</strong> compares checkpoints on validation data. The test set belongs to neither loop. This distinction matters even for the small network below: looking repeatedly at test loss and changing the model would turn that sample into development data.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Step</p></th>
+<th class="head text-left"><p>Input and output</p></th>
+<th class="head text-left"><p>What to inspect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>Prepare</p></td>
+<td class="text-left"><p>Raw observations become tensors and fixed split indices.</p></td>
+<td class="text-left"><p>Feature shape, label shape, class proportions, and preprocessing fit only on training data.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Optimize</p></td>
+<td class="text-left"><p>A minibatch and current weights produce loss, gradients, and new weights.</p></td>
+<td class="text-left"><p>Clear old gradients; check finite loss and nonzero gradients where expected.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Select</p></td>
+<td class="text-left"><p>Validation losses identify one saved checkpoint.</p></td>
+<td class="text-left"><p>Save a copy of the weights; a reference to changing weights is not a checkpoint.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Evaluate</p></td>
+<td class="text-left"><p>Frozen weights and held-out tensors produce predictions and losses.</p></td>
+<td class="text-left"><p>Compare the constant predictor, logistic model, and neural network on the same observations.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The training loop in Section 2.5 implements these steps in the order <code class="docutils literal notranslate"><span class="pre">zero_grad</span> <span class="pre">-&gt;</span> <span class="pre">forward</span> <span class="pre">-&gt;</span> <span class="pre">loss</span> <span class="pre">-&gt;</span> <span class="pre">backward</span> <span class="pre">-&gt;</span> <span class="pre">step</span></code>. Evaluation mode and disabled gradient recording serve different purposes: the former changes layers such as dropout; the latter avoids building a gradient graph. Neither substitutes for holding out observations.</p>
+</section>
 <section id="arrays-shapes-and-broadcasting">
 <h2>2.1 · Arrays, shapes, and broadcasting<a class="headerlink" href="#arrays-shapes-and-broadcasting" title="Link to this heading">#</a></h2>
 <p>A NumPy array has a shape and a data type. A matrix of <span class="math notranslate nohighlight">\(n\)</span> observations with <span class="math notranslate nohighlight">\(p\)</span> features has shape <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">p)</span></code>. In Python, <code class="docutils literal notranslate"><span class="pre">*</span></code> multiplies entries; <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> performs matrix multiplication. Broadcasting permits operations between compatible shapes by aligning dimensions from the right. A singleton dimension can be repeated without explicitly making copies.</p>
@@ -677,6 +711,7 @@ Network: test log loss=0.266, accuracy=0.872
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#arrays-shapes-and-broadcasting">2.1 · Arrays, shapes, and broadcasting</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-logistic-regression-to-learned-features">2.2 · From logistic regression to learned features</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#check-automatic-differentiation-on-a-known-answer">2.3 · Check automatic differentiation on a known answer</a></li>

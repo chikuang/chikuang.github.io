@@ -16,6 +16,21 @@ An agent repeatedly observes, selects an action, and updates its state. A langua
 
 **Prerequisites:** Chapters 2, 10, and 11. **Outcomes:** specify tool arguments; distinguish history from hidden environment state; execute bounded action loops; record observations and failures; identify when a fixed workflow is sufficient.
 
+## Pipeline and framework
+
+![An agent reads state, proposes an action, validates it, executes an approved tool, records the observation, and either stops or repeats the decision loop.](../_static/diagrams/12-agent-loop.png)
+
+Read the two rows as one cycle: **state -> proposal -> validation -> execution -> observation -> updated state**. The updated state either returns to the decision step or satisfies a stopping rule. The policy can be a rule, a learned controller, or a language model. The executor remains responsible for tool contracts and resource limits.
+
+| Boundary | Data crossing it | Check |
+|:--|:--|:--|
+| State to policy | Task, prior observations, available tool descriptions | Include what has actually been observed; do not invent a successful tool result. |
+| Policy to validator | Structured action name and arguments | Reject unknown tools, malformed values, and actions outside the task scope. |
+| Validator to tool | Approved arguments and remaining budget | Execute only the approved call; handle timeout and error results explicitly. |
+| Observation to state | Result, provenance, cost, and status | Append a trace; determine whether evidence is sufficient or the budget is exhausted. |
+
+A fixed pipeline always follows a predetermined sequence. An agent policy chooses a next action from its current state. Our small rule-based policy already illustrates that branching, but it is not an LLM. Replacing the policy with an LLM changes one component; it should not silently remove validation, trace recording, or stopping conditions. Retrieved text enters the observation side of this diagram, not the permission boundary.
+
 ## 12.1 · Sequential decisions and information
 
 Let $H_t$ be the observable history through step $t$. A policy $\pi(a\mid H_t)$ selects an action, and the environment returns an observation. The environment may contain information absent from $H_t$, so history is not necessarily a sufficient state representation. A useful objective balances task utility against costs:

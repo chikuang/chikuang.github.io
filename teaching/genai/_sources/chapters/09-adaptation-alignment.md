@@ -16,6 +16,21 @@ Adaptation can change the conditioning information, some parameters, or all para
 
 **Prerequisites:** Chapters 2 and 6, matrix rank, and logistic likelihood. **Outcomes:** identify what is frozen; implement a low-rank update; interpret paired preference data; derive the role of a reference policy. These are small numerical experiments, not fine-tuning runs on a large pretrained language model.
 
+## Pipeline and framework
+
+![Supervised fine-tuning uses response targets, LoRA restricts the weight update to low-rank factors, and DPO learns from preference pairs relative to a reference policy.](../_static/diagrams/09-adaptation.png)
+
+Separate **the learning objective** from **the parameterization of the update**. Supervised fine-tuning and preference optimization specify how examples are scored. LoRA specifies how weights are allowed to change. A model can therefore use LoRA while optimizing a supervised objective or a preference objective; the rows are not mutually exclusive product choices.
+
+| Decision | Needed evidence | Output and check |
+|:--|:--|:--|
+| Improve response behavior | Desired prompt-response examples | A supervised objective; check behavior on prompts excluded from fitting. |
+| Constrain adaptation cost | A pretrained base and a chosen update rank | Frozen base plus adapter weights; check the actual trainable parameter set. |
+| Learn preferences | Comparable preferred/rejected responses for each prompt | A preference objective and fixed reference; check held-out preference performance and task quality. |
+| Supply changing facts | A maintained document collection | Usually a retrieval intervention first; test whether the missing information is actually retrieved. |
+
+The low-rank regression lab below isolates the geometric constraint. The discrete DPO lab isolates the preference objective. Neither is a full fine-tuning run on an LLM. When combining them in a larger system, save the base-model version, adapter configuration, reference-policy version, data split, and objective settings so that each intervention remains identifiable.
+
 ## 9.1 · Choose the intervention to match the problem
 
 | Method | What changes? | A natural use |

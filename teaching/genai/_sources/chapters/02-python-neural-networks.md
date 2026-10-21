@@ -16,6 +16,21 @@ A neural network is a parameterized function fitted by an optimization procedure
 
 **Prerequisites:** Chapter 1, matrix multiplication, likelihood, and differentiation. **Outcomes:** read tensor shapes; check a gradient; implement minibatch training; distinguish optimization error from generalization error. All cells run on a CPU using NumPy, Matplotlib, and PyTorch. Run them in order.
 
+## Pipeline and framework
+
+![Training minibatches produce optimizer updates; validation selects a checkpoint, and a separate test set evaluates the frozen model.](../_static/diagrams/02-neural-training.png)
+
+The **inner loop** updates parameters using training minibatches. The **outer selection loop** compares checkpoints on validation data. The test set belongs to neither loop. This distinction matters even for the small network below: looking repeatedly at test loss and changing the model would turn that sample into development data.
+
+| Step | Input and output | What to inspect |
+|:--|:--|:--|
+| Prepare | Raw observations become tensors and fixed split indices. | Feature shape, label shape, class proportions, and preprocessing fit only on training data. |
+| Optimize | A minibatch and current weights produce loss, gradients, and new weights. | Clear old gradients; check finite loss and nonzero gradients where expected. |
+| Select | Validation losses identify one saved checkpoint. | Save a copy of the weights; a reference to changing weights is not a checkpoint. |
+| Evaluate | Frozen weights and held-out tensors produce predictions and losses. | Compare the constant predictor, logistic model, and neural network on the same observations. |
+
+The training loop in Section 2.5 implements these steps in the order `zero_grad -> forward -> loss -> backward -> step`. Evaluation mode and disabled gradient recording serve different purposes: the former changes layers such as dropout; the latter avoids building a gradient graph. Neither substitutes for holding out observations.
+
 ## 2.1 · Arrays, shapes, and broadcasting
 
 A NumPy array has a shape and a data type. A matrix of $n$ observations with $p$ features has shape `(n, p)`. In Python, `*` multiplies entries; `@` performs matrix multiplication. Broadcasting permits operations between compatible shapes by aligning dimensions from the right. A singleton dimension can be repeated without explicitly making copies.

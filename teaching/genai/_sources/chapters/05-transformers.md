@@ -16,6 +16,21 @@ Attention mixes information between positions. A transformer also transforms fea
 
 **Prerequisites:** Chapters 2–4. **Outcomes:** trace IDs to logits; distinguish normalization across features from normalization across a batch; implement a decoder block; test causality end to end. The entire example uses a CPU and randomly initialized parameters.
 
+## Pipeline and framework
+
+![Token embeddings plus positions pass through repeated pre-normalized causal attention and feed-forward residual blocks, then a final normalization and vocabulary head.](../_static/diagrams/05-transformer.png)
+
+The top lane expands one block; the bottom lane places that block inside the whole decoder. In our **pre-normalized** block, layer normalization precedes each learned sublayer. Two residual additions retain a direct path for the input states. Other normalization conventions exist, so identify the convention before comparing implementations.
+
+| Boundary | Input and output | Check |
+|:--|:--|:--|
+| Embedding | IDs $(B,T)$ become states $(B,T,d)$. | Token and position indices remain inside their tables. |
+| Attention sublayer | States $(B,T,d)$ become context-aware states of the same shape. | Head width divides model width; causal masking applies in every block. |
+| Feed-forward sublayer | Each position expands to width $d_{ff}$ and returns to $d$. | Mixing across positions happens in attention, not in this positionwise MLP. |
+| Vocabulary head | States become logits $(B,T,V)$. | Logits are unnormalized; the loss or sampler converts them as needed. |
+
+**Training path:** input IDs for positions $1$ through $T$ predict target IDs for positions $2$ through $T+1$. **Generation path:** evaluate the current prefix, use the final-position logits, append a token, and repeat. The model architecture can be identical in both paths even though the surrounding computation differs. Whole-model future-leakage tests must cover positions, residual paths, and every attention layer.
+
 ## 5.1 · The route from IDs to probabilities
 
 For a batch of $B$ sequences with $T$ input tokens, an embedding lookup produces $B\times T\times d$ features. We add position embeddings of the same width. A decoder block transforms those features without changing their shape. Finally, a linear head produces $B\times T\times V$ logits, one vector over the vocabulary at every position.

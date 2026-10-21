@@ -16,6 +16,21 @@ Attention constructs a weighted average whose weights depend on the current quer
 
 **Prerequisites:** Chapters 2–3, matrix products, and softmax. **Outcomes:** calculate attention by hand; implement stable masked attention; distinguish self-attention from cross-attention; explain what an attention plot can and cannot show.
 
+## Pipeline and framework
+
+![One attention head projects Q, K and V, scales and masks query-key scores, normalizes each row, and multiplies by V; multiple heads are concatenated and projected.](../_static/diagrams/04-attention.png)
+
+Read one head from left to right. Each query position requests information, the key vectors determine compatibility, and the value vectors contain what is averaged. The mask specifies which keys a query is allowed to inspect. It acts on scores **before** softmax, not on the already averaged result.
+
+| Operation | Shape in one head | Invariant |
+|:--|:--|:--|
+| Project | Queries: $T_q \times d_k$; keys: $T_k \times d_k$; values: $T_k \times d_v$ | Key and value rows refer to the same source positions. |
+| Score and mask | $QK^T/\sqrt{d_k}$ has shape $T_q \times T_k$. | Disallowed positions cannot receive positive attention mass. |
+| Normalize | $A$ has shape $T_q \times T_k$. | Each valid row sums to one; every query needs at least one allowed key. |
+| Aggregate | $AV$ has shape $T_q \times d_v$. | Values, not keys, are averaged. |
+
+Self-attention takes all three projections from the same sequence. Cross-attention takes queries from one sequence and keys/values from another. In either case the pipeline is the same. The intervention test in Section 4.5 changes future input positions and checks earlier outputs; this is a stronger implementation check than visually inspecting a triangular matrix.
+
 ## 4.1 · Queries, keys, and values
 
 For $n_q$ queries, $n_k$ keys, key width $d_k$, and value width $d_v$, define

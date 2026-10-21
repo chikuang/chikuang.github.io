@@ -16,6 +16,21 @@ A successful demonstration does not measure reliability. We need repeated tasks,
 
 **Prerequisites:** Chapters 11–12. **Outcomes:** distinguish trajectories from tasks; classify failure modes; inject reproducible failures; compare paired outcomes with clustered uncertainty; measure the cost of recovery.
 
+## Pipeline and framework
+
+![Run paired policies on the same held-out tasks and repeated failure scenarios, log full trajectories, aggregate by task, bootstrap task clusters and inspect ablations.](../_static/diagrams/13-reliability.png)
+
+An agent evaluation needs a **task-level experimental design** and a **trajectory-level trace**. The trace explains a result; the task is often the unit used for population-level uncertainty. A retry can create more calls without creating more independent tasks.
+
+| Stage | Artifact | Why it is needed |
+|:--|:--|:--|
+| Specify tasks and failures | Task IDs, repetitions, and a reproducible failure process | Different policies face comparable difficulty. |
+| Execute paired policies | One trace per policy, task, and repetition | Compare like with like and retain errors and stop reasons. |
+| Aggregate and resample | Task-level paired differences | Keep within-task dependence when estimating uncertainty. |
+| Diagnose interventions | Success, cost, failure labels, and ablation contrasts | Find whether gains came from retries, memory, or another component. |
+
+In this chapter the tool outcomes and policies are programmed experiments. They demonstrate how to measure reliability, not a measured claim about an external LLM. When moving to a stochastic model, add model/version and decoding settings to the trace and repeat generations under the same task design. If tasks share a source document or user, consider that larger cluster when defining the sampling unit.
+
 ## 13.1 · Define success and record the whole trajectory
 
 A task requests the mean of a current dataset. Success requires a numeric answer within a fixed tolerance of the true current mean. A cached answer may be stale. A tool can time out or return malformed data. Abstention, incorrect answers, invalid tool payloads, and exhaustion of the call budget are different outcomes and remain separate in the log.

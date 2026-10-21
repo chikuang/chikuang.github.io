@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=94999494" />
@@ -347,6 +347,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-success-and-record-the-whole-trajectory">13.1 · Define success and record the whole trajectory</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#construct-tasks-and-repeatable-tool-failures">13.2 · Construct tasks and repeatable tool failures</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compare-policy-interventions">13.3 · Compare policy interventions</a></li>
@@ -372,6 +373,39 @@
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/13-agent-reliability.ipynb">Download the executed notebook</a></p>
 <p>A successful demonstration does not measure reliability. We need repeated tasks, failures with known causes, and a comparison that accounts for additional calls. This chapter constructs a controlled simulator: a cached answer, a one-pass tool workflow, and a bounded retry policy solve the same mean-estimation requests. These are programmed policies, not measured LLM agents. Their role is to teach experimental design before introducing an expensive or opaque policy.</p>
 <p><strong>Prerequisites:</strong> Chapters 11–12. <strong>Outcomes:</strong> distinguish trajectories from tasks; classify failure modes; inject reproducible failures; compare paired outcomes with clustered uncertainty; measure the cost of recovery.</p>
+<section id="pipeline-and-framework">
+<h2>Pipeline and framework<a class="headerlink" href="#pipeline-and-framework" title="Link to this heading">#</a></h2>
+<p><img alt="Run paired policies on the same held-out tasks and repeated failure scenarios, log full trajectories, aggregate by task, bootstrap task clusters and inspect ablations." src="../_images/13-reliability.png" /></p>
+<p>An agent evaluation needs a <strong>task-level experimental design</strong> and a <strong>trajectory-level trace</strong>. The trace explains a result; the task is often the unit used for population-level uncertainty. A retry can create more calls without creating more independent tasks.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Stage</p></th>
+<th class="head text-left"><p>Artifact</p></th>
+<th class="head text-left"><p>Why it is needed</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>Specify tasks and failures</p></td>
+<td class="text-left"><p>Task IDs, repetitions, and a reproducible failure process</p></td>
+<td class="text-left"><p>Different policies face comparable difficulty.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Execute paired policies</p></td>
+<td class="text-left"><p>One trace per policy, task, and repetition</p></td>
+<td class="text-left"><p>Compare like with like and retain errors and stop reasons.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Aggregate and resample</p></td>
+<td class="text-left"><p>Task-level paired differences</p></td>
+<td class="text-left"><p>Keep within-task dependence when estimating uncertainty.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Diagnose interventions</p></td>
+<td class="text-left"><p>Success, cost, failure labels, and ablation contrasts</p></td>
+<td class="text-left"><p>Find whether gains came from retries, memory, or another component.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>In this chapter the tool outcomes and policies are programmed experiments. They demonstrate how to measure reliability, not a measured claim about an external LLM. When moving to a stochastic model, add model/version and decoding settings to the trace and repeat generations under the same task design. If tasks share a source document or user, consider that larger cluster when defining the sampling unit.</p>
+</section>
 <section id="define-success-and-record-the-whole-trajectory">
 <h2>13.1 · Define success and record the whole trajectory<a class="headerlink" href="#define-success-and-record-the-whole-trajectory" title="Link to this heading">#</a></h2>
 <p>A task requests the mean of a current dataset. Success requires a numeric answer within a fixed tolerance of the true current mean. A cached answer may be stale. A tool can time out or return malformed data. Abstention, incorrect answers, invalid tool payloads, and exhaustion of the call budget are different outcomes and remain separate in the log.</p>
@@ -608,6 +642,7 @@ Recovery trace: {&#39;value&#39;: 0.8543511034891461, &#39;status&#39;: &#39;ans
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-success-and-record-the-whole-trajectory">13.1 · Define success and record the whole trajectory</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#construct-tasks-and-repeatable-tool-failures">13.2 · Construct tasks and repeatable tool failures</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compare-policy-interventions">13.3 · Compare policy interventions</a></li>

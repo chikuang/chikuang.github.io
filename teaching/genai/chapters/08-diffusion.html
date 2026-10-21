@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=94999494" />
@@ -347,6 +347,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-known-forward-process">8.1 · A known forward process</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-prediction-is-a-regression-problem">8.2 · Noise prediction is a regression problem</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-score-is-a-derivative-with-respect-to-the-observation">8.3 · The score is a derivative with respect to the observation</a></li>
@@ -371,6 +372,39 @@
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/08-diffusion.ipynb">Download the executed notebook</a></p>
 <p>Diffusion models train a reverse process for a known noising mechanism. We will fit a one-dimensional denoiser to a two-component Gaussian mixture, then run an explicit reverse chain. The example is small enough that we can also calculate the true noisy density’s score and compare it with the learned function.</p>
 <p><strong>Prerequisites:</strong> Chapters 2 and 7, Gaussian conditioning, and gradients. <strong>Outcomes:</strong> simulate the forward marginal; distinguish noise prediction from direct observation reconstruction; derive the score relation; inspect a learned reverse sampler. No images, pretrained weights, or external datasets are required.</p>
+<section id="pipeline-and-framework">
+<h2>Pipeline and framework<a class="headerlink" href="#pipeline-and-framework" title="Link to this heading">#</a></h2>
+<p><img alt="Diffusion training constructs noisy observations from clean data at a random time and fits noise prediction; generation starts at noise and repeatedly applies reverse updates." src="../_images/08-diffusion.png" /></p>
+<p>The forward and reverse arrows describe different computations. During training we can sample <span class="math notranslate nohighlight">\(x_t\)</span> directly from <span class="math notranslate nohighlight">\(x_0\)</span> and a time index; we do not need to run the entire forward chain for every minibatch. During generation we have no clean observation, so the learned denoiser must support a sequence of reverse updates.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Stage</p></th>
+<th class="head text-left"><p>Known or learned object</p></th>
+<th class="head text-left"><p>Check</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>Choose schedule</p></td>
+<td class="text-left"><p>Fixed noise variances and cumulative products</p></td>
+<td class="text-left"><p>Values stay in their valid ranges; the terminal distribution is sufficiently close to the initialization approximation.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Make a training pair</p></td>
+<td class="text-left"><p>Clean <span class="math notranslate nohighlight">\(x_0\)</span>, random <span class="math notranslate nohighlight">\(t\)</span>, sampled noise, computed <span class="math notranslate nohighlight">\(x_t\)</span></p></td>
+<td class="text-left"><p>The regression target is the exact noise used to construct that example.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Fit the denoiser</p></td>
+<td class="text-left"><p>A time-conditioned neural function</p></td>
+<td class="text-left"><p>The same time convention and schedule are used in fitting and sampling.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Run the reverse chain</p></td>
+<td class="text-left"><p>A sampled trajectory from <span class="math notranslate nohighlight">\(x_T\)</span> to <span class="math notranslate nohighlight">\(x_0\)</span></p></td>
+<td class="text-left"><p>Apply the correct variance and final-step convention; compare generated and target distributions.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>In the one-dimensional mixture example, the exact score is available as an extra diagnostic. It lets us distinguish poor regression from a poorly implemented reverse update. A realistic image model usually lacks that oracle, so component tests and distributional evaluation become more important. Conditioning adds an observed input to the denoiser; it does not reverse the direction of the sampling loop.</p>
+</section>
 <section id="a-known-forward-process">
 <h2>8.1 · A known forward process<a class="headerlink" href="#a-known-forward-process" title="Link to this heading">#</a></h2>
 <p>Index transitions by <span class="math notranslate nohighlight">\(t=1,\ldots,T\)</span>. Define <span class="math notranslate nohighlight">\(\alpha_t=1-\beta_t\)</span> and <span class="math notranslate nohighlight">\(\bar\alpha_t=\prod_{s=1}^t\alpha_s\)</span>. The forward Markov transition is</p>
@@ -636,6 +670,7 @@ Target / generated standard deviation: 2.027 2.001
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-known-forward-process">8.1 · A known forward process</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-prediction-is-a-regression-problem">8.2 · Noise prediction is a regression problem</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-score-is-a-derivative-with-respect-to-the-observation">8.3 · The score is a derivative with respect to the observation</a></li>

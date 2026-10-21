@@ -16,6 +16,21 @@ An evaluation begins with a target population and a loss, not with a leaderboard
 
 **Prerequisites:** Chapters 1, 6, and 10; sampling distributions and quantiles. **Outcomes:** define an estimand; preserve pairing; separate calibration from discrimination; interpret risk–coverage curves; state a conformal guarantee precisely.
 
+## Pipeline and framework
+
+![Define the task and sample unit, split and freeze choices, then calibrate on separate data and report final test metrics with uncertainty that respects dependence.](../_static/diagrams/11-evaluation.png)
+
+Evaluation is a **data-use protocol**, not a final call to a metric function. Write down which sample is allowed to influence each choice before fitting anything. In the executable classifier example, temperature is fitted on a validation sample, the conformal threshold is computed on a different calibration sample, and both are evaluated on a test sample.
+
+| Data or artifact | Permitted role | Prohibited shortcut |
+|:--|:--|:--|
+| Development data | Choose prompts, architectures, retrieval settings, and stopping rules. | Repeatedly choosing settings on the final test outcomes. |
+| Probability-fitting data | Fit a calibration map such as temperature scaling. | Claiming out-of-sample calibration from fitted-sample reliability alone. |
+| Conformal calibration data | Compute a quantile after the score function is fixed. | Reusing those labels to tune the same score function without an appropriate method. |
+| Final test data | Estimate locked-system performance and uncertainty. | Treating multiple calls on one task as independent sampled tasks. |
+
+The framework has two outputs: a performance estimate and an account of what it generalizes to. For a system comparison, pair outputs on the same questions. For repeated agent trials, preserve the task cluster. For conformal sets, state the marginal guarantee and exchangeability requirement rather than reading the guarantee as certainty for every subgroup or individual question.
+
 ## 11.1 · Define the estimand and the unit
 
 Let $Q$ be a question drawn from the intended task population and $U$ represent generation randomness. A system's risk is $R=\mathbb E[\ell(f(Q,U),Y)]$. A comparison might target $R_B-R_A$ under a fixed model version, prompt, retrieval collection, and decoding budget. Changing any of these changes the procedure under evaluation.

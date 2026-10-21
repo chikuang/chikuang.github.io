@@ -16,6 +16,23 @@ A latent-variable model generates an unobserved $Z$ and then generates $X$ condi
 
 **Prerequisites:** Chapters 1–2, conditional densities, Jensen's inequality, and KL divergence. **Outcomes:** distinguish prior, posterior approximation, and observation model; derive the ELBO; implement reparameterization; compare what a VAE, GAN, and flow can evaluate. The VAE is a small CPU experiment; GANs and flows are comparison topics with an exact change-of-variables calculation.
 
+## Pipeline and framework
+
+![The VAE optimizes an encoder-decoder ELBO, the GAN alternates discriminator and generator updates, and a flow uses an invertible map with a Jacobian to evaluate densities.](../_static/diagrams/07-generative-families.png)
+
+These are **alternative generative frameworks**, not consecutive stages of one model. Start by asking which quantities can be evaluated and which can only be sampled. That determines both the objective and the diagnostics available to you.
+
+```{tabularcolumns} \X{1}{8}\X{3}{8}\X{2}{8}\X{2}{8}
+```
+
+| Model | Training route | Generation route | Main diagnostic |
+|:--|:--|:--|:--|
+| VAE | Encode observed $x$, sample a reparameterized latent, decode, and optimize reconstruction plus KL terms. | Draw $z$ from the prior, then $x$ from the decoder likelihood. | Inspect both ELBO terms and prior-generated samples. |
+| GAN | Compare real data with generator samples; alternate discriminator and generator updates. | Draw noise and apply the generator. | Check sample diversity and fidelity; discriminator loss alone is insufficient. |
+| Flow | Map between observations and base variables; include the log absolute Jacobian determinant. | Draw a base variable and apply the forward map. | Check invertibility, density normalization where tractable, and held-out likelihood. |
+
+For the VAE code below, the encoder is used during fitting and reconstruction, but it is not needed to generate from the prior. Drawing encoder latents from training observations answers a reconstruction question. Drawing prior latents answers a model-generation question. The GAN section explains the framework conceptually; the executable density check is an affine flow, not a trained neural flow.
+
 ## 7.1 · Three distributions with different jobs
 
 Specify a prior $p(z)$ and an observation model $p_\theta(x\mid z)$. The marginal density is $p_\theta(x)=\int p_\theta(x\mid z)p(z)\,dz$. An encoder $q_\phi(z\mid x)$ approximates the posterior. It is not the generative prior.

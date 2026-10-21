@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=94999494" />
@@ -347,6 +347,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-route-from-ids-to-probabilities">5.1 · The route from IDs to probabilities</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#residual-paths-and-layer-normalization">5.2 · Residual paths and layer normalization</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implement-a-small-decoder-block">5.3 · Implement a small decoder block</a></li>
@@ -373,6 +374,39 @@
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/05-transformers.ipynb">Download the executed notebook</a></p>
 <p>Attention mixes information between positions. A transformer also transforms features within each position, preserves information through residual paths, and maps the resulting features to a prediction. We will build a small decoder-only model explicitly. The goal is to follow every tensor and verify the information boundary, not to reproduce the scale of a modern language model.</p>
 <p><strong>Prerequisites:</strong> Chapters 2–4. <strong>Outcomes:</strong> trace IDs to logits; distinguish normalization across features from normalization across a batch; implement a decoder block; test causality end to end. The entire example uses a CPU and randomly initialized parameters.</p>
+<section id="pipeline-and-framework">
+<h2>Pipeline and framework<a class="headerlink" href="#pipeline-and-framework" title="Link to this heading">#</a></h2>
+<p><img alt="Token embeddings plus positions pass through repeated pre-normalized causal attention and feed-forward residual blocks, then a final normalization and vocabulary head." src="../_images/05-transformer.png" /></p>
+<p>The top lane expands one block; the bottom lane places that block inside the whole decoder. In our <strong>pre-normalized</strong> block, layer normalization precedes each learned sublayer. Two residual additions retain a direct path for the input states. Other normalization conventions exist, so identify the convention before comparing implementations.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Boundary</p></th>
+<th class="head text-left"><p>Input and output</p></th>
+<th class="head text-left"><p>Check</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>Embedding</p></td>
+<td class="text-left"><p>IDs <span class="math notranslate nohighlight">\((B,T)\)</span> become states <span class="math notranslate nohighlight">\((B,T,d)\)</span>.</p></td>
+<td class="text-left"><p>Token and position indices remain inside their tables.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Attention sublayer</p></td>
+<td class="text-left"><p>States <span class="math notranslate nohighlight">\((B,T,d)\)</span> become context-aware states of the same shape.</p></td>
+<td class="text-left"><p>Head width divides model width; causal masking applies in every block.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Feed-forward sublayer</p></td>
+<td class="text-left"><p>Each position expands to width <span class="math notranslate nohighlight">\(d_{ff}\)</span> and returns to <span class="math notranslate nohighlight">\(d\)</span>.</p></td>
+<td class="text-left"><p>Mixing across positions happens in attention, not in this positionwise MLP.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Vocabulary head</p></td>
+<td class="text-left"><p>States become logits <span class="math notranslate nohighlight">\((B,T,V)\)</span>.</p></td>
+<td class="text-left"><p>Logits are unnormalized; the loss or sampler converts them as needed.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Training path:</strong> input IDs for positions <span class="math notranslate nohighlight">\(1\)</span> through <span class="math notranslate nohighlight">\(T\)</span> predict target IDs for positions <span class="math notranslate nohighlight">\(2\)</span> through <span class="math notranslate nohighlight">\(T+1\)</span>. <strong>Generation path:</strong> evaluate the current prefix, use the final-position logits, append a token, and repeat. The model architecture can be identical in both paths even though the surrounding computation differs. Whole-model future-leakage tests must cover positions, residual paths, and every attention layer.</p>
+</section>
 <section id="the-route-from-ids-to-probabilities">
 <h2>5.1 · The route from IDs to probabilities<a class="headerlink" href="#the-route-from-ids-to-probabilities" title="Link to this heading">#</a></h2>
 <p>For a batch of <span class="math notranslate nohighlight">\(B\)</span> sequences with <span class="math notranslate nohighlight">\(T\)</span> input tokens, an embedding lookup produces <span class="math notranslate nohighlight">\(B\times T\times d\)</span> features. We add position embeddings of the same width. A decoder block transforms those features without changing their shape. Finally, a linear head produces <span class="math notranslate nohighlight">\(B\times T\times V\)</span> logits, one vector over the vocabulary at every position.</p>
@@ -629,6 +663,7 @@ Parameter count: 8628
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-route-from-ids-to-probabilities">5.1 · The route from IDs to probabilities</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#residual-paths-and-layer-normalization">5.2 · Residual paths and layer normalization</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implement-a-small-decoder-block">5.3 · Implement a small decoder block</a></li>

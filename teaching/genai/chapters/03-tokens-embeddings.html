@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=94999494" />
@@ -347,6 +347,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-vocabulary-is-an-estimated-preprocessing-object">3.1 · A vocabulary is an estimated preprocessing object</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-miniature-byte-pair-style-merge-experiment">3.2 · A miniature byte-pair-style merge experiment</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-hot-encoding-and-lookup-are-the-same-linear-operation">3.3 · One-hot encoding and lookup are the same linear operation</a></li>
@@ -372,6 +373,39 @@
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/03-tokens-embeddings.ipynb">Download the executed notebook</a></p>
 <p>A model receives numbers, not the meaning of a sentence. Tokenization defines the discrete observations; an embedding maps those observations into vectors. We will construct both operations explicitly, fit a small distributional representation, and test what it fails to preserve. The statistical analogues are the construction of a design matrix and the estimation of a feature map.</p>
 <p><strong>Prerequisites:</strong> Chapters 1–2 and singular value decomposition (SVD). <strong>Outcomes:</strong> distinguish words from tokens; handle unknown inputs; interpret an embedding lookup; explain why proximity is task-dependent. The corpus below consists of short, course-authored sentences, so no download is necessary.</p>
+<section id="pipeline-and-framework">
+<h2>Pipeline and framework<a class="headerlink" href="#pipeline-and-framework" title="Link to this heading">#</a></h2>
+<p><img alt="Learn a tokenizer, vocabulary and embedding table on training text; apply these fitted objects to new text before contextual modeling." src="../_images/03-representation.png" /></p>
+<p>A representation pipeline contains <strong>fitted preprocessing objects</strong>, not just neural weights. The tokenizer defines what the IDs mean; the embedding matrix maps those IDs to vectors. Changing the vocabulary without changing the embedding table can preserve array shapes while silently changing the model’s meaning.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Stage</p></th>
+<th class="head text-left"><p>Output artifact</p></th>
+<th class="head text-left"><p>Main check</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>Normalize and tokenize</p></td>
+<td class="text-left"><p>Rules, merge table, vocabulary, special-token policy</p></td>
+<td class="text-left"><p>Apply exactly the same rules to training and new text.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Encode</p></td>
+<td class="text-left"><p>An integer sequence and an unknown-token strategy</p></td>
+<td class="text-left"><p>Every ID indexes the intended row; document how information is lost.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Fit embeddings</p></td>
+<td class="text-left"><p>Co-occurrence statistics and a factorization, or a learned matrix</p></td>
+<td class="text-left"><p>Estimate from the allowed training corpus and retain the version.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Add position and context</p></td>
+<td class="text-left"><p>Position-aware states, then contextual states</p></td>
+<td class="text-left"><p>A lookup vector is context independent; an encoder output need not be.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The small BPE-style merge experiment and the PPMI/SVD experiment below illustrate <strong>different parts</strong> of this framework. They are not a claim that production tokenizers use the exact toy procedure or that transformer embeddings must be trained with SVD. For a new sentence, freeze the chosen preprocessing objects before looking up vectors; do not rebuild a vocabulary separately for every query.</p>
+</section>
 <section id="a-vocabulary-is-an-estimated-preprocessing-object">
 <h2>3.1 · A vocabulary is an estimated preprocessing object<a class="headerlink" href="#a-vocabulary-is-an-estimated-preprocessing-object" title="Link to this heading">#</a></h2>
 <p>We first use a word tokenizer that lowercases text and keeps alphabetic runs. This is a teaching choice, not a general text-processing standard: it discards punctuation, numbers, capitalization, and much non-English text.</p>
@@ -651,6 +685,7 @@ Same ordered sequence: False
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-vocabulary-is-an-estimated-preprocessing-object">3.1 · A vocabulary is an estimated preprocessing object</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-miniature-byte-pair-style-merge-experiment">3.2 · A miniature byte-pair-style merge experiment</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-hot-encoding-and-lookup-are-the-same-linear-operation">3.3 · One-hot encoding and lookup are the same linear operation</a></li>

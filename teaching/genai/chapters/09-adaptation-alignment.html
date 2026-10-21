@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=94999494" />
@@ -347,6 +347,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choose-the-intervention-to-match-the-problem">9.1 · Choose the intervention to match the problem</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#low-rank-adaptation-as-a-constrained-update">9.2 · Low-rank adaptation as a constrained update</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-the-fitted-update-not-only-parameter-counts">9.3 · Inspect the fitted update, not only parameter counts</a></li>
@@ -372,6 +373,39 @@
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/09-adaptation-alignment.ipynb">Download the executed notebook</a></p>
 <p>Adaptation can change the conditioning information, some parameters, or all parameters. Preference learning adds another distinction: observations now describe comparisons between responses rather than necessarily providing a uniquely correct response. We will fit a low-rank update to a synthetic regression problem and then fit a small preference policy whose objective can be inspected directly.</p>
 <p><strong>Prerequisites:</strong> Chapters 2 and 6, matrix rank, and logistic likelihood. <strong>Outcomes:</strong> identify what is frozen; implement a low-rank update; interpret paired preference data; derive the role of a reference policy. These are small numerical experiments, not fine-tuning runs on a large pretrained language model.</p>
+<section id="pipeline-and-framework">
+<h2>Pipeline and framework<a class="headerlink" href="#pipeline-and-framework" title="Link to this heading">#</a></h2>
+<p><img alt="Supervised fine-tuning uses response targets, LoRA restricts the weight update to low-rank factors, and DPO learns from preference pairs relative to a reference policy." src="../_images/09-adaptation.png" /></p>
+<p>Separate <strong>the learning objective</strong> from <strong>the parameterization of the update</strong>. Supervised fine-tuning and preference optimization specify how examples are scored. LoRA specifies how weights are allowed to change. A model can therefore use LoRA while optimizing a supervised objective or a preference objective; the rows are not mutually exclusive product choices.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Decision</p></th>
+<th class="head text-left"><p>Needed evidence</p></th>
+<th class="head text-left"><p>Output and check</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>Improve response behavior</p></td>
+<td class="text-left"><p>Desired prompt-response examples</p></td>
+<td class="text-left"><p>A supervised objective; check behavior on prompts excluded from fitting.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Constrain adaptation cost</p></td>
+<td class="text-left"><p>A pretrained base and a chosen update rank</p></td>
+<td class="text-left"><p>Frozen base plus adapter weights; check the actual trainable parameter set.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Learn preferences</p></td>
+<td class="text-left"><p>Comparable preferred/rejected responses for each prompt</p></td>
+<td class="text-left"><p>A preference objective and fixed reference; check held-out preference performance and task quality.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Supply changing facts</p></td>
+<td class="text-left"><p>A maintained document collection</p></td>
+<td class="text-left"><p>Usually a retrieval intervention first; test whether the missing information is actually retrieved.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The low-rank regression lab below isolates the geometric constraint. The discrete DPO lab isolates the preference objective. Neither is a full fine-tuning run on an LLM. When combining them in a larger system, save the base-model version, adapter configuration, reference-policy version, data split, and objective settings so that each intervention remains identifiable.</p>
+</section>
 <section id="choose-the-intervention-to-match-the-problem">
 <h2>9.1 · Choose the intervention to match the problem<a class="headerlink" href="#choose-the-intervention-to-match-the-problem" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -630,6 +664,7 @@ Equal-preference log loss: 0.693
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choose-the-intervention-to-match-the-problem">9.1 · Choose the intervention to match the problem</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#low-rank-adaptation-as-a-constrained-update">9.2 · Low-rank adaptation as a constrained update</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-the-fitted-update-not-only-parameter-counts">9.3 · Inspect the fitted update, not only parameter counts</a></li>

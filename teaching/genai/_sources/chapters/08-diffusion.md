@@ -16,6 +16,21 @@ Diffusion models train a reverse process for a known noising mechanism. We will 
 
 **Prerequisites:** Chapters 2 and 7, Gaussian conditioning, and gradients. **Outcomes:** simulate the forward marginal; distinguish noise prediction from direct observation reconstruction; derive the score relation; inspect a learned reverse sampler. No images, pretrained weights, or external datasets are required.
 
+## Pipeline and framework
+
+![Diffusion training constructs noisy observations from clean data at a random time and fits noise prediction; generation starts at noise and repeatedly applies reverse updates.](../_static/diagrams/08-diffusion.png)
+
+The forward and reverse arrows describe different computations. During training we can sample $x_t$ directly from $x_0$ and a time index; we do not need to run the entire forward chain for every minibatch. During generation we have no clean observation, so the learned denoiser must support a sequence of reverse updates.
+
+| Stage | Known or learned object | Check |
+|:--|:--|:--|
+| Choose schedule | Fixed noise variances and cumulative products | Values stay in their valid ranges; the terminal distribution is sufficiently close to the initialization approximation. |
+| Make a training pair | Clean $x_0$, random $t$, sampled noise, computed $x_t$ | The regression target is the exact noise used to construct that example. |
+| Fit the denoiser | A time-conditioned neural function | The same time convention and schedule are used in fitting and sampling. |
+| Run the reverse chain | A sampled trajectory from $x_T$ to $x_0$ | Apply the correct variance and final-step convention; compare generated and target distributions. |
+
+In the one-dimensional mixture example, the exact score is available as an extra diagnostic. It lets us distinguish poor regression from a poorly implemented reverse update. A realistic image model usually lacks that oracle, so component tests and distributional evaluation become more important. Conditioning adds an observed input to the denoiser; it does not reverse the direction of the sampling loop.
+
 ## 8.1 · A known forward process
 
 Index transitions by $t=1,\ldots,T$. Define $\alpha_t=1-\beta_t$ and $\bar\alpha_t=\prod_{s=1}^t\alpha_s$. The forward Markov transition is
