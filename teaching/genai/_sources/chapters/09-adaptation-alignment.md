@@ -18,7 +18,7 @@ Adaptation can change the conditioning information, some parameters, or all para
 
 ## Pipeline and framework
 
-![Supervised fine-tuning uses response targets, LoRA restricts the weight update to low-rank factors, and DPO learns from preference pairs relative to a reference policy.](../_static/diagrams/09-adaptation.png)
+![Supervised fine-tuning uses response targets, LoRA restricts the weight update to low-rank factors, and DPO learns from preference pairs relative to a reference policy. Remember: SFT uses examples; LoRA limits updates; DPO uses preferences.](../_static/diagrams/09-adaptation.png)
 
 Separate **the learning objective** from **the parameterization of the update**. Supervised fine-tuning and preference optimization specify how examples are scored. LoRA specifies how weights are allowed to change. A model can therefore use LoRA while optimizing a supervised objective or a preference objective; the rows are not mutually exclusive product choices.
 

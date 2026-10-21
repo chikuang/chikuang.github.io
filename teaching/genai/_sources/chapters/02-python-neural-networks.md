@@ -18,7 +18,7 @@ A neural network is a parameterized function fitted by an optimization procedure
 
 ## Pipeline and framework
 
-![Training minibatches produce optimizer updates; validation selects a checkpoint, and a separate test set evaluates the frozen model.](../_static/diagrams/02-neural-training.png)
+![Training minibatches produce optimizer updates; validation selects a checkpoint, and a separate test set evaluates the frozen model. Remember: train to learn, validate to choose, test once to report.](../_static/diagrams/02-neural-training.png)
 
 The **inner loop** updates parameters using training minibatches. The **outer selection loop** compares checkpoints on validation data. The test set belongs to neither loop. This distinction matters even for the small network below: looking repeatedly at test loss and changing the model would turn that sample into development data.
 

@@ -18,7 +18,7 @@ Attention constructs a weighted average whose weights depend on the current quer
 
 ## Pipeline and framework
 
-![One attention head projects Q, K and V, scales and masks query-key scores, normalizes each row, and multiplies by V; multiple heads are concatenated and projected.](../_static/diagrams/04-attention.png)
+![One attention head projects Q, K and V, scales and masks query-key scores, normalizes each row, and multiplies by V; multiple heads are concatenated and projected. Remember: ask with Q, match with K, mix V.](../_static/diagrams/04-attention.png)
 
 Read one head from left to right. Each query position requests information, the key vectors determine compatibility, and the value vectors contain what is averaged. The mask specifies which keys a query is allowed to inspect. It acts on scores **before** softmax, not on the already averaged result.
 

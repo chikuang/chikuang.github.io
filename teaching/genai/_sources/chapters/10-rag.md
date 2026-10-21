@@ -20,7 +20,7 @@ The three words name three different operations. **Retrieval** finds potentially
 
 ## Pipeline and framework
 
-![RAG first parses, chunks and indexes documents offline. At query time it retrieves candidates, packs selected evidence, generates from the question and passages, and checks the answer or abstains.](../_static/diagrams/10-rag-pipeline.png)
+![RAG first parses, chunks and indexes documents offline. At query time it retrieves candidates, packs selected evidence, generates from the question and passages, and checks the answer or abstains. Remember: index sources, retrieve evidence, answer and check.](../_static/diagrams/10-rag-pipeline.png)
 
 The first row runs when sources or indexing settings change. The next two rows run for each question. The saved index connects them. “Offline” here means a preparation phase, not necessarily an internet-free server; all preparation and answering in this notebook happen locally.
 
@@ -405,7 +405,7 @@ Create development and final evaluation questions before tuning chunk size, cand
 
 ## 10.10 · A framework for diagnosing and improving RAG
 
-![Compare question-only generation, human-selected oracle evidence, and actual retrieved context with the same generator and decoding settings.](../_static/diagrams/10-rag-diagnosis.png)
+![Compare question-only generation, human-selected oracle evidence, and actual retrieved context with the same generator and decoding settings. Remember: same generator, different evidence, compare the failures.](../_static/diagrams/10-rag-diagnosis.png)
 
 Use the same questions and generator across conditions. If oracle evidence supports a good answer but actual retrieval does not, inspect candidate recall and context selection. If sufficient oracle evidence still fails, investigate generation, support, or the output contract. Oracle context is a diagnostic intervention, not a deployed performance estimate or necessarily a strict upper bound for every stochastic run.
 

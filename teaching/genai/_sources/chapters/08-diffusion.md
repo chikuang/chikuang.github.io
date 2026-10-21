@@ -18,7 +18,7 @@ Diffusion models train a reverse process for a known noising mechanism. We will 
 
 ## Pipeline and framework
 
-![Diffusion training constructs noisy observations from clean data at a random time and fits noise prediction; generation starts at noise and repeatedly applies reverse updates.](../_static/diagrams/08-diffusion.png)
+![Diffusion training constructs noisy observations from clean data at a random time and fits noise prediction; generation starts at noise and repeatedly applies reverse updates. Remember: add noise to train, remove noise to generate.](../_static/diagrams/08-diffusion.png)
 
 The forward and reverse arrows describe different computations. During training we can sample $x_t$ directly from $x_0$ and a time index; we do not need to run the entire forward chain for every minibatch. During generation we have no clean observation, so the learned denoiser must support a sequence of reverse updates.
 

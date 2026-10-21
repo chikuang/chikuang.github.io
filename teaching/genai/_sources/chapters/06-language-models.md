@@ -18,7 +18,7 @@ A language model specifies conditional token distributions. A prompt supplies co
 
 ## Pipeline and framework
 
-![Training fits and selects model parameters from shifted token targets; generation repeatedly predicts, decodes and appends the next token using frozen parameters.](../_static/diagrams/06-language-model.png)
+![Training fits and selects model parameters from shifted token targets; generation repeatedly predicts, decodes and appends the next token using frozen parameters. Remember: training changes weights; decoding chooses the next token.](../_static/diagrams/06-language-model.png)
 
 The output of training is a **parameterized conditional distribution**. The output of decoding is a sequence drawn or selected using that distribution. Prompting supplies a prefix; it does not run an optimizer. This chapter uses a GRU so the two procedures can be inspected on a CPU, while the same distinction applies to transformer language models.
 

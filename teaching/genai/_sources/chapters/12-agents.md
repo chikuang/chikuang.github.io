@@ -18,7 +18,7 @@ An agent repeatedly observes, selects an action, and updates its state. A langua
 
 ## Pipeline and framework
 
-![An agent reads state, proposes an action, validates it, executes an approved tool, records the observation, and either stops or repeats the decision loop.](../_static/diagrams/12-agent-loop.png)
+![An agent reads state, proposes an action, validates it, executes an approved tool, records the observation, and either stops or repeats the decision loop. Remember: propose, validate, act, observe, repeat or stop.](../_static/diagrams/12-agent-loop.png)
 
 Read the two rows as one cycle: **state -> proposal -> validation -> execution -> observation -> updated state**. The updated state either returns to the decision step or satisfies a stopping rule. The policy can be a rule, a learned controller, or a language model. The executor remains responsible for tool contracts and resource limits.
 

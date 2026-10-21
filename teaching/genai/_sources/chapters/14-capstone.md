@@ -20,7 +20,7 @@ The executable assistant uses deterministic planning and report templates. It is
 
 ## Pipeline and framework
 
-![The capstone validates a structured request, runs an approved simulation and produces a numerical report; held-out scenarios are compared with independent references, and an optional LLM surrounds the same execution core.](../_static/diagrams/14-capstone.png)
+![The capstone validates a structured request, runs an approved simulation and produces a numerical report; held-out scenarios are compared with independent references, and an optional LLM surrounds the same execution core. Remember: calculate first, verify the evidence, then explain.](../_static/diagrams/14-capstone.png)
 
 The first row is the executable system. The second row is the evaluation harness around it. The third row is an optional generative extension whose contribution must be measured against the deterministic baseline. Keeping these rows separate prevents fluent reporting from being confused with correct computation.
 

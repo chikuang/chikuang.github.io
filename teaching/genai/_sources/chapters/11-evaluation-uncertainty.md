@@ -18,7 +18,7 @@ An evaluation begins with a target population and a loss, not with a leaderboard
 
 ## Pipeline and framework
 
-![Define the task and sample unit, split and freeze choices, then calibrate on separate data and report final test metrics with uncertainty that respects dependence.](../_static/diagrams/11-evaluation.png)
+![Define the task and sample unit, split and freeze choices, then calibrate on separate data and report final test metrics with uncertainty that respects dependence. Remember: separate selection, calibration, and the final test.](../_static/diagrams/11-evaluation.png)
 
 Evaluation is a **data-use protocol**, not a final call to a metric function. Write down which sample is allowed to influence each choice before fitting anything. In the executable classifier example, temperature is fitted on a validation sample, the conformal threshold is computed on a different calibration sample, and both are evaluated on a test sample.
 

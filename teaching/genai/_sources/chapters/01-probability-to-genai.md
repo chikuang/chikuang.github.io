@@ -52,7 +52,7 @@ The distinction between *generative* and *discriminative* needs context. In clas
 
 ## 1.2 · The statistical workflow we will preserve
 
-![Three separate workflows: estimate probabilities from training observations, simulate from the fitted model, and score held-out observations.](../_static/diagrams/01-statistical-workflow.png)
+![Three separate workflows: estimate probabilities from training observations, simulate from the fitted model, and score held-out observations. Remember: fit the model, simulate from it, test on real held-out data.](../_static/diagrams/01-statistical-workflow.png)
 
 **How to read the framework.** Estimation produces a fitted distribution. Both the simulation row and the evaluation row use that distribution, but their inputs and questions differ. Simulation starts with a random-number generator and asks whether the implementation reproduces the model. Evaluation starts with new observations from the target population and asks whether the model predicts those observations well.
 

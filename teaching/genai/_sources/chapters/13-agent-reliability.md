@@ -18,7 +18,7 @@ A successful demonstration does not measure reliability. We need repeated tasks,
 
 ## Pipeline and framework
 
-![Run paired policies on the same held-out tasks and repeated failure scenarios, log full trajectories, aggregate by task, bootstrap task clusters and inspect ablations.](../_static/diagrams/13-reliability.png)
+![Run paired policies on the same held-out tasks and repeated failure scenarios, log full trajectories, aggregate by task, bootstrap task clusters and inspect ablations. Remember: pair the tasks; resample task clusters, not individual calls.](../_static/diagrams/13-reliability.png)
 
 An agent evaluation needs a **task-level experimental design** and a **trajectory-level trace**. The trace explains a result; the task is often the unit used for population-level uncertainty. A retry can create more calls without creating more independent tasks.
 

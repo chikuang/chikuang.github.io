@@ -18,7 +18,7 @@ Attention mixes information between positions. A transformer also transforms fea
 
 ## Pipeline and framework
 
-![Token embeddings plus positions pass through repeated pre-normalized causal attention and feed-forward residual blocks, then a final normalization and vocabulary head.](../_static/diagrams/05-transformer.png)
+![Token embeddings plus positions pass through repeated pre-normalized causal attention and feed-forward residual blocks, then a final normalization and vocabulary head. Remember: attend, add, transform, add; then stack the blocks.](../_static/diagrams/05-transformer.png)
 
 The top lane expands one block; the bottom lane places that block inside the whole decoder. In our **pre-normalized** block, layer normalization precedes each learned sublayer. Two residual additions retain a direct path for the input states. Other normalization conventions exist, so identify the convention before comparing implementations.
 

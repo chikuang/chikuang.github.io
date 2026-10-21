@@ -18,7 +18,7 @@ A model receives numbers, not the meaning of a sentence. Tokenization defines th
 
 ## Pipeline and framework
 
-![Learn a tokenizer, vocabulary and embedding table on training text; apply these fitted objects to new text before contextual modeling.](../_static/diagrams/03-representation.png)
+![Learn a tokenizer, vocabulary and embedding table on training text; apply these fitted objects to new text before contextual modeling. Remember: learn the codebook once, reuse the same codebook.](../_static/diagrams/03-representation.png)
 
 A representation pipeline contains **fitted preprocessing objects**, not just neural weights. The tokenizer defines what the IDs mean; the embedding matrix maps those IDs to vectors. Changing the vocabulary without changing the embedding table can preserve array shapes while silently changing the model's meaning.
 

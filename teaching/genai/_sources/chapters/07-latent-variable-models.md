@@ -18,7 +18,7 @@ A latent-variable model generates an unobserved $Z$ and then generates $X$ condi
 
 ## Pipeline and framework
 
-![The VAE optimizes an encoder-decoder ELBO, the GAN alternates discriminator and generator updates, and a flow uses an invertible map with a Jacobian to evaluate densities.](../_static/diagrams/07-generative-families.png)
+![The VAE optimizes an encoder-decoder ELBO, the GAN alternates discriminator and generator updates, and a flow uses an invertible map with a Jacobian to evaluate densities. Remember: VAE encodes; GAN competes; flow reverses.](../_static/diagrams/07-generative-families.png)
 
 These are **alternative generative frameworks**, not consecutive stages of one model. Start by asking which quantities can be evaluated and which can only be sampled. That determines both the objective and the diagnostics available to you.
 
