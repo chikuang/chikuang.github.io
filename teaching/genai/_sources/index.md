@@ -6,7 +6,6 @@
 <h2>From probability to attention.<br>From models to agents.</h2>
 <p>A personal learning course by <a href="https://chikuang.github.io/">Chi-Kuang Yeh</a>, beginning with statistics and statistical machine learning, and learning modern generative AI from the ground up.</p>
 </div>
-<p><a class="course-pdf-link" href="STAT-XXXX-Generative-AI.pdf" download><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Download course PDF</a></p>
 ```
 
 ## Begin with what you know
