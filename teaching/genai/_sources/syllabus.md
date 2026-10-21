@@ -1,7 +1,7 @@
 
 # Course guide
 
-**STAT XXXX Generative AI**
+**Generative AI**
 
 This sequence assumes a strong statistics background and begins at an introductory level in deep learning and GenAI. Modules are learning units, not calendar weeks. Work through them at a comfortable pace, returning to the mathematics when it clarifies an experiment. All 14 chapters now include developed lessons, executable **Python** labs, exercises, and worked solutions. Core experiments progress from NumPy to PyTorch and then transparent retrieval and tool-use policies. They run on a CPU without model downloads or API credentials. Appendix A supplies the Python/PyTorch prerequisites. Appendix B contains an optional executable local-LLM track with published real-model traces; model downloads are separate from the offline core and normal book builds.
 

@@ -96,7 +96,7 @@ PDF generation requires **XeLaTeX and latexmk** in addition to the Python packag
 sudo apt-get install latexmk texlive-xetex texlive-latex-extra texlive-fonts-recommended fonts-freefont-otf
 ```
 
-Successful output is written to `_build/html/`, with executed notebooks under `notebooks/` and the complete book at `STAT-XXXX-Generative-AI.pdf`. The PDF contains a linked contents page, mathematical formulas, code, executed results, and figures. The **PDF** button at the top of every course page downloads the book.
+Successful output is written to `_build/html/`, with executed notebooks under `notebooks/` and the complete book at `Generative-AI.pdf`. The PDF contains a linked contents page, mathematical formulas, code, executed results, and figures. The **PDF** button at the top of every course page downloads the book.
 
 To regenerate only the PDF:
 
@@ -104,9 +104,9 @@ To regenerate only the PDF:
 python scripts/build.py --format pdf
 ```
 
-This updates `_build/html/STAT-XXXX-Generative-AI.pdf` without rebuilding the HTML pages. The intermediate LaTeX source and compilation logs are in `_build/latex/`.
+This updates `_build/html/Generative-AI.pdf` without rebuilding the HTML pages. The intermediate LaTeX source and compilation logs are in `_build/latex/`.
 
-[Download the published course PDF](https://chikuang.github.io/teaching/genai/STAT-XXXX-Generative-AI.pdf).
+[Download the published course PDF](https://chikuang.github.io/teaching/genai/Generative-AI.pdf).
 
 To preview the result:
 

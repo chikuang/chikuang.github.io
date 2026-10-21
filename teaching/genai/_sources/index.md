@@ -1,4 +1,4 @@
-# STAT XXXX Generative AI
+# Generative AI
 
 ```{raw} html
 <div class="course-hero">
