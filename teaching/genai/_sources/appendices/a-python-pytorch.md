@@ -6,7 +6,7 @@ kernelspec:
   language: python
 ---
 
-# Appendix A · Python and PyTorch, one operation at a time
+# A · Python and PyTorch, one operation at a time
 
 **For a statistician learning a new programming language.** You do not need to relearn regression to learn Python. You do need to recognize which objects hold data, which operations transform them, and which instructions change fitted parameters.
 

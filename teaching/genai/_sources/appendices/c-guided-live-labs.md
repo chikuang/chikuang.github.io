@@ -6,7 +6,7 @@ kernelspec:
   language: python
 ---
 
-# Appendix C · Four guided live notebooks
+# C · Four guided live notebooks
 
 **One working boundary at a time.** Start after Chapter 6; return after Chapters 10, 12, and 14. These notebooks make actual calls to the pinned local Qwen2.5-1.5B instruction model. Each can run from a fresh kernel. The website and this appendix display saved outputs and audit records; ordinary book rendering does not perform new inference.
 

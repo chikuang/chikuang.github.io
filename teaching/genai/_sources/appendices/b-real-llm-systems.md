@@ -6,7 +6,7 @@ kernelspec:
   language: python
 ---
 
-# Appendix B · A real local LLM, RAG, and tool-using agent
+# B · A real local LLM, RAG, and tool-using agent
 
 **From the transparent baselines to actual model-generated decisions.** This lab loads an openly available instruction model, generates answers, retrieves evidence, validates model-proposed tool calls, and connects natural-language requests to the statistical simulation in Chapter 14. The language model really runs: it is not replaced by a rule or a canned answer.
 
