@@ -266,7 +266,7 @@ Position features do not themselves create understanding. They allow a model to 
 
 **1. Predict before running.** If deleting a sentence removes a word, why can row number 5 represent different words in two fitted matrices?
 
-**2. Implement and check.** Complete the entire workflow: rebuild vocabulary, count co-occurrences, compute PPMI, refit SVD, intersect vocabularies, and rank neighbors. The reference returns a dictionary from word to vector so row numbers cannot silently misalign. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
+**2. Implement and check.** Complete the entire workflow: rebuild vocabulary, count co-occurrences, compute PPMI, refit SVD, intersect vocabularies, and rank neighbors. The reference returns a dictionary from word to vector so row numbers cannot silently misalign. The code below is a **worked example**. For independent work, download [Assignment 03](https://chikuang.github.io/teaching/genai/_static/assignments/03-student.ipynb), which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.
 
 ```{code-cell} python
 def fit_representation(texts, dimension=4):
@@ -324,6 +324,12 @@ first = ranked_common_neighbors(full_fit, 'models', common)
 second = ranked_common_neighbors(reduced_fit, 'models', common)
 assert neighbor_overlap(['a', 'b'], ['a', 'b'], 2) == 1
 assert neighbor_overlap(['a', 'b'], ['c', 'd'], 2) == 0
+assert neighbor_overlap(['a', 'b'], ['b', 'c'], 2) == 0.5
+# Known cosines, insertion order, and rotation must not change word identity.
+known_fit = {'q': np.array([1., 0.]), 'b': np.array([0., 1.]), 'a': np.array([2., 0.])}
+assert ranked_common_neighbors(known_fit, 'q', set(known_fit)) == ['a', 'b']
+rotated_fit = {word: vector @ np.array([[0., -1.], [1., 0.]]) for word, vector in reversed(list(known_fit.items()))}
+assert ranked_common_neighbors(rotated_fit, 'q', set(known_fit)) == ['a', 'b']
 print('Removed:', corpus[0], '| common directed vocabulary:', len(common))
 print('Neighbors:', first[:4], second[:4], '| overlap:', neighbor_overlap(first, second, 4))
 ```

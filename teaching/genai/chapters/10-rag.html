@@ -168,6 +168,8 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python-workflow.html">Learn, teach, and build with Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../assignments.html">Independent assignments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluation-record.html">One evaluation record across the course</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../statistical-lens.html">The statistical lens</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
 </ul>
@@ -377,6 +379,7 @@
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-framework-for-diagnosing-and-improving-rag">10.10 · A framework for diagnosing and improving RAG</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#carry-these-same-rag-observations-into-chapter-11">Carry these same RAG observations into Chapter 11</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-separate-parseability-contracts-and-support">Coding and experiment practice · Separate parseability, contracts and support</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continue-with-the-implemented-system">Continue with the implemented system</a></li>
 </ul>
@@ -865,10 +868,20 @@ Evidence words: 14
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="n">course_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'GENAI_COURSE_ROOT'</span><span class="p">,</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()))</span>
-<span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">course_root</span> <span class="o">/</span> <span class="s1">'labs/contracts.py'</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s1">'Start Jupyter from Teaching-GenAI, or set GENAI_COURSE_ROOT'</span><span class="p">)</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">course_root</span><span class="p">))</span>
+
+<span class="n">start</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'GENAI_COURSE_ROOT'</span><span class="p">,</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()))</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+<span class="n">root</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="c1"># Examine this folder, then each enclosing folder.</span>
+<span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">start</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">start</span><span class="o">.</span><span class="n">parents</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">candidate</span> <span class="o">/</span> <span class="s1">'labs/model.json'</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">candidate</span>
+        <span class="k">break</span>
+<span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s1">'Keep the notebook inside Teaching-GenAI, or set GENAI_COURSE_ROOT'</span><span class="p">)</span>
+<span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">))</span>
+<span class="n">course_root</span> <span class="o">=</span> <span class="n">root</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">labs.contracts</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_response</span>
 
 <span class="k">try</span><span class="p">:</span>
@@ -1131,10 +1144,54 @@ Answer rate on unanswerable questions: 0.3333333333333333
 </div>
 <p>Questions requiring several facts may need several passages. Query decomposition, multiple searches, and evidence merging can help, but introduce failures: rewriting can change intent, a subquery can omit a fact, and duplicates can appear to corroborate each other. Introduce components when failure analysis motivates them, then measure the revised pipeline and its cost.</p>
 <p>An orchestration library can package this framework, but component names do not replace contracts. Whether it calls something a retriever, chain, node, or tool, inspect the actual text passed between stages. Save the corpus snapshot, chunking settings, encoder/index, retrieval settings, prompt, generator, evaluation questions, and rubric as one versioned experiment record.</p>
+<section id="carry-these-same-rag-observations-into-chapter-11">
+<h3>Carry these same RAG observations into Chapter 11<a class="headerlink" href="#carry-these-same-rag-observations-into-chapter-11" title="Link to this heading">#</a></h3>
+<p>The <a class="reference internal" href="../evaluation-record.html"><span class="std std-doc">common evaluation record</span></a> contains the current real-model outputs, their source links and explicit editorial annotations. Null means unreviewed; it is not a pass. The inspection call is retained as its own condition, rather than counted twice as independent evidence.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="n">start</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'GENAI_COURSE_ROOT'</span><span class="p">,</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()))</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+<span class="n">root</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="c1"># Examine this folder, then each enclosing folder.</span>
+<span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">start</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">start</span><span class="o">.</span><span class="n">parents</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">candidate</span> <span class="o">/</span> <span class="s1">'labs/model.json'</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">candidate</span>
+        <span class="k">break</span>
+<span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s1">'Keep the notebook inside Teaching-GenAI, or set GENAI_COURSE_ROOT'</span><span class="p">)</span>
+<span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">))</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">labs.evaluation</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_evaluation</span><span class="p">,</span> <span class="n">paired_scores</span><span class="p">,</span> <span class="n">make_row</span><span class="p">,</span> <span class="n">validate_rows</span>
+<span class="n">common_rows</span> <span class="o">=</span> <span class="n">load_evaluation</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">common_rows</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">'task_family'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'rag'</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">'task_id'</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">'condition'</span><span class="p">],</span> <span class="s1">'contract:'</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s1">'contract_valid'</span><span class="p">],</span>
+              <span class="s1">'support:'</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s1">'semantic_support'</span><span class="p">],</span> <span class="s1">'complete:'</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s1">'complete'</span><span class="p">],</span>
+              <span class="s1">'success:'</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s1">'task_success'</span><span class="p">])</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>dependent-bootstrap extractive contract: True support: supported complete: True success: True
+dependent-bootstrap llm_inspection contract: True support: supported complete: True success: True
+dependent-bootstrap llm contract: True support: supported complete: True success: True
+</pre></div>
+</div>
+</div>
+</div>
+<p>Reading the fields in order diagnoses different failures: context could be missing, output could violate the contract, a cited claim could contradict the passage, or a true answer could be incomplete. <a class="reference internal" href="../assignments.html"><span class="std std-doc">Assignment 10</span></a> asks you to construct those distinctions yourself.</p>
+</section>
 <section id="coding-and-experiment-practice-separate-parseability-contracts-and-support">
 <h3>Coding and experiment practice · Separate parseability, contracts and support<a class="headerlink" href="#coding-and-experiment-practice-separate-parseability-contracts-and-support" title="Link to this heading">#</a></h3>
 <p><strong>1. Predict before running.</strong> Can an answer cite a real passage and still contradict it?</p>
-<p><strong>2. Implement and check.</strong> Use the shared validator on explicit fixtures before calling a model. A valid rejection contains a nonempty explanation and no citations; a claimed answer needs supplied, unique citation IDs. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.</p>
+<p><strong>2. Implement and check.</strong> Use the shared validator on explicit fixtures before calling a model. A valid rejection contains a nonempty explanation and no citations; a claimed answer needs supplied, unique citation IDs. The code below is a <strong>worked example</strong>. For independent work, download <a class="reference external" href="https://chikuang.github.io/teaching/genai/_static/assignments/10-student.ipynb">Assignment 10</a>, which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
@@ -1281,6 +1338,7 @@ contradiction contract valid: True
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-framework-for-diagnosing-and-improving-rag">10.10 · A framework for diagnosing and improving RAG</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#carry-these-same-rag-observations-into-chapter-11">Carry these same RAG observations into Chapter 11</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-separate-parseability-contracts-and-support">Coding and experiment practice · Separate parseability, contracts and support</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continue-with-the-implemented-system">Continue with the implemented system</a></li>
 </ul>

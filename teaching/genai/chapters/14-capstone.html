@@ -168,6 +168,8 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python-workflow.html">Learn, teach, and build with Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../assignments.html">Independent assignments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluation-record.html">One evaluation record across the course</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../statistical-lens.html">The statistical lens</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
 </ul>
@@ -373,11 +375,15 @@
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#add-a-generative-component-as-an-ablation">14.6 · Add a generative component as an ablation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#produce-a-reproducibility-manifest-and-report">14.7 · Produce a reproducibility manifest and report</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#audit-the-shared-table-against-the-original-request">Audit the shared table against the original request</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-verify-request-computation-and-report-separately">Coding and experiment practice · Verify request, computation and report separately</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">14.8 · Exercises</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choose-your-own-extension">14.9 · Choose your own extension</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choose-your-own-extension">14.9 · Choose your own extension</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#connect-request-validation-to-the-live-interpreter">Connect request validation to the live interpreter</a></li>
+</ul>
+</li>
 </ul>
             </nav>
         </div>
@@ -476,8 +482,14 @@
     <span class="n">n</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">repetitions</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">BUDGET</span>
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1400</span>
+    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"z_estimated_sd"</span>
+    <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.95</span>
+    <span class="n">dependence</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"iid"</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">!=</span> <span class="s2">"z_estimated_sd"</span> <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">confidence</span> <span class="o">!=</span> <span class="mf">0.95</span>
+            <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">dependence</span> <span class="o">!=</span> <span class="s2">"iid"</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"This tool supports only iid sampling and the nominal 95% z interval"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">family</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'normal'</span><span class="p">,</span> <span class="s1">'exponential'</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Only normal and exponential families are supported'</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">int</span> <span class="ow">or</span> <span class="ow">not</span> <span class="mi">5</span> <span class="o">&lt;=</span> <span class="n">request</span><span class="o">.</span><span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">500</span><span class="p">:</span>
@@ -578,7 +590,10 @@ h&amp;=\frac{z}{a}\sqrt{\frac{\widehat\theta(1-\widehat\theta)}R+
     "family": "exponential",
     "n": 30,
     "repetitions": 500,
-    "seed": 1400
+    "seed": 1400,
+    "method": "z_estimated_sd",
+    "confidence": 0.95,
+    "dependence": "iid"
   },
   "covered": 439,
   "estimate": 0.878,
@@ -874,27 +889,93 @@ exponential,120,0.9500,0.9580,0.9438
 </div>
 <p>A final project report should state the question and task population, describe the baseline and extension, document splits and seeds, show results with uncertainty and failures, and explain limitations in plain language. Include the executable notebook and environment information so another reader can reproduce the evidence.</p>
 <p>For this worked example, a supported conclusion is narrow: the assistant executes a bounded coverage simulation and reports its numerical output faithfully. Any advantage over the nominal baseline is conditional on the evaluated scenarios and simulation budget. The lab has not demonstrated general natural-language planning or safe autonomous statistical analysis.</p>
+<section id="audit-the-shared-table-against-the-original-request">
+<h3>Audit the shared table against the original request<a class="headerlink" href="#audit-the-shared-table-against-the-original-request" title="Link to this heading">#</a></h3>
+<p>The same observation schema now contains the original reviewed request, interpreted fields, raw model proposal, execution status and tool-call count. Inspect supported and refused cases together; do not discard refusals to improve the denominator.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="n">start</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'GENAI_COURSE_ROOT'</span><span class="p">,</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()))</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+<span class="n">root</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="c1"># Examine this folder, then each enclosing folder.</span>
+<span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">start</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">start</span><span class="o">.</span><span class="n">parents</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">candidate</span> <span class="o">/</span> <span class="s1">'labs/model.json'</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">candidate</span>
+        <span class="k">break</span>
+<span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s1">'Keep the notebook inside Teaching-GenAI, or set GENAI_COURSE_ROOT'</span><span class="p">)</span>
+<span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">))</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">labs.evaluation</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_evaluation</span><span class="p">,</span> <span class="n">paired_scores</span><span class="p">,</span> <span class="n">make_row</span><span class="p">,</span> <span class="n">validate_rows</span>
+<span class="n">common_rows</span> <span class="o">=</span> <span class="n">load_evaluation</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">common_rows</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">'task_family'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'capstone'</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">'task_id'</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">'executor_status'</span><span class="p">],</span>
+              <span class="s1">'intent:'</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s1">'intent_correct'</span><span class="p">],</span> <span class="s1">'simulation calls:'</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s1">'tool_calls'</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">'executor_status'</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">'completed'</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">row</span><span class="p">[</span><span class="s1">'tool_calls'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Export source: docs/_static/evaluation/common-evaluation.json'</span><span class="p">)</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>normal-18 completed intent: True simulation calls: 1
+exponential-45 completed intent: True simulation calls: 1
+cauchy-22 abstained intent: True simulation calls: 0
+student-t-99 abstained intent: True simulation calls: 0
+confidence-99 abstained intent: True simulation calls: 0
+budget-2000 abstained intent: True simulation calls: 0
+dependent abstained intent: True simulation calls: 0
+Export source: docs/_static/evaluation/common-evaluation.json
+</pre></div>
+</div>
+</div>
+</div>
+<p>For your capstone, export new rows with the same required fields, retain raw failures, and state the scope before model inference. <a class="reference internal" href="../assignments.html"><span class="std std-doc">Assignment 14</span></a> supplies an unfinished execution gate and explicit unsupported-setting tests; its final transfer task is independent of the worked scenario sizes.</p>
+</section>
 <section id="coding-and-experiment-practice-verify-request-computation-and-report-separately">
 <h3>Coding and experiment practice · Verify request, computation and report separately<a class="headerlink" href="#coding-and-experiment-practice-verify-request-computation-and-report-separately" title="Link to this heading">#</a></h3>
 <p><strong>1. Predict before running.</strong> Can a correct normal-family simulation be a failed response to an exponential-family request?</p>
-<p><strong>2. Implement and check.</strong> Compare structured report fields with tool evidence at a declared three-decimal precision, then separately compare interpreted intent with the intended task. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.</p>
+<p><strong>2. Implement and check.</strong> Compare structured report fields with tool evidence at a declared three-decimal precision, then separately compare interpreted intent with the intended task. The code below is a <strong>worked example</strong>. For independent work, download <a class="reference external" href="https://chikuang.github.io/teaching/genai/_static/assignments/14-student.ipynb">Assignment 14</a>, which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
 <details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">numeric_fields_match</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">tool_result</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
     <span class="n">request</span> <span class="o">=</span> <span class="n">tool_result</span><span class="p">[</span><span class="s1">'request'</span><span class="p">]</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'family'</span><span class="p">)</span> <span class="o">==</span> <span class="n">request</span><span class="p">[</span><span class="s1">'family'</span><span class="p">]</span>
-            <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'n'</span><span class="p">))</span> <span class="ow">is</span> <span class="nb">int</span> <span class="ow">and</span> <span class="n">report</span><span class="p">[</span><span class="s1">'n'</span><span class="p">]</span> <span class="o">==</span> <span class="n">request</span><span class="p">[</span><span class="s1">'n'</span><span class="p">]</span>
-            <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'estimate'</span><span class="p">))</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
-            <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">report</span><span class="p">[</span><span class="s1">'estimate'</span><span class="p">])</span>
-            <span class="ow">and</span> <span class="nb">round</span><span class="p">(</span><span class="n">report</span><span class="p">[</span><span class="s1">'estimate'</span><span class="p">],</span> <span class="n">digits</span><span class="p">)</span> <span class="o">==</span> <span class="nb">round</span><span class="p">(</span><span class="n">tool_result</span><span class="p">[</span><span class="s1">'estimate'</span><span class="p">],</span> <span class="n">digits</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'family'</span><span class="p">,</span> <span class="s1">'method'</span><span class="p">,</span> <span class="s1">'dependence'</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">report</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">)</span> <span class="o">!=</span> <span class="n">request</span><span class="p">[</span><span class="n">field</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'n'</span><span class="p">,</span> <span class="s1">'repetitions'</span><span class="p">,</span> <span class="s1">'seed'</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">int</span> <span class="ow">or</span> <span class="n">report</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">!=</span> <span class="n">request</span><span class="p">[</span><span class="n">field</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'confidence'</span><span class="p">))</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="n">report</span><span class="p">[</span><span class="s1">'confidence'</span><span class="p">]</span> <span class="o">!=</span> <span class="n">request</span><span class="p">[</span><span class="s1">'confidence'</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">endpoints</span> <span class="o">=</span> <span class="n">report</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'mc_interval'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">endpoints</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">endpoints</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">proposed</span> <span class="o">=</span> <span class="p">[</span><span class="n">report</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'estimate'</span><span class="p">)]</span> <span class="o">+</span> <span class="n">endpoints</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="p">[</span><span class="n">tool_result</span><span class="p">[</span><span class="s1">'estimate'</span><span class="p">]]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">tool_result</span><span class="p">[</span><span class="s1">'mc_interval'</span><span class="p">])</span>
+    <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+               <span class="ow">and</span> <span class="nb">round</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">digits</span><span class="p">)</span> <span class="o">==</span> <span class="nb">round</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">digits</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">proposed</span><span class="p">,</span> <span class="n">expected</span><span class="p">))</span>
 
-<span class="n">fixture_tool</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'request'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'family'</span><span class="p">:</span> <span class="s1">'normal'</span><span class="p">,</span> <span class="s1">'n'</span><span class="p">:</span> <span class="mi">12</span><span class="p">},</span> <span class="s1">'estimate'</span><span class="p">:</span> <span class="mf">0.91234</span><span class="p">}</span>
-<span class="n">fixture_report</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'family'</span><span class="p">:</span> <span class="s1">'normal'</span><span class="p">,</span> <span class="s1">'n'</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span> <span class="s1">'estimate'</span><span class="p">:</span> <span class="mf">0.912</span><span class="p">}</span>
+<span class="n">fixture_tool</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'request'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'family'</span><span class="p">:</span> <span class="s1">'normal'</span><span class="p">,</span> <span class="s1">'n'</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span> <span class="s1">'repetitions'</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+                           <span class="s1">'seed'</span><span class="p">:</span> <span class="mi">1400</span><span class="p">,</span> <span class="s1">'method'</span><span class="p">:</span> <span class="s1">'z_estimated_sd'</span><span class="p">,</span>
+                           <span class="s1">'confidence'</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span> <span class="s1">'dependence'</span><span class="p">:</span> <span class="s1">'iid'</span><span class="p">},</span>
+                <span class="s1">'estimate'</span><span class="p">:</span> <span class="mf">0.91234</span><span class="p">,</span> <span class="s1">'mc_interval'</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.8832</span><span class="p">,</span> <span class="mf">0.9345</span><span class="p">]}</span>
+<span class="n">fixture_report</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fixture_tool</span><span class="p">[</span><span class="s1">'request'</span><span class="p">],</span> <span class="n">estimate</span><span class="o">=</span><span class="mf">0.912</span><span class="p">,</span> <span class="n">mc_interval</span><span class="o">=</span><span class="p">[</span><span class="mf">0.883</span><span class="p">,</span> <span class="mf">0.934</span><span class="p">])</span>
 <span class="k">assert</span> <span class="n">numeric_fields_match</span><span class="p">(</span><span class="n">fixture_report</span><span class="p">,</span> <span class="n">fixture_tool</span><span class="p">)</span>
-<span class="k">assert</span> <span class="ow">not</span> <span class="n">numeric_fields_match</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">fixture_report</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">fixture_tool</span><span class="p">)</span>
-<span class="k">assert</span> <span class="ow">not</span> <span class="n">numeric_fields_match</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">fixture_report</span><span class="p">,</span> <span class="n">estimate</span><span class="o">=</span><span class="mf">0.95</span><span class="p">),</span> <span class="n">fixture_tool</span><span class="p">)</span>
-<span class="n">intended</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'family'</span><span class="p">:</span> <span class="s1">'exponential'</span><span class="p">,</span> <span class="s1">'n'</span><span class="p">:</span> <span class="mi">12</span><span class="p">}</span>
+<span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">wrong</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">'n'</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="p">(</span><span class="s1">'estimate'</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">),</span> <span class="p">(</span><span class="s1">'repetitions'</span><span class="p">,</span> <span class="mi">2000</span><span class="p">),</span>
+                     <span class="p">(</span><span class="s1">'seed'</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="s1">'method'</span><span class="p">,</span> <span class="s1">'student_t'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'confidence'</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">),</span>
+                     <span class="p">(</span><span class="s1">'dependence'</span><span class="p">,</span> <span class="s1">'dependent'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'mc_interval'</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.88</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">])]:</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">numeric_fields_match</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">fixture_report</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="n">field</span><span class="p">:</span> <span class="n">wrong</span><span class="p">}),</span> <span class="n">fixture_tool</span><span class="p">)</span>
+<span class="n">intended</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fixture_tool</span><span class="p">[</span><span class="s1">'request'</span><span class="p">],</span> <span class="n">family</span><span class="o">=</span><span class="s1">'exponential'</span><span class="p">)</span>
 <span class="n">intent_matches</span> <span class="o">=</span> <span class="n">fixture_tool</span><span class="p">[</span><span class="s1">'request'</span><span class="p">]</span> <span class="o">==</span> <span class="n">intended</span>
 <span class="k">assert</span> <span class="ow">not</span> <span class="n">intent_matches</span>  <span class="c1"># Correct arithmetic cannot repair the wrong task.</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">'Numeric faithfulness:'</span><span class="p">,</span> <span class="n">numeric_fields_match</span><span class="p">(</span><span class="n">fixture_report</span><span class="p">,</span> <span class="n">fixture_tool</span><span class="p">))</span>
@@ -911,8 +992,8 @@ Original request preserved: False
 </div>
 </div>
 </div>
-<p>This fixture isolates a numeric reporting rule. It does not judge the prose, and it deliberately shows that the intent check can fail while the numeric check passes. The live workflow in Appendix C uses the same distinction with actual model interpretations.</p>
-<p><strong>3. Extend one factor.</strong> Complete live lab 4, including its unsupported family. Then compare a separately labeled LLM-written report with the deterministic report from identical tool evidence. Require correct interpretation, numerical agreement and statistically supported narrative for full success; retain each stage failure.</p>
+<p>This fixture checks the full request metadata and both Monte Carlo endpoints at the declared precision, as well as the estimate. The interval method and confidence are part of the estimand, not cosmetic prose. It isolates a numeric reporting rule. It does not judge the prose, and it deliberately shows that the intent check can fail while the numeric check passes. The live workflow in Appendix C uses the same distinction with actual model interpretations.</p>
+<p><strong>3. Extend one factor.</strong> Complete live lab 4, including its unsupported family, method, confidence, repetition count and dependence. Then compare a separately labeled LLM-written report with the deterministic report from identical tool evidence. Require correct interpretation, numerical agreement and statistically supported narrative for full success; retain each stage failure.</p>
 <p><strong>Submission and rubric.</strong> Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.</p>
 </section>
 </section>
@@ -939,6 +1020,11 @@ Original request preserved: False
 <h2>14.9 · Choose your own extension<a class="headerlink" href="#choose-your-own-extension" title="Link to this heading">#</a></h2>
 <p>Three natural extensions are a citation-grounded explanation assistant using Chapter 10’s notes, a more flexible simulation planner using Chapter 12’s dispatcher, or a calibrated answer/abstention system using Chapter 11. Choose one change, specify how it should help, and evaluate it against the completed baseline before adding more components.</p>
 <p>A finished project is one you can explain, reproduce, evaluate, and teach. Its scope can be small while its evidence is rigorous.</p>
+<section id="connect-request-validation-to-the-live-interpreter">
+<h3>Connect request validation to the live interpreter<a class="headerlink" href="#connect-request-validation-to-the-live-interpreter" title="Link to this heading">#</a></h3>
+<p>The chapter tool accepts an explicitly constructed <code class="docutils literal notranslate"><span class="pre">Request</span></code>; it does not interpret free text. Its default values are visible Python arguments. The live C.4 protocol fixes repetitions at 500 and requires a complete six-field request card reviewed against the original question. The interpreter must preserve family, n, method, nominal confidence, repetitions and dependence; a mismatch never starts a simulation. The numerical tool here supports other declared repetition counts for verification, while the current live protocol deliberately refuses them. Changing a budget is an explicit protocol change.</p>
+<p>The full transition is <strong>Chapter 10: retain evidence → Chapter 11: score paired tasks → Chapter 12: validate actions → Chapter 13: account for failures and costs → Chapter 14: verify the original statistical request</strong>. Reuse the <a class="reference internal" href="../evaluation-record.html"><span class="std std-doc">same evaluation fields</span></a>, and complete <a class="reference internal" href="../assignments.html"><span class="std std-doc">Assignment 14</span></a> on a new request before extending the simulator.</p>
+</section>
 </section>
 </section>
 
@@ -1008,11 +1094,15 @@ Original request preserved: False
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#add-a-generative-component-as-an-ablation">14.6 · Add a generative component as an ablation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#produce-a-reproducibility-manifest-and-report">14.7 · Produce a reproducibility manifest and report</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#audit-the-shared-table-against-the-original-request">Audit the shared table against the original request</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-verify-request-computation-and-report-separately">Coding and experiment practice · Verify request, computation and report separately</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">14.8 · Exercises</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choose-your-own-extension">14.9 · Choose your own extension</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choose-your-own-extension">14.9 · Choose your own extension</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#connect-request-validation-to-the-live-interpreter">Connect request validation to the live interpreter</a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

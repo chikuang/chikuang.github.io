@@ -168,6 +168,8 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python-workflow.html">Learn, teach, and build with Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../assignments.html">Independent assignments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluation-record.html">One evaluation record across the course</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../statistical-lens.html">The statistical lens</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
 </ul>
@@ -367,6 +369,7 @@
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#abstention-produces-a-riskcoverage-tradeoff">11.5 · Abstention produces a risk–coverage tradeoff</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#split-conformal-prediction-for-a-finite-label-space">11.6 · Split conformal prediction for a finite label space</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pair-the-actual-chapter-10-rows-before-interpreting-uncertainty">Pair the actual Chapter 10 rows before interpreting uncertainty</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-preserve-pairing-and-numeric-meaning">Coding and experiment practice · Preserve pairing and numeric meaning</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continue-with-the-implemented-system">Continue with the implemented system</a></li>
 </ul>
@@ -680,10 +683,54 @@ Empty / singleton / doubleton counts: [  0 297 303]
 <p><strong>Work it through.</strong> Equation <a class="reference internal" href="#equation-eq-conformal-quantile">(11.6)</a> uses rank <span class="math notranslate nohighlight">\(\lceil(9+1)(0.8)\rceil=8\)</span>, so <span class="math notranslate nohighlight">\(\widehat q=0.60\)</span>. A new binary prediction <span class="math notranslate nohighlight">\((p_0,p_1)=(0.7,0.3)\)</span> has label scores <span class="math notranslate nohighlight">\((0.3,0.7)\)</span>; Equation <a class="reference internal" href="#equation-eq-conformal-set">(11.5)</a> retains only label 0. Prediction <span class="math notranslate nohighlight">\((0.5,0.5)\)</span> has scores <span class="math notranslate nohighlight">\((0.5,0.5)\)</span>, so it retains both labels.</p>
 <p><strong>What this shows.</strong> The threshold is shared, but the prediction-set size depends on the case. Under the stated exchangeability and fixed-predictor assumptions, the guarantee concerns marginal coverage across calibration samples and future cases. It does not assign an 80% correctness probability to either of these particular sets.</p>
 </div>
+<section id="pair-the-actual-chapter-10-rows-before-interpreting-uncertainty">
+<h3>Pair the actual Chapter 10 rows before interpreting uncertainty<a class="headerlink" href="#pair-the-actual-chapter-10-rows-before-interpreting-uncertainty" title="Link to this heading">#</a></h3>
+<p>This uses the same saved RAG responses and reviews as Chapter 10. Joining on task identity protects the observational unit when rows are reordered. A missing condition or unreviewed success label is an error, not a row to drop.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="n">start</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'GENAI_COURSE_ROOT'</span><span class="p">,</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()))</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+<span class="n">root</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="c1"># Examine this folder, then each enclosing folder.</span>
+<span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">start</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">start</span><span class="o">.</span><span class="n">parents</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">candidate</span> <span class="o">/</span> <span class="s1">'labs/model.json'</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">candidate</span>
+        <span class="k">break</span>
+<span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s1">'Keep the notebook inside Teaching-GenAI, or set GENAI_COURSE_ROOT'</span><span class="p">)</span>
+<span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">))</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">labs.evaluation</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_evaluation</span><span class="p">,</span> <span class="n">paired_scores</span><span class="p">,</span> <span class="n">make_row</span><span class="p">,</span> <span class="n">validate_rows</span>
+<span class="n">common_rows</span> <span class="o">=</span> <span class="n">load_evaluation</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+<span class="n">rag_rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">common_rows</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">'task_family'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'rag'</span><span class="p">:</span>
+        <span class="n">rag_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+<span class="n">rag_pairs</span> <span class="o">=</span> <span class="n">paired_scores</span><span class="p">(</span><span class="n">rag_rows</span><span class="p">,</span> <span class="s1">'extractive'</span><span class="p">,</span> <span class="s1">'llm'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Descriptive paired task rows:'</span><span class="p">,</span> <span class="n">rag_pairs</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">rag_pairs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Descriptive paired task rows: [{'task_id': 'dependent-bootstrap', 'replicate': 0, 'a': 1.0, 'b': 1.0, 'difference': 0.0}]
+</pre></div>
+</div>
+</div>
+</div>
+<p>There is only one authored RAG question here. Its observed contrast is a descriptive check, not an estimate supported by a sampled task population. The 240-task simulation earlier in the chapter teaches interval mechanics under its explicit sampling model; it must not be presented as 240 actual model evaluations. Repeated trajectories stay within the same task cluster.</p>
+</section>
 <section id="coding-and-experiment-practice-preserve-pairing-and-numeric-meaning">
 <h3>Coding and experiment practice · Preserve pairing and numeric meaning<a class="headerlink" href="#coding-and-experiment-practice-preserve-pairing-and-numeric-meaning" title="Link to this heading">#</a></h3>
 <p><strong>1. Predict before running.</strong> For A=[True, False, True] and B=[False, True, True], what signed differences represent losses and gains?</p>
-<p><strong>2. Implement and check.</strong> Convert Boolean scores to floating-point numbers before subtraction. Validate paired, nonempty one-dimensional inputs, then return a vector of bootstrap mean differences. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.</p>
+<p><strong>2. Implement and check.</strong> Convert Boolean scores to floating-point numbers before subtraction. Validate paired, nonempty one-dimensional inputs, then return a vector of bootstrap mean differences. The code below is a <strong>worked example</strong>. For independent work, download <a class="reference external" href="https://chikuang.github.io/teaching/genai/_static/assignments/11-student.ipynb">Assignment 11</a>, which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
@@ -702,6 +749,8 @@ Empty / singleton / doubleton counts: [  0 297 303]
 <span class="n">fixture_b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">])</span>
 <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">fixture_b</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">-</span><span class="n">fixture_a</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
 <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">paired_bootstrap</span><span class="p">(</span><span class="n">fixture_a</span><span class="p">,</span> <span class="n">fixture_a</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">paired_bootstrap</span><span class="p">([</span><span class="kc">False</span><span class="p">],</span> <span class="p">[</span><span class="kc">True</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">paired_bootstrap</span><span class="p">([</span><span class="kc">True</span><span class="p">],</span> <span class="p">[</span><span class="kc">False</span><span class="p">])</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">bootstrap_fixture</span> <span class="o">=</span> <span class="n">paired_bootstrap</span><span class="p">(</span><span class="n">fixture_a</span><span class="p">,</span> <span class="n">fixture_b</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">bootstrap_fixture</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">2000</span><span class="p">,)</span>
 <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">bootstrap_fixture</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
@@ -815,6 +864,7 @@ Fixture bootstrap range: -1.0 1.0
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#abstention-produces-a-riskcoverage-tradeoff">11.5 · Abstention produces a risk–coverage tradeoff</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#split-conformal-prediction-for-a-finite-label-space">11.6 · Split conformal prediction for a finite label space</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pair-the-actual-chapter-10-rows-before-interpreting-uncertainty">Pair the actual Chapter 10 rows before interpreting uncertainty</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-preserve-pairing-and-numeric-meaning">Coding and experiment practice · Preserve pairing and numeric meaning</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continue-with-the-implemented-system">Continue with the implemented system</a></li>
 </ul>

@@ -248,17 +248,69 @@ Do not repeatedly inspect test outcomes, change the policy, and continue calling
 Prompt injection tests should include untrusted documents and tool messages that request unauthorized behavior. Score whether the execution boundary rejects invalid actions, not merely whether the final response sounds cautious. The harmless adversarial-note experiment in Chapter 12 is one deterministic unit test, not a comprehensive security evaluation.
 
 
+
+### Use the common record without confusing model and tool costs
+
+First inspect costs from the same actual Agent demonstration used in Chapters 11–12. Here five LLM decisions and four tool attempts describe one trajectory. Recorded latency sums generation-call time only; unmeasured baseline runtime remains null.
+
+```{code-cell} python
+from pathlib import Path
+import os
+import sys
+
+start = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd())).resolve()
+root = None
+# Examine this folder, then each enclosing folder.
+candidates = [start] + list(start.parents)
+for candidate in candidates:
+    if (candidate / 'labs/model.json').is_file():
+        root = candidate
+        break
+if root is None:
+    raise FileNotFoundError('Keep the notebook inside Teaching-GenAI, or set GENAI_COURSE_ROOT')
+if str(root) not in sys.path:
+    sys.path.insert(0, str(root))
+from labs.evaluation import load_evaluation, paired_scores, make_row, validate_rows
+common_rows = load_evaluation(root)
+for row in common_rows:
+    if row['task_family'] == 'agent':
+        print(row['condition'], 'LLM calls:', row['llm_calls'],
+              'tool attempts:', row['tool_calls'], 'model seconds:', row['latency_seconds'])
+
+# Adapt the earlier controlled simulation; do not pool it with actual observations.
+synthetic_rows = []
+for condition, records_for_condition in results.items():
+    for record in records_for_condition:
+        success = bool(record['success'])
+        synthetic_rows.append(make_row(
+            'synthetic-' + str(record['task']), 'retry_simulation', condition,
+            replicate=record['replicate'], data_kind='synthetic',
+            raw_response=record['value'], tool_trace=record['trace'],
+            intent_correct=True, contract_valid=record['status'] != 'invalid_payload',
+            semantic_support='supported' if success else 'insufficient_evidence',
+            complete=success, task_success=success, tool_calls=record['calls'],
+            review_note='Exact comparison to the simulator current-data mean; not a human or LLM rating.'))
+validate_rows(synthetic_rows)
+retry_pairs = paired_scores(synthetic_rows, 'One pass', 'Retry up to 3')
+assert len(retry_pairs) == n_tasks * repeats
+print('Separate synthetic paired trajectories:', len(retry_pairs))
+```
+
+A row is a trajectory, but the resampling unit remains the task. The paired function verifies matching task/replicate IDs; you still average repeated trajectories within each task before the factorial contrast and task bootstrap. The zero-call cache baseline remains outside the four factorial cells.
+
 ### Coding and experiment practice · Complete the factorial contrast
 
 **1. Predict before running.** Why is zero-call Cache only not the cache-enabled cell of a one-call versus three-call experiment?
 
-**2. Implement and check.** Use the four explicitly named one/three-call × cache-off/on conditions. Keep the zero-call cache baseline outside the factorial contrast. Calculate success and call interactions within each task before resampling tasks. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
+**2. Implement and check.** Use the four explicitly named one/three-call × cache-off/on conditions. Keep the zero-call cache baseline outside the factorial contrast. Calculate success and call interactions within each task before resampling tasks. The code below is a **worked example**. For independent work, download [Assignment 13](https://chikuang.github.io/teaching/genai/_static/assignments/13-student.ipynb), which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.
 
 ```{code-cell} python
 def interaction(one_no_cache, three_no_cache, one_cache, three_cache):
     return three_cache - three_no_cache - one_cache + one_no_cache
 
 assert np.isclose(interaction(0.4, 0.6, 0.5, 0.9), 0.2)
+assert np.isclose(interaction(0.2, 0.4, 0.3, 0.5), 0)
+assert np.allclose(interaction(np.array([.4, .2]), np.array([.6, .4]), np.array([.5, .3]), np.array([.9, .5])), [.2, 0])
 factor_names = ['One pass', 'Retry up to 3', 'One pass plus cache', 'Retry plus cache']
 for metric in ['success', 'calls']:
     by_task = []

@@ -324,6 +324,8 @@ Use the official [Python tutorial](https://docs.python.org/3/tutorial/), [NumPy 
 
 ## A.11 · Files, local modules, and a fresh notebook kernel
 
+**Read this before the first live notebook in C.1**, and before any downloaded student assignment.
+
 A module is a Python file containing reusable definitions. In the live labs, `from labs.contracts import validate_response` imports the same function used by Chapter 10. This avoids two validators quietly implementing different scientific inclusion rules. A downloaded notebook that imports course modules must stay inside the cloned course folder, or point to that folder with `GENAI_COURSE_ROOT`.
 
 ```{code-cell} python
@@ -331,19 +333,34 @@ from pathlib import Path
 import os
 import sys
 
-root = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd()))
+
+start = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd())).resolve()
+root = None
+# Examine this folder, then each enclosing folder.
+candidates = [start] + list(start.parents)
+for candidate in candidates:
+    if (candidate / 'labs/model.json').is_file():
+        root = candidate
+        break
+if root is None:
+    raise FileNotFoundError('Keep the notebook inside Teaching-GenAI, or set GENAI_COURSE_ROOT')
+if str(root) not in sys.path:
+    sys.path.insert(0, str(root))
+course_root = root
 print('Python version:', sys.version.split()[0])
 print('Course root found:', (root / 'labs/model.json').is_file())
 print('Example relative path:', Path('labs') / 'contracts.py')
 ```
 
-`Path.cwd()` is the current working directory, not necessarily the notebook's saved folder. `os.environ.get(name, default)` reads an optional environment setting and uses the default if absent. `root / 'labs'` joins paths; it does not divide strings. `sys.path.insert(0, str(root))`, used in the live notebooks, lets Python locate the local `labs` package. It does not install packages or load a model.
+`Path.cwd()` is the current working directory, not necessarily the notebook's saved folder. `start.parents` lists enclosing directories; `list(...)` makes them a list, and `+` joins lists. The loop checks the current folder first and moves outward until it finds `labs/model.json`. `break` stops at the first match. `None` is the initial “not found” marker. This works from `labs/notebooks/`, `docs/notebooks/`, or the repository root; an arbitrary folder outside the clone needs an explicit environment setting. `os.environ.get(name, default)` reads an optional environment setting and uses the default if absent. `root / 'labs'` joins paths; it does not divide strings. `sys.path.insert(0, str(root))`, used in the live notebooks, lets Python locate the local `labs` package. It does not install packages or load a model.
 
 A notebook kernel is a running Python process. Running a cell twice can append two results or make two model calls. **Restart Kernel and Run All Cells** checks that the notebook does not depend on objects created out of order. A saved output is evidence from an earlier run, not evidence that the current kernel has those objects.
 
 Before studying, check `sys.executable` in your own notebook: it should point to the course environment. If `import torch` works in a terminal but fails in Jupyter, compare the interpreters before changing the lesson code. `NameError` usually indicates a cell-order problem; `ModuleNotFoundError` indicates an environment or import-path problem; a rejected JSON response is a model/interface outcome after setup has succeeded.
 
 ## A.12 · Expand compact syntax before using it
+
+**Read this before Chapter 2**, where comprehensions and default arguments already appear. Return before Chapters 5–6 for tensor-specific examples.
 
 A list comprehension is an ordinary loop with its output collection written compactly. Begin with the loop while learning; use the shorter expression after you can predict its result.
 
@@ -367,3 +384,73 @@ print('Expanded keyword arguments:', affine(3, **settings))
 `**settings` unpacks dictionary keys into named arguments; it does not exponentiate a dictionary. In a function definition, `**settings` collects extra named arguments into a dictionary. Chapter 6 passes decoding options this way. Default argument expressions are evaluated when a function is defined: `features=Z` captures the current object, so changing a global name later does not change that default.
 
 `@torch.no_grad()` above a function applies a wrapper so calls do not record gradients. It is the function-wide version of `with torch.no_grad():`. `lambda x: x + 1` is a short function expression; when a function becomes difficult to explain in one sentence, use a named `def` instead. These conveniences change how code is written, not the model or estimand.
+
+## A.13 · Read a record without mistaking it for an answer
+
+A list of dictionaries is a small table. Each dictionary is one observation, and each key is a variable name. In the [common evaluation table](../evaluation-record.md), `None` means not yet reviewed; it must not be converted to success or discarded. An agent trajectory is one task outcome even when it contains five model calls.
+
+For a frozen observation use `deepcopy`, because `saved = messages` creates another name for the same list, and `messages.copy()` still shares nested dictionaries. The following tiny example explains the Agent logging fix without loading a model.
+
+```{code-cell} python
+from copy import deepcopy
+messages_demo = [{'role': 'user', 'content': 'Original question'}]
+frozen_demo = deepcopy(messages_demo)
+messages_demo[0]['content'] = 'Later edit'
+messages_demo.append({'role': 'assistant', 'content': 'Later answer'})
+assert frozen_demo == [{'role': 'user', 'content': 'Original question'}]
+print('Current / saved message counts:', len(messages_demo), len(frozen_demo))
+```
+
+A simple workflow is **input → proposal → validation → computation → evidence → review**. A function boundary packages steps you have already inspected. In C.1, `generate` produces IDs, slicing removes the prompt, and `decode` produces text. In C.3, the raw JSON string becomes an action dictionary, the dispatcher changes a state dictionary, and an observation is appended to the next prompt. In C.4, an interpreted request is compared with a separately reviewed request card before any simulation. None of these structural checks proves that generated prose is scientifically correct.
+
+## A.14 · Expand successful tool use and the capstone gate
+
+The first failed Agent lookup in C.3 leaves its state unchanged. A successful lookup does change it. Here every proposal is an explicitly scripted teaching fixture, so this cell makes **no LLM calls**. `state` is a dictionary whose `observed` value is another dictionary and whose `results` value is a list. Read one mutation at a time.
+
+```{code-cell} python
+from labs.guided_systems import dispatch
+state_walk = {'observed': {}, 'results': []}
+lookup_action = {'tool': 'lookup', 'arguments': {'dataset': 'pilot_b'}}
+lookup_observation = dispatch(lookup_action, state_walk)
+print('Observed keys after lookup:', list(state_walk['observed']))
+print('Observed values:', lookup_observation['values'])
+summary_action = {'tool': 'summarize',
+                  'arguments': {'dataset': 'pilot_b', 'statistic': 'median'}}
+summary_observation = dispatch(summary_action, state_walk)
+assert summary_observation['value'] == 1.5
+assert len(state_walk['results']) == 1
+print('Computed result:', state_walk['results'][0])
+```
+
+The lookup stores values obtained from the registered dataset. The summarize action supplies only a dataset identifier and statistic, not a replacement data vector. Sorting `[1, 1, 2, 9]` gives middle values 1 and 2, hence median 1.5. The executor can now validate a finish proposal against this computed result. A note inside the dataset remains data, not authority to change the calculation.
+
+For a capstone, separate five objects: the original question string, a proposed dictionary, a separately reviewed dictionary, numerical tool evidence, and a report string. The following **scripted fixture** exposes the operations packaged by `execute_confirmed` in C.4. In the real notebook, `interpret_scenario(lm, question)` supplies the proposal through a recorded model call. Do not confuse this fixture with another measured model success.
+
+```{code-cell} python
+from labs.guided_systems import validate_spec, scope_reasons, report_simulation
+from labs.llm_lab import coverage_tool
+
+reviewed = {'family': 'normal', 'n': 25, 'method': 'z_estimated_sd',
+            'confidence': 0.95, 'repetitions': 500, 'dependence': 'iid'}
+proposal_walk = dict(reviewed)  # Scripted proposal, not generated text.
+validate_spec(proposal_walk)  # Representation and numeric limits.
+validate_spec(reviewed)
+reasons = scope_reasons(reviewed)  # Scope is a separate check.
+if reasons:
+    outcome_walk = {'status': 'abstained', 'reasons': reasons}
+elif proposal_walk != reviewed:
+    outcome_walk = {'status': 'intent_mismatch'}
+else:
+    evidence_walk = coverage_tool(proposal_walk['family'], proposal_walk['n'],
+                                  repetitions=proposal_walk['repetitions'])
+    evidence_walk.update(method=proposal_walk['method'],
+                         confidence=proposal_walk['confidence'],
+                         dependence=proposal_walk['dependence'])
+    report_walk = report_simulation(evidence_walk)
+    outcome_walk = {'status': 'completed', 'evidence': evidence_walk,
+                    'report': report_walk}
+print(outcome_walk['status'])
+print(outcome_walk.get('report', outcome_walk.get('reasons')))
+```
+
+The equality compares all six keys and values, not only family and n. `update` adds declared method metadata to numerical evidence; it does not recalculate coverage. `get` retrieves an optional key without raising `KeyError`. The report template inserts evidence from the tool. This example starts with an already reviewed card; the complete helper additionally blocks missing confirmation. Change the card to Student-t, 99%, dependent sampling, or 2000 repetitions and predict which branch runs **before** executing it. A correct numeric result for the wrong request is still a failed task.

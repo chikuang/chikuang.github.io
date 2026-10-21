@@ -274,11 +274,46 @@ A set of finite class labels is not a set of all semantically correct free-text 
 :::
 
 
+
+### Pair the actual Chapter 10 rows before interpreting uncertainty
+
+This uses the same saved RAG responses and reviews as Chapter 10. Joining on task identity protects the observational unit when rows are reordered. A missing condition or unreviewed success label is an error, not a row to drop.
+
+```{code-cell} python
+from pathlib import Path
+import os
+import sys
+
+start = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd())).resolve()
+root = None
+# Examine this folder, then each enclosing folder.
+candidates = [start] + list(start.parents)
+for candidate in candidates:
+    if (candidate / 'labs/model.json').is_file():
+        root = candidate
+        break
+if root is None:
+    raise FileNotFoundError('Keep the notebook inside Teaching-GenAI, or set GENAI_COURSE_ROOT')
+if str(root) not in sys.path:
+    sys.path.insert(0, str(root))
+from labs.evaluation import load_evaluation, paired_scores, make_row, validate_rows
+common_rows = load_evaluation(root)
+rag_rows = []
+for row in common_rows:
+    if row['task_family'] == 'rag':
+        rag_rows.append(row)
+rag_pairs = paired_scores(rag_rows, 'extractive', 'llm')
+print('Descriptive paired task rows:', rag_pairs)
+assert len(rag_pairs) == 1
+```
+
+There is only one authored RAG question here. Its observed contrast is a descriptive check, not an estimate supported by a sampled task population. The 240-task simulation earlier in the chapter teaches interval mechanics under its explicit sampling model; it must not be presented as 240 actual model evaluations. Repeated trajectories stay within the same task cluster.
+
 ### Coding and experiment practice · Preserve pairing and numeric meaning
 
 **1. Predict before running.** For A=[True, False, True] and B=[False, True, True], what signed differences represent losses and gains?
 
-**2. Implement and check.** Convert Boolean scores to floating-point numbers before subtraction. Validate paired, nonempty one-dimensional inputs, then return a vector of bootstrap mean differences. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
+**2. Implement and check.** Convert Boolean scores to floating-point numbers before subtraction. Validate paired, nonempty one-dimensional inputs, then return a vector of bootstrap mean differences. The code below is a **worked example**. For independent work, download [Assignment 11](https://chikuang.github.io/teaching/genai/_static/assignments/11-student.ipynb), which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.
 
 ```{code-cell} python
 def paired_bootstrap(a, b, seed=11, draws=2000):
@@ -296,6 +331,8 @@ fixture_a = np.array([True, False, True])
 fixture_b = np.array([False, True, True])
 assert np.array_equal(fixture_b.astype(float)-fixture_a.astype(float), [-1., 1., 0.])
 assert np.all(paired_bootstrap(fixture_a, fixture_a) == 0)
+assert np.all(paired_bootstrap([False], [True]) == 1)
+assert np.all(paired_bootstrap([True], [False]) == -1)
 bootstrap_fixture = paired_bootstrap(fixture_a, fixture_b)
 assert bootstrap_fixture.shape == (2000,)
 assert np.isfinite(bootstrap_fixture).all()

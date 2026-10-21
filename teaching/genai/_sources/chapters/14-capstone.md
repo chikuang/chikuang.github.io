@@ -85,8 +85,14 @@ class Request:
     n: int
     repetitions: int = BUDGET
     seed: int = 1400
+    method: str = "z_estimated_sd"
+    confidence: float = 0.95
+    dependence: str = "iid"
 
 def validate(request):
+    if (request.method != "z_estimated_sd" or request.confidence != 0.95
+            or request.dependence != "iid"):
+        raise ValueError("This tool supports only iid sampling and the nominal 95% z interval")
     if request.family not in ('normal', 'exponential'):
         raise ValueError('Only normal and exponential families are supported')
     if type(request.n) is not int or not 5 <= request.n <= 500:
@@ -348,36 +354,86 @@ A final project report should state the question and task population, describe t
 For this worked example, a supported conclusion is narrow: the assistant executes a bounded coverage simulation and reports its numerical output faithfully. Any advantage over the nominal baseline is conditional on the evaluated scenarios and simulation budget. The lab has not demonstrated general natural-language planning or safe autonomous statistical analysis.
 
 
+
+### Audit the shared table against the original request
+
+The same observation schema now contains the original reviewed request, interpreted fields, raw model proposal, execution status and tool-call count. Inspect supported and refused cases together; do not discard refusals to improve the denominator.
+
+```{code-cell} python
+from pathlib import Path
+import os
+import sys
+
+start = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd())).resolve()
+root = None
+# Examine this folder, then each enclosing folder.
+candidates = [start] + list(start.parents)
+for candidate in candidates:
+    if (candidate / 'labs/model.json').is_file():
+        root = candidate
+        break
+if root is None:
+    raise FileNotFoundError('Keep the notebook inside Teaching-GenAI, or set GENAI_COURSE_ROOT')
+if str(root) not in sys.path:
+    sys.path.insert(0, str(root))
+from labs.evaluation import load_evaluation, paired_scores, make_row, validate_rows
+common_rows = load_evaluation(root)
+for row in common_rows:
+    if row['task_family'] == 'capstone':
+        print(row['task_id'], row['executor_status'],
+              'intent:', row['intent_correct'], 'simulation calls:', row['tool_calls'])
+        if row['executor_status'] != 'completed':
+            assert row['tool_calls'] == 0
+print('Export source: docs/_static/evaluation/common-evaluation.json')
+```
+
+For your capstone, export new rows with the same required fields, retain raw failures, and state the scope before model inference. [Assignment 14](../assignments.md) supplies an unfinished execution gate and explicit unsupported-setting tests; its final transfer task is independent of the worked scenario sizes.
+
 ### Coding and experiment practice · Verify request, computation and report separately
 
 **1. Predict before running.** Can a correct normal-family simulation be a failed response to an exponential-family request?
 
-**2. Implement and check.** Compare structured report fields with tool evidence at a declared three-decimal precision, then separately compare interpreted intent with the intended task. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
+**2. Implement and check.** Compare structured report fields with tool evidence at a declared three-decimal precision, then separately compare interpreted intent with the intended task. The code below is a **worked example**. For independent work, download [Assignment 14](https://chikuang.github.io/teaching/genai/_static/assignments/14-student.ipynb), which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.
 
 ```{code-cell} python
 def numeric_fields_match(report, tool_result, digits=3):
     request = tool_result['request']
-    return (report.get('family') == request['family']
-            and type(report.get('n')) is int and report['n'] == request['n']
-            and type(report.get('estimate')) in (int, float)
-            and np.isfinite(report['estimate'])
-            and round(report['estimate'], digits) == round(tool_result['estimate'], digits))
+    for field in ['family', 'method', 'dependence']:
+        if report.get(field) != request[field]:
+            return False
+    for field in ['n', 'repetitions', 'seed']:
+        if type(report.get(field)) is not int or report[field] != request[field]:
+            return False
+    if type(report.get('confidence')) not in (int, float) or report['confidence'] != request['confidence']:
+        return False
+    endpoints = report.get('mc_interval')
+    if not isinstance(endpoints, list) or len(endpoints) != 2:
+        return False
+    proposed = [report.get('estimate')] + endpoints
+    expected = [tool_result['estimate']] + list(tool_result['mc_interval'])
+    return all(type(a) in (int, float) and np.isfinite(a)
+               and round(a, digits) == round(b, digits) for a, b in zip(proposed, expected))
 
-fixture_tool = {'request': {'family': 'normal', 'n': 12}, 'estimate': 0.91234}
-fixture_report = {'family': 'normal', 'n': 12, 'estimate': 0.912}
+fixture_tool = {'request': {'family': 'normal', 'n': 12, 'repetitions': 500,
+                           'seed': 1400, 'method': 'z_estimated_sd',
+                           'confidence': 0.95, 'dependence': 'iid'},
+                'estimate': 0.91234, 'mc_interval': [0.8832, 0.9345]}
+fixture_report = dict(fixture_tool['request'], estimate=0.912, mc_interval=[0.883, 0.934])
 assert numeric_fields_match(fixture_report, fixture_tool)
-assert not numeric_fields_match(dict(fixture_report, n=True), fixture_tool)
-assert not numeric_fields_match(dict(fixture_report, estimate=0.95), fixture_tool)
-intended = {'family': 'exponential', 'n': 12}
+for field, wrong in [('n', True), ('estimate', 0.95), ('repetitions', 2000),
+                     ('seed', 0), ('method', 'student_t'), ('confidence', 0.99),
+                     ('dependence', 'dependent'), ('mc_interval', [0.88, 0.99])]:
+    assert not numeric_fields_match(dict(fixture_report, **{field: wrong}), fixture_tool)
+intended = dict(fixture_tool['request'], family='exponential')
 intent_matches = fixture_tool['request'] == intended
 assert not intent_matches  # Correct arithmetic cannot repair the wrong task.
 print('Numeric faithfulness:', numeric_fields_match(fixture_report, fixture_tool))
 print('Original request preserved:', intent_matches)
 ```
 
-This fixture isolates a numeric reporting rule. It does not judge the prose, and it deliberately shows that the intent check can fail while the numeric check passes. The live workflow in Appendix C uses the same distinction with actual model interpretations.
+This fixture checks the full request metadata and both Monte Carlo endpoints at the declared precision, as well as the estimate. The interval method and confidence are part of the estimand, not cosmetic prose. It isolates a numeric reporting rule. It does not judge the prose, and it deliberately shows that the intent check can fail while the numeric check passes. The live workflow in Appendix C uses the same distinction with actual model interpretations.
 
-**3. Extend one factor.** Complete live lab 4, including its unsupported family. Then compare a separately labeled LLM-written report with the deterministic report from identical tool evidence. Require correct interpretation, numerical agreement and statistically supported narrative for full success; retain each stage failure.
+**3. Extend one factor.** Complete live lab 4, including its unsupported family, method, confidence, repetition count and dependence. Then compare a separately labeled LLM-written report with the deterministic report from identical tool evidence. Require correct interpretation, numerical agreement and statistically supported narrative for full success; retain each stage failure.
 
 **Submission and rubric.** Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.
 
@@ -409,3 +465,9 @@ This fixture isolates a numeric reporting rule. It does not judge the prose, and
 Three natural extensions are a citation-grounded explanation assistant using Chapter 10's notes, a more flexible simulation planner using Chapter 12's dispatcher, or a calibrated answer/abstention system using Chapter 11. Choose one change, specify how it should help, and evaluate it against the completed baseline before adding more components.
 
 A finished project is one you can explain, reproduce, evaluate, and teach. Its scope can be small while its evidence is rigorous.
+
+### Connect request validation to the live interpreter
+
+The chapter tool accepts an explicitly constructed `Request`; it does not interpret free text. Its default values are visible Python arguments. The live C.4 protocol fixes repetitions at 500 and requires a complete six-field request card reviewed against the original question. The interpreter must preserve family, n, method, nominal confidence, repetitions and dependence; a mismatch never starts a simulation. The numerical tool here supports other declared repetition counts for verification, while the current live protocol deliberately refuses them. Changing a budget is an explicit protocol change.
+
+The full transition is **Chapter 10: retain evidence → Chapter 11: score paired tasks → Chapter 12: validate actions → Chapter 13: account for failures and costs → Chapter 14: verify the original statistical request**. Reuse the [same evaluation fields](../evaluation-record.md), and complete [Assignment 14](../assignments.md) on a new request before extending the simulator.

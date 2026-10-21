@@ -16,7 +16,9 @@ kernelspec:
 
 ## B.1 · Two execution modes, clearly separated
 
-The saved follow-up is the **historical v1 experiment**, whose unchanged source is in `labs/archived-v1/`. Its old `valid` column uses its original, weaker response contract. The current runner shares Chapter 10's validator and identifies new records as schema version 2; do not pool validity rates across these versions. Historical source archives identify recorded bytes; use the corresponding Git revision to recreate their original folder layout.
+The saved follow-up is the **historical v1 experiment**, whose unchanged source is in `labs/archived-v1/`. Its old `valid` column uses its original, weaker response contract. The current runner also fixes prompt snapshots and requires full capstone request cards; it shares Chapter 10's validator and identifies new records as schema version 3; do not pool validity rates across these versions. Historical source archives identify recorded bytes; use the corresponding Git revision to recreate their original folder layout.
+
+**Historical trace limitation:** the old Agent logger retained a mutable message list. Some saved per-call prompts therefore contain actions from later turns. Raw completions and tool traces remain historical observations, but those message lists cannot certify the exact prompt at each call. Do not use them to reconstruct prompt timing or compute per-turn context lengths. The corrected, freshly executed audit is in C.3.
 
 The regular book build runs the NumPy/PyTorch teaching labs and **reanalyzes a saved real-model run** here. It does not download a model or pretend to generate fresh LLM responses during every render. The saved JSON contains prompts, raw completions, parsed outputs, tool traces, model revision, software versions, decoding settings, token counts, timing, and failures.
 
@@ -42,7 +44,7 @@ The pinned downloader refuses to require a login and only requests model/configu
 
 If you encounter an out-of-memory failure, close other memory-intensive applications or run the analysis of the saved trace first. Do not silently switch models and describe the resulting run as the pinned experiment. A package/import error is different from an invalid model response: fix the environment before interpreting system performance.
 
-To examine your own run in this notebook, change `record_path` in the next cell. When opening the downloaded notebook, start JupyterLab **from the cloned repository root**, or set `GENAI_COURSE_ROOT` to that folder. A notebook saved alone elsewhere cannot find the repository's experiment records.
+This analysis targets the historical v1 schema. Use the matching archived revision to reproduce it. For a new schema-v3 run, use the guided notebooks and common evaluation table rather than substituting a differently shaped record here. When opening the downloaded notebook, keep the notebook inside the cloned repository (the setup searches enclosing folders), or set `GENAI_COURSE_ROOT` to that folder. A notebook saved alone elsewhere cannot find the repository's experiment records.
 
 ```{code-cell} python
 from pathlib import Path
@@ -51,7 +53,21 @@ import json
 import os
 import numpy as np
 
-root = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd()))
+import sys
+
+start = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd())).resolve()
+root = None
+# Examine this folder, then each enclosing folder.
+candidates = [start] + list(start.parents)
+for candidate in candidates:
+    if (candidate / 'labs/model.json').is_file():
+        root = candidate
+        break
+if root is None:
+    raise FileNotFoundError('Keep the notebook inside Teaching-GenAI, or set GENAI_COURSE_ROOT')
+if str(root) not in sys.path:
+    sys.path.insert(0, str(root))
+course_root = root
 record_path = root / 'docs/_static/experiments/llm-run.json'
 # For your new run instead: record_path = root / '.runs/my-llm-run.json'
 record = json.loads(record_path.read_text())
@@ -251,12 +267,13 @@ For a submitted capstone, add a fresh natural-language test set after freezing p
 The strict-schema comparison above rejected all three capstone responses: even a correct-looking request wrapped in a Markdown fence failed the declared transport contract. We retained those outcomes. The separate [capstone development runner](https://github.com/chikuang/Teaching-GenAI/blob/main/labs/capstone_live.py) adds few-shot formatting examples and permits either bare JSON or exactly one enclosing JSON code fence. It never edits the requested distribution, numbers, or field names. This policy change follows inspected failures and is **development**, not a new unbiased test estimate.
 
 ```bash
-python labs/capstone_live.py --model-dir _models/qwen2.5-1.5b --output .runs/capstone-demo.json
+python labs/capstone_live.py --model-dir _models/qwen2.5-1.5b --output .runs/new-capstone-v3.json
 ```
 
 The two supported requests now reach the actual simulation tool. Generated reports can still be rejected for unexpected fields or unsupported statistical interpretations. This distinction is useful: the numerical engine can work while the generative interface still fails its contract. The deterministic Chapter 14 report remains the explicit comparison, not a hidden replacement for a failed model report.
 
 ```{code-cell} python
+# This is the archived two-field experiment, not the current command output.
 demo = json.loads((root / 'docs/_static/experiments/capstone-demo.json').read_text())
 print(demo['protocol'])
 for row in demo['rows']:
@@ -303,3 +320,5 @@ Start with the JSON trace rather than only the rendered success table. For exerc
 :::
 
 The official [Transformers chat-template guide](https://huggingface.co/docs/transformers/v4.57.1/chat_templating) explains message formatting; [generation documentation](https://huggingface.co/docs/transformers/v4.57.1/main_classes/text_generation) explains the generation interface. The book's validators, datasets, comparisons, and recorded failure analyses are separate teaching experiments.
+
+The current capstone command follows the six-field request-card protocol in C.4. The saved generated-report experiment above remains historical evidence; its original runner is archived under `labs/archived-v1/`.

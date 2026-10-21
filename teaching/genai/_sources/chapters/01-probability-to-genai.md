@@ -693,7 +693,7 @@ The simulation ranges summarize variation across 300 independently generated tra
 
 **1. Predict before running.** Will every individual run improve when the number of generated draws increases? Explain why not.
 
-**2. Implement and check.** Write `frequency_error(probabilities, size, seed)` returning one scalar. A degenerate distribution provides an exact fixture; repeated seeds provide a Monte Carlo experiment. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
+**2. Implement and check.** Write `frequency_error(probabilities, size, seed)` returning one scalar. A degenerate distribution provides an exact fixture; repeated seeds provide a Monte Carlo experiment. The code below is a **worked example**. For independent work, download [Assignment 01](https://chikuang.github.io/teaching/genai/_static/assignments/01-student.ipynb), which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.
 
 ```{code-cell} python
 def frequency_error(probabilities, size, seed):
@@ -703,6 +703,8 @@ def frequency_error(probabilities, size, seed):
     frequencies = np.bincount(draws, minlength=len(probabilities)) / size
     return float(np.max(np.abs(frequencies - probabilities)))
 
+# With one draw, the error is .2 (category 0) or .8 (category 1), never zero.
+assert np.isclose(frequency_error([0.8, 0.2], 1, 2026), 0.2) or np.isclose(frequency_error([0.8, 0.2], 1, 2026), 0.8)
 assert frequency_error([1., 0.], 100, 1) == 0
 assert frequency_error([0.6, 0.3, 0.1], 100, 2) == frequency_error([0.6, 0.3, 0.1], 100, 2)
 for size in [100, 1000, 10000]:

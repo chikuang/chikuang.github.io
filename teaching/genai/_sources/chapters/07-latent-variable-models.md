@@ -270,7 +270,7 @@ Expressive flows use transformations whose inverse and determinant remain comput
 
 **1. Predict before running.** Why do a centered spherical Gaussian and the symmetric four-cluster mixture both assign one quarter of their mass to each nearest-center region?
 
-**2. Implement and check.** Compare fitted single-Gaussian and VAE samples under the same 1,000-draw budget. Predeclare radius 0.4. Report region occupancy, nearest-center distance quantiles and mass within that radius. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
+**2. Implement and check.** Compare fitted single-Gaussian and VAE samples under the same 1,000-draw budget. Predeclare radius 0.4. Report region occupancy, nearest-center distance quantiles and mass within that radius. The code below is a **worked example**. For independent work, download [Assignment 07](https://chikuang.github.io/teaching/genai/_static/assignments/07-student.ipynb), which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.
 
 ```{code-cell} python
 def distribution_diagnostics(samples, centers, radius=0.4):
@@ -285,6 +285,11 @@ def distribution_diagnostics(samples, centers, radius=0.4):
 at_centers = distribution_diagnostics(centers, centers)
 assert np.allclose(at_centers['occupancy'], 0.25)
 assert at_centers['near_center_mass'] == 1
+assert np.allclose(at_centers['distance_quantiles'], [0., 0., 0.])
+known_distance = distribution_diagnostics(np.array([[3., 4.]]), np.array([[0., 0.]]), radius=5.)
+assert np.allclose(known_distance['distance_quantiles'], [5., 5., 5.])
+assert known_distance['near_center_mass'] == 1
+assert distribution_diagnostics(np.array([[3., 4.]]), np.array([[0., 0.]]), radius=4.9)['near_center_mass'] == 0
 assert distribution_diagnostics(np.zeros((4, 2)), centers)['near_center_mass'] == 0
 comparison_rng = np.random.default_rng(707)
 gaussian_sample = comparison_rng.multivariate_normal(
@@ -323,7 +328,7 @@ The three-dimensional distance array has sample, center and coordinate axes befo
 
 **4.** a tractable flow provides exact model likelihood; a VAE provides a computable ELBO and generative model; a standard implicit GAN primarily provides samples. These labels describe objectives and access, not universal quality rankings.
 
-**5.** means may be close for both, while cluster occupancy and density between clusters differ. This demonstrates why evaluation needs more than first moments.
+**5.** means and quadrant occupancy may be close for both. Nearest-center distances and mass near the centers can distinguish the distributions. This demonstrates why evaluation needs more than first moments.
 :::
 
 ## 7.9 · Reading and next step

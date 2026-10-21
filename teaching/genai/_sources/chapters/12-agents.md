@@ -304,14 +304,26 @@ Read a policy step as: receive visible history, propose one object, parse it, va
 
 **1. Predict before running.** What new information must a policy obtain after a lookup returns an unknown-name error?
 
-**2. Implement and check.** Run the current shared executor with a fixed workflow and a programmed recovery policy. These are explicit deterministic baselines. Live lab 3 passes the real LLM through the same runner. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
+**2. Implement and check.** Run the current shared executor with a fixed workflow and a programmed recovery policy. These are explicit deterministic baselines. Live lab 3 passes the real LLM through the same runner. The code below is a **worked example**. For independent work, download [Assignment 12](https://chikuang.github.io/teaching/genai/_static/assignments/12-student.ipynb), which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.
 
 ```{code-cell} python
 import os
 import sys
 from pathlib import Path
-course_root = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd()))
-sys.path.insert(0, str(course_root))
+
+start = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd())).resolve()
+root = None
+# Examine this folder, then each enclosing folder.
+candidates = [start] + list(start.parents)
+for candidate in candidates:
+    if (candidate / 'labs/model.json').is_file():
+        root = candidate
+        break
+if root is None:
+    raise FileNotFoundError('Keep the notebook inside Teaching-GenAI, or set GENAI_COURSE_ROOT')
+if str(root) not in sys.path:
+    sys.path.insert(0, str(root))
+course_root = root
 from labs.guided_systems import run_decisions, rule_policy, dispatch as shared_dispatch
 
 branch_question = 'Look up spring_pilot and report its median.'

@@ -283,7 +283,7 @@ Our one-dimensional example explains noising, denoising, and sampling. It does n
 
 **1. Predict before running.** The mathematical times 1, 26 and 80 correspond to which zero-based Python indices?
 
-**2. Implement and check.** Implement an exact score function taking both observations and a time index. Use fresh noisy observations with a separate evaluation seed; keep errors separate by time. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
+**2. Implement and check.** Implement an exact score function taking both observations and a time index. Use fresh noisy observations with a separate evaluation seed; keep errors separate by time. The code below is a **worked example**. For independent work, download [Assignment 08](https://chikuang.github.io/teaching/genai/_static/assignments/08-student.ipynb), which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.
 
 ```{code-cell} python
 def mixture_score(x, time_index):
@@ -303,6 +303,19 @@ def score_mse(learned, exact):
 
 assert score_mse(np.array([[1.], [3.]]), np.array([[0.], [1.]])) == 2.5
 assert np.allclose(mixture_score([[0.]], 25), 0)
+# Differentiate the independently specified mixture log density away from zero.
+from scipy.stats import norm
+for check_time in [0, 25, 79]:
+    a_check = float(alpha_bar[check_time])
+    sd_check = np.sqrt(0.35**2 * a_check + 1 - a_check)
+    x_check = np.array([-2.7, -0.8, 0.4, 2.5])
+    def log_density_check(x):
+        left = norm.logpdf(x, loc=-2*np.sqrt(a_check), scale=sd_check)
+        right = norm.logpdf(x, loc=2*np.sqrt(a_check), scale=sd_check)
+        return np.logaddexp(left, right) - np.log(2)
+    h = 1e-5
+    difference = (log_density_check(x_check+h)-log_density_check(x_check-h))/(2*h)
+    assert np.allclose(mixture_score(x_check, check_time).ravel(), difference, atol=1e-5)
 ```
 
 The first check has hand-computable squared errors 1 and 4, whose mean is 2.5. The second uses symmetry: the score at the mixture center is zero. Only after these fixtures pass do we compare a learned function with the oracle. In the next loop, `torch.full` repeats one time index for every observation, and `float32` matches the fitted network's weights.

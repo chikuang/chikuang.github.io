@@ -141,7 +141,6 @@ class DecoderBlock(nn.Module):
         mixed = (weights @ v).transpose(1, 2).contiguous().reshape(B, T, D)
         x = x + self.project(mixed)
         return x + self.ffn(self.norm2(x))
-
 ```
 
 The block maps `(batch, time, width)` back to the same shape. The wrapper below first looks up token and position vectors, then maps the final states to one logit per vocabulary item. `self` refers to this particular model instance; submodules assigned to it register their trainable parameters.
@@ -164,7 +163,6 @@ class TinyDecoder(nn.Module):
         positions = torch.arange(T, device=ids.device)
         x = self.token(ids) + self.position(positions)
         return self.head(self.final_norm(self.block(x)))
-
 ```
 
 Constructing a model allocates its parameters. Calling `model(ids)` invokes `forward`; these are different operations.
@@ -175,7 +173,6 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.008)
 def log_loss(x, y):
     return nn.functional.cross_entropy(model(x).reshape(-1, len(chars)),
                                         y.reshape(-1), ignore_index=0)
-
 ```
 
 Before looping, identify three state variables: `history` stores scalar diagnostics, `best` is the smallest validation loss so far, and `checkpoint` is a copied parameter snapshot. No test observation participates in this choice.
@@ -327,7 +324,7 @@ Pretraining estimates a broad conditional model. Supervised instruction tuning c
 
 **1. Predict before running.** Can changing temperature improve the already-computed test likelihood without changing any model weight?
 
-**2. Implement and check.** Use the trained decoder, three temperatures and the same ten seeds. Store each result before computing a summary so malformed or truncated strings remain inspectable. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
+**2. Implement and check.** Use the trained decoder, three temperatures and the same ten seeds. Store each result before computing a summary so malformed or truncated strings remain inspectable. The code below is a **worked example**. For independent work, download [Assignment 06](https://chikuang.github.io/teaching/genai/_static/assignments/06-student.ipynb), which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.
 
 ```{code-cell} python
 def grammar_hit(generation, allowed_sentences):
@@ -336,6 +333,7 @@ def grammar_hit(generation, allowed_sentences):
 
 assert grammar_hit({'text': sentences[0], 'stop_reason': 'end_token'}, set(sentences))
 assert not grammar_hit({'text': sentences[0], 'stop_reason': 'length_limit'}, set(sentences))
+assert not grammar_hit({'text': 'not a sentence in this grammar', 'stop_reason': 'end_token'}, set(sentences))
 decoding_rows = []
 for temperature in [0.6, 1.0, 1.4]:
     for seed in range(10):

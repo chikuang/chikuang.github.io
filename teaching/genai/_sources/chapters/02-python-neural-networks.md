@@ -34,6 +34,8 @@ The **inner loop** updates parameters using training minibatches. The **outer se
 
 The training loop in Section 2.5 implements these steps in the order `zero_grad -> forward -> loss -> backward -> step`. Evaluation mode and disabled gradient recording serve different purposes: the former changes layers such as dropout; the latter avoids building a gradient graph. Neither substitutes for holding out observations.
 
+**Python preparation:** read A.12 on comprehensions, keyword unpacking and default arguments before running this chapter.
+
 ## 2.1 · Arrays, shapes, and broadcasting
 
 A NumPy array has a shape and a data type. A matrix of $n$ observations with $p$ features has shape `(n, p)`. In Python, `*` multiplies entries; `@` performs matrix multiplication. Broadcasting permits operations between compatible shapes by aligning dimensions from the right. A singleton dimension can be repeated without explicitly making copies.
@@ -322,7 +324,7 @@ A useful development test is to overfit a tiny training subset deliberately. If 
 
 **1. Predict before running.** For a positive label with a predicted probability below one, what is the sign of the derivative with respect to its logit?
 
-**2. Implement and check.** Implement mean logistic loss and a gradient with the same shape as `beta`. Use five observations, a nonzero vector, and centered finite differences. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
+**2. Implement and check.** Implement mean logistic loss and a gradient with the same shape as `beta`. Use five observations, a nonzero vector, and centered finite differences. The code below is a **worked example**. For independent work, download [Assignment 02](https://chikuang.github.io/teaching/genai/_static/assignments/02-student.ipynb), which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.
 
 ```{code-cell} python
 def logistic_loss_gradient(X, y, beta):
@@ -343,6 +345,14 @@ for j in range(len(fixture_beta)):
     plus = logistic_loss_gradient(fixture_X, fixture_y, fixture_beta + delta)[0]
     minus = logistic_loss_gradient(fixture_X, fixture_y, fixture_beta - delta)[0]
     finite[j] = (plus - minus) / (2e-5)
+# An external, hand-calculated target defeats a constant loss/zero-gradient pair.
+known_loss, known_gradient = logistic_loss_gradient(np.array([[2.]]), np.array([1.]), np.array([0.]))
+assert np.isclose(known_loss, np.log(2))
+assert np.allclose(known_gradient, [-1.])
+# At eta=log(3), p=.75: loss=-log(.75), gradient=2*(.75-1).
+known_loss, known_gradient = logistic_loss_gradient(np.array([[2.]]), np.array([1.]), np.array([np.log(3)/2]))
+assert np.isclose(known_loss, -np.log(0.75))
+assert np.allclose(known_gradient, [-0.5])
 assert analytic.shape == fixture_beta.shape
 assert np.allclose(analytic, finite, atol=1e-7, rtol=1e-5)
 print('Analytic / finite difference:', analytic, finite)

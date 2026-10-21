@@ -168,6 +168,8 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python-workflow.html">Learn, teach, and build with Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../assignments.html">Independent assignments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluation-record.html">One evaluation record across the course</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../statistical-lens.html">The statistical lens</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
 </ul>
@@ -425,6 +427,7 @@
 </table>
 </div>
 <p>The training loop in Section 2.5 implements these steps in the order <code class="docutils literal notranslate"><span class="pre">zero_grad</span> <span class="pre">-&gt;</span> <span class="pre">forward</span> <span class="pre">-&gt;</span> <span class="pre">loss</span> <span class="pre">-&gt;</span> <span class="pre">backward</span> <span class="pre">-&gt;</span> <span class="pre">step</span></code>. Evaluation mode and disabled gradient recording serve different purposes: the former changes layers such as dropout; the latter avoids building a gradient graph. Neither substitutes for holding out observations.</p>
+<p><strong>Python preparation:</strong> read A.12 on comprehensions, keyword unpacking and default arguments before running this chapter.</p>
 </section>
 <section id="arrays-shapes-and-broadcasting">
 <h2>2.1 · Arrays, shapes, and broadcasting<a class="headerlink" href="#arrays-shapes-and-broadcasting" title="Link to this heading">#</a></h2>
@@ -627,7 +630,7 @@ Derivative: [[-0.25, 0.25]]
 After: [[0.05000000074505806, -0.05000000074505806]]
 </pre></div>
 </div>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;torch._C.Generator at 0x10ee6ddd0&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;torch._C.Generator at 0x10d1eddd0&gt;
 </pre></div>
 </div>
 </div>
@@ -786,7 +789,7 @@ Radius basis: test log loss=0.266, accuracy=0.876
 <section id="coding-and-experiment-practice-verify-the-gradient-before-fitting">
 <h3>Coding and experiment practice · Verify the gradient before fitting<a class="headerlink" href="#coding-and-experiment-practice-verify-the-gradient-before-fitting" title="Link to this heading">#</a></h3>
 <p><strong>1. Predict before running.</strong> For a positive label with a predicted probability below one, what is the sign of the derivative with respect to its logit?</p>
-<p><strong>2. Implement and check.</strong> Implement mean logistic loss and a gradient with the same shape as <code class="docutils literal notranslate"><span class="pre">beta</span></code>. Use five observations, a nonzero vector, and centered finite differences. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.</p>
+<p><strong>2. Implement and check.</strong> Implement mean logistic loss and a gradient with the same shape as <code class="docutils literal notranslate"><span class="pre">beta</span></code>. Use five observations, a nonzero vector, and centered finite differences. The code below is a <strong>worked example</strong>. For independent work, download <a class="reference external" href="https://chikuang.github.io/teaching/genai/_static/assignments/02-student.ipynb">Assignment 02</a>, which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
@@ -808,6 +811,14 @@ Radius basis: test log loss=0.266, accuracy=0.876
     <span class="n">plus</span> <span class="o">=</span> <span class="n">logistic_loss_gradient</span><span class="p">(</span><span class="n">fixture_X</span><span class="p">,</span> <span class="n">fixture_y</span><span class="p">,</span> <span class="n">fixture_beta</span> <span class="o">+</span> <span class="n">delta</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">minus</span> <span class="o">=</span> <span class="n">logistic_loss_gradient</span><span class="p">(</span><span class="n">fixture_X</span><span class="p">,</span> <span class="n">fixture_y</span><span class="p">,</span> <span class="n">fixture_beta</span> <span class="o">-</span> <span class="n">delta</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">finite</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">plus</span> <span class="o">-</span> <span class="n">minus</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2e-5</span><span class="p">)</span>
+<span class="c1"># An external, hand-calculated target defeats a constant loss/zero-gradient pair.</span>
+<span class="n">known_loss</span><span class="p">,</span> <span class="n">known_gradient</span> <span class="o">=</span> <span class="n">logistic_loss_gradient</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">2.</span><span class="p">]]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">]))</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">known_loss</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">known_gradient</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.</span><span class="p">])</span>
+<span class="c1"># At eta=log(3), p=.75: loss=-log(.75), gradient=2*(.75-1).</span>
+<span class="n">known_loss</span><span class="p">,</span> <span class="n">known_gradient</span> <span class="o">=</span> <span class="n">logistic_loss_gradient</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">2.</span><span class="p">]]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">]))</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">known_loss</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">0.75</span><span class="p">))</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">known_gradient</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.5</span><span class="p">])</span>
 <span class="k">assert</span> <span class="n">analytic</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">fixture_beta</span><span class="o">.</span><span class="n">shape</span>
 <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">analytic</span><span class="p">,</span> <span class="n">finite</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">'Analytic / finite difference:'</span><span class="p">,</span> <span class="n">analytic</span><span class="p">,</span> <span class="n">finite</span><span class="p">)</span>

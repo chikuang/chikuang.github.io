@@ -265,13 +265,15 @@ Record the base model, adaptation data, frozen parameters, trainable parameters,
 
 **1. Predict before running.** For input width 12, output width 8 and rank 2, how many trainable entries are there? Does rank two constrain the full adapted weight?
 
-**2. Implement and check.** Check rank and parameter count, then refit the low-rank and full update on identical data with 450 optimizer steps each. Keep rank choice separate from final test reporting. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
+**2. Implement and check.** Check rank and parameter count, then refit the low-rank and full update on identical data with 450 optimizer steps each. Keep rank choice separate from final test reporting. The code below is a **worked example**. For independent work, download [Assignment 09](https://chikuang.github.io/teaching/genai/_static/assignments/09-student.ipynb), which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.
 
 ```{code-cell} python
 def lora_parameter_count(d_in, d_out, update_rank):
     return update_rank * (d_in + d_out)
 
 assert lora_parameter_count(12, 8, 2) == 40
+assert lora_parameter_count(3, 5, 1) == 8
+assert lora_parameter_count(3, 5, 2) == 16
 fixture_A = torch.tensor([[1.], [2.], [3.]])
 fixture_B = torch.tensor([[1., -1.]])
 assert torch.linalg.matrix_rank(fixture_A @ fixture_B, atol=1e-6) == 1

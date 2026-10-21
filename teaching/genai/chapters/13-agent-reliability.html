@@ -168,6 +168,8 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python-workflow.html">Learn, teach, and build with Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../assignments.html">Independent assignments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluation-record.html">One evaluation record across the course</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../statistical-lens.html">The statistical lens</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
 </ul>
@@ -367,6 +369,7 @@
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-cost-and-failure-examples">13.5 · Inspect cost and failure examples</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#factorial-comparisons-and-adaptive-evaluation">13.6 · Factorial comparisons and adaptive evaluation</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#use-the-common-record-without-confusing-model-and-tool-costs">Use the common record without confusing model and tool costs</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-complete-the-factorial-contrast">Coding and experiment practice · Complete the factorial contrast</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continue-with-the-implemented-system">Continue with the implemented system</a></li>
 </ul>
@@ -682,10 +685,72 @@ Recovery trace: {'value': 0.8543511034891461, 'status': 'answered', 'calls': 2, 
 <p>It asks whether the effect of A changes when B is enabled. Estimate all four conditions on the same tasks and resample the paired task-level contrasts. A positive interaction is scale-dependent and does not establish that either factor improves every task. The experiment now includes all four one/three-call by cache-off/on conditions. The zero-call Cache only condition is an additional baseline and never enters the factorial contrast. The practice below computes paired task contrasts for success and calls.</p>
 <p>Do not repeatedly inspect test outcomes, change the policy, and continue calling the same set “held out.” Use a development suite for repairs and a locked evaluation suite for final reporting. Record the number of policy variants considered, since selection among many noisy estimates creates optimism.</p>
 <p>Prompt injection tests should include untrusted documents and tool messages that request unauthorized behavior. Score whether the execution boundary rejects invalid actions, not merely whether the final response sounds cautious. The harmless adversarial-note experiment in Chapter 12 is one deterministic unit test, not a comprehensive security evaluation.</p>
+<section id="use-the-common-record-without-confusing-model-and-tool-costs">
+<h3>Use the common record without confusing model and tool costs<a class="headerlink" href="#use-the-common-record-without-confusing-model-and-tool-costs" title="Link to this heading">#</a></h3>
+<p>First inspect costs from the same actual Agent demonstration used in Chapters 11–12. Here five LLM decisions and four tool attempts describe one trajectory. Recorded latency sums generation-call time only; unmeasured baseline runtime remains null.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="n">start</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'GENAI_COURSE_ROOT'</span><span class="p">,</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()))</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+<span class="n">root</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="c1"># Examine this folder, then each enclosing folder.</span>
+<span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">start</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">start</span><span class="o">.</span><span class="n">parents</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">candidate</span> <span class="o">/</span> <span class="s1">'labs/model.json'</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">candidate</span>
+        <span class="k">break</span>
+<span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s1">'Keep the notebook inside Teaching-GenAI, or set GENAI_COURSE_ROOT'</span><span class="p">)</span>
+<span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">))</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">labs.evaluation</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_evaluation</span><span class="p">,</span> <span class="n">paired_scores</span><span class="p">,</span> <span class="n">make_row</span><span class="p">,</span> <span class="n">validate_rows</span>
+<span class="n">common_rows</span> <span class="o">=</span> <span class="n">load_evaluation</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">common_rows</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">'task_family'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'agent'</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">'condition'</span><span class="p">],</span> <span class="s1">'LLM calls:'</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s1">'llm_calls'</span><span class="p">],</span>
+              <span class="s1">'tool attempts:'</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s1">'tool_calls'</span><span class="p">],</span> <span class="s1">'model seconds:'</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s1">'latency_seconds'</span><span class="p">])</span>
+
+<span class="c1"># Adapt the earlier controlled simulation; do not pool it with actual observations.</span>
+<span class="n">synthetic_rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">condition</span><span class="p">,</span> <span class="n">records_for_condition</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">records_for_condition</span><span class="p">:</span>
+        <span class="n">success</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s1">'success'</span><span class="p">])</span>
+        <span class="n">synthetic_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">make_row</span><span class="p">(</span>
+            <span class="s1">'synthetic-'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s1">'task'</span><span class="p">]),</span> <span class="s1">'retry_simulation'</span><span class="p">,</span> <span class="n">condition</span><span class="p">,</span>
+            <span class="n">replicate</span><span class="o">=</span><span class="n">record</span><span class="p">[</span><span class="s1">'replicate'</span><span class="p">],</span> <span class="n">data_kind</span><span class="o">=</span><span class="s1">'synthetic'</span><span class="p">,</span>
+            <span class="n">raw_response</span><span class="o">=</span><span class="n">record</span><span class="p">[</span><span class="s1">'value'</span><span class="p">],</span> <span class="n">tool_trace</span><span class="o">=</span><span class="n">record</span><span class="p">[</span><span class="s1">'trace'</span><span class="p">],</span>
+            <span class="n">intent_correct</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">contract_valid</span><span class="o">=</span><span class="n">record</span><span class="p">[</span><span class="s1">'status'</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">'invalid_payload'</span><span class="p">,</span>
+            <span class="n">semantic_support</span><span class="o">=</span><span class="s1">'supported'</span> <span class="k">if</span> <span class="n">success</span> <span class="k">else</span> <span class="s1">'insufficient_evidence'</span><span class="p">,</span>
+            <span class="n">complete</span><span class="o">=</span><span class="n">success</span><span class="p">,</span> <span class="n">task_success</span><span class="o">=</span><span class="n">success</span><span class="p">,</span> <span class="n">tool_calls</span><span class="o">=</span><span class="n">record</span><span class="p">[</span><span class="s1">'calls'</span><span class="p">],</span>
+            <span class="n">review_note</span><span class="o">=</span><span class="s1">'Exact comparison to the simulator current-data mean; not a human or LLM rating.'</span><span class="p">))</span>
+<span class="n">validate_rows</span><span class="p">(</span><span class="n">synthetic_rows</span><span class="p">)</span>
+<span class="n">retry_pairs</span> <span class="o">=</span> <span class="n">paired_scores</span><span class="p">(</span><span class="n">synthetic_rows</span><span class="p">,</span> <span class="s1">'One pass'</span><span class="p">,</span> <span class="s1">'Retry up to 3'</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">retry_pairs</span><span class="p">)</span> <span class="o">==</span> <span class="n">n_tasks</span> <span class="o">*</span> <span class="n">repeats</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Separate synthetic paired trajectories:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">retry_pairs</span><span class="p">))</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>fixed LLM calls: 0 tool attempts: 1 model seconds: None
+programmed LLM calls: 0 tool attempts: 4 model seconds: None
+actual LLM calls: 5 tool attempts: 4 model seconds: 17.755
+Separate synthetic paired trajectories: 400
+</pre></div>
+</div>
+</div>
+</div>
+<p>A row is a trajectory, but the resampling unit remains the task. The paired function verifies matching task/replicate IDs; you still average repeated trajectories within each task before the factorial contrast and task bootstrap. The zero-call cache baseline remains outside the four factorial cells.</p>
+</section>
 <section id="coding-and-experiment-practice-complete-the-factorial-contrast">
 <h3>Coding and experiment practice · Complete the factorial contrast<a class="headerlink" href="#coding-and-experiment-practice-complete-the-factorial-contrast" title="Link to this heading">#</a></h3>
 <p><strong>1. Predict before running.</strong> Why is zero-call Cache only not the cache-enabled cell of a one-call versus three-call experiment?</p>
-<p><strong>2. Implement and check.</strong> Use the four explicitly named one/three-call × cache-off/on conditions. Keep the zero-call cache baseline outside the factorial contrast. Calculate success and call interactions within each task before resampling tasks. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.</p>
+<p><strong>2. Implement and check.</strong> Use the four explicitly named one/three-call × cache-off/on conditions. Keep the zero-call cache baseline outside the factorial contrast. Calculate success and call interactions within each task before resampling tasks. The code below is a <strong>worked example</strong>. For independent work, download <a class="reference external" href="https://chikuang.github.io/teaching/genai/_static/assignments/13-student.ipynb">Assignment 13</a>, which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
@@ -693,6 +758,8 @@ Recovery trace: {'value': 0.8543511034891461, 'status': 'answered', 'calls': 2, 
     <span class="k">return</span> <span class="n">three_cache</span> <span class="o">-</span> <span class="n">three_no_cache</span> <span class="o">-</span> <span class="n">one_cache</span> <span class="o">+</span> <span class="n">one_no_cache</span>
 
 <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">interaction</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">),</span> <span class="mf">0.2</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">interaction</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">interaction</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">.4</span><span class="p">,</span> <span class="mf">.2</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">.6</span><span class="p">,</span> <span class="mf">.4</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">.5</span><span class="p">,</span> <span class="mf">.3</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">.9</span><span class="p">,</span> <span class="mf">.5</span><span class="p">])),</span> <span class="p">[</span><span class="mf">.2</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
 <span class="n">factor_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'One pass'</span><span class="p">,</span> <span class="s1">'Retry up to 3'</span><span class="p">,</span> <span class="s1">'One pass plus cache'</span><span class="p">,</span> <span class="s1">'Retry plus cache'</span><span class="p">]</span>
 <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'success'</span><span class="p">,</span> <span class="s1">'calls'</span><span class="p">]:</span>
     <span class="n">by_task</span> <span class="o">=</span> <span class="p">[]</span>
@@ -821,6 +888,7 @@ calls interaction: 0.0 task-bootstrap interval: [0. 0.]
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-cost-and-failure-examples">13.5 · Inspect cost and failure examples</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#factorial-comparisons-and-adaptive-evaluation">13.6 · Factorial comparisons and adaptive evaluation</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#use-the-common-record-without-confusing-model-and-tool-costs">Use the common record without confusing model and tool costs</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-complete-the-factorial-contrast">Coding and experiment practice · Complete the factorial contrast</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continue-with-the-implemented-system">Continue with the implemented system</a></li>
 </ul>

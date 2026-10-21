@@ -225,7 +225,7 @@ For a useful diagnostic, compare predictions after controlled changes to inputs,
 
 **1. Predict before running.** With all allowed scores zero, what are the first two outputs for values 3, 9, 99?
 
-**2. Implement and check.** Return both the attention weights and weighted values for a square score matrix. Mask before normalization. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
+**2. Implement and check.** Return both the attention weights and weighted values for a square score matrix. Mask before normalization. The code below is a **worked example**. For independent work, download [Assignment 04](https://chikuang.github.io/teaching/genai/_static/assignments/04-student.ipynb), which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.
 
 ```{code-cell} python
 def causal_average(scores, values):
@@ -242,6 +242,13 @@ assert np.allclose(weights_check.sum(1), 1)
 assert np.all(weights_check[np.triu_indices(3, 1)] == 0)
 _, changed_average = causal_average(fixture_scores, np.array([3., 9., -99.]))
 assert np.allclose(averages[:2], changed_average[:2])
+# Unequal logits distinguish softmax from an incorrect uniform average.
+nonzero_scores = np.array([[0., 999.], [0., np.log(3)]])
+w, y = causal_average(nonzero_scores, np.array([3., 9.]))
+assert np.allclose(w, [[1., 0.], [0.25, 0.75]])
+assert np.allclose(y, [3., 7.5])
+w_shift, y_shift = causal_average(nonzero_scores + 1000, np.array([3., 9.]))
+assert np.allclose(w_shift, w) and np.allclose(y_shift, y)
 print('Expected weighted values:', averages)
 ```
 

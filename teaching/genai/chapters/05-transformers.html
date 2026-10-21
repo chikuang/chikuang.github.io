@@ -168,6 +168,8 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python-workflow.html">Learn, teach, and build with Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../assignments.html">Independent assignments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluation-record.html">One evaluation record across the course</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../statistical-lens.html">The statistical lens</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
 </ul>
@@ -755,7 +757,7 @@ Head 1, time 2, coordinate 0: -0.676
 <section id="coding-and-experiment-practice-trace-a-future-token-intervention">
 <h3>Coding and experiment practice · Trace a future-token intervention<a class="headerlink" href="#coding-and-experiment-practice-trace-a-future-token-intervention" title="Link to this heading">#</a></h3>
 <p><strong>1. Predict before running.</strong> Why is checking only the attention matrix weaker than checking earlier logits of the complete network?</p>
-<p><strong>2. Implement and check.</strong> Hold sequence length and all earlier IDs fixed, replace the final ID, and compare all earlier logits with an explicit tolerance. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.</p>
+<p><strong>2. Implement and check.</strong> Hold sequence length and all earlier IDs fixed, replace the final ID, and compare all earlier logits with an explicit tolerance. The code below is a <strong>worked example</strong>. For independent work, download <a class="reference external" href="https://chikuang.github.io/teaching/genai/_static/assignments/05-student.ipynb">Assignment 05</a>, which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
@@ -770,6 +772,11 @@ Head 1, time 2, coordinate 0: -0.676
 <span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">ids</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">probe</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 <span class="k">assert</span> <span class="ow">not</span> <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">ids</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">probe</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 <span class="k">assert</span> <span class="n">earlier_logits_unchanged</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">probe</span><span class="p">)</span>
+<span class="c1"># Negative control: this artificial model broadcasts the final ID to every time.</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LeakyFixture</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">earlier_logits_unchanged</span><span class="p">(</span><span class="n">LeakyFixture</span><span class="p">(),</span> <span class="n">ids</span><span class="p">,</span> <span class="n">probe</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">'Complete model passed the future-token intervention.'</span><span class="p">)</span>
 </pre></div>
 </div>

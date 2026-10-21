@@ -139,7 +139,6 @@ class DecoderBlock(nn.Module):
         mixed = (weights @ v).transpose(1, 2).contiguous().reshape(B, T, D)
         x = x + self.project(mixed)
         return x + self.ffn(self.norm2(x))
-
 ```
 
 The block maps `(batch, time, width)` back to the same shape. The wrapper below first looks up token and position vectors, then maps the final states to one logit per vocabulary item. `self` refers to this particular model instance; submodules assigned to it register their trainable parameters.
@@ -162,7 +161,6 @@ class TinyDecoder(nn.Module):
         positions = torch.arange(T, device=ids.device)
         x = self.token(ids) + self.position(positions)
         return self.head(self.final_norm(self.block(x)))
-
 ```
 
 Constructing a model allocates its parameters. Calling `model(ids)` invokes `forward`; these are different operations.
@@ -300,7 +298,7 @@ During autoregressive inference, earlier keys and values can be cached rather th
 
 **1. Predict before running.** Why is checking only the attention matrix weaker than checking earlier logits of the complete network?
 
-**2. Implement and check.** Hold sequence length and all earlier IDs fixed, replace the final ID, and compare all earlier logits with an explicit tolerance. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
+**2. Implement and check.** Hold sequence length and all earlier IDs fixed, replace the final ID, and compare all earlier logits with an explicit tolerance. The code below is a **worked example**. For independent work, download [Assignment 05](https://chikuang.github.io/teaching/genai/_static/assignments/05-student.ipynb), which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.
 
 ```{code-cell} python
 def earlier_logits_unchanged(model, original, changed):
@@ -314,6 +312,11 @@ probe[:, -1] = (probe[:, -1] + 1) % 12
 assert torch.equal(ids[:, :-1], probe[:, :-1])
 assert not torch.equal(ids[:, -1], probe[:, -1])
 assert earlier_logits_unchanged(model, ids, probe)
+# Negative control: this artificial model broadcasts the final ID to every time.
+class LeakyFixture(torch.nn.Module):
+    def forward(self, x):
+        return x[:, -1:].float().unsqueeze(-1).expand(-1, x.shape[1], 2)
+assert not earlier_logits_unchanged(LeakyFixture(), ids, probe)
 print('Complete model passed the future-token intervention.')
 ```
 

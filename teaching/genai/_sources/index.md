@@ -42,7 +42,7 @@ Each chapter also includes a **pipeline or framework diagram** with the inputs, 
 
 **Complete core course:** All 14 chapters contain developed lessons, mathematical explanations, executable Python experiments, exercises, worked solutions, and downloadable notebooks. The core chapter examples run on a laptop CPU without API keys or pretrained-model downloads. [Appendix A](appendices/a-python-pytorch.md) supplies a step-by-step Python/PyTorch bridge. [Appendix B](appendices/b-real-llm-systems.md) adds a real local instruction model, RAG, an LLM tool policy, and a natural-language simulation assistant; its optional live run requires a model download, while the book analyzes saved real-model traces. The [short Python warm-up](01-python-lab.md) remains available as a supplement.
 
-The progression includes neural-network training, embeddings, masked attention, a tiny transformer, character generation, a VAE, diffusion, low-rank adaptation, preference learning, retrieval, uncertainty, tool-use policies, reliability experiments, and a worked statistical simulation assistant. Chapters 5–6 use the same tiny decoder for architecture, training, held-out scoring, and generation. Retrieval and agent chapters retain transparent baselines and link to the executed real-model comparisons in Appendix B. All chapters include programming tasks, acceptance checks, and separate worked solutions.
+The progression includes neural-network training, embeddings, masked attention, a tiny transformer, character generation, a VAE, diffusion, low-rank adaptation, preference learning, retrieval, uncertainty, tool-use policies, reliability experiments, and a worked statistical simulation assistant. Chapters 5–6 use the same tiny decoder for architecture, training, held-out scoring, and generation. Retrieval and agent chapters retain transparent baselines and link to the executed real-model comparisons in Appendix B. All chapters include worked examples, [separate student notebooks](assignments.md), acceptance checks and transfer experiments. Chapters 10–14 use a [common evaluation record](evaluation-record.md).
 
 ```{toctree}
 :caption: Course guide
@@ -51,6 +51,8 @@ The progression includes neural-network training, embeddings, masked attention, 
 
 syllabus
 python-workflow
+assignments
+evaluation-record
 statistical-lens
 readings
 ```

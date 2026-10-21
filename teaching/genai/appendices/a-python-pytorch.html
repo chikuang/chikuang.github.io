@@ -166,6 +166,8 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python-workflow.html">Learn, teach, and build with Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../assignments.html">Independent assignments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluation-record.html">One evaluation record across the course</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../statistical-lens.html">The statistical lens</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
 </ul>
@@ -364,6 +366,8 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-10-exercises-predict-implement-investigate">A.10 · Exercises: predict, implement, investigate</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-11-files-local-modules-and-a-fresh-notebook-kernel">A.11 · Files, local modules, and a fresh notebook kernel</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-12-expand-compact-syntax-before-using-it">A.12 · Expand compact syntax before using it</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-13-read-a-record-without-mistaking-it-for-an-answer">A.13 · Read a record without mistaking it for an answer</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-14-expand-successful-tool-use-and-the-capstone-gate">A.14 · Expand successful tool use and the capstone gate</a></li>
 </ul>
             </nav>
         </div>
@@ -881,6 +885,7 @@ post-update loss: 7.869649410247803
 </section>
 <section id="a-11-files-local-modules-and-a-fresh-notebook-kernel">
 <h2>A.11 · Files, local modules, and a fresh notebook kernel<a class="headerlink" href="#a-11-files-local-modules-and-a-fresh-notebook-kernel" title="Link to this heading">#</a></h2>
+<p><strong>Read this before the first live notebook in C.1</strong>, and before any downloaded student assignment.</p>
 <p>A module is a Python file containing reusable definitions. In the live labs, <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">labs.contracts</span> <span class="pre">import</span> <span class="pre">validate_response</span></code> imports the same function used by Chapter 10. This avoids two validators quietly implementing different scientific inclusion rules. A downloaded notebook that imports course modules must stay inside the cloned course folder, or point to that folder with <code class="docutils literal notranslate"><span class="pre">GENAI_COURSE_ROOT</span></code>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -889,7 +894,20 @@ post-update loss: 7.869649410247803
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
-<span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'GENAI_COURSE_ROOT'</span><span class="p">,</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()))</span>
+
+<span class="n">start</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'GENAI_COURSE_ROOT'</span><span class="p">,</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()))</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+<span class="n">root</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="c1"># Examine this folder, then each enclosing folder.</span>
+<span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">start</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">start</span><span class="o">.</span><span class="n">parents</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">candidate</span> <span class="o">/</span> <span class="s1">'labs/model.json'</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">candidate</span>
+        <span class="k">break</span>
+<span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s1">'Keep the notebook inside Teaching-GenAI, or set GENAI_COURSE_ROOT'</span><span class="p">)</span>
+<span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">))</span>
+<span class="n">course_root</span> <span class="o">=</span> <span class="n">root</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">'Python version:'</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">'Course root found:'</span><span class="p">,</span> <span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="s1">'labs/model.json'</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">'Example relative path:'</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="s1">'labs'</span><span class="p">)</span> <span class="o">/</span> <span class="s1">'contracts.py'</span><span class="p">)</span>
@@ -906,12 +924,13 @@ Example relative path: labs/contracts.py
 </div>
 </div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">Path.cwd()</span></code> is the current working directory, not necessarily the notebook’s saved folder. <code class="docutils literal notranslate"><span class="pre">os.environ.get(name,</span> <span class="pre">default)</span></code> reads an optional environment setting and uses the default if absent. <code class="docutils literal notranslate"><span class="pre">root</span> <span class="pre">/</span> <span class="pre">'labs'</span></code> joins paths; it does not divide strings. <code class="docutils literal notranslate"><span class="pre">sys.path.insert(0,</span> <span class="pre">str(root))</span></code>, used in the live notebooks, lets Python locate the local <code class="docutils literal notranslate"><span class="pre">labs</span></code> package. It does not install packages or load a model.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Path.cwd()</span></code> is the current working directory, not necessarily the notebook’s saved folder. <code class="docutils literal notranslate"><span class="pre">start.parents</span></code> lists enclosing directories; <code class="docutils literal notranslate"><span class="pre">list(...)</span></code> makes them a list, and <code class="docutils literal notranslate"><span class="pre">+</span></code> joins lists. The loop checks the current folder first and moves outward until it finds <code class="docutils literal notranslate"><span class="pre">labs/model.json</span></code>. <code class="docutils literal notranslate"><span class="pre">break</span></code> stops at the first match. <code class="docutils literal notranslate"><span class="pre">None</span></code> is the initial “not found” marker. This works from <code class="docutils literal notranslate"><span class="pre">labs/notebooks/</span></code>, <code class="docutils literal notranslate"><span class="pre">docs/notebooks/</span></code>, or the repository root; an arbitrary folder outside the clone needs an explicit environment setting. <code class="docutils literal notranslate"><span class="pre">os.environ.get(name,</span> <span class="pre">default)</span></code> reads an optional environment setting and uses the default if absent. <code class="docutils literal notranslate"><span class="pre">root</span> <span class="pre">/</span> <span class="pre">'labs'</span></code> joins paths; it does not divide strings. <code class="docutils literal notranslate"><span class="pre">sys.path.insert(0,</span> <span class="pre">str(root))</span></code>, used in the live notebooks, lets Python locate the local <code class="docutils literal notranslate"><span class="pre">labs</span></code> package. It does not install packages or load a model.</p>
 <p>A notebook kernel is a running Python process. Running a cell twice can append two results or make two model calls. <strong>Restart Kernel and Run All Cells</strong> checks that the notebook does not depend on objects created out of order. A saved output is evidence from an earlier run, not evidence that the current kernel has those objects.</p>
 <p>Before studying, check <code class="docutils literal notranslate"><span class="pre">sys.executable</span></code> in your own notebook: it should point to the course environment. If <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">torch</span></code> works in a terminal but fails in Jupyter, compare the interpreters before changing the lesson code. <code class="docutils literal notranslate"><span class="pre">NameError</span></code> usually indicates a cell-order problem; <code class="docutils literal notranslate"><span class="pre">ModuleNotFoundError</span></code> indicates an environment or import-path problem; a rejected JSON response is a model/interface outcome after setup has succeeded.</p>
 </section>
 <section id="a-12-expand-compact-syntax-before-using-it">
 <h2>A.12 · Expand compact syntax before using it<a class="headerlink" href="#a-12-expand-compact-syntax-before-using-it" title="Link to this heading">#</a></h2>
+<p><strong>Read this before Chapter 2</strong>, where comprehensions and default arguments already appear. Return before Chapters 5–6 for tensor-specific examples.</p>
 <p>A list comprehension is an ordinary loop with its output collection written compactly. Begin with the loop while learning; use the shorter expression after you can predict its result.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -944,6 +963,107 @@ Expanded keyword arguments: 7
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">**settings</span></code> unpacks dictionary keys into named arguments; it does not exponentiate a dictionary. In a function definition, <code class="docutils literal notranslate"><span class="pre">**settings</span></code> collects extra named arguments into a dictionary. Chapter 6 passes decoding options this way. Default argument expressions are evaluated when a function is defined: <code class="docutils literal notranslate"><span class="pre">features=Z</span></code> captures the current object, so changing a global name later does not change that default.</p>
 <p><code class="docutils literal notranslate"><span class="pre">&#64;torch.no_grad()</span></code> above a function applies a wrapper so calls do not record gradients. It is the function-wide version of <code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">torch.no_grad():</span></code>. <code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">x:</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">1</span></code> is a short function expression; when a function becomes difficult to explain in one sentence, use a named <code class="docutils literal notranslate"><span class="pre">def</span></code> instead. These conveniences change how code is written, not the model or estimand.</p>
+</section>
+<section id="a-13-read-a-record-without-mistaking-it-for-an-answer">
+<h2>A.13 · Read a record without mistaking it for an answer<a class="headerlink" href="#a-13-read-a-record-without-mistaking-it-for-an-answer" title="Link to this heading">#</a></h2>
+<p>A list of dictionaries is a small table. Each dictionary is one observation, and each key is a variable name. In the <a class="reference internal" href="../evaluation-record.html"><span class="std std-doc">common evaluation table</span></a>, <code class="docutils literal notranslate"><span class="pre">None</span></code> means not yet reviewed; it must not be converted to success or discarded. An agent trajectory is one task outcome even when it contains five model calls.</p>
+<p>For a frozen observation use <code class="docutils literal notranslate"><span class="pre">deepcopy</span></code>, because <code class="docutils literal notranslate"><span class="pre">saved</span> <span class="pre">=</span> <span class="pre">messages</span></code> creates another name for the same list, and <code class="docutils literal notranslate"><span class="pre">messages.copy()</span></code> still shares nested dictionaries. The following tiny example explains the Agent logging fix without loading a model.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="n">messages_demo</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">'role'</span><span class="p">:</span> <span class="s1">'user'</span><span class="p">,</span> <span class="s1">'content'</span><span class="p">:</span> <span class="s1">'Original question'</span><span class="p">}]</span>
+<span class="n">frozen_demo</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">messages_demo</span><span class="p">)</span>
+<span class="n">messages_demo</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">'content'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'Later edit'</span>
+<span class="n">messages_demo</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">'role'</span><span class="p">:</span> <span class="s1">'assistant'</span><span class="p">,</span> <span class="s1">'content'</span><span class="p">:</span> <span class="s1">'Later answer'</span><span class="p">})</span>
+<span class="k">assert</span> <span class="n">frozen_demo</span> <span class="o">==</span> <span class="p">[{</span><span class="s1">'role'</span><span class="p">:</span> <span class="s1">'user'</span><span class="p">,</span> <span class="s1">'content'</span><span class="p">:</span> <span class="s1">'Original question'</span><span class="p">}]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Current / saved message counts:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">messages_demo</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">frozen_demo</span><span class="p">))</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Current / saved message counts: 2 1
+</pre></div>
+</div>
+</div>
+</div>
+<p>A simple workflow is <strong>input → proposal → validation → computation → evidence → review</strong>. A function boundary packages steps you have already inspected. In C.1, <code class="docutils literal notranslate"><span class="pre">generate</span></code> produces IDs, slicing removes the prompt, and <code class="docutils literal notranslate"><span class="pre">decode</span></code> produces text. In C.3, the raw JSON string becomes an action dictionary, the dispatcher changes a state dictionary, and an observation is appended to the next prompt. In C.4, an interpreted request is compared with a separately reviewed request card before any simulation. None of these structural checks proves that generated prose is scientifically correct.</p>
+</section>
+<section id="a-14-expand-successful-tool-use-and-the-capstone-gate">
+<h2>A.14 · Expand successful tool use and the capstone gate<a class="headerlink" href="#a-14-expand-successful-tool-use-and-the-capstone-gate" title="Link to this heading">#</a></h2>
+<p>The first failed Agent lookup in C.3 leaves its state unchanged. A successful lookup does change it. Here every proposal is an explicitly scripted teaching fixture, so this cell makes <strong>no LLM calls</strong>. <code class="docutils literal notranslate"><span class="pre">state</span></code> is a dictionary whose <code class="docutils literal notranslate"><span class="pre">observed</span></code> value is another dictionary and whose <code class="docutils literal notranslate"><span class="pre">results</span></code> value is a list. Read one mutation at a time.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">labs.guided_systems</span><span class="w"> </span><span class="kn">import</span> <span class="n">dispatch</span>
+<span class="n">state_walk</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'observed'</span><span class="p">:</span> <span class="p">{},</span> <span class="s1">'results'</span><span class="p">:</span> <span class="p">[]}</span>
+<span class="n">lookup_action</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'tool'</span><span class="p">:</span> <span class="s1">'lookup'</span><span class="p">,</span> <span class="s1">'arguments'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'dataset'</span><span class="p">:</span> <span class="s1">'pilot_b'</span><span class="p">}}</span>
+<span class="n">lookup_observation</span> <span class="o">=</span> <span class="n">dispatch</span><span class="p">(</span><span class="n">lookup_action</span><span class="p">,</span> <span class="n">state_walk</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Observed keys after lookup:'</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">state_walk</span><span class="p">[</span><span class="s1">'observed'</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Observed values:'</span><span class="p">,</span> <span class="n">lookup_observation</span><span class="p">[</span><span class="s1">'values'</span><span class="p">])</span>
+<span class="n">summary_action</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'tool'</span><span class="p">:</span> <span class="s1">'summarize'</span><span class="p">,</span>
+                  <span class="s1">'arguments'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'dataset'</span><span class="p">:</span> <span class="s1">'pilot_b'</span><span class="p">,</span> <span class="s1">'statistic'</span><span class="p">:</span> <span class="s1">'median'</span><span class="p">}}</span>
+<span class="n">summary_observation</span> <span class="o">=</span> <span class="n">dispatch</span><span class="p">(</span><span class="n">summary_action</span><span class="p">,</span> <span class="n">state_walk</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">summary_observation</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.5</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">state_walk</span><span class="p">[</span><span class="s1">'results'</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Computed result:'</span><span class="p">,</span> <span class="n">state_walk</span><span class="p">[</span><span class="s1">'results'</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Observed keys after lookup: ['pilot_b']
+Observed values: [1.0, 1.0, 2.0, 9.0]
+Computed result: {'dataset': 'pilot_b', 'statistic': 'median', 'value': 1.5}
+</pre></div>
+</div>
+</div>
+</div>
+<p>The lookup stores values obtained from the registered dataset. The summarize action supplies only a dataset identifier and statistic, not a replacement data vector. Sorting <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">1,</span> <span class="pre">2,</span> <span class="pre">9]</span></code> gives middle values 1 and 2, hence median 1.5. The executor can now validate a finish proposal against this computed result. A note inside the dataset remains data, not authority to change the calculation.</p>
+<p>For a capstone, separate five objects: the original question string, a proposed dictionary, a separately reviewed dictionary, numerical tool evidence, and a report string. The following <strong>scripted fixture</strong> exposes the operations packaged by <code class="docutils literal notranslate"><span class="pre">execute_confirmed</span></code> in C.4. In the real notebook, <code class="docutils literal notranslate"><span class="pre">interpret_scenario(lm,</span> <span class="pre">question)</span></code> supplies the proposal through a recorded model call. Do not confuse this fixture with another measured model success.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">labs.guided_systems</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_spec</span><span class="p">,</span> <span class="n">scope_reasons</span><span class="p">,</span> <span class="n">report_simulation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">labs.llm_lab</span><span class="w"> </span><span class="kn">import</span> <span class="n">coverage_tool</span>
+
+<span class="n">reviewed</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'family'</span><span class="p">:</span> <span class="s1">'normal'</span><span class="p">,</span> <span class="s1">'n'</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span> <span class="s1">'method'</span><span class="p">:</span> <span class="s1">'z_estimated_sd'</span><span class="p">,</span>
+            <span class="s1">'confidence'</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span> <span class="s1">'repetitions'</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span> <span class="s1">'dependence'</span><span class="p">:</span> <span class="s1">'iid'</span><span class="p">}</span>
+<span class="n">proposal_walk</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">reviewed</span><span class="p">)</span>  <span class="c1"># Scripted proposal, not generated text.</span>
+<span class="n">validate_spec</span><span class="p">(</span><span class="n">proposal_walk</span><span class="p">)</span>  <span class="c1"># Representation and numeric limits.</span>
+<span class="n">validate_spec</span><span class="p">(</span><span class="n">reviewed</span><span class="p">)</span>
+<span class="n">reasons</span> <span class="o">=</span> <span class="n">scope_reasons</span><span class="p">(</span><span class="n">reviewed</span><span class="p">)</span>  <span class="c1"># Scope is a separate check.</span>
+<span class="k">if</span> <span class="n">reasons</span><span class="p">:</span>
+    <span class="n">outcome_walk</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'status'</span><span class="p">:</span> <span class="s1">'abstained'</span><span class="p">,</span> <span class="s1">'reasons'</span><span class="p">:</span> <span class="n">reasons</span><span class="p">}</span>
+<span class="k">elif</span> <span class="n">proposal_walk</span> <span class="o">!=</span> <span class="n">reviewed</span><span class="p">:</span>
+    <span class="n">outcome_walk</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'status'</span><span class="p">:</span> <span class="s1">'intent_mismatch'</span><span class="p">}</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">evidence_walk</span> <span class="o">=</span> <span class="n">coverage_tool</span><span class="p">(</span><span class="n">proposal_walk</span><span class="p">[</span><span class="s1">'family'</span><span class="p">],</span> <span class="n">proposal_walk</span><span class="p">[</span><span class="s1">'n'</span><span class="p">],</span>
+                                  <span class="n">repetitions</span><span class="o">=</span><span class="n">proposal_walk</span><span class="p">[</span><span class="s1">'repetitions'</span><span class="p">])</span>
+    <span class="n">evidence_walk</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">proposal_walk</span><span class="p">[</span><span class="s1">'method'</span><span class="p">],</span>
+                         <span class="n">confidence</span><span class="o">=</span><span class="n">proposal_walk</span><span class="p">[</span><span class="s1">'confidence'</span><span class="p">],</span>
+                         <span class="n">dependence</span><span class="o">=</span><span class="n">proposal_walk</span><span class="p">[</span><span class="s1">'dependence'</span><span class="p">])</span>
+    <span class="n">report_walk</span> <span class="o">=</span> <span class="n">report_simulation</span><span class="p">(</span><span class="n">evidence_walk</span><span class="p">)</span>
+    <span class="n">outcome_walk</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'status'</span><span class="p">:</span> <span class="s1">'completed'</span><span class="p">,</span> <span class="s1">'evidence'</span><span class="p">:</span> <span class="n">evidence_walk</span><span class="p">,</span>
+                    <span class="s1">'report'</span><span class="p">:</span> <span class="n">report_walk</span><span class="p">}</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">outcome_walk</span><span class="p">[</span><span class="s1">'status'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">outcome_walk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'report'</span><span class="p">,</span> <span class="n">outcome_walk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'reasons'</span><span class="p">)))</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>completed
+For iid normal samples with n=25, the approximate z interval's estimated coverage is 0.928 from 500 repetitions. The approximate 95% Monte Carlo interval for that coverage probability is [0.902, 0.948]. The interval procedure's nominal 95% label does not guarantee its actual coverage.
+</pre></div>
+</div>
+</div>
+</div>
+<p>The equality compares all six keys and values, not only family and n. <code class="docutils literal notranslate"><span class="pre">update</span></code> adds declared method metadata to numerical evidence; it does not recalculate coverage. <code class="docutils literal notranslate"><span class="pre">get</span></code> retrieves an optional key without raising <code class="docutils literal notranslate"><span class="pre">KeyError</span></code>. The report template inserts evidence from the tool. This example starts with an already reviewed card; the complete helper additionally blocks missing confirmation. Change the card to Student-t, 99%, dependent sampling, or 2000 repetitions and predict which branch runs <strong>before</strong> executing it. A correct numeric result for the wrong request is still a failed task.</p>
 </section>
 </section>
 
@@ -1006,6 +1126,8 @@ Expanded keyword arguments: 7
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-10-exercises-predict-implement-investigate">A.10 · Exercises: predict, implement, investigate</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-11-files-local-modules-and-a-fresh-notebook-kernel">A.11 · Files, local modules, and a fresh notebook kernel</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-12-expand-compact-syntax-before-using-it">A.12 · Expand compact syntax before using it</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-13-read-a-record-without-mistaking-it-for-an-answer">A.13 · Read a record without mistaking it for an answer</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-14-expand-successful-tool-use-and-the-capstone-gate">A.14 · Expand successful tool use and the capstone gate</a></li>
 </ul>
   </nav></div>
 

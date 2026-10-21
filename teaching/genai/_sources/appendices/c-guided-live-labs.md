@@ -12,7 +12,7 @@ kernelspec:
 
 | Milestone | Read first | Download the executed live notebook |
 |:--|:--|:--|
-| One real LLM call | Chapter 6, A.5–A.8 | [01 · First LLM](https://chikuang.github.io/teaching/genai/_static/live-notebooks/01-first-llm.ipynb) |
+| One real LLM call | Chapter 6, A.5–A.8, A.11–A.12 | [01 · First LLM](https://chikuang.github.io/teaching/genai/_static/live-notebooks/01-first-llm.ipynb) |
 | Same-pipeline RAG | Chapter 10, A.9, A.11 | [02 · RAG bridge](https://chikuang.github.io/teaching/genai/_static/live-notebooks/02-rag-bridge.ipynb) |
 | Recovery after an observation | Chapters 11–12 | [03 · Agent bridge](https://chikuang.github.io/teaching/genai/_static/live-notebooks/03-agent-bridge.ipynb) |
 | Interpreted simulation request | Chapter 14 | [04 · Capstone bridge](https://chikuang.github.io/teaching/genai/_static/live-notebooks/04-capstone-bridge.ipynb) |
@@ -42,10 +42,14 @@ messages = [
     {'role': 'system', 'content': 'Explain statistical ideas in one short sentence.'},
     {'role': 'user', 'content': 'What is Monte Carlo error?'},
 ]
-answer = lm(messages, max_new_tokens=64)
+with lm.torch.inference_mode():
+    output = lm.model.generate(**inputs, max_new_tokens=64, do_sample=False,
+                               pad_token_id=lm.tokenizer.eos_token_id)
+new_ids = output[0, inputs.input_ids.shape[1]:]
+answer = lm.tokenizer.decode(new_ids, skip_special_tokens=True).strip()
 ```
 
-`lm` is defined in an earlier loading cell in the complete notebook. The call uses greedy decoding, returns only newly generated text, and saves prompts, raw output, token counts, stop reason and runtime. Inspecting a token tensor before generation lets you connect this pretrained model to the next-character conditionals in Chapter 6. Different tokenizers make raw token-level scores incomparable without a declared normalization.
+`lm` and `inputs` are defined in earlier cells of the complete notebook. The notebook expands the actual generation and slicing operations, then calls a separate logging method that performs no further inference. The call uses greedy decoding, returns only newly generated text, and saves prompts, raw output, token counts, stop reason and runtime. Inspecting a token tensor before generation lets you connect this pretrained model to the next-character conditionals in Chapter 6. Different tokenizers make raw token-level scores incomparable without a declared normalization.
 
 Technical acceptance checks one actual call, the input shape, and the output budget. The semantic rubric asks whether the answer identifies **finite simulation draws** as the source of Monte Carlo error and distinguishes this from estimation error and model misspecification. The recorded short answer below refers to random sampling but does not explicitly identify the finite simulation budget; it is an incomplete explanation under that rubric. A nonempty answer is not sufficient acceptance.
 
@@ -55,8 +59,20 @@ import os
 import json
 import sys
 
-root = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd()))
-sys.path.insert(0, str(root))
+
+start = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd())).resolve()
+root = None
+# Examine this folder, then each enclosing folder.
+candidates = [start] + list(start.parents)
+for candidate in candidates:
+    if (candidate / 'labs/model.json').is_file():
+        root = candidate
+        break
+if root is None:
+    raise FileNotFoundError('Keep the notebook inside Teaching-GenAI, or set GENAI_COURSE_ROOT')
+if str(root) not in sys.path:
+    sys.path.insert(0, str(root))
+course_root = root
 records = {}
 for name in ['first-llm', 'rag-bridge', 'agent-bridge', 'capstone-bridge']:
     records[name] = json.loads((root / 'docs/_static/experiments' / (name+'.json')).read_text())
@@ -112,15 +128,19 @@ for step in agent['actual']['trace']:
 print('Exact dataset/statistic/value rubric:', agent['task_success'])
 ```
 
+The corrected log stores immutable input snapshots: the five prompts have lengths **2, 4, 6, 8, 10**. The tokenizer-serialized prompt is also retained. The [old v2 trace](../_static/experiments/agent-bridge-v2.json) is preserved with its limitation: all its prompt lists were later mutated to the final conversation, so they are not valid per-turn input evidence. The original code is archived in `labs/archived-guided-v2/`. The new trace is a fresh execution, not a repair of historical model output.
+
 The fixed workflow stops at failed lookup. The adaptive programmed policy and the actual LLM both complete the recovery in the recorded demonstration. This shows the observable branching mechanism. Because a short programmed rule also solves the task, it does not establish that an LLM is needed. The rule baselines receive structured intent; their comparison isolates decision sequencing, not natural-language parsing accuracy. A broader comparison must score interpretation and include its calls and costs as well.
 
 ## C.4 · Finish a bounded workflow before adding generated prose
 
 Notebook 4 declares the architecture explicitly:
 
-**Natural-language request → real LLM interpretation → validated request → coverage tool → deterministic report.**
+**Natural-language request → real LLM proposal → independently reviewed request card → full-field and scope checks → coverage tool → deterministic report.**
 
-The LLM proposes `family` and `n`. The runner rejects unknown fields, unsupported labels, Boolean or excessive sample sizes, and malformed transport. It never substitutes a supported distribution for an unsupported one. The tool uses the same approximate z interval and Wilson Monte Carlo interval as Chapter 14. Its flat result dictionary additionally carries family, sample size, seed and repetitions; Chapter 14 nests request metadata under `request`. This is a documented data-layout difference, not a different estimand.
+The LLM proposes **family, n, method, confidence, repetitions and dependence**. No field may be omitted. A separate request card represents the reader's review of what was actually asked, including ambiguities; it is an input safeguard, not an automatically discovered gold label. With no reviewed card the status is `needs_confirmation` and no simulation runs. A supported card that differs from the proposal produces `intent_mismatch`. An unsupported card leads to an explicit refusal, never a substitution.
+
+The current live scope is iid normal/exponential, n=5–500, nominal 95%, the z interval with estimated SD, and 500 repetitions. The seven declared tasks test normal and exponential cases plus unsupported family, Student-t method, 99% confidence, 2000 repetitions and dependence. The report uses the same approximate z interval and Wilson Monte Carlo interval as Chapter 14; metadata are flat here and nested under `request` in the chapter. Human review of a card is still needed for arbitrary free text; the program does not prove that every unmodeled requirement was captured.
 
 The report template inserts the tool's numbers and distinguishes nominal coverage, estimated coverage and Monte Carlo uncertainty. This is the declared reporting component for every request, not a fallback for a failed LLM report. The next experimental stage is LLM-written prose, scored separately against this evidence and retained even when it fails.
 
@@ -132,7 +152,7 @@ for row in records['capstone-bridge']['results']:
     print(row.get('report', row.get('error')))
 ```
 
-In this actual run, the normal and exponential requests completed with correct interpreted settings and template reports. The Cauchy request returned `family="cauchy"` instead of the required `family="unsupported"`. The schema rejected it before simulation. This protects the execution boundary but fails the declared interpretation/abstention contract; it remains a failed task. Keep that distinction when reporting the two successes out of three authored cases.
+In this fresh actual run, both supported requests completed. All five unsupported requests preserved their six interpreted settings and were refused before simulation. Thus seven of seven authored development cases met the declared task rubric; this is not a population accuracy estimate. The [previous v2 capstone](../_static/experiments/capstone-bridge-v2.json), including its failed Cauchy interpretation, remains available. The revised prompt, schema and request-review gate define a new condition, so the old and new counts should not be pooled.
 
 For normal sampling, compare the estimated coverage to `2 * t.cdf(1.96, n-1) - 1`, not automatically to 0.95. The live notebook performs this independent analytic check. The exponential result needs a separate reference or numerical audit. Neither a narrow Monte Carlo interval nor a fluent explanation proves that the original request was interpreted correctly.
 
@@ -150,3 +170,9 @@ Each notebook has three levels: predict an intermediate result, implement a boun
 For a new evaluation table include task ID and family, condition, model/prompt version, raw response, packed source IDs or tool trace, parseability, contract validity, semantic review, task success, calls and elapsed time. Use development cases for fixes; freeze changes before new evaluation cases. Repeated outputs on one task are not independent tasks. These few authored cases warrant descriptive counts and failure analysis, not population confidence intervals.
 
 The [official Transformers chat-template guide](https://huggingface.co/docs/transformers/v4.57.1/chat_templating) explains the model's message serialization. The course's statistical checks, validators, tools and evaluation rubrics are independently authored teaching components.
+
+## C.6 · Carry the same rows into evaluation and your project
+
+Download the [common evaluation table](../evaluation-record.md). It joins these exact saved calls with explicit editorial annotations, keeping parse/contract validity, semantic support, completeness and overall task success separate. For example, the first LLM answer is structurally acceptable but incomplete under the finite-simulation rubric. A rejected or incomplete answer remains in the denominator.
+
+The same rows are loaded in Chapter 10 for evidence review, Chapter 11 for pairing, Chapter 13 for cost accounting, and Chapter 14 for request verification. The larger simulated examples remain separately labeled synthetic data. Use the [independent student assignments](../assignments.md) to create a new case; the 14 student notebooks contain TODOs and acceptance checks, while the chapter and live notebook downloads retain executed worked examples.

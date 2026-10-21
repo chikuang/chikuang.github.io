@@ -38,10 +38,10 @@ Each chapter now separates questions from revealable answers and includes a codi
 | Read | Python preparation | Demonstrate before continuing |
 |:--|:--|:--|
 | Chapter 1 | A.1–A.4 alongside the lesson | Explain one probability estimate and one generated draw. |
-| Chapter 2 | A.5–A.7 first | Trace one forward/loss/backward/update cycle. |
+| Chapter 2 | A.5–A.7 and A.12 first | Trace one forward/loss/backward/update cycle. |
 | Chapters 3–4 | A.1–A.4, especially axes | Tokenize a sentence and verify a masked weighted average. |
 | Chapters 5–6 | A.8 and A.12 | Trace tensor dimensions and distinguish fitting from decoding. |
-| Live lab 1 | Appendix C.1 | Run one real model call and inspect its tokens. |
+| Live lab 1 | A.11–A.12, then C.1 | Run one real model call and inspect its tokens. |
 | Chapter 10 + live lab 2 | A.9 and A.11 | Replace the generator while preserving the RAG pipeline. |
 | Chapter 11 | Question-level paired outcomes | Separate contract checks, semantic review and task success. |
 | Chapter 12 + live lab 3 | The tool-contract migration table | Explain an error observation and the resulting next action. |
@@ -212,3 +212,5 @@ Success means being able to **explain, implement, evaluate, and teach** the syst
 ## Optional directions after the core
 
 Multimodal models, advanced diffusion/SDE theory, scaling laws, interpretability, reasoning-model training, causal questions about evaluation, and multi-agent systems can each become a later topic. Select them to answer a concrete research question rather than trying to learn every framework at once.
+
+Use the [independent assignments](assignments.md) after each worked example. The [common evaluation record](evaluation-record.md) is reused in Chapters 10–14.

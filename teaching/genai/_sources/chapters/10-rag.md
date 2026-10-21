@@ -371,10 +371,20 @@ def validate_response(response, selected):
 import os
 import sys
 from pathlib import Path
-course_root = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd()))
-if not (course_root / 'labs/contracts.py').is_file():
-    raise FileNotFoundError('Start Jupyter from Teaching-GenAI, or set GENAI_COURSE_ROOT')
-sys.path.insert(0, str(course_root))
+
+start = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd())).resolve()
+root = None
+# Examine this folder, then each enclosing folder.
+candidates = [start] + list(start.parents)
+for candidate in candidates:
+    if (candidate / 'labs/model.json').is_file():
+        root = candidate
+        break
+if root is None:
+    raise FileNotFoundError('Keep the notebook inside Teaching-GenAI, or set GENAI_COURSE_ROOT')
+if str(root) not in sys.path:
+    sys.path.insert(0, str(root))
+course_root = root
 from labs.contracts import validate_response
 
 try:
@@ -562,11 +572,44 @@ Questions requiring several facts may need several passages. Query decomposition
 An orchestration library can package this framework, but component names do not replace contracts. Whether it calls something a retriever, chain, node, or tool, inspect the actual text passed between stages. Save the corpus snapshot, chunking settings, encoder/index, retrieval settings, prompt, generator, evaluation questions, and rubric as one versioned experiment record.
 
 
+
+### Carry these same RAG observations into Chapter 11
+
+The [common evaluation record](../evaluation-record.md) contains the current real-model outputs, their source links and explicit editorial annotations. Null means unreviewed; it is not a pass. The inspection call is retained as its own condition, rather than counted twice as independent evidence.
+
+```{code-cell} python
+from pathlib import Path
+import os
+import sys
+
+start = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd())).resolve()
+root = None
+# Examine this folder, then each enclosing folder.
+candidates = [start] + list(start.parents)
+for candidate in candidates:
+    if (candidate / 'labs/model.json').is_file():
+        root = candidate
+        break
+if root is None:
+    raise FileNotFoundError('Keep the notebook inside Teaching-GenAI, or set GENAI_COURSE_ROOT')
+if str(root) not in sys.path:
+    sys.path.insert(0, str(root))
+from labs.evaluation import load_evaluation, paired_scores, make_row, validate_rows
+common_rows = load_evaluation(root)
+for row in common_rows:
+    if row['task_family'] == 'rag':
+        print(row['task_id'], row['condition'], 'contract:', row['contract_valid'],
+              'support:', row['semantic_support'], 'complete:', row['complete'],
+              'success:', row['task_success'])
+```
+
+Reading the fields in order diagnoses different failures: context could be missing, output could violate the contract, a cited claim could contradict the passage, or a true answer could be incomplete. [Assignment 10](../assignments.md) asks you to construct those distinctions yourself.
+
 ### Coding and experiment practice · Separate parseability, contracts and support
 
 **1. Predict before running.** Can an answer cite a real passage and still contradict it?
 
-**2. Implement and check.** Use the shared validator on explicit fixtures before calling a model. A valid rejection contains a nonempty explanation and no citations; a claimed answer needs supplied, unique citation IDs. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
+**2. Implement and check.** Use the shared validator on explicit fixtures before calling a model. A valid rejection contains a nonempty explanation and no citations; a claimed answer needs supplied, unique citation IDs. The code below is a **worked example**. For independent work, download [Assignment 10](https://chikuang.github.io/teaching/genai/_static/assignments/10-student.ipynb), which has an empty implementation, separate acceptance fixtures and a new transfer task. Attempt it before opening the separate solution file.
 
 ```{code-cell} python
 from labs.contracts import assess_response
