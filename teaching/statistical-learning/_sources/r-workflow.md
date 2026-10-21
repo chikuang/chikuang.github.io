@@ -1,4 +1,4 @@
-# R workflow and reproducibility
+# Computational workflow and reproducibility
 
 The required experiments use **base R** and run on an ordinary laptop. The hierarchical-clustering and k-means chapters also show how to call the authors' specialist packages; those additional calculations run when the packages are installed. The page output states whether those optional calculations actually ran.
 

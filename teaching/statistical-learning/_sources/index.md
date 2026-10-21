@@ -2,7 +2,7 @@
 
 :::{raw} html
 <section class="course-hero" aria-label="Course introduction">
-<div class="eyebrow">Topic Course · Chi-Kuang Yeh · R</div>
+<div class="eyebrow">Topic Course · Chi-Kuang Yeh</div>
 <h2>Learn from imperfect information.<br>Know what the evidence supports.</h2>
 <p>Incomplete labels, comparisons, sequential feedback, and discoveries made from the data itself. A graduate course on the assumptions that make statistical learning and inference possible.</p>
 <div class="course-actions"><a class="course-start" href="chapters/01-statistical-targets.html">Start with Chapter 1 <span aria-hidden="true">→</span></a><a href="syllabus.html">Explore the course guide</a></div>
@@ -11,11 +11,10 @@
 
 This course develops **preference learning, online learning, positive–unlabelled (PU) and unlabelled–unlabelled (UU) learning, other forms of weak supervision, and selective inference after clustering**. The unifying habit is to specify the observation process, the statistical target, the assumptions that identify it, and the guarantee a method actually provides.
 
-Each of the 14 chapters contains explanations, mathematical arguments, worked examples, a downloadable R experiment, exercises, and separate worked solutions. Read the example first, predict what the experiment will show, and then change an assumption. The [interactive demonstrations](demos.md) offer a quick way to see three of these mechanisms in action.
+Each of the 14 chapters contains explanations, mathematical arguments, worked examples, a downloadable experiment, exercises, and separate worked solutions. Read the example first, predict what the experiment will show, and then change an assumption. The [interactive demonstrations](demos.md) offer a quick way to see three of these mechanisms in action.
 
 **Instructor:** [Chi-Kuang Yeh](https://chikuang.github.io/) · [cyeh@gsu.edu](mailto:cyeh@gsu.edu)  
-**Level:** advanced master's / doctoral · **Format:** independent study or a proposed 15-week graduate elective  
-**Computing:** R on an ordinary laptop; the required chapter experiments use base R.
+**Level:** advanced master's / doctoral · **Format:** independent study or a proposed 15-week graduate elective
 
 ## Four connected questions
 
@@ -32,14 +31,14 @@ The last route studies inference after a data-dependent choice. It connects to t
 
 - **Read in order:** begin with [statistical targets](chapters/01-statistical-targets.md), then follow the chapter links. The [course guide](syllabus.md) maps the book to 15 teaching weeks.
 - **Focus on a research problem:** use the [reading guide](readings.md) to find the relevant model, theorem, and implementation. Revisit the first chapter whenever the target becomes unclear.
-- **Learn through computation:** follow the [R workflow](r-workflow.md), run a chapter experiment, then attempt the exercises before opening the solutions.
+- **Learn through computation:** follow the [computational workflow](r-workflow.md), run a chapter experiment, then attempt the exercises before opening the solutions.
 - **Build a research project:** use the [assignments](assignments.md) for focused practice and the [project guide](project.md) for a reproduction plus a consequential extension.
 
 ## What you should be able to do
 
 By the end, you should be able to derive PU and UU risk identities; distinguish several weak-label mechanisms; fit and critique a pairwise preference model; formulate a sequential decision problem with an explicit comparator; derive a basic regret bound; explain conditional validity after selection; and design a reproducible experiment that probes a method's assumptions.
 
-You will need graduate probability, mathematical statistics, linear algebra, basic optimisation, and some R experience. [The workflow page](r-workflow.md) includes a short readiness check and a minimal reproducible-report template.
+You will need graduate probability, mathematical statistics, linear algebra, basic optimisation, and some programming experience. [The workflow page](r-workflow.md) includes a short readiness check and a minimal reproducible-report template.
 
 :::{note}
 This is a developed topic-course resource. The accompanying graduate-course proposal uses **STAT 8XXX**, with the number and offering to be assigned. The 15-week route and assessment scheme are proposed teaching arrangements; meeting dates, registration details, and institution-specific policies will be set for an actual offering.
@@ -47,9 +46,7 @@ This is a developed topic-course resource. The accompanying graduate-course prop
 
 ## Course materials
 
-[Download the complete course book](https://chikuang.github.io/teaching/statistical-learning/Topics-of-Statistical-Learning.pdf) · [Download all R labs](_static/downloads/statistical-learning-labs.zip) · [Course proposal](_static/downloads/Topics_of_Statistical_Learning_Proposal.pdf) · [Source and build instructions](https://github.com/chikuang/Teaching-SML)
-
-The reading layout follows [Generative AI](https://chikuang.github.io/teaching/genai/): use the sidebar to navigate, the page contents to find a section, **Code** to open a program, and the theme control for light or dark reading. Outputs stay visible; exercise solutions open separately.
+[Download the complete course book](https://chikuang.github.io/teaching/statistical-learning/Topics-of-Statistical-Learning.pdf) · [Download all labs](_static/downloads/statistical-learning-labs.zip) · [Course proposal](_static/downloads/Topics_of_Statistical_Learning_Proposal.pdf) · [Source and build instructions](https://github.com/chikuang/Teaching-SML)
 
 :::{toctree}
 :hidden:
