@@ -10,7 +10,7 @@ kernelspec:
 
 **Complete lesson · Python from the beginning · A statistician's perspective**
 
-<a href="../notebooks/01-probability-to-genai.ipynb" download>Download the executed notebook</a> · [Set up Python](../python-workflow.md)
+[Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/01-probability-to-genai.ipynb) · [Set up Python](../python-workflow.md)
 
 You already know how to define a model, estimate its parameters, assess its fit, and simulate from it. These are useful starting points for generative AI. The unfamiliar part is often the data representation and software vocabulary, rather than the basic idea of learning a distribution.
 

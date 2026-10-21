@@ -5,7 +5,7 @@ The whole website is built by a **Python toolchain: Sphinx + MyST-NB + sphinx-bo
 ## 1 · Choose how to study
 
 - **Read first:** all examples and their outputs are visible on the website.
-- **Experiment:** download the <a href="notebooks/01-probability-to-genai.ipynb" download>Chapter 1 notebook</a>, open it in JupyterLab, and change the code.
+- **Experiment:** download the [Chapter 1 notebook](https://chikuang.github.io/teaching/genai/notebooks/01-probability-to-genai.ipynb), open it in JupyterLab, and change the code.
 - **Write lessons:** edit the Markdown files under `docs/` and rebuild the website.
 
 A *terminal* accepts commands that manage files and run programs. A *notebook* contains text and Python code cells. Enter the commands below in a terminal; enter the Python examples from the lessons in notebook code cells. The shell prompt is not part of a command.
@@ -53,7 +53,7 @@ JupyterLab opens in your browser. Open the `.ipynb` file using its file browser.
 
 To check reproducibility, choose **Kernel → Restart Kernel and Run All Cells**. The downloaded notebook already contains the website's executed outputs, but you can edit the cells and run them again. Saving a notebook preserves its code and outputs; it does not preserve every object in the running kernel's memory.
 
-## 4 · Build the website
+## 4 · Build the website and PDF
 
 From the repository root, with the environment active:
 
@@ -61,7 +61,25 @@ From the repository root, with the environment active:
 python scripts/build.py
 ```
 
-This command exports the lesson notebooks, executes their Python cells in fresh kernels, and asks Sphinx to create the HTML website. It stops on execution errors or Sphinx warnings. Successful output is written to `_build/html/`, including executed notebooks under `notebooks/`.
+This command produces both the HTML website and the complete course PDF from the same lesson sources, like rendering a Quarto book to HTML and PDF. It exports the notebooks, executes new or changed notebook content in fresh kernels, and reuses those successful outputs in both formats. It stops on execution errors, Sphinx warnings, or a PDF compilation failure.
+
+PDF generation requires **XeLaTeX and latexmk** in addition to the Python packages. Install MacTeX on macOS or TeX Live on Linux. On Ubuntu, the required packages are:
+
+```bash
+sudo apt-get install latexmk texlive-xetex texlive-latex-extra texlive-fonts-recommended fonts-freefont-otf
+```
+
+Successful output is written to `_build/html/`, with executed notebooks under `notebooks/` and the complete book at `STAT-XXXX-Generate-AI.pdf`. The PDF contains a linked contents page, mathematical formulas, code, executed results, and figures. The **PDF** button at the top of every course page downloads the book.
+
+To regenerate only the PDF:
+
+```bash
+python scripts/build.py --format pdf
+```
+
+This updates `_build/html/STAT-XXXX-Generate-AI.pdf` without rebuilding the HTML pages. The intermediate LaTeX source and compilation logs are in `_build/latex/`.
+
+[Download the published course PDF](https://chikuang.github.io/teaching/genai/STAT-XXXX-Generate-AI.pdf).
 
 To preview the result:
 
@@ -79,7 +97,7 @@ Open `http://localhost:8767` in a browser. Keep the terminal running while you b
 | `docs/chapters/` | Canonical lesson text and Python code cells. |
 | `docs/conf.py` | Python configuration for Sphinx and notebook execution. |
 | `docs/_static/course.css` | White backgrounds, readable typography, and yellow/pink accents. |
-| `scripts/build.py` | Python entry point for execution, rendering, and notebook export. |
+| `scripts/build.py` | Build HTML/PDF, execute lessons, and export notebooks. |
 | `requirements.txt` | Python package dependencies. |
 | `_build/html/` | Generated website; rebuild it rather than editing it. |
 
@@ -116,4 +134,4 @@ The public course lives at [chikuang.github.io/teaching/genai/](https://chikuang
 
 After building and previewing, copy the **contents** of `_build/html/` into that course directory, then commit and push the reviewed source and rendered pages to their respective repositories. Keep the course directory separate from the rest of the personal website. GitHub Pages serves the published HTML.
 
-The course's GitHub Actions workflow independently executes and builds the lessons and saves an HTML artifact. It validates the source; publication to the personal website remains a separate step.
+The course's GitHub Actions workflow independently executes and builds the lessons and saves an artifact containing both HTML and the course PDF. It validates the source; publication to the personal website remains a separate step.
