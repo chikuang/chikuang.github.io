@@ -1,4 +1,4 @@
-// Reading preference applies to source code only; outputs and answers stay distinct.
+// Code starts closed on each page visit; outputs and answers stay distinct.
 function initializeStudyControls() {
   if (document.querySelector('.course-learning-controls')) return;
   const blocks = [...document.querySelectorAll('details.course-code-fold')];
@@ -9,7 +9,6 @@ function initializeStudyControls() {
   button.type = 'button';
   button.className = 'btn btn-sm';
   let expanded = false;
-  try { expanded = localStorage.getItem('genai-show-code') === 'true'; } catch (_) {}
   function apply() {
     blocks.forEach(block => { block.open = expanded; });
     button.textContent = expanded ? 'Collapse all code' : 'Show all code';
@@ -17,7 +16,11 @@ function initializeStudyControls() {
   }
   button.addEventListener('click', () => {
     expanded = !expanded;
-    try { localStorage.setItem('genai-show-code', String(expanded)); } catch (_) {}
+    apply();
+  });
+  // Also reset when the browser restores a page from its back/forward cache.
+  window.addEventListener('pageshow', () => {
+    expanded = false;
     apply();
   });
   const note = document.createElement('span');
