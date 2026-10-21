@@ -1,12 +1,28 @@
 # 8. Online learning and regret
 
+:::{admonition} Core idea - Regret is defined by the protocol and comparator
+:class: course-core
+
+An online decision must use only past information. Its guarantee compares accumulated loss with a specified benchmark under a specified feedback model. Changing the information revealed after a round or allowing the comparator to change decisions changes the problem.
+:::
+
 **Question.** How should a learner act when each decision must precede the next observation?
 
-[Download R lab](../_static/labs/08-online-learning.R)
+[Download lab](../_static/labs/08-online-learning.R)
 
 Batch learning chooses a rule after observing a training sample. Online learning specifies a sequence: act, observe feedback, update, and act again. The feedback might contain a full loss function or only a partial observation. This chapter begins with full information, where the mathematical distinction between prediction and adaptation is easiest to see.
 
 The central target is cumulative loss relative to a declared comparator. Small regret is a precise guarantee, but its meaning depends on what that comparator is allowed to do.
+
+## The information available at each round
+
+```{figure} ../_static/diagrams/online-protocol.*
+:alt: The action precedes the feedback. The full-information and bandit settings differ in what is revealed after acting; a valid update must respect that boundary.
+:class: course-flow
+:width: 100%
+
+The action precedes the feedback. The full-information and bandit settings differ in what is revealed after acting; a valid update must respect that boundary.
+```
 
 ## 8.1 · Write the protocol before the algorithm
 
@@ -93,6 +109,18 @@ $$
 where $w^*$ minimizes population risk and the expectations exist. Independence and convexity justify this conversion. An arbitrary dependent or drifting sequence does not permit the same argument merely because an online algorithm was used.
 
 Likewise, a fixed-comparator regret bound does not establish calibrated confidence intervals, validity under arbitrary optional stopping, or successful tracking of unrestricted change. Dynamic or adaptive regret changes the comparator class and generally needs additional structure or a different guarantee.
+
+## Zero static regret can coexist with a large tracking error
+
+Consider an even number $T$ of rounds with two experts whose losses alternate between $(0,1)$ and $(1,0)$. A uniform mixture has loss $T/2$, and each single fixed expert also has loss $T/2$. Its static regret is exactly zero.
+
+A comparator allowed to switch freely chooses the zero-loss expert each round and incurs zero loss. Relative to that comparator, the same learner loses $T/2$. Thus a static-regret guarantee does not promise to track every change in the best action. Dynamic comparisons require restrictions on the comparator or environment to obtain useful guarantees.
+
+:::{admonition} Analysis check - complete the protocol
+:class: course-method
+
+Specify what is known before acting, what feedback arrives afterward, and which decisions the comparator may make. In the laboratory, distinguish a mixture's expected loss from the realized loss of a sampled expert; they are different random quantities even when their expectations agree.
+:::
 
 ## 8.5 · Execute the full-information experiment
 

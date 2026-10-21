@@ -1,12 +1,28 @@
 # 9. Bandits: learning from chosen actions
 
+:::{admonition} Core idea - An action earns reward and determines what is learned
+:class: course-core
+
+A bandit policy allocates both actions and information. The exploration bonus protects against prematurely abandoning an uncertain arm; it is not a reward forecast. Evaluate the reward earned during learning separately from the quality of the final recommendation.
+:::
+
 **Question.** How can we choose well while collecting the information needed to learn what is good?
 
-[Download R lab](../_static/labs/09-bandits.R)
+[Download lab](../_static/labs/09-bandits.R)
 
 An online learner with full information sees the consequences of all candidate predictions after each round. A bandit learner sees only the reward of the action it chose. This creates an allocation problem: repeatedly choosing an apparently good action can prevent discovery of a better one.
 
 We begin with stationary stochastic bandits. The assumptions make the target clear and allow a small experiment whose behaviour can be inspected without a large model or external service.
+
+## The bandit information loop
+
+```{figure} ../_static/diagrams/bandit-loop.*
+:alt: Only the chosen reward enters the policy update. The simulation evaluator can use known means for pseudo-regret, but that information must not enter the policy.
+:class: course-flow
+:width: 100%
+
+Only the chosen reward enters the policy update. The simulation evaluator can use known means for pseudo-regret, but that information must not enter the policy.
+```
 
 ## 9.1 · Define the stochastic model
 
@@ -71,6 +87,22 @@ In **best-arm identification**, the output is an arm, and the goal may be to mak
 :::
 
 Inference after adaptive allocation is another distinct question. Selecting the largest estimated arm and reporting its ordinary fixed-sample interval can combine allocation effects, winner selection, and stopping. Later chapters study how data-dependent selection changes inferential targets. A low-regret theorem alone does not solve that problem.
+
+## Read the allocation and the regret together
+
+Suppose a stationary three-arm experiment runs for $1{,}000$ rounds. The best arm is selected 720 times, an arm with gap $0.10$ is selected 80 times, and an arm with gap $0.02$ is selected 200 times. The pseudo-regret for this illustrative allocation is
+
+$$\bar R_{1000}=80(0.10)+200(0.02)=12.$$
+
+The optimal-arm selection rate is 72%, but that percentage alone does not determine the cost. Moving the 200 suboptimal pulls to an arm with gap $0.20$ raises pseudo-regret to 48 without changing the optimal-arm rate. Conversely, smaller gaps can reduce regret even while making the identity of the best arm harder to learn.
+
+Report the horizon, gaps, allocation counts, cumulative pseudo-regret, and final recommendation. These quantities answer complementary questions.
+
+:::{admonition} Boundary - keep the simulator separate from the policy
+:class: course-boundary
+
+The simulator may know every mean and generate unchosen potential rewards to compare policies. The policy must receive only past actions and observed chosen rewards. Passing true means or unchosen outcomes into its action rule changes the feedback model and invalidates the bandit comparison.
+:::
 
 ## 9.5 · Execute a stationary bandit experiment
 

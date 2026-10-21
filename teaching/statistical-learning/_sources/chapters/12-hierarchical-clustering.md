@@ -1,5 +1,11 @@
 # 12. Selective inference after hierarchical clustering
 
+:::{admonition} Core idea - The selected groups define a mean contrast
+:class: course-core
+
+The null concerns averages of the underlying means in the selected index sets. It is not a test that there are exactly two population types. The clustering rule affects which alternative datasets count in the reference distribution.
+:::
+
 ## Learning objectives
 
 After this chapter, you should be able to define a selected-group mean contrast, explain why ordinary cluster comparisons can fail, derive the one-dimensional radial perturbation underlying a selective test, and distinguish exact known-variance inference from a plug-in analysis.
@@ -137,11 +143,23 @@ Imagine clustering training observations, training a classifier to reproduce tho
 
 Independent replicate measurements of the same units can provide a different route: discover groups from one measurement and compare their underlying means with an independent measurement, under a suitable joint model. Distribution-specific data thinning is another approach discussed in Chapter 14. Neither construction follows merely from calling some rows a test set.
 
-## 12.7 Reproducible R laboratory
+## Equal average means do not require identical clusters
+
+For fixed selected index sets of size two, consider underlying one-dimensional means $(-1,1)$ in one set and $(-2,2)$ in the other. Both averages are zero, so the selected-average null holds even though the means within and across the sets differ. This illustrative parameter configuration clarifies the null; it is not a claim about how often the clustering algorithm selects those sets.
+
+Rejection concerns the chosen average contrast under the sampling model and selection adjustment. Non-rejection does not establish identical distributions, homogeneous clusters, or absence of scientific substructure. Specify additional targets when those are the substantive questions.
+
+:::{admonition} Boundary - define all data-dependent choices
+:class: course-boundary
+
+The tested pair, feature set, preprocessing, distance, linkage, and cluster count must be fixed or handled by the inferential procedure. An exact calculation for one pipeline does not automatically cover a search over several pipelines.
+:::
+
+## 12.7 Reproducible Laboratory
 
 The required base-R experiment contrasts a fixed partition with average-linkage clustering under one Gaussian cloud. It demonstrates the calibration failure directly. When the authors' <code>clusterpval</code> package is installed, the same script additionally executes its exact known-variance procedure and records how many runs succeeded. It reports explicit status if that extension is unavailable; it never labels a base-R naïve test as selective inference.
 
-[Download R lab](../_static/labs/12-hierarchical-clustering.R)
+[Download lab](../_static/labs/12-hierarchical-clustering.R)
 
 :::{literalinclude} ../../labs/12-hierarchical-clustering.R
 :language: r

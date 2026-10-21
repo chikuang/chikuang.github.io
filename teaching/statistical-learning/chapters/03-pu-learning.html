@@ -35,7 +35,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
-    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=0485d143" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -363,7 +363,8 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-logistic-objective-that-can-be-implemented-directly">A logistic objective that can be implemented directly</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-different-design-labels-revealed-within-one-sample">A different design: labels revealed within one sample</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-assumptions-do-not-supply">What the assumptions do not supply</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#r-laboratory-a-linear-pu-classifier">R laboratory — A linear PU classifier</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plan-the-positive-and-unlabelled-sample-sizes">Plan the positive and unlabelled sample sizes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#laboratory-a-linear-pu-classifier">Laboratory — A linear PU classifier</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#executed-laboratory-output">Executed laboratory output</a></li>
 </ul>
 </li>
@@ -382,6 +383,9 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="learning-from-positives-and-unlabelled-observations">
 <h1>3. Learning from positives and unlabelled observations<a class="headerlink" href="#learning-from-positives-and-unlabelled-observations" title="Link to this heading">#</a></h1>
+<aside class="course-core admonition">
+<p class="admonition-title">Core idea - Subtract contamination, not observations</p><p>An unlabelled sample from the full feature marginal contains positive and negative cases. The PU identity removes the positive contribution to the negative-class loss <strong>in expectation</strong>. It does not identify which individual unlabelled rows are negative, and it depends on representative positives and the specified prior.</p>
+</aside>
 <p><em>Topics of Statistical Learning · Week 3</em></p>
 <section id="what-is-missing">
 <h2>What is missing?<a class="headerlink" href="#what-is-missing" title="Link to this heading">#</a></h2>
@@ -488,10 +492,22 @@ P(Y=+1\mid S=0)=\frac{\pi(1-c)}{1-\pi c}
 <p>SCAR makes the recorded positives representative of the positive class. It does not by itself identify an unknown <span class="math notranslate nohighlight">\(c\)</span> or <span class="math notranslate nohighlight">\(\pi\)</span>. In the observed posterior <span class="math notranslate nohighlight">\(P(S=1\mid X)=c\eta(X)\)</span>, different pairs <span class="math notranslate nohighlight">\((c,\eta)\)</span> can produce the same product without additional restrictions. Likewise, a positive distribution and its mixture with an unrestricted negative distribution need not uniquely determine an unknown mixture proportion.</p>
 <p>Known prevalence, a separately collected validation sample, or additional identifiable structure can supply information. Any class-prior estimator introduced later must state its own assumptions. Treating a supplied prior as known is appropriate for an introductory simulation, provided the simulation also examines sensitivity to an incorrect value.</p>
 </section>
-<section id="r-laboratory-a-linear-pu-classifier">
-<h2>R laboratory — A linear PU classifier<a class="headerlink" href="#r-laboratory-a-linear-pu-classifier" title="Link to this heading">#</a></h2>
+<section id="plan-the-positive-and-unlabelled-sample-sizes">
+<h2>Plan the positive and unlabelled sample sizes<a class="headerlink" href="#plan-the-positive-and-unlabelled-sample-sizes" title="Link to this heading">#</a></h2>
+<p>For a fixed rule and known <span class="math notranslate nohighlight">\(\pi\)</span>, independent positive and marginal samples give</p>
+<div class="math notranslate nohighlight">
+\[\operatorname{Var}(\widehat R_{\mathrm{PU}})
+=\frac{\pi^2}{n_+}\operatorname{Var}_+(\ell_+-\ell_-)
++\frac{1}{n_U}\operatorname{Var}_U(\ell_-).\]</div>
+<p>The same positive observations appear in both positive-class averages, so their covariance is already included in <span class="math notranslate nohighlight">\(\operatorname{Var}_+(\ell_+-\ell_-)\)</span>. Treating these two averages as independent generally gives the wrong uncertainty calculation. Once the second term is small, collecting more unlabelled cases does little to reduce uncertainty dominated by the positive sample.</p>
+<aside class="course-method admonition">
+<p class="admonition-title">Analysis check - distinguish the two sampling designs</p><p>Use this variance expression for independent positive and full-marginal samples and a fixed rule. In a single partially labelled population sample, averages may share observations. For a fitted rule, training, tuning, and uncertainty need additional analysis; the displayed calculation is not a fitted-model confidence interval.</p>
+</aside>
+</section>
+<section id="laboratory-a-linear-pu-classifier">
+<h2>Laboratory — A linear PU classifier<a class="headerlink" href="#laboratory-a-linear-pu-classifier" title="Link to this heading">#</a></h2>
 <p>The lab fits a regularized logistic PU objective to independent positive and marginal samples. It compares the resulting rule with a naive positive-versus-unlabelled fit, a fully labelled oracle benchmark, and the known Bayes score for the simulation. All evaluation uses a new labelled test sample. The final section verifies the SCAR subset calculation using a separate population sample.</p>
-<p><a class="reference download internal" download="" href="../_downloads/3f0145ff8b70496b3316dc5d25e90392/03-pu-learning.R"><span class="xref download myst">Download R lab</span></a></p>
+<p><a class="reference download internal" download="" href="../_downloads/3f0145ff8b70496b3316dc5d25e90392/03-pu-learning.R"><span class="xref download myst">Download lab</span></a></p>
 <div class="course-code-fold-wrapper docutils container">
 <details class="course-code-fold"><summary>Code</summary><div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Topics of Statistical Learning</span>
 <span class="c1"># Lab 03: Logistic PU learning under an explicit two-sample design</span>
@@ -646,7 +662,7 @@ Separate SCAR population sample:
 The S=0 subset is not the full target feature marginal.
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="../_images/03-pu-learning.png"><img alt="Executed R experiment for pu learning; numerical results are printed above." src="../_images/03-pu-learning.png" style="width: 100%;" />
+<a class="reference internal image-reference" href="../_images/03-pu-learning.png"><img alt="Experiment results for pu learning; numerical results are printed above." src="../_images/03-pu-learning.png" style="width: 100%;" />
 </a>
 </div>
 </section>
@@ -730,7 +746,8 @@ The S=0 subset is not the full target feature marginal.
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-logistic-objective-that-can-be-implemented-directly">A logistic objective that can be implemented directly</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-different-design-labels-revealed-within-one-sample">A different design: labels revealed within one sample</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-assumptions-do-not-supply">What the assumptions do not supply</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#r-laboratory-a-linear-pu-classifier">R laboratory — A linear PU classifier</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plan-the-positive-and-unlabelled-sample-sizes">Plan the positive and unlabelled sample sizes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#laboratory-a-linear-pu-classifier">Laboratory — A linear PU classifier</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#executed-laboratory-output">Executed laboratory output</a></li>
 </ul>
 </li>

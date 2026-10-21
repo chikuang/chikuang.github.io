@@ -35,7 +35,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
-    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=0485d143" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -357,10 +357,12 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-bandit-information-loop">The bandit information loop</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-stochastic-model">9.1 · Define the stochastic model</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-greedy-allocation-can-fail">9.2 · Why greedy allocation can fail</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upper-confidence-bounds">9.3 · Upper confidence bounds</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cumulative-reward-and-final-identification-differ">9.4 · Cumulative reward and final identification differ</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#read-the-allocation-and-the-regret-together">Read the allocation and the regret together</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execute-a-stationary-bandit-experiment">9.5 · Execute a stationary bandit experiment</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">9.6 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">Reading and transition</a></li>
@@ -377,10 +379,23 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="bandits-learning-from-chosen-actions">
 <h1>9. Bandits: learning from chosen actions<a class="headerlink" href="#bandits-learning-from-chosen-actions" title="Link to this heading">#</a></h1>
+<aside class="course-core admonition">
+<p class="admonition-title">Core idea - An action earns reward and determines what is learned</p><p>A bandit policy allocates both actions and information. The exploration bonus protects against prematurely abandoning an uncertain arm; it is not a reward forecast. Evaluate the reward earned during learning separately from the quality of the final recommendation.</p>
+</aside>
 <p><strong>Question.</strong> How can we choose well while collecting the information needed to learn what is good?</p>
-<p><a class="reference download internal" download="" href="../_downloads/8abb540fc63026083b02e751772a9c67/09-bandits.R"><span class="xref download myst">Download R lab</span></a></p>
+<p><a class="reference download internal" download="" href="../_downloads/8abb540fc63026083b02e751772a9c67/09-bandits.R"><span class="xref download myst">Download lab</span></a></p>
 <p>An online learner with full information sees the consequences of all candidate predictions after each round. A bandit learner sees only the reward of the action it chose. This creates an allocation problem: repeatedly choosing an apparently good action can prevent discovery of a better one.</p>
 <p>We begin with stationary stochastic bandits. The assumptions make the target clear and allow a small experiment whose behaviour can be inspected without a large model or external service.</p>
+<section id="the-bandit-information-loop">
+<h2>The bandit information loop<a class="headerlink" href="#the-bandit-information-loop" title="Link to this heading">#</a></h2>
+<figure class="align-default" id="id1">
+<a class="course-flow reference internal image-reference" href="../_images/bandit-loop.svg"><img alt="Only the chosen reward enters the policy update. The simulation evaluator can use known means for pseudo-regret, but that information must not enter the policy." class="course-flow" src="../_images/bandit-loop.svg" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-number">Fig. 5 </span><span class="caption-text">Only the chosen reward enters the policy update. The simulation evaluator can use known means for pseudo-regret, but that information must not enter the policy.</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
 <section id="define-the-stochastic-model">
 <h2>9.1 · Define the stochastic model<a class="headerlink" href="#define-the-stochastic-model" title="Link to this heading">#</a></h2>
 <p>There are <span class="math notranslate nohighlight">\(K\)</span> arms. Arm <span class="math notranslate nohighlight">\(i\)</span> supplies iid rewards with a fixed mean <span class="math notranslate nohighlight">\(\mu_i\)</span>; for this chapter rewards lie in <span class="math notranslate nohighlight">\([0,1]\)</span>. At time <span class="math notranslate nohighlight">\(t\)</span>, the policy chooses <span class="math notranslate nohighlight">\(A_t\)</span> from past actions and observed rewards, then observes <span class="math notranslate nohighlight">\(Y_t\)</span> from that arm. No unchosen reward is revealed to the policy.</p>
@@ -427,6 +442,17 @@ A_t\in\arg\max_i\left\{
 <p><strong>What this shows.</strong> The error probability and its consequences both matter. The 0.10 error probability is a hypothetical input here, not a computed guarantee for this sample size. A real analysis must estimate or bound it under its reward model.</p>
 </div>
 <p>Inference after adaptive allocation is another distinct question. Selecting the largest estimated arm and reporting its ordinary fixed-sample interval can combine allocation effects, winner selection, and stopping. Later chapters study how data-dependent selection changes inferential targets. A low-regret theorem alone does not solve that problem.</p>
+</section>
+<section id="read-the-allocation-and-the-regret-together">
+<h2>Read the allocation and the regret together<a class="headerlink" href="#read-the-allocation-and-the-regret-together" title="Link to this heading">#</a></h2>
+<p>Suppose a stationary three-arm experiment runs for <span class="math notranslate nohighlight">\(1{,}000\)</span> rounds. The best arm is selected 720 times, an arm with gap <span class="math notranslate nohighlight">\(0.10\)</span> is selected 80 times, and an arm with gap <span class="math notranslate nohighlight">\(0.02\)</span> is selected 200 times. The pseudo-regret for this illustrative allocation is</p>
+<div class="math notranslate nohighlight">
+\[\bar R_{1000}=80(0.10)+200(0.02)=12.\]</div>
+<p>The optimal-arm selection rate is 72%, but that percentage alone does not determine the cost. Moving the 200 suboptimal pulls to an arm with gap <span class="math notranslate nohighlight">\(0.20\)</span> raises pseudo-regret to 48 without changing the optimal-arm rate. Conversely, smaller gaps can reduce regret even while making the identity of the best arm harder to learn.</p>
+<p>Report the horizon, gaps, allocation counts, cumulative pseudo-regret, and final recommendation. These quantities answer complementary questions.</p>
+<aside class="course-boundary admonition">
+<p class="admonition-title">Boundary - keep the simulator separate from the policy</p><p>The simulator may know every mean and generate unchosen potential rewards to compare policies. The policy must receive only past actions and observed chosen rewards. Passing true means or unchosen outcomes into its action rule changes the feedback model and invalidates the bandit comparison.</p>
+</aside>
 </section>
 <section id="execute-a-stationary-bandit-experiment">
 <h2>9.5 · Execute a stationary bandit experiment<a class="headerlink" href="#execute-a-stationary-bandit-experiment" title="Link to this heading">#</a></h2>
@@ -516,7 +542,7 @@ Finite-horizon rankings can depend on gaps, tuning and horizon.
 The simulator knows means for scoring; the policies do not.
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="../_images/09-bandits.png"><img alt="Executed R experiment for bandits; numerical results are printed above." src="../_images/09-bandits.png" style="width: 100%;" />
+<a class="reference internal image-reference" href="../_images/09-bandits.png"><img alt="Experiment results for bandits; numerical results are printed above." src="../_images/09-bandits.png" style="width: 100%;" />
 </a>
 </div>
 </section>
@@ -589,10 +615,12 @@ The simulator knows means for scoring; the policies do not.
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-bandit-information-loop">The bandit information loop</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-stochastic-model">9.1 · Define the stochastic model</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-greedy-allocation-can-fail">9.2 · Why greedy allocation can fail</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upper-confidence-bounds">9.3 · Upper confidence bounds</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cumulative-reward-and-final-identification-differ">9.4 · Cumulative reward and final identification differ</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#read-the-allocation-and-the-regret-together">Read the allocation and the regret together</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execute-a-stationary-bandit-experiment">9.5 · Execute a stationary bandit experiment</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">9.6 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">Reading and transition</a></li>

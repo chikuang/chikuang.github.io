@@ -1,5 +1,11 @@
 # 5. Learning from two unlabelled mixtures
 
+:::{admonition} Core idea - Different mixtures provide an invertible contrast
+:class: course-core
+
+The information comes from known, different mixing proportions and shared class distributions. A nonzero prior gap makes the population inverse available; a small gap can still make finite-sample estimates unusably noisy. The target prior is a separate choice from both sampling priors.
+:::
+
 *Topics of Statistical Learning · Week 5*
 
 ## Where the supervision comes from
@@ -121,13 +127,27 @@ If class-conditionals differ between collections, the algebra is solving the wro
 
 PU learning is a useful special case: set $a=1$ so $Q_1=P_+$ and set $b=\pi$ so $Q_2$ is the target feature marginal. Substitution reduces the UU expression to $\pi E_+\ell_+ + E_U\ell_- -\pi E_+\ell_-$. This unification concerns observation distributions and risk identities; it does not make a set of ordinary clustering labels into positive-class supervision.
 
-## R laboratory — Prior separation and assumption failure
+## Allocate a budget according to variance contributions
+
+Write the two variance contributions for a fixed rule as $v_1/n_1+v_2/n_2$, where $v_j=\operatorname{Var}_{Q_j}(h_j)$ as defined above. With equal sampling costs, a fixed total $N=n_1+n_2$, and positive $v_1,v_2$, differentiating with respect to $n_1$ gives the continuous optimum
+
+$$\frac{n_1}{n_2}=\sqrt{\frac{v_1}{v_2}}.$$
+
+For illustrative values $v_1=4v_2$, the allocation ratio is two to one. This is a design calculation for specified variance contributions, not a claim that equal sample sizes are always inefficient. The contributions depend on the priors, loss, and rule; a pilot-based allocation must account for uncertainty in those inputs.
+
+:::{admonition} Boundary - sample size cannot replace identification
+:class: course-boundary
+
+A larger budget can reduce variance when $a\ne b$. At $a=b$, the two-mixture inverse is unavailable under the unrestricted shared-component model. Collect different information or state additional identifying restrictions before fitting.
+:::
+
+## Laboratory — Prior separation and assumption failure
 
 The lab holds one threshold classifier fixed and repeatedly estimates its balanced target risk. It compares four values of $b$ while keeping $a=0.7$, reports empirical and exact standard deviations, and records the fraction of estimates outside $[0,1]$. A final experiment shifts the positive-class mean in the second collection and compares the misspecified correction's analytic limit with its simulation average.
 
 Known latent classes are used only inside the generator. The risk estimator receives features and supplied proportions, not individual class labels. The analytic reference risk is available to the evaluator because the simulation model is specified.
 
-[Download R lab](../_static/labs/05-uu-learning.R)
+[Download lab](../_static/labs/05-uu-learning.R)
 
 :::{literalinclude} ../../labs/05-uu-learning.R
 :language: r

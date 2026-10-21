@@ -35,7 +35,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
-    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=0485d143" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -363,7 +363,8 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditioning-on-the-assignment-history">13.3 Conditioning on the assignment history</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-choices-outside-the-path-also-matter">13.4 The choices outside the path also matter</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#three-different-assessments-of-a-clustering">13.5 Three different assessments of a clustering</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducible-r-laboratory">13.6 Reproducible R laboratory</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#keep-a-record-of-the-choices-that-define-the-event">Keep a record of the choices that define the event</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducible-laboratory">13.6 Reproducible Laboratory</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#computed-output">Computed output</a></li>
 </ul>
 </li>
@@ -383,6 +384,9 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="selective-inference-after-k-means">
 <h1>13. Selective inference after k-means<a class="headerlink" href="#selective-inference-after-k-means" title="Link to this heading">#</a></h1>
+<aside class="course-core admonition">
+<p class="admonition-title">Core idea - The algorithmic path is part of the event</p><p>For the path-conditioned k-means method studied here, the final partition alone is insufficient. Initialization, intermediate assignments, and stopping choices determine the event being conditioned on. A fitting routine and its inferential routine must describe the same procedure.</p>
+</aside>
 <section id="learning-objectives">
 <h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h2>
 <p>This chapter develops three skills: translating an iterative learning algorithm into a selection event, distinguishing a selected mean contrast from clustering stability, and evaluating an implementation whose inferential guarantee depends on the algorithmic history.</p>
@@ -496,11 +500,19 @@ x_i'(\phi)=a_i+b_i\phi.
 <p>None of these quantities substitutes for the others. A stable partition of a continuous cloud need not reveal a mixture of populations. An unstable algorithm can still be paired with a correctly calibrated selected-hypothesis test. Recovery metrics require a reference grouping, while an inferential null must identify the relevant population parameter.</p>
 <p>For a simulation under alternatives, report how often the intended groups are recovered and what rejection probability is obtained conditional on that recovery, or otherwise describe the actual selected contrasts. This prevents a favourable rejection rate from hiding a changing target.</p>
 </section>
-<section id="reproducible-r-laboratory">
-<h2>13.6 Reproducible R laboratory<a class="headerlink" href="#reproducible-r-laboratory" title="Link to this heading">#</a></h2>
+<section id="keep-a-record-of-the-choices-that-define-the-event">
+<h2>Keep a record of the choices that define the event<a class="headerlink" href="#keep-a-record-of-the-choices-that-define-the-event" title="Link to this heading">#</a></h2>
+<p>A reproducible fitting record needs more than the final cluster labels. Retain the input features and transformations, initialization rule, tie and empty-cluster rules, assignment history, stopping criterion, and any comparison among restarts. The path-conditioned test uses the relevant record to reconstruct which perturbed data would have followed that path.</p>
+<p>If several restarts are tried and the smallest objective is chosen, that final comparison is another selection step. Saving all seeds makes the search reproducible but does not itself account for the search statistically. Use an inferential method that covers the actual procedure or restrict the analysis to its justified scope.</p>
+<aside class="course-method admonition">
+<p class="admonition-title">Analysis check - match fitting and inference</p><p>Check the algorithm, initialization, iteration limit, and returned path before passing a fit to an inferential routine. Report stability and selected-contrast evidence separately: repeated agreement on a partition is not a substitute for a calibrated test.</p>
+</aside>
+</section>
+<section id="reproducible-laboratory">
+<h2>13.6 Reproducible Laboratory<a class="headerlink" href="#reproducible-laboratory" title="Link to this heading">#</a></h2>
 <p>The base-R component implements a transparent two-centre Lloyd trace and verifies that its objective does not increase. It compares initializations using a label-invariant co-membership measure and demonstrates naïve null rejection after learning groups.</p>
 <p>If <code>KmeansInference</code> is installed, an additional block executes the authors’ fitting-dependent selective procedure, with fixed arguments, and reports paired naïve and selective results for that same procedure. The script distinguishes this extension from the base-R diagnostic. Initialization agreement is not assumed between two separately written implementations.</p>
-<p><a class="reference download internal" download="" href="../_downloads/5a25ffb13e214dedf398956acfbfb002/13-kmeans-inference.R"><span class="xref download myst">Download R lab</span></a></p>
+<p><a class="reference download internal" download="" href="../_downloads/5a25ffb13e214dedf398956acfbfb002/13-kmeans-inference.R"><span class="xref download myst">Download lab</span></a></p>
 <div class="literal-block-wrapper docutils container" id="id1">
 <div class="code-block-caption"><span class="caption-number">Listing 3 </span><span class="caption-text">Lloyd’s assignment path, naïve calibration, and the authors’ selective method</span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
 <div class="course-code-fold-wrapper docutils container">
@@ -673,7 +685,7 @@ The paired comparison uses the same authors' algorithm and seed.
 Sixty repetitions are a demonstration, not a high-precision size study.
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="../_images/13-kmeans-inference.png"><img alt="Executed R experiment for kmeans inference; numerical results are printed above." src="../_images/13-kmeans-inference.png" style="width: 100%;" />
+<a class="reference internal image-reference" href="../_images/13-kmeans-inference.png"><img alt="Experiment results for kmeans inference; numerical results are printed above." src="../_images/13-kmeans-inference.png" style="width: 100%;" />
 </a>
 </div>
 </section>
@@ -780,7 +792,8 @@ n_1\|\bar x_1-\bar x\|^2+n_2\|\bar x_2-\bar x\|^2
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditioning-on-the-assignment-history">13.3 Conditioning on the assignment history</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-choices-outside-the-path-also-matter">13.4 The choices outside the path also matter</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#three-different-assessments-of-a-clustering">13.5 Three different assessments of a clustering</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducible-r-laboratory">13.6 Reproducible R laboratory</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#keep-a-record-of-the-choices-that-define-the-event">Keep a record of the choices that define the event</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducible-laboratory">13.6 Reproducible Laboratory</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#computed-output">Computed output</a></li>
 </ul>
 </li>

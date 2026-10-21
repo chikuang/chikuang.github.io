@@ -1,5 +1,11 @@
 # 4. PU estimation, overfitting, and sensitivity
 
+:::{admonition} Core idea - A correction does not repair the sampling model
+:class: course-core
+
+Non-negative PU estimation controls one failure of empirical risk minimization. It does not supply a missing class prior or make selectively labelled positives representative. Separate optimization behaviour from the assumptions that make the risk identity correct.
+:::
+
 *Topics of Statistical Learning · Week 4*
 
 ## An unbiased objective can still be difficult to minimize
@@ -113,13 +119,25 @@ A simulation should distinguish the learner's information from the evaluator's i
 
 Vary one consequential assumption at a time: positive sample size, prior accuracy, positive-selection bias, or score flexibility. Report prediction error and an appropriate score loss, not only the optimized training objective. Repeat the whole fitting procedure to assess variability across training datasets. With genuine PU validation data, use a justified risk estimator and its uncertainty rather than silently treating unknown labels as negatives.
 
-## R laboratory — Fixed-rule bias and fitted-rule behaviour
+## Separate three sources of failure in an experiment
+
+A useful sensitivity study varies one component at a time. First hold the sampling model and prior correct while increasing model flexibility: this probes empirical overfitting. Next keep the rule class fixed and change the supplied prior: this probes prior sensitivity. Finally make positive selection depend on features: this challenges representativeness.
+
+Keep the final labelled evaluation population fixed across those comparisons. Report prediction error, the estimated positive and negative risk components, and how often the non-negative correction activates. If changing a prior also changes the test population, the experiment confounds a method change with a target change.
+
+:::{admonition} Boundary - a smaller objective can mean a different question
+:class: course-boundary
+
+A low corrected training objective is not evidence that its supplied prior or selection model is right. Prior values and observation mechanisms require external information or explicit identifiable models. The correction addresses optimization behaviour within that model.
+:::
+
+## Laboratory — Fixed-rule bias and fitted-rule behaviour
 
 Part A repeatedly estimates the logistic risk of one fixed Bayes score. It reports bias, standard deviation, mean squared error, and how often the negative contribution is clipped. Part B fits flexible radial-basis scores with the unbiased and non-negative objectives, using the same parameter bounds, regularizer, and three deterministic starts. It reports optimizer status and independent test performance.
 
 The finite parameter bounds and multiple starts are implementation choices. They do not certify a global minimum. The fixed-rule experiment and the fitted-rule comparison answer different questions and should be interpreted separately.
 
-[Download R lab](../_static/labs/04-pu-practice.R)
+[Download lab](../_static/labs/04-pu-practice.R)
 
 :::{literalinclude} ../../labs/04-pu-practice.R
 :language: r

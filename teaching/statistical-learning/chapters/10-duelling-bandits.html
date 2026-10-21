@@ -35,7 +35,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
-    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=0485d143" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -361,6 +361,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#declare-what-winning-means">10.2 · Declare what winning means</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-declared-regret-convention">10.3 · A declared regret convention</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#connect-adaptive-comparison-to-optimal-design">10.4 · Connect adaptive comparison to optimal design</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-model-restriction-predicts-comparisons-you-did-not-observe">A model restriction predicts comparisons you did not observe</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-transparent-explore-then-commit-baseline">10.5 · A transparent explore-then-commit baseline</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">10.6 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">Reading and transition</a></li>
@@ -377,8 +378,11 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="duelling-bandits-and-adaptive-comparisons">
 <h1>10. Duelling bandits and adaptive comparisons<a class="headerlink" href="#duelling-bandits-and-adaptive-comparisons" title="Link to this heading">#</a></h1>
+<aside class="course-core admonition">
+<p class="admonition-title">Core idea - Name the winner before searching for it</p><p>Pairwise preferences can cycle. A Condorcet winner, a Borda winner, and a best latent strength need not be the same object, and some may not exist. The comparison policy and its performance measure must refer to the winner criterion actually assumed.</p>
+</aside>
 <p><strong>Question.</strong> Which comparison should we request next when feedback says only which alternative wins?</p>
-<p><a class="reference download internal" download="" href="../_downloads/11db043884d2d390e3ab9ec405480204/10-duelling-bandits.R"><span class="xref download myst">Download R lab</span></a></p>
+<p><a class="reference download internal" download="" href="../_downloads/11db043884d2d390e3ab9ec405480204/10-duelling-bandits.R"><span class="xref download myst">Download lab</span></a></p>
 <p>Preference learning describes an observation type. Online learning describes a protocol. Duelling bandits combine them: choose a pair, observe a noisy comparison, and use that information to decide what to compare or deploy next. The bridge is useful for recommendation, evaluation, and adaptive experimental design, but it requires a precise definition of a good alternative.</p>
 <p>This chapter specifies competing winner criteria, illustrates cycles, and develops a transparent baseline. Its experiment is deliberately small enough that every assumption and regret calculation can be inspected.</p>
 <section id="the-preference-matrix">
@@ -452,6 +456,17 @@ I_{ij}(\theta)=P_{ij}(1-P_{ij})(e_i-e_j)(e_i-e_j)^{\mathsf T}.
 <p>An estimation-oriented design can allocate comparisons to minimize uncertainty in a specified contrast or a collection of contrasts. An online policy must additionally weigh the opportunity cost of comparing inferior items. For instance, repeatedly comparing two nearly tied middle-ranked items may be useful for estimating their difference while contributing little to identifying the overall winner.</p>
 <p>A pilot estimate can guide later allocations, but preserve sufficient graph connectivity for the desired contrasts. Greedy selection can neglect entire components. A local information criterion depends on unknown strengths and is not automatically optimal under misspecification or a different winner definition.</p>
 <p>Adaptive sampling changes the inference argument. A correctly specified conditional likelihood can account for outcomes given predictable pair choices, but its standard errors and stopping behaviour still need an appropriate justification. A naive bootstrap of individual adaptively collected rows need not reproduce the sampling protocol. Low regret, precise final estimation, and valid inference are three separate claims.</p>
+</section>
+<section id="a-model-restriction-predicts-comparisons-you-did-not-observe">
+<h2>A model restriction predicts comparisons you did not observe<a class="headerlink" href="#a-model-restriction-predicts-comparisons-you-did-not-observe" title="Link to this heading">#</a></h2>
+<p>Suppose <span class="math notranslate nohighlight">\(p_{AB}=p_{BC}=0.7\)</span>. An unconstrained preference matrix leaves <span class="math notranslate nohighlight">\(p_{AC}\)</span> unspecified. Under Bradley-Terry, however, log odds add along the path:</p>
+<div class="math notranslate nohighlight">
+\[\operatorname{logit}(p_{AC})=2\log(0.7/0.3),
+\qquad p_{AC}=\frac{49}{58}\approx0.845.\]</div>
+<p>If direct comparisons instead give a population value <span class="math notranslate nohighlight">\(p_{AC}=0.3\)</span>, the three probabilities form a cycle and contradict that constant-strength model. The ability to infer an unobserved comparison came from transitivity imposed by the model, not from the two observed edges alone. In finite data, use uncertainty when assessing such a discrepancy.</p>
+<aside class="course-boundary admonition">
+<p class="admonition-title">Boundary - a winner criterion is an assumption about the task</p><p>Do not declare a missing Condorcet winner to be an optimizer failure. Choose and report a criterion appropriate to the application, then evaluate the policy with the corresponding regret or identification loss. State any structural assumptions used to predict unobserved pairs.</p>
+</aside>
 </section>
 <section id="a-transparent-explore-then-commit-baseline">
 <h2>10.5 · A transparent explore-then-commit baseline<a class="headerlink" href="#a-transparent-explore-then-commit-baseline" title="Link to this heading">#</a></h2>
@@ -572,7 +587,7 @@ Borda scores and Borda winner:
 A Condorcet-regret target is unavailable for this cyclic example.
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="../_images/10-duelling-bandits.png"><img alt="Executed R experiment for duelling bandits; numerical results are printed above." src="../_images/10-duelling-bandits.png" style="width: 100%;" />
+<a class="reference internal image-reference" href="../_images/10-duelling-bandits.png"><img alt="Experiment results for duelling bandits; numerical results are printed above." src="../_images/10-duelling-bandits.png" style="width: 100%;" />
 </a>
 </div>
 </section>
@@ -649,6 +664,7 @@ A Condorcet-regret target is unavailable for this cyclic example.
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#declare-what-winning-means">10.2 · Declare what winning means</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-declared-regret-convention">10.3 · A declared regret convention</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#connect-adaptive-comparison-to-optimal-design">10.4 · Connect adaptive comparison to optimal design</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-model-restriction-predicts-comparisons-you-did-not-observe">A model restriction predicts comparisons you did not observe</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-transparent-explore-then-commit-baseline">10.5 · A transparent explore-then-commit baseline</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">10.6 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">Reading and transition</a></li>

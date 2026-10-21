@@ -1,5 +1,21 @@
 # 11. Selective inference: asking a question after seeing the data
 
+:::{admonition} Core idea - Selection changes the reference experiment
+:class: course-core
+
+When a statistic helped choose the question, its ordinary null distribution no longer describes the selected experiment. Conditional inference compares the observation with alternative data that would have produced the specified selection, after handling nuisance information.
+:::
+
+## From a selected question to a conditional reference
+
+```{figure} ../_static/diagrams/selection-pipeline.*
+:alt: Hierarchical and path-conditioned k-means procedures preserve different events. After nuisance conditioning, the admissible radii determine the truncated null distribution under the specified model.
+:class: course-flow
+:width: 100%
+
+Hierarchical and path-conditioned k-means procedures preserve different events. After nuisance conditioning, the admissible radii determine the truncated null distribution under the specified model.
+```
+
 ## Learning objectives
 
 By the end of this chapter, you should be able to:
@@ -128,11 +144,29 @@ If an independent discovery dataset chooses a fixed hypothesis and an untouched 
 
 Independence must concern the *inferential information*, not just a convenient division of row numbers. If held-out observations are assigned to clusters using the same features subsequently tested, their group membership still depends on the test observations. Similarly, selecting a threshold after viewing validation errors is another selection operation. A complete analysis records the question, the information that selected it, and the information used to answer it.
 
-## 11.6 Reproducible R laboratory
+## Translate the conditioning event into a rejection threshold
+
+In the selected-Gaussian example, condition on the other coordinates and on a positive selected sign. Let $c$ be the largest absolute competing coordinate. Under the selected coordinate's zero-mean null, the remaining observation is a standard normal truncated to $(c,\infty)$. For $z>c$,
+
+$$p_{\mathrm{sel}}=\frac{1-\Phi(z)}{1-\Phi(c)}.$$
+
+A level-$\alpha$ rejection therefore requires
+
+$$z\geq\Phi^{-1}\!\left(1-\alpha\{1-\Phi(c)\}\right).$$
+
+At $c=2$ and $\alpha=0.05$, this threshold is about $3.05$. Being just larger than the competitor is not unusual within the selected experiment, even when the ordinary Gaussian tail is small. This is a calculation for the stated Gaussian selection model, not a universal adjustment for arbitrary searches.
+
+:::{admonition} Analysis check - describe the repeated experiment
+:class: course-method
+
+List the selected target, the selection event, the nuisance information conditioned on, and the remaining random statistic. Then state whether the error guarantee is conditional or unconditional. A p-value without that reference experiment is difficult to interpret.
+:::
+
+## 11.6 Reproducible Laboratory
 
 The script compares naïve and selective rejection rates under the global null and checks selected null coordinates when one other coordinate has a nonzero mean. It also reports Monte Carlo standard errors. An empirical rejection rate near $0.05$ is useful validation of this implementation; the exact guarantee comes from the derivation, not the simulation.
 
-[Download R lab](../_static/labs/11-selective-inference.R)
+[Download lab](../_static/labs/11-selective-inference.R)
 
 :::{literalinclude} ../../labs/11-selective-inference.R
 :language: r

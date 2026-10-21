@@ -1,5 +1,11 @@
 # 13. Selective inference after k-means
 
+:::{admonition} Core idea - The algorithmic path is part of the event
+:class: course-core
+
+For the path-conditioned k-means method studied here, the final partition alone is insufficient. Initialization, intermediate assignments, and stopping choices determine the event being conditioned on. A fitting routine and its inferential routine must describe the same procedure.
+:::
+
 ## Learning objectives
 
 This chapter develops three skills: translating an iterative learning algorithm into a selection event, distinguishing a selected mean contrast from clustering stability, and evaluating an implementation whose inferential guarantee depends on the algorithmic history.
@@ -117,13 +123,25 @@ None of these quantities substitutes for the others. A stable partition of a con
 
 For a simulation under alternatives, report how often the intended groups are recovered and what rejection probability is obtained conditional on that recovery, or otherwise describe the actual selected contrasts. This prevents a favourable rejection rate from hiding a changing target.
 
-## 13.6 Reproducible R laboratory
+## Keep a record of the choices that define the event
+
+A reproducible fitting record needs more than the final cluster labels. Retain the input features and transformations, initialization rule, tie and empty-cluster rules, assignment history, stopping criterion, and any comparison among restarts. The path-conditioned test uses the relevant record to reconstruct which perturbed data would have followed that path.
+
+If several restarts are tried and the smallest objective is chosen, that final comparison is another selection step. Saving all seeds makes the search reproducible but does not itself account for the search statistically. Use an inferential method that covers the actual procedure or restrict the analysis to its justified scope.
+
+:::{admonition} Analysis check - match fitting and inference
+:class: course-method
+
+Check the algorithm, initialization, iteration limit, and returned path before passing a fit to an inferential routine. Report stability and selected-contrast evidence separately: repeated agreement on a partition is not a substitute for a calibrated test.
+:::
+
+## 13.6 Reproducible Laboratory
 
 The base-R component implements a transparent two-centre Lloyd trace and verifies that its objective does not increase. It compares initializations using a label-invariant co-membership measure and demonstrates naïve null rejection after learning groups.
 
 If <code>KmeansInference</code> is installed, an additional block executes the authors' fitting-dependent selective procedure, with fixed arguments, and reports paired naïve and selective results for that same procedure. The script distinguishes this extension from the base-R diagnostic. Initialization agreement is not assumed between two separately written implementations.
 
-[Download R lab](../_static/labs/13-kmeans-inference.R)
+[Download lab](../_static/labs/13-kmeans-inference.R)
 
 :::{literalinclude} ../../labs/13-kmeans-inference.R
 :language: r

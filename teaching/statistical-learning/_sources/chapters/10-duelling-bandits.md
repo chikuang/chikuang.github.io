@@ -1,8 +1,14 @@
 # 10. Duelling bandits and adaptive comparisons
 
+:::{admonition} Core idea - Name the winner before searching for it
+:class: course-core
+
+Pairwise preferences can cycle. A Condorcet winner, a Borda winner, and a best latent strength need not be the same object, and some may not exist. The comparison policy and its performance measure must refer to the winner criterion actually assumed.
+:::
+
 **Question.** Which comparison should we request next when feedback says only which alternative wins?
 
-[Download R lab](../_static/labs/10-duelling-bandits.R)
+[Download lab](../_static/labs/10-duelling-bandits.R)
 
 Preference learning describes an observation type. Online learning describes a protocol. Duelling bandits combine them: choose a pair, observe a noisy comparison, and use that information to decide what to compare or deploy next. The bridge is useful for recommendation, evaluation, and adaptive experimental design, but it requires a precise definition of a good alternative.
 
@@ -78,6 +84,21 @@ An estimation-oriented design can allocate comparisons to minimize uncertainty i
 A pilot estimate can guide later allocations, but preserve sufficient graph connectivity for the desired contrasts. Greedy selection can neglect entire components. A local information criterion depends on unknown strengths and is not automatically optimal under misspecification or a different winner definition.
 
 Adaptive sampling changes the inference argument. A correctly specified conditional likelihood can account for outcomes given predictable pair choices, but its standard errors and stopping behaviour still need an appropriate justification. A naive bootstrap of individual adaptively collected rows need not reproduce the sampling protocol. Low regret, precise final estimation, and valid inference are three separate claims.
+
+## A model restriction predicts comparisons you did not observe
+
+Suppose $p_{AB}=p_{BC}=0.7$. An unconstrained preference matrix leaves $p_{AC}$ unspecified. Under Bradley-Terry, however, log odds add along the path:
+
+$$\operatorname{logit}(p_{AC})=2\log(0.7/0.3),
+\qquad p_{AC}=\frac{49}{58}\approx0.845.$$
+
+If direct comparisons instead give a population value $p_{AC}=0.3$, the three probabilities form a cycle and contradict that constant-strength model. The ability to infer an unobserved comparison came from transitivity imposed by the model, not from the two observed edges alone. In finite data, use uncertainty when assessing such a discrepancy.
+
+:::{admonition} Boundary - a winner criterion is an assumption about the task
+:class: course-boundary
+
+Do not declare a missing Condorcet winner to be an optimizer failure. Choose and report a criterion appropriate to the application, then evaluate the policy with the corresponding regret or identification loss. State any structural assumptions used to predict unobserved pairs.
+:::
 
 ## 10.5 · A transparent explore-then-commit baseline
 

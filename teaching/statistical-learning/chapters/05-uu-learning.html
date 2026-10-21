@@ -35,7 +35,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
-    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=0485d143" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -362,7 +362,8 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inverting-the-mixtures">Inverting the mixtures</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-small-prior-separation-is-a-statistical-problem">Why small prior separation is a statistical problem</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#identification-failures-and-links-to-pu-learning">Identification failures and links to PU learning</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#r-laboratory-prior-separation-and-assumption-failure">R laboratory — Prior separation and assumption failure</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#allocate-a-budget-according-to-variance-contributions">Allocate a budget according to variance contributions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#laboratory-prior-separation-and-assumption-failure">Laboratory — Prior separation and assumption failure</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#executed-laboratory-output">Executed laboratory output</a></li>
 </ul>
 </li>
@@ -381,6 +382,9 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="learning-from-two-unlabelled-mixtures">
 <h1>5. Learning from two unlabelled mixtures<a class="headerlink" href="#learning-from-two-unlabelled-mixtures" title="Link to this heading">#</a></h1>
+<aside class="course-core admonition">
+<p class="admonition-title">Core idea - Different mixtures provide an invertible contrast</p><p>The information comes from known, different mixing proportions and shared class distributions. A nonzero prior gap makes the population inverse available; a small gap can still make finite-sample estimates unusably noisy. The target prior is a separate choice from both sampling priors.</p>
+</aside>
 <p><em>Topics of Statistical Learning · Week 5</em></p>
 <section id="where-the-supervision-comes-from">
 <h2>Where the supervision comes from<a class="headerlink" href="#where-the-supervision-comes-from" title="Link to this heading">#</a></h2>
@@ -480,11 +484,21 @@ h_2(X)=\frac{(1-\pi)a\ell_-(X)-\pi(1-a)\ell_+(X)}{a-b}.
 <p>If class-conditionals differ between collections, the algebra is solving the wrong system. A larger sample can then concentrate the risk estimate around an incorrect limit. Sensitivity experiments should examine this structural failure as well as finite-sample variability.</p>
 <p>PU learning is a useful special case: set <span class="math notranslate nohighlight">\(a=1\)</span> so <span class="math notranslate nohighlight">\(Q_1=P_+\)</span> and set <span class="math notranslate nohighlight">\(b=\pi\)</span> so <span class="math notranslate nohighlight">\(Q_2\)</span> is the target feature marginal. Substitution reduces the UU expression to <span class="math notranslate nohighlight">\(\pi E_+\ell_+ + E_U\ell_- -\pi E_+\ell_-\)</span>. This unification concerns observation distributions and risk identities; it does not make a set of ordinary clustering labels into positive-class supervision.</p>
 </section>
-<section id="r-laboratory-prior-separation-and-assumption-failure">
-<h2>R laboratory — Prior separation and assumption failure<a class="headerlink" href="#r-laboratory-prior-separation-and-assumption-failure" title="Link to this heading">#</a></h2>
+<section id="allocate-a-budget-according-to-variance-contributions">
+<h2>Allocate a budget according to variance contributions<a class="headerlink" href="#allocate-a-budget-according-to-variance-contributions" title="Link to this heading">#</a></h2>
+<p>Write the two variance contributions for a fixed rule as <span class="math notranslate nohighlight">\(v_1/n_1+v_2/n_2\)</span>, where <span class="math notranslate nohighlight">\(v_j=\operatorname{Var}_{Q_j}(h_j)\)</span> as defined above. With equal sampling costs, a fixed total <span class="math notranslate nohighlight">\(N=n_1+n_2\)</span>, and positive <span class="math notranslate nohighlight">\(v_1,v_2\)</span>, differentiating with respect to <span class="math notranslate nohighlight">\(n_1\)</span> gives the continuous optimum</p>
+<div class="math notranslate nohighlight">
+\[\frac{n_1}{n_2}=\sqrt{\frac{v_1}{v_2}}.\]</div>
+<p>For illustrative values <span class="math notranslate nohighlight">\(v_1=4v_2\)</span>, the allocation ratio is two to one. This is a design calculation for specified variance contributions, not a claim that equal sample sizes are always inefficient. The contributions depend on the priors, loss, and rule; a pilot-based allocation must account for uncertainty in those inputs.</p>
+<aside class="course-boundary admonition">
+<p class="admonition-title">Boundary - sample size cannot replace identification</p><p>A larger budget can reduce variance when <span class="math notranslate nohighlight">\(a\ne b\)</span>. At <span class="math notranslate nohighlight">\(a=b\)</span>, the two-mixture inverse is unavailable under the unrestricted shared-component model. Collect different information or state additional identifying restrictions before fitting.</p>
+</aside>
+</section>
+<section id="laboratory-prior-separation-and-assumption-failure">
+<h2>Laboratory — Prior separation and assumption failure<a class="headerlink" href="#laboratory-prior-separation-and-assumption-failure" title="Link to this heading">#</a></h2>
 <p>The lab holds one threshold classifier fixed and repeatedly estimates its balanced target risk. It compares four values of <span class="math notranslate nohighlight">\(b\)</span> while keeping <span class="math notranslate nohighlight">\(a=0.7\)</span>, reports empirical and exact standard deviations, and records the fraction of estimates outside <span class="math notranslate nohighlight">\([0,1]\)</span>. A final experiment shifts the positive-class mean in the second collection and compares the misspecified correction’s analytic limit with its simulation average.</p>
 <p>Known latent classes are used only inside the generator. The risk estimator receives features and supplied proportions, not individual class labels. The analytic reference risk is available to the evaluator because the simulation model is specified.</p>
-<p><a class="reference download internal" download="" href="../_downloads/15317dba86bd516304f66bc333e60ea1/05-uu-learning.R"><span class="xref download myst">Download R lab</span></a></p>
+<p><a class="reference download internal" download="" href="../_downloads/15317dba86bd516304f66bc333e60ea1/05-uu-learning.R"><span class="xref download myst">Download lab</span></a></p>
 <div class="course-code-fold-wrapper docutils container">
 <details class="course-code-fold"><summary>Code</summary><div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Topics of Statistical Learning</span>
 <span class="c1"># Lab 05: Two-unlabelled-mixture risk estimation and instability</span>
@@ -627,7 +641,7 @@ The target population still uses positive mean 1 and negative mean -1.
 Larger samples reduce variability around the misspecified limit, not its bias.
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="../_images/05-uu-learning.png"><img alt="Executed R experiment for uu learning; numerical results are printed above." src="../_images/05-uu-learning.png" style="width: 100%;" />
+<a class="reference internal image-reference" href="../_images/05-uu-learning.png"><img alt="Experiment results for uu learning; numerical results are printed above." src="../_images/05-uu-learning.png" style="width: 100%;" />
 </a>
 </div>
 </section>
@@ -713,7 +727,8 @@ Larger samples reduce variability around the misspecified limit, not its bias.
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inverting-the-mixtures">Inverting the mixtures</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-small-prior-separation-is-a-statistical-problem">Why small prior separation is a statistical problem</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#identification-failures-and-links-to-pu-learning">Identification failures and links to PU learning</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#r-laboratory-prior-separation-and-assumption-failure">R laboratory — Prior separation and assumption failure</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#allocate-a-budget-according-to-variance-contributions">Allocate a budget according to variance contributions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#laboratory-prior-separation-and-assumption-failure">Laboratory — Prior separation and assumption failure</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#executed-laboratory-output">Executed laboratory output</a></li>
 </ul>
 </li>

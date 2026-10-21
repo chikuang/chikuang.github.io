@@ -1,5 +1,11 @@
 # 3. Learning from positives and unlabelled observations
 
+:::{admonition} Core idea - Subtract contamination, not observations
+:class: course-core
+
+An unlabelled sample from the full feature marginal contains positive and negative cases. The PU identity removes the positive contribution to the negative-class loss **in expectation**. It does not identify which individual unlabelled rows are negative, and it depends on representative positives and the specified prior.
+:::
+
 *Topics of Statistical Learning · Week 3*
 
 ## What is missing?
@@ -129,11 +135,27 @@ SCAR makes the recorded positives representative of the positive class. It does 
 
 Known prevalence, a separately collected validation sample, or additional identifiable structure can supply information. Any class-prior estimator introduced later must state its own assumptions. Treating a supplied prior as known is appropriate for an introductory simulation, provided the simulation also examines sensitivity to an incorrect value.
 
-## R laboratory — A linear PU classifier
+## Plan the positive and unlabelled sample sizes
+
+For a fixed rule and known $\pi$, independent positive and marginal samples give
+
+$$\operatorname{Var}(\widehat R_{\mathrm{PU}})
+=\frac{\pi^2}{n_+}\operatorname{Var}_+(\ell_+-\ell_-)
++\frac{1}{n_U}\operatorname{Var}_U(\ell_-).$$
+
+The same positive observations appear in both positive-class averages, so their covariance is already included in $\operatorname{Var}_+(\ell_+-\ell_-)$. Treating these two averages as independent generally gives the wrong uncertainty calculation. Once the second term is small, collecting more unlabelled cases does little to reduce uncertainty dominated by the positive sample.
+
+:::{admonition} Analysis check - distinguish the two sampling designs
+:class: course-method
+
+Use this variance expression for independent positive and full-marginal samples and a fixed rule. In a single partially labelled population sample, averages may share observations. For a fitted rule, training, tuning, and uncertainty need additional analysis; the displayed calculation is not a fitted-model confidence interval.
+:::
+
+## Laboratory — A linear PU classifier
 
 The lab fits a regularized logistic PU objective to independent positive and marginal samples. It compares the resulting rule with a naive positive-versus-unlabelled fit, a fully labelled oracle benchmark, and the known Bayes score for the simulation. All evaluation uses a new labelled test sample. The final section verifies the SCAR subset calculation using a separate population sample.
 
-[Download R lab](../_static/labs/03-pu-learning.R)
+[Download lab](../_static/labs/03-pu-learning.R)
 
 :::{literalinclude} ../../labs/03-pu-learning.R
 :language: r

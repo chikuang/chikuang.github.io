@@ -16,6 +16,22 @@ Each of the 14 chapters contains explanations, mathematical arguments, worked ex
 **Instructor:** [Chi-Kuang Yeh](https://chikuang.github.io/) · [cyeh@gsu.edu](mailto:cyeh@gsu.edu)  
 **Level:** advanced master's / doctoral · **Format:** independent study or a proposed 15-week graduate elective
 
+## A common reasoning route
+
+:::{admonition} Core idea - match the conclusion to the information
+:class: course-core
+
+Start with the quantity you want to learn, describe how the observations were produced, and identify the assumptions connecting them. Then choose an estimator or decision rule and an evaluation that answers that same question. Prediction error, regret, and selective error control are different guarantees.
+:::
+
+```{figure} _static/diagrams/course-map.*
+:alt: Define the target, describe observations, state identifying assumptions, then match the evaluation to the target.
+:class: course-flow
+:width: 100%
+
+The course's common reasoning route. Each chapter fills in these steps for a different observation or selection mechanism.
+```
+
 ## Four connected questions
 
 | Learning route | Central question | Chapters |

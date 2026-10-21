@@ -1,6 +1,22 @@
 # 2. What weak supervision tells us
 
+:::{admonition} Core idea - The observation mechanism supplies the supervision
+:class: course-core
+
+The recorded label is a measurement of the target, not necessarily the target itself. Write the map from the latent class to the observed information. Identification asks whether that map can be inverted; stability asks how much uncertainty the inverse amplifies.
+:::
+
 *Topics of Statistical Learning · Week 2*
+
+## Two ways aggregate information identifies risk
+
+```{figure} ../_static/diagrams/weak-supervision.*
+:alt: PU uses representative positives and the full marginal. UU uses two mixtures with known different priors and shared class distributions. Both routes need a justified evaluation design.
+:class: course-flow
+:width: 100%
+
+PU uses representative positives and the full marginal. UU uses two mixtures with known different priors and shared class distributions. Both routes need a justified evaluation design.
+```
 
 ## Record the observation, not an imagined complete label
 
@@ -111,13 +127,25 @@ Multiple sources can supply useful supervision, but source count is not the same
 
 Keep the evaluation problem explicit. A clean, independently collected test sample can assess prediction of $Y$. A noisy test label assesses prediction of $\widetilde Y$ unless a justified correction is applied. Comparing algorithms only against the same weak source used for training may reward reproduction of that source's bias.
 
-## R laboratory — Correcting a noisy risk curve
+## Quantify what an inverse does to error
+
+The noisy-label posterior relation has slope $d=1-\rho_+-\rho_-$. If the rates are treated as known, an estimation error $\epsilon$ in the observed posterior becomes $\epsilon/d$ in the recovered posterior. For example, with $d=0.2$, an error of $0.02$ becomes $0.10$ before any clipping.
+
+This calculation separates two questions: whether the posterior is identified at all, and whether the available sample estimates it precisely enough to be useful. The same distinction appears in the UU denominator $a-b$. More observations can reduce estimation noise, but cannot identify an unrestricted model when the relevant denominator is exactly zero.
+
+:::{admonition} Boundary - validation of the recorded label is not enough
+:class: course-boundary
+
+A held-out noisy label can evaluate prediction of that noisy label. Evaluating the clean target requires trusted target labels or a justified correction with its own assumptions. Do not select a correction merely because it improves an uncorrected observed-label score.
+:::
+
+## Laboratory — Correcting a noisy risk curve
 
 The lab simulates a logistic class posterior and asymmetric class-conditional corruption with known rates. It evaluates a grid of threshold classifiers using noisy empirical risk and corrected empirical risk. A large independent labelled sample assesses the selected rules. The latent training labels are used only for an explicitly labelled oracle comparison.
 
 The grid is deliberately simple: the aim is to inspect an observation mechanism rather than hide it inside an optimization routine. The script also checks the transition-matrix inversion and the complementary-label identity directly.
 
-[Download R lab](../_static/labs/02-weak-supervision.R)
+[Download lab](../_static/labs/02-weak-supervision.R)
 
 :::{literalinclude} ../../labs/02-weak-supervision.R
 :language: r

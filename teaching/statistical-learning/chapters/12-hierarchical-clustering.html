@@ -35,7 +35,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
-    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=0485d143" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -364,7 +364,8 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-truncation-set-remembers-the-algorithm">12.4 The truncation set remembers the algorithm</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-must-be-fixed-or-accounted-for">12.5 What must be fixed or accounted for?</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-ordinary-row-splitting-can-still-fail">12.6 Why ordinary row splitting can still fail</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducible-r-laboratory">12.7 Reproducible R laboratory</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#equal-average-means-do-not-require-identical-clusters">Equal average means do not require identical clusters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducible-laboratory">12.7 Reproducible Laboratory</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#computed-output">Computed output</a></li>
 </ul>
 </li>
@@ -384,6 +385,9 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="selective-inference-after-hierarchical-clustering">
 <h1>12. Selective inference after hierarchical clustering<a class="headerlink" href="#selective-inference-after-hierarchical-clustering" title="Link to this heading">#</a></h1>
+<aside class="course-core admonition">
+<p class="admonition-title">Core idea - The selected groups define a mean contrast</p><p>The null concerns averages of the underlying means in the selected index sets. It is not a test that there are exactly two population types. The clustering rule affects which alternative datasets count in the reference distribution.</p>
+</aside>
 <section id="learning-objectives">
 <h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h2>
 <p>After this chapter, you should be able to define a selected-group mean contrast, explain why ordinary cluster comparisons can fail, derive the one-dimensional radial perturbation underlying a selective test, and distinguish exact known-variance inference from a plug-in analysis.</p>
@@ -497,10 +501,18 @@ p_{\mathrm{sel}}
 <p>Imagine clustering training observations, training a classifier to reproduce those labels, assigning held-out observations, and testing the held-out features between assigned groups. The assignment uses each held-out observation’s own features. Those same features then determine both the group and the test statistic. The null for the selected held-out groups remains data-dependent.</p>
 <p>Independent replicate measurements of the same units can provide a different route: discover groups from one measurement and compare their underlying means with an independent measurement, under a suitable joint model. Distribution-specific data thinning is another approach discussed in Chapter 14. Neither construction follows merely from calling some rows a test set.</p>
 </section>
-<section id="reproducible-r-laboratory">
-<h2>12.7 Reproducible R laboratory<a class="headerlink" href="#reproducible-r-laboratory" title="Link to this heading">#</a></h2>
+<section id="equal-average-means-do-not-require-identical-clusters">
+<h2>Equal average means do not require identical clusters<a class="headerlink" href="#equal-average-means-do-not-require-identical-clusters" title="Link to this heading">#</a></h2>
+<p>For fixed selected index sets of size two, consider underlying one-dimensional means <span class="math notranslate nohighlight">\((-1,1)\)</span> in one set and <span class="math notranslate nohighlight">\((-2,2)\)</span> in the other. Both averages are zero, so the selected-average null holds even though the means within and across the sets differ. This illustrative parameter configuration clarifies the null; it is not a claim about how often the clustering algorithm selects those sets.</p>
+<p>Rejection concerns the chosen average contrast under the sampling model and selection adjustment. Non-rejection does not establish identical distributions, homogeneous clusters, or absence of scientific substructure. Specify additional targets when those are the substantive questions.</p>
+<aside class="course-boundary admonition">
+<p class="admonition-title">Boundary - define all data-dependent choices</p><p>The tested pair, feature set, preprocessing, distance, linkage, and cluster count must be fixed or handled by the inferential procedure. An exact calculation for one pipeline does not automatically cover a search over several pipelines.</p>
+</aside>
+</section>
+<section id="reproducible-laboratory">
+<h2>12.7 Reproducible Laboratory<a class="headerlink" href="#reproducible-laboratory" title="Link to this heading">#</a></h2>
 <p>The required base-R experiment contrasts a fixed partition with average-linkage clustering under one Gaussian cloud. It demonstrates the calibration failure directly. When the authors’ <code>clusterpval</code> package is installed, the same script additionally executes its exact known-variance procedure and records how many runs succeeded. It reports explicit status if that extension is unavailable; it never labels a base-R naïve test as selective inference.</p>
-<p><a class="reference download internal" download="" href="../_downloads/142f7d99ae7a38e4587644c8b28dda4b/12-hierarchical-clustering.R"><span class="xref download myst">Download R lab</span></a></p>
+<p><a class="reference download internal" download="" href="../_downloads/142f7d99ae7a38e4587644c8b28dda4b/12-hierarchical-clustering.R"><span class="xref download myst">Download lab</span></a></p>
 <div class="literal-block-wrapper docutils container" id="id1">
 <div class="code-block-caption"><span class="caption-number">Listing 2 </span><span class="caption-text">Fixed versus learned groups, with an optional authors’ exact selective procedure</span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
 <div class="course-code-fold-wrapper docutils container">
@@ -641,7 +653,7 @@ Successful finite p-values: 100 of 100
 The selective Monte Carlo check is small; its standard error matters.
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="../_images/12-hierarchical-clustering.png"><img alt="Executed R experiment for hierarchical clustering; numerical results are printed above." src="../_images/12-hierarchical-clustering.png" style="width: 100%;" />
+<a class="reference internal image-reference" href="../_images/12-hierarchical-clustering.png"><img alt="Experiment results for hierarchical clustering; numerical results are printed above." src="../_images/12-hierarchical-clustering.png" style="width: 100%;" />
 </a>
 </div>
 </section>
@@ -736,7 +748,8 @@ The selective Monte Carlo check is small; its standard error matters.
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-truncation-set-remembers-the-algorithm">12.4 The truncation set remembers the algorithm</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-must-be-fixed-or-accounted-for">12.5 What must be fixed or accounted for?</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-ordinary-row-splitting-can-still-fail">12.6 Why ordinary row splitting can still fail</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducible-r-laboratory">12.7 Reproducible R laboratory</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#equal-average-means-do-not-require-identical-clusters">Equal average means do not require identical clusters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducible-laboratory">12.7 Reproducible Laboratory</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#computed-output">Computed output</a></li>
 </ul>
 </li>

@@ -35,7 +35,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
-    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=0485d143" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -362,7 +362,8 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-a-rule-and-evaluating-it">Learning a rule and evaluating it</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#which-population-and-which-sampling-unit">Which population and which sampling unit?</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#identification-estimation-and-guarantees">Identification, estimation, and guarantees</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#r-laboratory-training-error-and-future-prediction-risk">R laboratory — Training error and future prediction risk</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-decision-can-change-when-the-cost-changes">A decision can change when the cost changes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#laboratory-training-error-and-future-prediction-risk">Laboratory — Training error and future prediction risk</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#executed-laboratory-output">Executed laboratory output</a></li>
 </ul>
 </li>
@@ -381,6 +382,9 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="statistical-targets-and-observation-mechanisms">
 <h1>1. Statistical targets and observation mechanisms<a class="headerlink" href="#statistical-targets-and-observation-mechanisms" title="Link to this heading">#</a></h1>
+<aside class="course-core admonition">
+<p class="admonition-title">Core idea - The target comes before the algorithm</p><p>A dataset can support several questions, but each question needs its own loss, population, and evaluation unit. Decide whether the output is a class decision, a probability, or an inferential statement before judging the method. A small training error answers none of these questions on its own.</p>
+</aside>
 <p><em>Topics of Statistical Learning · Week 1</em></p>
 <section id="the-question-before-the-algorithm">
 <h2>The question before the algorithm<a class="headerlink" href="#the-question-before-the-algorithm" title="Link to this heading">#</a></h2>
@@ -479,11 +483,21 @@ E\{\widehat R_{\mathrm{test}}(\widehat g)\mid D_n\}=R_P(\widehat g).
 </div>
 <p>A low prediction error does not establish a valid selected-hypothesis test. Conversely, a correctly calibrated test need not imply useful prediction. We will keep the target, its assumptions, and the scope of its guarantee together.</p>
 </section>
-<section id="r-laboratory-training-error-and-future-prediction-risk">
-<h2>R laboratory — Training error and future prediction risk<a class="headerlink" href="#r-laboratory-training-error-and-future-prediction-risk" title="Link to this heading">#</a></h2>
+<section id="a-decision-can-change-when-the-cost-changes">
+<h2>A decision can change when the cost changes<a class="headerlink" href="#a-decision-can-change-when-the-cost-changes" title="Link to this heading">#</a></h2>
+<p>Suppose a false positive costs <span class="math notranslate nohighlight">\(c_{\mathrm{FP}}\)</span> and a false negative costs <span class="math notranslate nohighlight">\(c_{\mathrm{FN}}\)</span>, with correct decisions costing zero. At a feature value with positive probability <span class="math notranslate nohighlight">\(\eta(x)\)</span>, predicting positive has conditional cost <span class="math notranslate nohighlight">\(c_{\mathrm{FP}}\{1-\eta(x)\}\)</span>; predicting negative has cost <span class="math notranslate nohighlight">\(c_{\mathrm{FN}}\eta(x)\)</span>. The optimal threshold is therefore</p>
+<div class="math notranslate nohighlight">
+\[\eta(x)&gt;\frac{c_{\mathrm{FP}}}{c_{\mathrm{FP}}+c_{\mathrm{FN}}}.\]</div>
+<p>If missed positives cost four times as much as false alarms, the threshold is <span class="math notranslate nohighlight">\(0.2\)</span>, not <span class="math notranslate nohighlight">\(0.5\)</span>. A case with probability <span class="math notranslate nohighlight">\(0.3\)</span> is then classified positive even though negative is the more likely class. This is an illustrative decision calculation, not a new fitted-model result.</p>
+<aside class="course-method admonition">
+<p class="admonition-title">Analysis check - align the score with the decision</p><p>Write down the target population, prediction unit, loss, and available information at prediction time. Evaluate the declared cost as well as any probability score. A method can improve a probability forecast without changing every class decision, or improve a cost-sensitive decision while reducing ordinary accuracy.</p>
+</aside>
+</section>
+<section id="laboratory-training-error-and-future-prediction-risk">
+<h2>Laboratory — Training error and future prediction risk<a class="headerlink" href="#laboratory-training-error-and-future-prediction-risk" title="Link to this heading">#</a></h2>
 <p>The standalone experiment fits polynomials of degrees 1, 2, and 8 to noisy quadratic data. It repeats the entire training procedure and evaluates conditional prediction risk on a fixed, fine midpoint grid. The evaluation uses the known simulation mean and adds the noise variance; it is an approximation to the integral over the specified uniform feature distribution. The true mean is available here only because this is a controlled simulation.</p>
 <p>Inspect average training error, target risk, and Monte Carlo standard errors. The quadratic model matches the mean specification; the flexible model may fit noise. The experiment does not claim that one degree is universally optimal.</p>
-<p><a class="reference download internal" download="" href="../_downloads/1eaa542bbd782646cc0011dfc77dfd44/01-statistical-targets.R"><span class="xref download myst">Download R lab</span></a></p>
+<p><a class="reference download internal" download="" href="../_downloads/1eaa542bbd782646cc0011dfc77dfd44/01-statistical-targets.R"><span class="xref download myst">Download lab</span></a></p>
 <div class="course-code-fold-wrapper docutils container">
 <details class="course-code-fold"><summary>Code</summary><div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Topics of Statistical Learning</span>
 <span class="c1"># Lab 01: Training error and future prediction risk</span>
@@ -588,7 +602,7 @@ MCSE describes uncertainty across repeated training datasets.
 It is not a confidence interval for an individual fitted model's risk.
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="../_images/01-statistical-targets.png"><img alt="Executed R experiment for statistical targets; numerical results are printed above." src="../_images/01-statistical-targets.png" style="width: 100%;" />
+<a class="reference internal image-reference" href="../_images/01-statistical-targets.png"><img alt="Experiment results for statistical targets; numerical results are printed above." src="../_images/01-statistical-targets.png" style="width: 100%;" />
 </a>
 </div>
 </section>
@@ -671,7 +685,8 @@ It is not a confidence interval for an individual fitted model's risk.
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-a-rule-and-evaluating-it">Learning a rule and evaluating it</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#which-population-and-which-sampling-unit">Which population and which sampling unit?</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#identification-estimation-and-guarantees">Identification, estimation, and guarantees</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#r-laboratory-training-error-and-future-prediction-risk">R laboratory — Training error and future prediction risk</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-decision-can-change-when-the-cost-changes">A decision can change when the cost changes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#laboratory-training-error-and-future-prediction-risk">Laboratory — Training error and future prediction risk</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#executed-laboratory-output">Executed laboratory output</a></li>
 </ul>
 </li>

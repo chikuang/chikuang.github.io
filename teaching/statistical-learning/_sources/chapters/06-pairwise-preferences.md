@@ -1,12 +1,28 @@
 # 6. Pairwise preference learning
 
+:::{admonition} Core idea - A comparison identifies a difference
+:class: course-core
+
+Bradley-Terry strengths have no absolute origin. The comparison graph determines which differences can be identified, while the observed wins determine whether an unpenalized finite estimate exists. Connected observations, finite estimation, and precise estimation are three different requirements.
+:::
+
 **Question.** What can we learn when a person can compare two alternatives but cannot supply an absolute response?
 
-[Download R lab](../_static/labs/06-pairwise-preferences.R)
+[Download lab](../_static/labs/06-pairwise-preferences.R)
 
 A clinician may prefer one explanation to another, a reader may rank two retrieved passages, and a customer may choose between products. These observations are informative, but their meaning differs from a numerical measurement of quality. This chapter develops a statistical model for the comparisons, identifies its estimable quantities, and asks how the comparison schedule affects precision.
 
 By the end, you should be able to derive a Bradley–Terry likelihood, diagnose two distinct failures of estimation, and connect preference learning to optimal experimental design.
+
+## From a comparison design to a target
+
+```{figure} ../_static/diagrams/preference-design.*
+:alt: A comparison workflow: choose an estimand, inspect graph and dependence, diagnose the fit, and evaluate that estimand. The checks distinguish identification, finite estimation, and precision.
+:class: course-flow
+:width: 100%
+
+A comparison workflow: choose an estimand, inspect graph and dependence, diagnose the fit, and evaluate that estimand. The checks distinguish identification, finite estimation, and precision.
+```
 
 ## 6.1 · Specify the observation and target
 
@@ -71,6 +87,18 @@ This gives a concrete design problem: allocate a fixed comparison budget over pa
 **Work it through.** Allocating 20 comparisons to each of the three pairs gives edge information $20/4=5$ and contrast variance $2/(3\times5)=2/15$. Allocating 30 each to pairs $(1,2)$ and $(2,3)$ gives two edge informations of $7.5$; the endpoint difference adds their variances, yielding $1/7.5+1/7.5=4/15$.
 
 **What this shows.** Both schedules identify the target, but the chain has twice the local variance. These numbers use the equal-strength model and a local information approximation. They do not prove that balanced comparisons are universally optimal for every target and parameter value.
+:::
+
+## Ask what a new comparison would repair
+
+Before allocating another comparison, identify the deficiency. A comparison connecting previously separate components can identify a previously unsupported contrast. Another comparison along an existing path can improve precision without changing identifiability. A newly observed reverse win can change separation behaviour, but its occurrence cannot be guaranteed by the schedule.
+
+This distinction prevents treating all additional data as equivalent. For a target contrast, inspect which paths connect its two items and where information is weak. If a prior or penalty is required to obtain a finite estimate, describe that addition alongside the comparison evidence.
+
+:::{admonition} Analysis check - three diagnostics, in order
+:class: course-method
+
+Check the undirected comparison graph, then the directed win graph, then uncertainty for the actual target contrast. A finite coefficient vector from an optimizer is not a substitute for any of these checks.
 :::
 
 ## 6.5 · Execute the comparison experiment

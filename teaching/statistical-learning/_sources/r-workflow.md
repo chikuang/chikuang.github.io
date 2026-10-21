@@ -1,6 +1,6 @@
 # Computational workflow and reproducibility
 
-The required experiments use **base R** and run on an ordinary laptop. The hierarchical-clustering and k-means chapters also show how to call the authors' specialist packages; those additional calculations run when the packages are installed. The page output states whether those optional calculations actually ran.
+The hierarchical-clustering and k-means chapters include calculations using the authors' specialist packages. Those calculations run when the packages are installed, and the recorded output states whether they actually ran.
 
 ## 1. Run a worked experiment
 
@@ -57,7 +57,7 @@ At a true rejection rate near 0.05 and $B=500$, this is about 0.0097. A result o
 
 ## 5. Make a small reproducible report
 
-Use Quarto, R Markdown, or another transparent report format. The website itself is built with Sphinx; students may use R-oriented tools for their reports. A minimal Quarto source is available as [report-template.qmd](_static/downloads/report-template.qmd).
+Use a transparent report format that keeps calculations and interpretation together. A minimal source is available as [report-template.qmd](_static/downloads/report-template.qmd).
 
 Your report should identify:
 

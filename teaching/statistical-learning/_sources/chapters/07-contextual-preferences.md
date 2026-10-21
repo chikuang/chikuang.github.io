@@ -1,8 +1,14 @@
 # 7. Contextual preferences, judges, and reward learning
 
+:::{admonition} Core idea - A preference is conditional on a population and context
+:class: course-core
+
+A comparison rate reflects the alternatives, the prompt, the judge population, and presentation. Specify whose preferences should generalize to which future tasks. Repeated rows from the same people or prompts do not automatically supply independent evidence.
+:::
+
 **Question.** Whose preference is being learned, in which context, and with what uncertainty?
 
-[Download R lab](../_static/labs/07-contextual-preferences.R)
+[Download lab](../_static/labs/07-contextual-preferences.R)
 
 A single strength per item can be inadequate when the same answer is helpful for one question and inappropriate for another. Contextual preference learning models comparisons conditional on information about the task and the alternatives. Its statistical challenge includes both the predictive model and the mechanism that generates the comparisons.
 
@@ -105,6 +111,18 @@ $$
 Under a Bradley–Terry reward comparison, the common $\log Z$ cancels. The preference probability becomes a logistic function of the difference between two policy/reference log ratios. Replacing $\pi^*$ with a fitted policy and minimizing the resulting negative log probability gives the central DPO objective.
 
 The identity depends on the reward-comparison model, positive reference support, and the KL-regularized optimization setup. It does not establish that the labels are unbiased, that a restricted fitted policy reaches the optimum, or that preference alignment guarantees factual correctness. This can be an offline preference-learning problem: collecting a fixed comparison dataset does not itself make the analysis online learning.
+
+## Design the holdout around the intended generalization
+
+Predicting new comparisons from familiar judges is different from predicting preferences of new judges. Likewise, a new answer pair for a familiar prompt is different from an entirely new prompt. Choose the holdout unit to match the intended deployment: rows, judges, prompts, or a combination.
+
+If both judges and prompts are reused, the dependence structure is crossed. A judge-only bootstrap does not automatically capture prompt-level dependence, and a prompt-only bootstrap does not automatically capture judge effects. The simple one-cluster analysis in the lab illustrates a particular sampling model; an application with crossed reuse needs a corresponding design and uncertainty analysis.
+
+:::{admonition} Boundary - more rows need not mean more independent information
+:class: course-boundary
+
+Report the number of independent judges and prompts as well as the number of comparisons. Keep model selection separate from final evaluation. State which judge and context population the reported preference probability represents.
+:::
 
 ## 7.5 · Execute the judge and policy experiment
 

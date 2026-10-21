@@ -1,5 +1,21 @@
 # 14. Research synthesis: assumptions, validation, and independent information
 
+:::{admonition} Core idea - Match the evidence to the guarantee
+:class: course-core
+
+Reproducible computation shows that an analysis can be repeated. Statistical validity also requires the correct target and assumptions. A useful extension changes an assumption deliberately and measures which guarantee survives, rather than treating one successful run as universal evidence.
+:::
+
+## Separate discovery and inference information
+
+```{figure} ../_static/diagrams/independent-information.*
+:alt: For the equal split under the known-variance Gaussian model, X + E and X - E are independent under joint repeated sampling and each has twice the original variance. Independence is not conditional on the original X.
+:class: course-flow
+:width: 100%
+
+For the equal split under the known-variance Gaussian model, X + E and X - E are independent under joint repeated sampling and each has twice the original variance. Independence is not conditional on the original X.
+```
+
 ## Learning objectives
 
 By the end of this chapter, you should be able to turn a course method into a focused research question, design a sensitivity study that targets its assumptions, separate several kinds of statistical guarantee, and implement Gaussian data thinning as an independent-information validation strategy.
@@ -130,13 +146,25 @@ Reusing an assignment implementation is appropriate when the report identifies w
 
 Maintain a source record for data, a fixed seed strategy, software versions, the exact analysis script, and a description of the independent sampling unit. Repeated ratings from one prompt or annotator must not be counted as independent observations merely because they occupy separate rows.
 
-## 14.7 Reproducible R laboratory
+## Information reserved for inference has a measurable cost
+
+Conditional on a given pair of discovered groups, the standard error of the normalized inference contrast is inflated by $1/\sqrt{1-\tau}$ relative to using an unselected full observation with the same fixed groups. For $\tau=0.2,0.5,0.8$, the factors are approximately $1.12,1.41,2.24$.
+
+More discovery information can improve the grouping, while less remaining inference information widens a conditional interval. Actual groups can change with $\tau$, so these factors are not an unconditional power comparison between different discovered partitions. Choose the split through a declared design, not by repeatedly examining the eventual inferential result.
+
+:::{admonition} Boundary - protect the reserved information
+:class: course-boundary
+
+Once the inference component has influenced feature choice, group selection, or tuning, the original independence argument no longer describes the full workflow. Fix those choices using discovery information, and use inference information only for the stated assessment or account for the additional selection.
+:::
+
+## 14.7 Reproducible Laboratory
 
 The base-R script studies Gaussian thinning at three discovery fractions. It reports null rejection, selected-target interval coverage, interval length, estimation error, and a separate co-membership agreement measure under a simulated mean structure. It then challenges the known-noise assumption.
 
 The intervals target the means of the discovered index sets. The script computes those targets from the simulated $\mu_i$ rather than substituting the original generating group centres. All numerical results are produced by the downloadable script.
 
-[Download R lab](../_static/labs/14-research-synthesis.R)
+[Download lab](../_static/labs/14-research-synthesis.R)
 
 :::{literalinclude} ../../labs/14-research-synthesis.R
 :language: r

@@ -9,9 +9,9 @@
 | Instructor | Chi-Kuang Yeh · [cyeh@gsu.edu](mailto:cyeh@gsu.edu) |
 | Course number | STAT 8XXX — number to be assigned |
 | Level and credits | Advanced master's / doctoral elective; 3 proposed credit hours |
-| Teaching format | Lecture, seminar discussion, and guided R investigations |
+| Teaching format | Lecture, seminar discussion, and guided computational investigations |
 | Duration | 15 teaching weeks; also suitable for independent study |
-| Preparation | Graduate probability and inference, linear algebra, basic optimisation, statistical learning, and working R knowledge |
+| Preparation | Graduate probability and inference, linear algebra, basic optimisation, statistical learning, and programming experience |
 | Independent preparation | Approximately 6–9 hours per week during a taught offering |
 | Offering information | Term, CRN, room, meeting times, and office hours to be announced |
 
@@ -33,7 +33,7 @@ The chapters are learning units. The schedule allocates extra time to the assump
 
 | Wk | Question and material | Reading focus | Suggested milestone |
 |---|---|---|---|
-| 1 | [Targets, risks, and observation mechanisms](chapters/01-statistical-targets.md) | The course's model–target–mechanism framework | R readiness check |
+| 1 | [Targets, risks, and observation mechanisms](chapters/01-statistical-targets.md) | The course's model–target–mechanism framework | Computational readiness check |
 | 2 | [Forms of weak supervision](chapters/02-weak-supervision.md) | Natarajan et al.; optional Ishida and Ratner | Mechanism comparison |
 | 3 | [Positive–unlabelled learning](chapters/03-pu-learning.md) | Elkan–Noto; PU risk derivation | Start Assignment 1 |
 | 4 | [PU estimation and sensitivity](chapters/04-pu-practice.md) | Kiryo et al.; selected Bekker sections | Prior and selection experiment |
@@ -51,7 +51,7 @@ The chapters are learning units. The schedule allocates extra time to the assump
 
 ## Independent-study route
 
-Work through one chapter at a time. For each chapter, write down the model and target before reading the derivation. Run the supplied R lab unchanged, reproduce its main result, then alter one parameter or assumption. Answer at least one derivation question and one experimental question before revealing a solution. Keep a short record of what the experiment can and cannot establish.
+Work through one chapter at a time. For each chapter, write down the model and target before reading the derivation. Run the supplied experiment unchanged, reproduce its main result, then alter one parameter or assumption. Answer at least one derivation question and one experimental question before revealing a solution. Keep a short record of what the experiment can and cannot establish.
 
 For a narrower reading group, Chapters 1–5 form a weak-supervision block; Chapters 6–10 form a preference and sequential-learning block; Chapters 11–13 form an inference-after-selection block. Chapter 1 supplies notation for all routes, and Chapter 14 provides a shared project framework.
 

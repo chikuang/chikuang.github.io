@@ -35,7 +35,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
-    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=0485d143" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -357,10 +357,12 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-information-available-at-each-round">The information available at each round</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#write-the-protocol-before-the-algorithm">8.1 · Write the protocol before the algorithm</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learn-from-experts-with-hedge">8.2 · Learn from experts with Hedge</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#derive-projected-online-gradient-descent">8.3 · Derive projected online gradient descent</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regret-is-not-automatically-statistical-risk">8.4 · Regret is not automatically statistical risk</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#zero-static-regret-can-coexist-with-a-large-tracking-error">Zero static regret can coexist with a large tracking error</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execute-the-full-information-experiment">8.5 · Execute the full-information experiment</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">8.6 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">Reading and transition</a></li>
@@ -377,10 +379,23 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="online-learning-and-regret">
 <h1>8. Online learning and regret<a class="headerlink" href="#online-learning-and-regret" title="Link to this heading">#</a></h1>
+<aside class="course-core admonition">
+<p class="admonition-title">Core idea - Regret is defined by the protocol and comparator</p><p>An online decision must use only past information. Its guarantee compares accumulated loss with a specified benchmark under a specified feedback model. Changing the information revealed after a round or allowing the comparator to change decisions changes the problem.</p>
+</aside>
 <p><strong>Question.</strong> How should a learner act when each decision must precede the next observation?</p>
-<p><a class="reference download internal" download="" href="../_downloads/ee14df61181fb78fafa13408e39cae8f/08-online-learning.R"><span class="xref download myst">Download R lab</span></a></p>
+<p><a class="reference download internal" download="" href="../_downloads/ee14df61181fb78fafa13408e39cae8f/08-online-learning.R"><span class="xref download myst">Download lab</span></a></p>
 <p>Batch learning chooses a rule after observing a training sample. Online learning specifies a sequence: act, observe feedback, update, and act again. The feedback might contain a full loss function or only a partial observation. This chapter begins with full information, where the mathematical distinction between prediction and adaptation is easiest to see.</p>
 <p>The central target is cumulative loss relative to a declared comparator. Small regret is a precise guarantee, but its meaning depends on what that comparator is allowed to do.</p>
+<section id="the-information-available-at-each-round">
+<h2>The information available at each round<a class="headerlink" href="#the-information-available-at-each-round" title="Link to this heading">#</a></h2>
+<figure class="align-default" id="id1">
+<a class="course-flow reference internal image-reference" href="../_images/online-protocol.svg"><img alt="The action precedes the feedback. The full-information and bandit settings differ in what is revealed after acting; a valid update must respect that boundary." class="course-flow" src="../_images/online-protocol.svg" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-number">Fig. 4 </span><span class="caption-text">The action precedes the feedback. The full-information and bandit settings differ in what is revealed after acting; a valid update must respect that boundary.</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
 <section id="write-the-protocol-before-the-algorithm">
 <h2>8.1 · Write the protocol before the algorithm<a class="headerlink" href="#write-the-protocol-before-the-algorithm" title="Link to this heading">#</a></h2>
 <p>At round <span class="math notranslate nohighlight">\(t\)</span>, the learner chooses <span class="math notranslate nohighlight">\(w_t\in\mathcal W\)</span> using information available before the new loss. A loss function <span class="math notranslate nohighlight">\(\ell_t\)</span> is revealed, the learner incurs <span class="math notranslate nohighlight">\(\ell_t(w_t)\)</span>, and it updates its decision. In the full-information setting it can use the observed loss function or an appropriate gradient. In prediction with experts, it sees every expert’s loss after acting.</p>
@@ -448,6 +463,14 @@ E\{R(\bar w_T)-R(w^*)\}\le
 \]</div>
 <p>where <span class="math notranslate nohighlight">\(w^*\)</span> minimizes population risk and the expectations exist. Independence and convexity justify this conversion. An arbitrary dependent or drifting sequence does not permit the same argument merely because an online algorithm was used.</p>
 <p>Likewise, a fixed-comparator regret bound does not establish calibrated confidence intervals, validity under arbitrary optional stopping, or successful tracking of unrestricted change. Dynamic or adaptive regret changes the comparator class and generally needs additional structure or a different guarantee.</p>
+</section>
+<section id="zero-static-regret-can-coexist-with-a-large-tracking-error">
+<h2>Zero static regret can coexist with a large tracking error<a class="headerlink" href="#zero-static-regret-can-coexist-with-a-large-tracking-error" title="Link to this heading">#</a></h2>
+<p>Consider an even number <span class="math notranslate nohighlight">\(T\)</span> of rounds with two experts whose losses alternate between <span class="math notranslate nohighlight">\((0,1)\)</span> and <span class="math notranslate nohighlight">\((1,0)\)</span>. A uniform mixture has loss <span class="math notranslate nohighlight">\(T/2\)</span>, and each single fixed expert also has loss <span class="math notranslate nohighlight">\(T/2\)</span>. Its static regret is exactly zero.</p>
+<p>A comparator allowed to switch freely chooses the zero-loss expert each round and incurs zero loss. Relative to that comparator, the same learner loses <span class="math notranslate nohighlight">\(T/2\)</span>. Thus a static-regret guarantee does not promise to track every change in the best action. Dynamic comparisons require restrictions on the comparator or environment to obtain useful guarantees.</p>
+<aside class="course-method admonition">
+<p class="admonition-title">Analysis check - complete the protocol</p><p>Specify what is known before acting, what feedback arrives afterward, and which decisions the comparator may make. In the laboratory, distinguish a mixture’s expected loss from the realized loss of a sampled expert; they are different random quantities even when their expectations agree.</p>
+</aside>
 </section>
 <section id="execute-the-full-information-experiment">
 <h2>8.5 · Execute the full-information experiment<a class="headerlink" href="#execute-the-full-information-experiment" title="Link to this heading">#</a></h2>
@@ -566,7 +589,7 @@ Projected OGD, fixed-comparator regret and the deterministic upper bound:
      23.2      40.0       0.1
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="../_images/08-online-learning.png"><img alt="Executed R experiment for online learning; numerical results are printed above." src="../_images/08-online-learning.png" style="width: 100%;" />
+<a class="reference internal image-reference" href="../_images/08-online-learning.png"><img alt="Experiment results for online learning; numerical results are printed above." src="../_images/08-online-learning.png" style="width: 100%;" />
 </a>
 </div>
 </section>
@@ -639,10 +662,12 @@ Projected OGD, fixed-comparator regret and the deterministic upper bound:
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-information-available-at-each-round">The information available at each round</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#write-the-protocol-before-the-algorithm">8.1 · Write the protocol before the algorithm</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learn-from-experts-with-hedge">8.2 · Learn from experts with Hedge</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#derive-projected-online-gradient-descent">8.3 · Derive projected online gradient descent</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regret-is-not-automatically-statistical-risk">8.4 · Regret is not automatically statistical risk</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#zero-static-regret-can-coexist-with-a-large-tracking-error">Zero static regret can coexist with a large tracking error</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execute-the-full-information-experiment">8.5 · Execute the full-information experiment</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">8.6 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">Reading and transition</a></li>

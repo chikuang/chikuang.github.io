@@ -35,7 +35,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
-    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=0485d143" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -361,6 +361,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#presentation-and-sampling-matter">7.2 · Presentation and sampling matter</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#repeated-judges-are-not-independent-rows">7.3 · Repeated judges are not independent rows</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-preference-likelihood-to-a-policy">7.4 · From preference likelihood to a policy</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-the-holdout-around-the-intended-generalization">Design the holdout around the intended generalization</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execute-the-judge-and-policy-experiment">7.5 · Execute the judge and policy experiment</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">7.6 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">Reading and transition</a></li>
@@ -377,8 +378,11 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="contextual-preferences-judges-and-reward-learning">
 <h1>7. Contextual preferences, judges, and reward learning<a class="headerlink" href="#contextual-preferences-judges-and-reward-learning" title="Link to this heading">#</a></h1>
+<aside class="course-core admonition">
+<p class="admonition-title">Core idea - A preference is conditional on a population and context</p><p>A comparison rate reflects the alternatives, the prompt, the judge population, and presentation. Specify whose preferences should generalize to which future tasks. Repeated rows from the same people or prompts do not automatically supply independent evidence.</p>
+</aside>
 <p><strong>Question.</strong> Whose preference is being learned, in which context, and with what uncertainty?</p>
-<p><a class="reference download internal" download="" href="../_downloads/ac4aa58a210e60618e8891ac7f2bc81f/07-contextual-preferences.R"><span class="xref download myst">Download R lab</span></a></p>
+<p><a class="reference download internal" download="" href="../_downloads/ac4aa58a210e60618e8891ac7f2bc81f/07-contextual-preferences.R"><span class="xref download myst">Download lab</span></a></p>
 <p>A single strength per item can be inadequate when the same answer is helpful for one question and inappropriate for another. Contextual preference learning models comparisons conditional on information about the task and the alternatives. Its statistical challenge includes both the predictive model and the mechanism that generates the comparisons.</p>
 <p>This chapter extends paired comparisons, handles repeated judges carefully, and derives a finite-action connection to direct preference optimization. It does not require language-model training.</p>
 <section id="a-contextual-comparison-model">
@@ -458,6 +462,14 @@ r(a)=\tau\log\frac{\pi^*(a)}{\pi_0(a)}+\tau\log Z.
 \]</div>
 <p>Under a Bradley–Terry reward comparison, the common <span class="math notranslate nohighlight">\(\log Z\)</span> cancels. The preference probability becomes a logistic function of the difference between two policy/reference log ratios. Replacing <span class="math notranslate nohighlight">\(\pi^*\)</span> with a fitted policy and minimizing the resulting negative log probability gives the central DPO objective.</p>
 <p>The identity depends on the reward-comparison model, positive reference support, and the KL-regularized optimization setup. It does not establish that the labels are unbiased, that a restricted fitted policy reaches the optimum, or that preference alignment guarantees factual correctness. This can be an offline preference-learning problem: collecting a fixed comparison dataset does not itself make the analysis online learning.</p>
+</section>
+<section id="design-the-holdout-around-the-intended-generalization">
+<h2>Design the holdout around the intended generalization<a class="headerlink" href="#design-the-holdout-around-the-intended-generalization" title="Link to this heading">#</a></h2>
+<p>Predicting new comparisons from familiar judges is different from predicting preferences of new judges. Likewise, a new answer pair for a familiar prompt is different from an entirely new prompt. Choose the holdout unit to match the intended deployment: rows, judges, prompts, or a combination.</p>
+<p>If both judges and prompts are reused, the dependence structure is crossed. A judge-only bootstrap does not automatically capture prompt-level dependence, and a prompt-only bootstrap does not automatically capture judge effects. The simple one-cluster analysis in the lab illustrates a particular sampling model; an application with crossed reuse needs a corresponding design and uncertainty analysis.</p>
+<aside class="course-boundary admonition">
+<p class="admonition-title">Boundary - more rows need not mean more independent information</p><p>Report the number of independent judges and prompts as well as the number of comparisons. Keep model selection separate from final evaluation. State which judge and context population the reported preference probability represents.</p>
+</aside>
 </section>
 <section id="execute-the-judge-and-policy-experiment">
 <h2>7.5 · Execute the judge and policy experiment<a class="headerlink" href="#execute-the-judge-and-policy-experiment" title="Link to this heading">#</a></h2>
@@ -564,7 +576,7 @@ Preference probability from rewards / policy log ratios:
  0.731059  0.731059
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="../_images/07-contextual-preferences.png"><img alt="Executed R experiment for contextual preferences; numerical results are printed above." src="../_images/07-contextual-preferences.png" style="width: 100%;" />
+<a class="reference internal image-reference" href="../_images/07-contextual-preferences.png"><img alt="Experiment results for contextual preferences; numerical results are printed above." src="../_images/07-contextual-preferences.png" style="width: 100%;" />
 </a>
 </div>
 </section>
@@ -641,6 +653,7 @@ Preference probability from rewards / policy log ratios:
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#presentation-and-sampling-matter">7.2 · Presentation and sampling matter</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#repeated-judges-are-not-independent-rows">7.3 · Repeated judges are not independent rows</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-preference-likelihood-to-a-policy">7.4 · From preference likelihood to a policy</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-the-holdout-around-the-intended-generalization">Design the holdout around the intended generalization</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execute-the-judge-and-policy-experiment">7.5 · Execute the judge and policy experiment</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">7.6 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">Reading and transition</a></li>

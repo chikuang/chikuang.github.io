@@ -1,5 +1,11 @@
 # 1. Statistical targets and observation mechanisms
 
+:::{admonition} Core idea - The target comes before the algorithm
+:class: course-core
+
+A dataset can support several questions, but each question needs its own loss, population, and evaluation unit. Decide whether the output is a class decision, a probability, or an inferential statement before judging the method. A small training error answers none of these questions on its own.
+:::
+
 *Topics of Statistical Learning · Week 1*
 
 ## The question before the algorithm
@@ -105,13 +111,27 @@ The course also uses several different guarantees:
 
 A low prediction error does not establish a valid selected-hypothesis test. Conversely, a correctly calibrated test need not imply useful prediction. We will keep the target, its assumptions, and the scope of its guarantee together.
 
-## R laboratory — Training error and future prediction risk
+## A decision can change when the cost changes
+
+Suppose a false positive costs $c_{\mathrm{FP}}$ and a false negative costs $c_{\mathrm{FN}}$, with correct decisions costing zero. At a feature value with positive probability $\eta(x)$, predicting positive has conditional cost $c_{\mathrm{FP}}\{1-\eta(x)\}$; predicting negative has cost $c_{\mathrm{FN}}\eta(x)$. The optimal threshold is therefore
+
+$$\eta(x)>\frac{c_{\mathrm{FP}}}{c_{\mathrm{FP}}+c_{\mathrm{FN}}}.$$
+
+If missed positives cost four times as much as false alarms, the threshold is $0.2$, not $0.5$. A case with probability $0.3$ is then classified positive even though negative is the more likely class. This is an illustrative decision calculation, not a new fitted-model result.
+
+:::{admonition} Analysis check - align the score with the decision
+:class: course-method
+
+Write down the target population, prediction unit, loss, and available information at prediction time. Evaluate the declared cost as well as any probability score. A method can improve a probability forecast without changing every class decision, or improve a cost-sensitive decision while reducing ordinary accuracy.
+:::
+
+## Laboratory — Training error and future prediction risk
 
 The standalone experiment fits polynomials of degrees 1, 2, and 8 to noisy quadratic data. It repeats the entire training procedure and evaluates conditional prediction risk on a fixed, fine midpoint grid. The evaluation uses the known simulation mean and adds the noise variance; it is an approximation to the integral over the specified uniform feature distribution. The true mean is available here only because this is a controlled simulation.
 
 Inspect average training error, target risk, and Monte Carlo standard errors. The quadratic model matches the mean specification; the flexible model may fit noise. The experiment does not claim that one degree is universally optimal.
 
-[Download R lab](../_static/labs/01-statistical-targets.R)
+[Download lab](../_static/labs/01-statistical-targets.R)
 
 :::{literalinclude} ../../labs/01-statistical-targets.R
 :language: r
