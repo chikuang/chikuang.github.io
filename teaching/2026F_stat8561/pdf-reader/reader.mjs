@@ -42,10 +42,16 @@ try {
   });
   previous.addEventListener('click', () => { viewer.currentPageNumber -= 1; });
   next.addEventListener('click', () => { viewer.currentPageNumber += 1; });
-  pageNumber.addEventListener('change', () => {
-    const target = Math.trunc(Number(pageNumber.value));
-    if (target >= 1 && target <= viewer.pagesCount) viewer.currentPageNumber = target;
-    updateControls();
+  const goToPage = () => {
+    const target = Number(pageNumber.value);
+    if (Number.isInteger(target) && target >= 1 && target <= viewer.pagesCount) {
+      viewer.currentPageNumber = target;
+    }
+  };
+  pageNumber.addEventListener('input', goToPage);
+  pageNumber.addEventListener('change', () => { goToPage(); updateControls(); });
+  pageNumber.addEventListener('keydown', event => {
+    if (event.key === 'Enter') { goToPage(); updateControls(); }
   });
   zoom.addEventListener('change', () => { viewer.currentScaleValue = zoom.value; });
   const task = pdfjs.getDocument({
