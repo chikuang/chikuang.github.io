@@ -35,7 +35,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=316925d6" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -54,6 +54,7 @@
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/11-evaluation-uncertainty';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/learning-controls.js?v=ed55b08a"></script>
     <link rel="canonical" href="https://chikuang.github.io/teaching/genai/chapters/11-evaluation-uncertainty.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -62,7 +63,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
-    <meta name="docbuild:last-update" content="October 20, 2026"/>
+    <meta name="docbuild:last-update" content="October 21, 2026"/>
   
     
     <script src="../_static/searchtools.js"></script>
@@ -186,6 +187,11 @@
 <li class="toctree-l1"><a class="reference internal" href="12-agents.html">12 · Agents: tools, state, and decisions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="13-agent-reliability.html">13 · Agent reliability and experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="14-capstone.html">14 · Capstone: a GenAI system for a statistician</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendices</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../appendices/a-python-pytorch.html">Appendix A · Python and PyTorch, one operation at a time</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices/b-real-llm-systems.html">Appendix B · A real local LLM, RAG, and tool-using agent</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Supplement</span></p>
 <ul class="nav bd-sidenav">
@@ -359,8 +365,12 @@
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#abstention-produces-a-riskcoverage-tradeoff">11.5 · Abstention produces a risk–coverage tradeoff</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#split-conformal-prediction-for-a-finite-label-space">11.6 · Split conformal prediction for a finite label space</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">11.7 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#split-conformal-prediction-for-a-finite-label-space">11.6 · Split conformal prediction for a finite label space</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-preserve-pairing">Coding and experiment practice · Preserve pairing</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continue-with-the-implemented-system">Continue with the implemented system</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">11.7 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">11.8 · Reading and next step</a></li>
 </ul>
             </nav>
@@ -377,6 +387,7 @@
 <h1>11 · Evaluation, calibration, and uncertainty<a class="headerlink" href="#evaluation-calibration-and-uncertainty" title="Link to this heading">#</a></h1>
 <p><strong>Question.</strong> What evidence would justify saying one system is better than another?</p>
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/11-evaluation-uncertainty.ipynb">Download the executed notebook</a></p>
+<p><strong>Python support:</strong> <a class="reference internal" href="../appendices/a-python-pytorch.html"><span class="std std-doc">Appendix A</span></a> explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s <strong>Show all code</strong> control while working through the lab.</p>
 <p>An evaluation begins with a target population and a loss, not with a leaderboard. We will compare paired system outcomes, estimate uncertainty by resampling questions, examine calibration and abstention, and construct finite-label conformal prediction sets. All numerical outcomes in this chapter are simulated; they illustrate statistical procedures rather than measure any commercial or pretrained model.</p>
 <p><strong>Prerequisites:</strong> Chapters 1, 6, and 10; sampling distributions and quantiles. <strong>Outcomes:</strong> define an estimand; preserve pairing; separate calibration from discrimination; interpret risk–coverage curves; state a conformal guarantee precisely.</p>
 <section id="pipeline-and-framework">
@@ -430,31 +441,33 @@
 <span class="n">difficulty</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
 <span class="n">p_a</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="mf">0.6</span><span class="o">-</span><span class="n">difficulty</span><span class="p">)))</span>
 <span class="n">p_b</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="mf">0.85</span><span class="o">-</span><span class="n">difficulty</span><span class="p">)))</span>
-<span class="c1"># A shared uniform variable creates correlated outcomes on the same questions.</span>
-<span class="n">u</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-<span class="n">correct_a</span> <span class="o">=</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="n">p_a</span>
-<span class="n">correct_b</span> <span class="o">=</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="n">p_b</span>
+<span class="c1"># Shared task difficulty induces pairing; independent residual draws allow gains and losses.</span>
+<span class="n">correct_a</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">p_a</span>
+<span class="n">correct_b</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">p_b</span>
 <span class="n">difference</span> <span class="o">=</span> <span class="n">correct_b</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">-</span><span class="n">correct_a</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
 <span class="n">bootstrap_ids</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">3000</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
 <span class="n">bootstrap_difference</span> <span class="o">=</span> <span class="n">difference</span><span class="p">[</span><span class="n">bootstrap_ids</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">interval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">bootstrap_difference</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.025</span><span class="p">,</span> <span class="mf">0.975</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Accuracy A / B:&#39;</span><span class="p">,</span> <span class="n">correct_a</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">correct_b</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Paired accuracy difference B-A:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">difference</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="mi">3</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Question-bootstrap percentile interval:&#39;</span><span class="p">,</span> <span class="n">interval</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'A-only / B-only successes:'</span><span class="p">,</span> <span class="nb">int</span><span class="p">((</span><span class="n">correct_a</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">correct_b</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span>
+      <span class="nb">int</span><span class="p">((</span><span class="n">correct_b</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">correct_a</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Accuracy A / B:'</span><span class="p">,</span> <span class="n">correct_a</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">correct_b</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Paired accuracy difference B-A:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">difference</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Question-bootstrap percentile interval:'</span><span class="p">,</span> <span class="n">interval</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
 </pre></div>
 </div>
 </details></div>
 </div>
 <div class="cell_output docutils container">
 <p class="course-output-label">Output</p>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Accuracy A / B: 0.638 0.692
-Paired accuracy difference B-A: 0.054
-Question-bootstrap percentile interval: [0.025 0.083]
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>A-only / B-only successes: 45 51
+Accuracy A / B: 0.638 0.662
+Paired accuracy difference B-A: 0.025
+Question-bootstrap percentile interval: [-0.054  0.104]
 </pre></div>
 </div>
 </div>
 </div>
-<p>The shared random variable is a convenient simulation construction, not an assumption that real model errors are nested. Resampling the paired differences preserves the observed association between systems. Resampling A and B independently would estimate a different sampling variance.</p>
+<p>The shared task difficulty induces association, while separate conditional draws allow both A-only and B-only successes. This is a simulation design, not a claim about actual LLM error dependence. Resampling the paired differences preserves the observed association between systems. Resampling A and B independently would estimate a different sampling variance.</p>
 <p>A percentile bootstrap interval is an approximation, not an exact finite-sample guarantee. Its interpretation depends on the sampled tasks representing the target population. It does not account for an unreported search over prompts or models using the same test set.</p>
 <section id="why-pairing-changes-uncertainty">
 <h3>Why pairing changes uncertainty<a class="headerlink" href="#why-pairing-changes-uncertainty" title="Link to this heading">#</a></h3>
@@ -528,19 +541,19 @@ Question-bootstrap percentile interval: [0.025 0.083]
 <span class="n">temperature</span> <span class="o">=</span> <span class="n">temperatures</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">validation_losses</span><span class="p">)]</span>
 <span class="n">raw_p</span> <span class="o">=</span> <span class="n">sigmoid</span><span class="p">(</span><span class="n">logits</span><span class="p">[</span><span class="n">test</span><span class="p">])</span>
 <span class="n">calibrated_p</span> <span class="o">=</span> <span class="n">sigmoid</span><span class="p">(</span><span class="n">logits</span><span class="p">[</span><span class="n">test</span><span class="p">]</span><span class="o">/</span><span class="n">temperature</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Validation-selected temperature:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-<span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">&#39;Raw&#39;</span><span class="p">,</span> <span class="n">raw_p</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;Temperature-scaled&#39;</span><span class="p">,</span> <span class="n">calibrated_p</span><span class="p">)]:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="s1">&#39;Brier:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">p</span><span class="o">-</span><span class="n">y</span><span class="p">[</span><span class="n">test</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Validation-selected temperature:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">'Raw'</span><span class="p">,</span> <span class="n">raw_p</span><span class="p">),</span> <span class="p">(</span><span class="s1">'Temperature-scaled'</span><span class="p">,</span> <span class="n">calibrated_p</span><span class="p">)]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="s1">'Brier:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">p</span><span class="o">-</span><span class="n">y</span><span class="p">[</span><span class="n">test</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
 
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">4.5</span><span class="p">,</span> <span class="mf">3.7</span><span class="p">))</span>
-<span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">&#39;Raw&#39;</span><span class="p">,</span> <span class="n">raw_p</span><span class="p">,</span> <span class="s1">&#39;#705600&#39;</span><span class="p">),</span>
-                       <span class="p">(</span><span class="s1">&#39;Scaled&#39;</span><span class="p">,</span> <span class="n">calibrated_p</span><span class="p">,</span> <span class="s1">&#39;#a2006e&#39;</span><span class="p">)]:</span>
+<span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">'Raw'</span><span class="p">,</span> <span class="n">raw_p</span><span class="p">,</span> <span class="s1">'#705600'</span><span class="p">),</span>
+                       <span class="p">(</span><span class="s1">'Scaled'</span><span class="p">,</span> <span class="n">calibrated_p</span><span class="p">,</span> <span class="s1">'#a2006e'</span><span class="p">)]:</span>
     <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">((</span><span class="n">p</span><span class="o">*</span><span class="mi">8</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span> <span class="mi">7</span><span class="p">)</span>
     <span class="n">points</span> <span class="o">=</span> <span class="p">[(</span><span class="n">p</span><span class="p">[</span><span class="n">bins</span><span class="o">==</span><span class="n">b</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">y</span><span class="p">[</span><span class="n">test</span><span class="p">][</span><span class="n">bins</span><span class="o">==</span><span class="n">b</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
               <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bins</span><span class="o">==</span><span class="n">b</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">]</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="s1">&#39;o-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Mean predicted probability&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Observed event fraction&#39;</span><span class="p">,</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="s1">'o-'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s1">':'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'gray'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">'Mean predicted probability'</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">'Observed event fraction'</span><span class="p">,</span>
        <span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
@@ -551,12 +564,12 @@ Question-bootstrap percentile interval: [0.025 0.083]
 </div>
 <div class="cell_output docutils container">
 <p class="course-output-label">Output</p>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Validation-selected temperature: 1.925
-Raw Brier: 0.22
-Temperature-scaled Brier: 0.207
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Validation-selected temperature: 1.75
+Raw Brier: 0.213
+Temperature-scaled Brier: 0.202
 </pre></div>
 </div>
-<img alt="../_images/1471c0f5997bb41a7d4a6b6d4b1ceb7f8c58d17ef597c7bd73435d627b12f462.png" src="../_images/1471c0f5997bb41a7d4a6b6d4b1ceb7f8c58d17ef597c7bd73435d627b12f462.png" />
+<img alt="../_images/202cebba8ba013b1703991dc78ffbbae854e33612ad3e0436fe2b023a44ec56a.png" src="../_images/202cebba8ba013b1703991dc78ffbbae854e33612ad3e0436fe2b023a44ec56a.png" />
 </div>
 </div>
 <p>Temperature scaling preserves the ranking of binary logits when temperature is positive. It changes probability calibration, not the underlying evidence. Token probabilities from a language model are probabilities of token events under that model; they are not automatically probabilities that a whole answer is factually correct.</p>
@@ -586,9 +599,9 @@ Temperature-scaled Brier: 0.207
         <span class="n">coverage</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">selected</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
         <span class="n">risk</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">errors</span><span class="p">[</span><span class="n">selected</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mf">3.3</span><span class="p">))</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">coverage</span><span class="p">,</span> <span class="n">risk</span><span class="p">,</span> <span class="s1">&#39;o-&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#a2006e&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Coverage: fraction answered&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Error among answered cases&#39;</span><span class="p">,</span>
-       <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Descriptive test risk–coverage curve&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">coverage</span><span class="p">,</span> <span class="n">risk</span><span class="p">,</span> <span class="s1">'o-'</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#a2006e'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">'Coverage: fraction answered'</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">'Error among answered cases'</span><span class="p">,</span>
+       <span class="n">title</span><span class="o">=</span><span class="s1">'Descriptive test risk–coverage curve'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -597,7 +610,7 @@ Temperature-scaled Brier: 0.207
 </div>
 <div class="cell_output docutils container">
 <p class="course-output-label">Output</p>
-<img alt="../_images/ed63fad17e002e5db5b9c7c66f50a924f598d6bb3b0f112523b76aca85f0b885.png" src="../_images/ed63fad17e002e5db5b9c7c66f50a924f598d6bb3b0f112523b76aca85f0b885.png" />
+<img alt="../_images/53d7fa0cc341d4d0b07b6799233a0b49f65745d9fb2f580b95cc7900a3d5fa7c.png" src="../_images/53d7fa0cc341d4d0b07b6799233a0b49f65745d9fb2f580b95cc7900a3d5fa7c.png" />
 </div>
 </div>
 <p>This curve is descriptive. If you use it to choose the operating threshold, this test sample has become development data. For a final evaluation, choose the threshold on a separate development set and report uncertainty on a new test set. Risk can also worsen within an important subgroup even when overall selective risk improves.</p>
@@ -640,20 +653,20 @@ C(x)=\{y:1-\widehat p_y(x)\le \widehat q\}.
 <span class="n">P_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="mi">1</span><span class="o">-</span><span class="n">calibrated_p</span><span class="p">,</span> <span class="n">calibrated_p</span><span class="p">])</span>
 <span class="n">sets</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">P_test</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">q</span>
 <span class="n">covered</span> <span class="o">=</span> <span class="n">sets</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test</span><span class="p">)),</span> <span class="n">y</span><span class="p">[</span><span class="n">test</span><span class="p">]]</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Calibration size / rank / quantile:&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores</span><span class="p">),</span> <span class="n">k</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Empirical test coverage:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">covered</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="mi">3</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Average set size:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">sets</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="mi">3</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Empty / singleton / doubleton counts:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">sets</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">minlength</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Calibration size / rank / quantile:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores</span><span class="p">),</span> <span class="n">k</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Empirical test coverage:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">covered</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Average set size:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">sets</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Empty / singleton / doubleton counts:'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">sets</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">minlength</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
 </pre></div>
 </div>
 </details></div>
 </div>
 <div class="cell_output docutils container">
 <p class="course-output-label">Output</p>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Calibration size / rank / quantile: 500 451 0.672
-Empirical test coverage: 0.89
-Average set size: 1.517
-Empty / singleton / doubleton counts: [  0 290 310]
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Calibration size / rank / quantile: 500 451 0.692
+Empirical test coverage: 0.898
+Average set size: 1.505
+Empty / singleton / doubleton counts: [  0 297 303]
 </pre></div>
 </div>
 </div>
@@ -666,18 +679,50 @@ Empty / singleton / doubleton counts: [  0 290 310]
 <p><strong>Work it through.</strong> Equation <a class="reference internal" href="#equation-eq-conformal-quantile">(11.6)</a> uses rank <span class="math notranslate nohighlight">\(\lceil(9+1)(0.8)\rceil=8\)</span>, so <span class="math notranslate nohighlight">\(\widehat q=0.60\)</span>. A new binary prediction <span class="math notranslate nohighlight">\((p_0,p_1)=(0.7,0.3)\)</span> has label scores <span class="math notranslate nohighlight">\((0.3,0.7)\)</span>; Equation <a class="reference internal" href="#equation-eq-conformal-set">(11.5)</a> retains only label 0. Prediction <span class="math notranslate nohighlight">\((0.5,0.5)\)</span> has scores <span class="math notranslate nohighlight">\((0.5,0.5)\)</span>, so it retains both labels.</p>
 <p><strong>What this shows.</strong> The threshold is shared, but the prediction-set size depends on the case. Under the stated exchangeability and fixed-predictor assumptions, the guarantee concerns marginal coverage across calibration samples and future cases. It does not assign an 80% correctness probability to either of these particular sets.</p>
 </div>
+<section id="coding-and-experiment-practice-preserve-pairing">
+<h3>Coding and experiment practice · Preserve pairing<a class="headerlink" href="#coding-and-experiment-practice-preserve-pairing" title="Link to this heading">#</a></h3>
+<p><strong>Task.</strong> Implement a paired bootstrap of question-level score differences. Use a synthetic example containing both gains and losses, then inspect the small real-model table from Appendix B.</p>
+<p><strong>Submission.</strong> Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.</p>
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">paired_bootstrap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">draws</span><span class="o">=</span><span class="mi">2000</span><span class="p">):</span>
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="c1"># Resample indices of complete pairs, not systems independently.</span>
+    <span class="k">return</span> <span class="o">...</span>
+</pre></div>
+</div>
+</details></div>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Hint and acceptance checks</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Set <code class="docutils literal notranslate"><span class="pre">difference</span> <span class="pre">=</span> <span class="pre">np.asarray(b)-np.asarray(a)</span></code>, sample an index array of shape <code class="docutils literal notranslate"><span class="pre">(draws,</span> <span class="pre">len(a))</span></code>, and average indexed differences along axis 1. Verify identical a and b give zero in every draw. The handful of authored Appendix B tasks do not justify population confidence claims; expand the sampling design before using inferential intervals.</p>
+</div>
+</details></section>
+<section id="continue-with-the-implemented-system">
+<h3>Continue with the implemented system<a class="headerlink" href="#continue-with-the-implemented-system" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="../appendices/b-real-llm-systems.html"><span class="std std-doc">Appendix B</span></a> supplies actual model outputs for a measurement audit. Its tiny authored task set supports descriptive counts, not a reliable population confidence interval. Use its keyword and schema checks as examples of measurement instruments that can disagree; inspect semantic support separately.</p>
 </section>
-<section id="exercises-and-worked-solutions">
-<h2>11.7 · Exercises and worked solutions<a class="headerlink" href="#exercises-and-worked-solutions" title="Link to this heading">#</a></h2>
+</section>
+<section id="exercises">
+<h2>11.7 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p><strong>Paired estimator:</strong> write the estimand for the accuracy difference. <strong>Solution:</strong> <span class="math notranslate nohighlight">\(\mathbb E[1\{B\text{ correct}\}-1\{A\text{ correct}\}]\)</span> on the target task distribution. The sample mean of question-level differences estimates it under representative sampling.</p></li>
-<li><p><strong>Repeated generations:</strong> why are 20 answers to each of 10 questions not 200 independent questions? <strong>Solution:</strong> repetitions share a task. They help estimate within-question generation variability but provide only 10 question clusters for variation across tasks.</p></li>
-<li><p><strong>Conformal rank:</strong> with <span class="math notranslate nohighlight">\(n_c=99\)</span> and <span class="math notranslate nohighlight">\(\alpha=0.1\)</span>, which order statistic is used? <strong>Solution:</strong> <span class="math notranslate nohighlight">\(\lceil100(0.9)\rceil=90\)</span>. The finite-sample correction uses <span class="math notranslate nohighlight">\(n_c+1\)</span>, not simply an interpolated 90th percentile.</p></li>
-<li><p><strong>Calibration leakage:</strong> can temperature be chosen using the same outcomes later used for an ordinary split-conformal quantile? <strong>Solution:</strong> that violates the simple fixed-predictor calibration argument. Use a separate fitting/validation sample or a method whose proof accounts for that data reuse.</p></li>
-<li><p><strong>No answers:</strong> what is selective risk when no cases are answered? <strong>Solution:</strong> it is undefined because its denominator is zero. Report zero coverage and an undefined risk, not a perfect zero error rate.</p></li>
-<li><p><strong>Scope of coverage:</strong> does 90% marginal coverage imply 90% coverage for each subgroup? <strong>Solution:</strong> no. Marginal guarantees average across the target distribution. Group-specific guarantees require additional design and assumptions.</p></li>
+<li><p><strong>Paired estimator:</strong> write the estimand for the accuracy difference.</p></li>
+<li><p><strong>Repeated generations:</strong> why are 20 answers to each of 10 questions not 200 independent questions?</p></li>
+<li><p><strong>Conformal rank:</strong> with <span class="math notranslate nohighlight">\(n_c=99\)</span> and <span class="math notranslate nohighlight">\(\alpha=0.1\)</span>, which order statistic is used?</p></li>
+<li><p><strong>Calibration leakage:</strong> can temperature be chosen using the same outcomes later used for an ordinary split-conformal quantile?</p></li>
+<li><p><strong>No answers:</strong> what is selective risk when no cases are answered?</p></li>
+<li><p><strong>Scope of coverage:</strong> does 90% marginal coverage imply 90% coverage for each subgroup?</p></li>
 </ol>
-</section>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Worked solutions — attempt the questions first</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text"><strong>1.</strong> <span class="math notranslate nohighlight">\(\mathbb E[1\{B\text{ correct}\}-1\{A\text{ correct}\}]\)</span> on the target task distribution. The sample mean of question-level differences estimates it under representative sampling.</p>
+<p class="sd-card-text"><strong>2.</strong> repetitions share a task. They help estimate within-question generation variability but provide only 10 question clusters for variation across tasks.</p>
+<p class="sd-card-text"><strong>3.</strong> <span class="math notranslate nohighlight">\(\lceil100(0.9)\rceil=90\)</span>. The finite-sample correction uses <span class="math notranslate nohighlight">\(n_c+1\)</span>, not simply an interpolated 90th percentile.</p>
+<p class="sd-card-text"><strong>4.</strong> that violates the simple fixed-predictor calibration argument. Use a separate fitting/validation sample or a method whose proof accounts for that data reuse.</p>
+<p class="sd-card-text"><strong>5.</strong> it is undefined because its denominator is zero. Report zero coverage and an undefined risk, not a perfect zero error rate.</p>
+<p class="sd-card-text"><strong>6.</strong> no. Marginal guarantees average across the target distribution. Group-specific guarantees require additional design and assumptions.</p>
+</div>
+</details></section>
 <section id="reading-and-next-step">
 <h2>11.8 · Reading and next step<a class="headerlink" href="#reading-and-next-step" title="Link to this heading">#</a></h2>
 <p><a class="reference external" href="https://arxiv.org/abs/2107.07511">A Gentle Introduction to Conformal Prediction</a> provides the formal framework and extensions behind the finite-label exercise. Next, <a class="reference internal" href="12-agents.html"><span class="std std-doc">Chapter 12</span></a> adds sequential tool decisions, which introduces new units of evaluation and additional failure modes.</p>
@@ -743,8 +788,12 @@ Empty / singleton / doubleton counts: [  0 290 310]
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#abstention-produces-a-riskcoverage-tradeoff">11.5 · Abstention produces a risk–coverage tradeoff</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#split-conformal-prediction-for-a-finite-label-space">11.6 · Split conformal prediction for a finite label space</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">11.7 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#split-conformal-prediction-for-a-finite-label-space">11.6 · Split conformal prediction for a finite label space</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-preserve-pairing">Coding and experiment practice · Preserve pairing</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continue-with-the-implemented-system">Continue with the implemented system</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">11.7 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">11.8 · Reading and next step</a></li>
 </ul>
   </nav></div>
@@ -765,7 +814,7 @@ Empty / singleton / doubleton counts: [  0 290 310]
   
   <div class="footer-item">
     <p class="last-updated">
-  Last updated on October 20, 2026.
+  Last updated on October 21, 2026.
   <br/>
 </p>
   </div>

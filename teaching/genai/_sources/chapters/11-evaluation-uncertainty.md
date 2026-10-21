@@ -12,6 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/11-evaluation-uncertainty.ipynb)
 
+**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+
 An evaluation begins with a target population and a loss, not with a leaderboard. We will compare paired system outcomes, estimate uncertainty by resampling questions, examine calibration and abstention, and construct finite-label conformal prediction sets. All numerical outcomes in this chapter are simulated; they illustrate statistical procedures rather than measure any commercial or pretrained model.
 
 **Prerequisites:** Chapters 1, 6, and 10; sampling distributions and quantiles. **Outcomes:** define an estimand; preserve pairing; separate calibration from discrimination; interpret risk–coverage curves; state a conformal guarantee precisely.
@@ -48,20 +50,21 @@ n = 240
 difficulty = rng.normal(size=n)
 p_a = 1/(1+np.exp(-(0.6-difficulty)))
 p_b = 1/(1+np.exp(-(0.85-difficulty)))
-# A shared uniform variable creates correlated outcomes on the same questions.
-u = rng.random(n)
-correct_a = u < p_a
-correct_b = u < p_b
+# Shared task difficulty induces pairing; independent residual draws allow gains and losses.
+correct_a = rng.random(n) < p_a
+correct_b = rng.random(n) < p_b
 difference = correct_b.astype(float)-correct_a.astype(float)
 bootstrap_ids = rng.integers(n, size=(3000, n))
 bootstrap_difference = difference[bootstrap_ids].mean(1)
 interval = np.quantile(bootstrap_difference, [0.025, 0.975])
+print('A-only / B-only successes:', int((correct_a & ~correct_b).sum()),
+      int((correct_b & ~correct_a).sum()))
 print('Accuracy A / B:', correct_a.mean().round(3), correct_b.mean().round(3))
 print('Paired accuracy difference B-A:', round(difference.mean(), 3))
 print('Question-bootstrap percentile interval:', interval.round(3))
 ```
 
-The shared random variable is a convenient simulation construction, not an assumption that real model errors are nested. Resampling the paired differences preserves the observed association between systems. Resampling A and B independently would estimate a different sampling variance.
+The shared task difficulty induces association, while separate conditional draws allow both A-only and B-only successes. This is a simulation design, not a claim about actual LLM error dependence. Resampling the paired differences preserves the observed association between systems. Resampling A and B independently would estimate a different sampling variance.
 
 A percentile bootstrap interval is an approximation, not an exact finite-sample guarantee. Its interpretation depends on the sampled tasks representing the target population. It does not account for an unreported search over prompts or models using the same test set.
 
@@ -269,14 +272,52 @@ A set of finite class labels is not a set of all semantically correct free-text 
 **What this shows.** The threshold is shared, but the prediction-set size depends on the case. Under the stated exchangeability and fixed-predictor assumptions, the guarantee concerns marginal coverage across calibration samples and future cases. It does not assign an 80% correctness probability to either of these particular sets.
 :::
 
-## 11.7 · Exercises and worked solutions
 
-1. **Paired estimator:** write the estimand for the accuracy difference. **Solution:** $\mathbb E[1\{B\text{ correct}\}-1\{A\text{ correct}\}]$ on the target task distribution. The sample mean of question-level differences estimates it under representative sampling.
-2. **Repeated generations:** why are 20 answers to each of 10 questions not 200 independent questions? **Solution:** repetitions share a task. They help estimate within-question generation variability but provide only 10 question clusters for variation across tasks.
-3. **Conformal rank:** with $n_c=99$ and $\alpha=0.1$, which order statistic is used? **Solution:** $\lceil100(0.9)\rceil=90$. The finite-sample correction uses $n_c+1$, not simply an interpolated 90th percentile.
-4. **Calibration leakage:** can temperature be chosen using the same outcomes later used for an ordinary split-conformal quantile? **Solution:** that violates the simple fixed-predictor calibration argument. Use a separate fitting/validation sample or a method whose proof accounts for that data reuse.
-5. **No answers:** what is selective risk when no cases are answered? **Solution:** it is undefined because its denominator is zero. Report zero coverage and an undefined risk, not a perfect zero error rate.
-6. **Scope of coverage:** does 90% marginal coverage imply 90% coverage for each subgroup? **Solution:** no. Marginal guarantees average across the target distribution. Group-specific guarantees require additional design and assumptions.
+### Coding and experiment practice · Preserve pairing
+
+**Task.** Implement a paired bootstrap of question-level score differences. Use a synthetic example containing both gains and losses, then inspect the small real-model table from Appendix B.
+
+**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+
+```python
+def paired_bootstrap(a, b, seed=11, draws=2000):
+    rng = np.random.default_rng(seed)
+    # Resample indices of complete pairs, not systems independently.
+    return ...
+```
+
+:::{dropdown} Hint and acceptance checks
+Set `difference = np.asarray(b)-np.asarray(a)`, sample an index array of shape `(draws, len(a))`, and average indexed differences along axis 1. Verify identical a and b give zero in every draw. The handful of authored Appendix B tasks do not justify population confidence claims; expand the sampling design before using inferential intervals.
+:::
+
+### Continue with the implemented system
+
+[Appendix B](../appendices/b-real-llm-systems.md) supplies actual model outputs for a measurement audit. Its tiny authored task set supports descriptive counts, not a reliable population confidence interval. Use its keyword and schema checks as examples of measurement instruments that can disagree; inspect semantic support separately.
+
+## 11.7 · Exercises
+
+1. **Paired estimator:** write the estimand for the accuracy difference.
+2. **Repeated generations:** why are 20 answers to each of 10 questions not 200 independent questions?
+3. **Conformal rank:** with $n_c=99$ and $\alpha=0.1$, which order statistic is used?
+4. **Calibration leakage:** can temperature be chosen using the same outcomes later used for an ordinary split-conformal quantile?
+5. **No answers:** what is selective risk when no cases are answered?
+6. **Scope of coverage:** does 90% marginal coverage imply 90% coverage for each subgroup?
+
+
+:::{dropdown} Worked solutions — attempt the questions first
+
+**1.** $\mathbb E[1\{B\text{ correct}\}-1\{A\text{ correct}\}]$ on the target task distribution. The sample mean of question-level differences estimates it under representative sampling.
+
+**2.** repetitions share a task. They help estimate within-question generation variability but provide only 10 question clusters for variation across tasks.
+
+**3.** $\lceil100(0.9)\rceil=90$. The finite-sample correction uses $n_c+1$, not simply an interpolated 90th percentile.
+
+**4.** that violates the simple fixed-predictor calibration argument. Use a separate fitting/validation sample or a method whose proof accounts for that data reuse.
+
+**5.** it is undefined because its denominator is zero. Report zero coverage and an undefined risk, not a perfect zero error rate.
+
+**6.** no. Marginal guarantees average across the target distribution. Group-specific guarantees require additional design and assumptions.
+:::
 
 ## 11.8 · Reading and next step
 

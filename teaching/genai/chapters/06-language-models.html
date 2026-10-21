@@ -35,7 +35,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=316925d6" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -54,6 +54,7 @@
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/06-language-models';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/learning-controls.js?v=ed55b08a"></script>
     <link rel="canonical" href="https://chikuang.github.io/teaching/genai/chapters/06-language-models.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -62,7 +63,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
-    <meta name="docbuild:last-update" content="October 20, 2026"/>
+    <meta name="docbuild:last-update" content="October 21, 2026"/>
   
     
     <script src="../_static/searchtools.js"></script>
@@ -186,6 +187,11 @@
 <li class="toctree-l1"><a class="reference internal" href="12-agents.html">12 · Agents: tools, state, and decisions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="13-agent-reliability.html">13 · Agent reliability and experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="14-capstone.html">14 · Capstone: a GenAI system for a statistician</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendices</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../appendices/a-python-pytorch.html">Appendix A · Python and PyTorch, one operation at a time</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices/b-real-llm-systems.html">Appendix B · A real local LLM, RAG, and tool-using agent</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Supplement</span></p>
 <ul class="nav bd-sidenav">
@@ -358,8 +364,11 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-distribution-after-each-decoding-choice">Define the distribution after each decoding choice</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prompting-versus-parameter-estimation">6.5 · Prompting versus parameter estimation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">6.6 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prompting-versus-parameter-estimation">6.5 · Prompting versus parameter estimation</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-compare-decoding-distributions">Coding and experiment practice · Compare decoding distributions</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">6.6 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#further-reading-and-transition">6.7 · Further reading and transition</a></li>
 </ul>
             </nav>
@@ -376,12 +385,13 @@
 <h1>6 · Language model training, prompting, and decoding<a class="headerlink" href="#language-model-training-prompting-and-decoding" title="Link to this heading">#</a></h1>
 <p><strong>Question.</strong> What is learned in the weights, and what changes when we provide a prompt?</p>
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/06-language-models.ipynb">Download the executed notebook</a></p>
+<p><strong>Python support:</strong> <a class="reference internal" href="../appendices/a-python-pytorch.html"><span class="std std-doc">Appendix A</span></a> explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s <strong>Show all code</strong> control while working through the lab.</p>
 <p>A language model specifies conditional token distributions. A prompt supplies conditioning information; a decoder turns probabilities into a sequence. These are three different objects. We will train a small character model on an explicitly artificial sentence distribution, evaluate it on held-out combinations, and sample it under several decoding rules.</p>
-<p><strong>Prerequisites:</strong> Chapters 1–5. <strong>Outcomes:</strong> align shifted targets; distinguish teacher forcing from generation; evaluate held-out log loss; implement temperature, top-k, and nucleus sampling. We use a small recurrent model here to keep the training experiment short. Its conditional-likelihood objective is also used by causal transformers; the architecture is not the point of this experiment.</p>
+<p><strong>Prerequisites:</strong> Chapters 1–5. <strong>Outcomes:</strong> align shifted targets; distinguish teacher forcing from generation; evaluate held-out log loss; implement temperature, top-k, and nucleus sampling. We continue the exact <code class="docutils literal notranslate"><span class="pre">DecoderBlock</span></code> and <code class="docutils literal notranslate"><span class="pre">TinyDecoder</span></code> from Chapter 5, now fitting them on training text and selecting a checkpoint on validation text. <a class="reference internal" href="../appendices/a-python-pytorch.html"><span class="std std-doc">Appendix A</span></a> explains the Python syntax and tensor operations step by step.</p>
 <section id="pipeline-and-framework">
 <h2>Pipeline and framework<a class="headerlink" href="#pipeline-and-framework" title="Link to this heading">#</a></h2>
 <p><img alt="Training fits and selects model parameters from shifted token targets; generation repeatedly predicts, decodes and appends the next token using frozen parameters. Remember: training changes weights; decoding chooses the next token." src="../_images/06-language-model.png" /></p>
-<p>The output of training is a <strong>parameterized conditional distribution</strong>. The output of decoding is a sequence drawn or selected using that distribution. Prompting supplies a prefix; it does not run an optimizer. This chapter uses a GRU so the two procedures can be inspected on a CPU, while the same distinction applies to transformer language models.</p>
+<p>The output of training is a <strong>parameterized conditional distribution</strong>. The output of decoding is a sequence drawn or selected using that distribution. Prompting supplies a prefix; it does not run an optimizer. The same decoder architecture from Chapter 5 now learns its weights. Chapter 5 checked the forward calculation and causality; this chapter checks prediction on held-out sequences.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head text-left"><p>Stage</p></th>
@@ -425,6 +435,7 @@ p_\theta(x_{1:T})=\prod_{t=1}^T p_\theta(x_t\mid x_{&lt;t}),\qquad
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
 <details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -434,21 +445,21 @@ p_\theta(x_{1:T})=\prod_{t=1}^T p_\theta(x_t\mid x_{&lt;t}),\qquad
 <span class="n">torch</span><span class="o">.</span><span class="n">set_num_threads</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
 <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
-<span class="n">sentences</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;the &#39;</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">v</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">o</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span>
+<span class="n">sentences</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'the '</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="s1">' '</span> <span class="o">+</span> <span class="n">v</span> <span class="o">+</span> <span class="s1">' '</span> <span class="o">+</span> <span class="n">o</span> <span class="o">+</span> <span class="s1">'.'</span>
              <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span>
-                 <span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;student&#39;</span><span class="p">,</span> <span class="s1">&#39;network&#39;</span><span class="p">,</span> <span class="s1">&#39;agent&#39;</span><span class="p">],</span>
-                 <span class="p">[</span><span class="s1">&#39;learns&#39;</span><span class="p">,</span> <span class="s1">&#39;studies&#39;</span><span class="p">,</span> <span class="s1">&#39;explains&#39;</span><span class="p">,</span> <span class="s1">&#39;predicts&#39;</span><span class="p">],</span>
-                 <span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;language&#39;</span><span class="p">,</span> <span class="s1">&#39;patterns&#39;</span><span class="p">,</span> <span class="s1">&#39;uncertainty&#39;</span><span class="p">])]</span>
+                 <span class="p">[</span><span class="s1">'model'</span><span class="p">,</span> <span class="s1">'student'</span><span class="p">,</span> <span class="s1">'network'</span><span class="p">,</span> <span class="s1">'agent'</span><span class="p">],</span>
+                 <span class="p">[</span><span class="s1">'learns'</span><span class="p">,</span> <span class="s1">'studies'</span><span class="p">,</span> <span class="s1">'explains'</span><span class="p">,</span> <span class="s1">'predicts'</span><span class="p">],</span>
+                 <span class="p">[</span><span class="s1">'data'</span><span class="p">,</span> <span class="s1">'language'</span><span class="p">,</span> <span class="s1">'patterns'</span><span class="p">,</span> <span class="s1">'uncertainty'</span><span class="p">])]</span>
 <span class="n">order</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sentences</span><span class="p">))</span>
 <span class="n">train_text</span> <span class="o">=</span> <span class="p">[</span><span class="n">sentences</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">order</span><span class="p">[:</span><span class="mi">42</span><span class="p">]]</span>
 <span class="n">valid_text</span> <span class="o">=</span> <span class="p">[</span><span class="n">sentences</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">order</span><span class="p">[</span><span class="mi">42</span><span class="p">:</span><span class="mi">53</span><span class="p">]]</span>
 <span class="n">test_text</span> <span class="o">=</span> <span class="p">[</span><span class="n">sentences</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">order</span><span class="p">[</span><span class="mi">53</span><span class="p">:]]</span>
 <span class="c1"># The alphabet is specified in advance, not learned from the test sentences.</span>
-<span class="n">chars</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&lt;pad&gt;&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="s1">&#39;^</span><span class="se">\n</span><span class="s1"> abcdefghijklmnopqrstuvwxyz.&#39;</span><span class="p">)</span>
+<span class="n">chars</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'&lt;pad&gt;'</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="s1">'^</span><span class="se">\n</span><span class="s1"> abcdefghijklmnopqrstuvwxyz.'</span><span class="p">)</span>
 <span class="n">char_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chars</span><span class="p">)}</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">batch</span><span class="p">(</span><span class="n">texts</span><span class="p">):</span>
-    <span class="n">encoded</span> <span class="o">=</span> <span class="p">[[</span><span class="n">char_id</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="s1">&#39;^&#39;</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">]</span>
+    <span class="n">encoded</span> <span class="o">=</span> <span class="p">[[</span><span class="n">char_id</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="s1">'^'</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">]</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">texts</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">encoded</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">encoded</span><span class="p">):</span>
         <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
@@ -457,8 +468,8 @@ p_\theta(x_{1:T})=\prod_{t=1}^T p_\theta(x_t\mid x_{&lt;t}),\qquad
 <span class="n">Xtr</span><span class="p">,</span> <span class="n">Ytr</span> <span class="o">=</span> <span class="n">batch</span><span class="p">(</span><span class="n">train_text</span><span class="p">)</span>
 <span class="n">Xva</span><span class="p">,</span> <span class="n">Yva</span> <span class="o">=</span> <span class="n">batch</span><span class="p">(</span><span class="n">valid_text</span><span class="p">)</span>
 <span class="n">Xte</span><span class="p">,</span> <span class="n">Yte</span> <span class="o">=</span> <span class="n">batch</span><span class="p">(</span><span class="n">test_text</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Split sizes:&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_text</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_text</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_text</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Training input and target shape:&#39;</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">Xtr</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">Ytr</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Split sizes:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_text</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_text</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_text</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Training input and target shape:'</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">Xtr</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">Ytr</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
 </pre></div>
 </div>
 </details></div>
@@ -471,7 +482,7 @@ Training input and target shape: (42, 34) (42, 34)
 </div>
 </div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">^</span></code> marks the beginning of a sequence, newline marks its end, and zero is padding. Padding positions are excluded from the loss. Because the GRU processes left to right, padding after a sentence cannot affect its earlier predictions.</p>
+<p><code class="docutils literal notranslate"><span class="pre">^</span></code> marks the beginning of a sequence, newline marks its end, and zero is padding. Padding positions are excluded from the loss. The causal attention mask prevents right-padding after a sentence from affecting its earlier predictions. We do not left-pad: earlier padding would require an additional key-padding mask.</p>
 <section id="make-the-padding-mask-part-of-the-objective">
 <h3>Make the padding mask part of the objective<a class="headerlink" href="#make-the-padding-mask-part-of-the-objective" title="Link to this heading">#</a></h3>
 <p>Let <span class="math notranslate nohighlight">\(z_{stj}\)</span> be the logit for token <span class="math notranslate nohighlight">\(j\)</span> at prediction position <span class="math notranslate nohighlight">\(t\)</span> of sequence <span class="math notranslate nohighlight">\(s\)</span>, <span class="math notranslate nohighlight">\(y_{st}\)</span> its next-token target, and <span class="math notranslate nohighlight">\(m_{st}\in\{0,1\}\)</span> indicate a non-padding target. With <span class="math notranslate nohighlight">\(N_{\mathrm{tok}}=\sum_{s,t}m_{st}&gt;0\)</span>,</p>
@@ -491,29 +502,63 @@ Training input and target shape: (42, 34) (42, 34)
 </section>
 <section id="fit-a-small-conditional-model">
 <h2>6.2 · Fit a small conditional model<a class="headerlink" href="#fit-a-small-conditional-model" title="Link to this heading">#</a></h2>
-<p>A gated recurrent unit (GRU) summarizes the prefix in a hidden state. The embedding width is 16 and hidden-state width is 32. This is a compact way to demonstrate the training and sampling distinction without requiring downloaded parameters.</p>
+<p>We reuse the two classes from Chapter 5 verbatim below so this downloaded notebook can run independently. The vocabulary now contains the character alphabet. The maximum context is 96 positions, longer than every training sentence. Width 24 still splits into three heads of width 8; this is the same architecture, fitted on a different task.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
-<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CharacterModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">DecoderBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">heads</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">chars</span><span class="p">),</span> <span class="mi">16</span><span class="p">,</span> <span class="n">padding_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">recurrent</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">GRU</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="n">batch_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">chars</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="n">width</span> <span class="o">%</span> <span class="n">heads</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">heads</span> <span class="o">=</span> <span class="n">heads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">head_width</span> <span class="o">=</span> <span class="n">width</span> <span class="o">//</span> <span class="n">heads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qkv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ffn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">width</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">GELU</span><span class="p">(),</span>
+                                 <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">width</span><span class="p">,</span> <span class="n">width</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">D</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">normalized</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="c1"># Split feature coordinates, then expose a separate head axis.</span>
+        <span class="n">q</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qkv</span><span class="p">(</span><span class="n">normalized</span><span class="p">)</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">q</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">heads</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">head_width</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)]</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">q</span> <span class="o">@</span> <span class="n">k</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">head_width</span><span class="p">)</span>
+        <span class="n">allowed</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">tril</span><span class="p">()</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">scores</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="o">~</span><span class="n">allowed</span><span class="p">,</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">inf</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">mixed</span> <span class="o">=</span> <span class="p">(</span><span class="n">weights</span> <span class="o">@</span> <span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">mixed</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">norm2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TinyDecoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">=</span> <span class="n">max_length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="n">max_length</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">block</span> <span class="o">=</span> <span class="n">DecoderBlock</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">heads</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">final_norm</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="p">):</span>
-        <span class="n">features</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recurrent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding</span><span class="p">(</span><span class="n">ids</span><span class="p">))</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">ids</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">T</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Sequence exceeds the position table'</span><span class="p">)</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">ids</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final_norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
 
-<span class="n">model</span> <span class="o">=</span> <span class="n">CharacterModel</span><span class="p">()</span>
-<span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.015</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">TinyDecoder</span><span class="p">(</span><span class="n">vocab_size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">chars</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">96</span><span class="p">)</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.008</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">log_loss</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">chars</span><span class="p">)),</span>
                                         <span class="n">y</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">ignore_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-<span class="n">history</span><span class="p">,</span> <span class="n">best</span><span class="p">,</span> <span class="n">checkpoint</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),</span> <span class="kc">None</span>
-<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">180</span><span class="p">):</span>
+<span class="n">history</span><span class="p">,</span> <span class="n">best</span><span class="p">,</span> <span class="n">checkpoint</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">float</span><span class="p">(</span><span class="s1">'inf'</span><span class="p">),</span> <span class="kc">None</span>
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">220</span><span class="p">):</span>
     <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
     <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
     <span class="n">loss</span> <span class="o">=</span> <span class="n">log_loss</span><span class="p">(</span><span class="n">Xtr</span><span class="p">,</span> <span class="n">Ytr</span><span class="p">)</span>
@@ -527,11 +572,11 @@ Training input and target shape: (42, 34) (42, 34)
     <span class="k">if</span> <span class="n">validation</span> <span class="o">&lt;</span> <span class="n">best</span><span class="p">:</span>
         <span class="n">best</span><span class="p">,</span> <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">validation</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">())</span>
 <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best validation log loss:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">best</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Best validation log loss:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">best</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">5.5</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">))</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">history</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Train&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#705600&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">history</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Validation&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#a2006e&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Epoch&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Character log loss&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">history</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Train'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#705600'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">history</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Validation'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#a2006e'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">'Epoch'</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">'Character log loss'</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -541,12 +586,14 @@ Training input and target shape: (42, 34) (42, 34)
 </div>
 <div class="cell_output docutils container">
 <p class="course-output-label">Output</p>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Best validation log loss: 0.17
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Best validation log loss: 0.536
 </pre></div>
 </div>
-<img alt="../_images/133bb46085db6a44ff61e04d3804b8c057e1a0ecbad17d0c706851be0eb18f18.png" src="../_images/133bb46085db6a44ff61e04d3804b8c057e1a0ecbad17d0c706851be0eb18f18.png" />
+<img alt="../_images/673d3863c11264dda7a823407bbbd1de8a942a0bb32f93b6ff60e9f4c5cbca89.png" src="../_images/673d3863c11264dda7a823407bbbd1de8a942a0bb32f93b6ff60e9f4c5cbca89.png" />
 </div>
 </div>
+<p>Read the update as six operations: <code class="docutils literal notranslate"><span class="pre">zero_grad()</span></code> clears the previous derivative; <code class="docutils literal notranslate"><span class="pre">model(Xtr)</span></code> computes logits; cross-entropy compares them with shifted targets; <code class="docutils literal notranslate"><span class="pre">backward()</span></code> computes derivatives; clipping bounds their norm; <code class="docutils literal notranslate"><span class="pre">step()</span></code> changes parameters. <code class="docutils literal notranslate"><span class="pre">reshape(-1,</span> <span class="pre">len(chars))</span></code> pools batch and time into the observation axis while preserving the vocabulary axis. <code class="docutils literal notranslate"><span class="pre">ignore_index=0</span></code> removes padded target positions from both sum and denominator.</p>
+<p>Validation runs with gradients disabled. <code class="docutils literal notranslate"><span class="pre">deepcopy(model.state_dict())</span></code> takes a snapshot; assigning the live dictionary alone would let later updates change the saved weights. We fix 220 updates and the learning rate in advance; the test set cannot select either. Appendix A builds this loop one operation at a time.</p>
 <p>Gradient clipping limits the gradient norm; it does not change the data split or turn a poor model into a valid estimator. The checkpoint is selected by validation loss, and only then evaluated on test text.</p>
 </section>
 <section id="evaluate-likelihood-against-a-simple-baseline">
@@ -559,9 +606,9 @@ Training input and target shape: (42, 34) (42, 34)
 <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
     <span class="n">neural_loss</span> <span class="o">=</span> <span class="n">log_loss</span><span class="p">(</span><span class="n">Xte</span><span class="p">,</span> <span class="n">Yte</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
     <span class="n">baseline_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">unigram</span><span class="p">[</span><span class="n">Yte</span><span class="p">[</span><span class="n">Yte</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]])</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unigram test loss: </span><span class="si">{</span><span class="n">baseline_loss</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Neural test loss: </span><span class="si">{</span><span class="n">neural_loss</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Character perplexity: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">neural_loss</span><span class="p">)</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Unigram test loss: </span><span class="si">{</span><span class="n">baseline_loss</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Neural test loss: </span><span class="si">{</span><span class="n">neural_loss</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Character perplexity: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">neural_loss</span><span class="p">)</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 </pre></div>
 </div>
 </details></div>
@@ -569,8 +616,8 @@ Training input and target shape: (42, 34) (42, 34)
 <div class="cell_output docutils container">
 <p class="course-output-label">Output</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Unigram test loss: 2.879
-Neural test loss: 0.155
-Character perplexity: 1.168
+Neural test loss: 0.395
+Character perplexity: 1.485
 </pre></div>
 </div>
 </div>
@@ -599,13 +646,13 @@ q_j=\frac{r_j\mathbf1\{j\in S\}}{\sum_{v\in S}r_v}.
 <div class="course-code-fold-wrapper docutils container">
 <details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">decoding_probabilities</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">top_p</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">temperature</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">top_p</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Require temperature &gt; 0 and 0 &lt; top_p &lt;= 1&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Require temperature &gt; 0 and 0 &lt; top_p &lt;= 1'</span><span class="p">)</span>
     <span class="n">z</span> <span class="o">=</span> <span class="n">logits</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="o">/</span> <span class="n">temperature</span>
     <span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">inf</span>                 <span class="c1"># never generate padding</span>
-    <span class="n">z</span><span class="p">[</span><span class="n">char_id</span><span class="p">[</span><span class="s1">&#39;^&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">inf</span>       <span class="c1"># no new beginning marker</span>
+    <span class="n">z</span><span class="p">[</span><span class="n">char_id</span><span class="p">[</span><span class="s1">'^'</span><span class="p">]]</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">inf</span>       <span class="c1"># no new beginning marker</span>
     <span class="k">if</span> <span class="n">top_k</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">top_k</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;top_k must be positive&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'top_k must be positive'</span><span class="p">)</span>
         <span class="n">keep</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">top_k</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">z</span><span class="p">)))</span><span class="o">.</span><span class="n">indices</span>
         <span class="n">filtered</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
         <span class="n">filtered</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
@@ -618,21 +665,26 @@ q_j=\frac{r_j\mathbf1\{j\in S\}}{\sum_{v\in S}r_v}.
     <span class="k">return</span> <span class="n">probabilities</span> <span class="o">/</span> <span class="n">probabilities</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
 <span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">generate</span><span class="p">(</span><span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;the &#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">greedy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">settings</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate</span><span class="p">(</span><span class="n">prompt</span><span class="o">=</span><span class="s1">'the '</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">greedy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">settings</span><span class="p">):</span>
     <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
-    <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">char_id</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="s1">&#39;^&#39;</span> <span class="o">+</span> <span class="n">prompt</span><span class="p">]</span>
+    <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">char_id</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="s1">'^'</span> <span class="o">+</span> <span class="n">prompt</span><span class="p">]</span>
     <span class="n">generator</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Generator</span><span class="p">()</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">stop_reason</span> <span class="o">=</span> <span class="s1">'length_limit'</span>
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">60</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">model</span><span class="o">.</span><span class="n">max_length</span><span class="p">:</span>
+            <span class="n">stop_reason</span> <span class="o">=</span> <span class="s1">'context_limit'</span>
+            <span class="k">break</span>
         <span class="n">logits</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="n">ids</span><span class="p">]))[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">probabilities</span> <span class="o">=</span> <span class="n">decoding_probabilities</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="o">**</span><span class="n">settings</span><span class="p">)</span>
         <span class="n">next_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">probabilities</span><span class="o">.</span><span class="n">argmax</span><span class="p">())</span> <span class="k">if</span> <span class="n">greedy</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span>
             <span class="n">torch</span><span class="o">.</span><span class="n">multinomial</span><span class="p">(</span><span class="n">probabilities</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">generator</span><span class="o">=</span><span class="n">generator</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">chars</span><span class="p">[</span><span class="n">next_id</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">chars</span><span class="p">[</span><span class="n">next_id</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="p">:</span>
+            <span class="n">stop_reason</span> <span class="o">=</span> <span class="s1">'end_token'</span>
             <span class="k">break</span>
         <span class="n">ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">next_id</span><span class="p">)</span>
-    <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">'text'</span><span class="p">:</span> <span class="s1">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">[</span><span class="mi">1</span><span class="p">:]),</span> <span class="s1">'stop_reason'</span><span class="p">:</span> <span class="n">stop_reason</span><span class="p">}</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Greedy:&#39;</span><span class="p">,</span> <span class="n">generate</span><span class="p">(</span><span class="n">greedy</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Greedy:'</span><span class="p">,</span> <span class="n">generate</span><span class="p">(</span><span class="n">greedy</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 <span class="k">for</span> <span class="n">temperature</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">]:</span>
     <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">generate</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="n">temperature</span><span class="p">,</span> <span class="n">top_p</span><span class="o">=</span><span class="mf">0.95</span><span class="p">))</span>
@@ -642,13 +694,13 @@ q_j=\frac{r_j\mathbf1\{j\in S\}}{\sum_{v\in S}r_v}.
 </div>
 <div class="cell_output docutils container">
 <p class="course-output-label">Output</p>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Greedy: the agent learns patterns.
-0.6 1 the network explains data.
-0.6 2 the network learns uncertainty.
-1.0 1 the network explains data.
-1.0 2 the network learns uncertainty.
-1.4 1 the network explains data.
-1.4 2 the network learns uncertainty.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Greedy: {'text': 'the agent learns panguage.', 'stop_reason': 'end_token'}
+0.6 1 {'text': 'the network explains dagerns.', 'stop_reason': 'end_token'}
+0.6 2 {'text': 'the network learns uncertainty.', 'stop_reason': 'end_token'}
+1.0 1 {'text': 'the network explains dage.', 'stop_reason': 'end_token'}
+1.0 2 {'text': 'the network learns uncertainty.', 'stop_reason': 'end_token'}
+1.4 1 {'text': 'the networletuns datta.', 'stop_reason': 'end_token'}
+1.4 2 {'text': 'the network odedictt panege.', 'stop_reason': 'end_token'}
 </pre></div>
 </div>
 </div>
@@ -669,38 +721,64 @@ q_j=\frac{r_j\mathbf1\{j\in S\}}{\sum_{v\in S}r_v}.
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
 <details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">before</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">value</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">()}</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;In-domain prefix:&#39;</span><span class="p">,</span> <span class="n">generate</span><span class="p">(</span><span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;the agent &#39;</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Out-of-domain prefix:&#39;</span><span class="p">,</span> <span class="n">generate</span><span class="p">(</span><span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;explain &#39;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'In-domain prefix:'</span><span class="p">,</span> <span class="n">generate</span><span class="p">(</span><span class="n">prompt</span><span class="o">=</span><span class="s1">'the agent '</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Out-of-domain prefix:'</span><span class="p">,</span> <span class="n">generate</span><span class="p">(</span><span class="n">prompt</span><span class="o">=</span><span class="s1">'explain '</span><span class="p">))</span>
 <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">before</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">())</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Generation left all model parameters unchanged.&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Generation left all model parameters unchanged.'</span><span class="p">)</span>
 </pre></div>
 </div>
 </details></div>
 </div>
 <div class="cell_output docutils container">
 <p class="course-output-label">Output</p>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>In-domain prefix: the agent learns data.
-Out-of-domain prefix: explain studies patterns.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>In-domain prefix: {'text': 'the agent learns data.', 'stop_reason': 'end_token'}
+Out-of-domain prefix: {'text': 'explain let learta.', 'stop_reason': 'end_token'}
 Generation left all model parameters unchanged.
 </pre></div>
 </div>
 </div>
 </div>
 <p>Pretraining estimates a broad conditional model. Supervised instruction tuning changes parameters using instruction/response examples. Retrieval supplies external context. A system can combine all three. None is a substitute for checking whether the output answers the intended question using valid evidence.</p>
+<section id="coding-and-experiment-practice-compare-decoding-distributions">
+<h3>Coding and experiment practice · Compare decoding distributions<a class="headerlink" href="#coding-and-experiment-practice-compare-decoding-distributions" title="Link to this heading">#</a></h3>
+<p><strong>Task.</strong> Use the trained Chapter 5 decoder from this chapter. Run three temperatures on the same ten fixed seeds; record text, stop reason, and whether the generated sentence belongs to the known grammar.</p>
+<p><strong>Submission.</strong> Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.</p>
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">grammar_hit</span><span class="p">(</span><span class="n">generation</span><span class="p">,</span> <span class="n">allowed_sentences</span><span class="p">):</span>
+    <span class="c1"># generation has text and stop_reason fields.</span>
+    <span class="k">return</span> <span class="o">...</span>
+</pre></div>
+</div>
+</details></div>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Hint and acceptance checks</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Return <code class="docutils literal notranslate"><span class="pre">generation[&quot;stop_reason&quot;]</span> <span class="pre">==</span> <span class="pre">&quot;end_token&quot;</span> <span class="pre">and</span> <span class="pre">generation[&quot;text&quot;]</span> <span class="pre">in</span> <span class="pre">allowed_sentences</span></code>. Treat length- or context-limited output as incomplete. Report grammar membership and diversity separately; neither is unrestricted language quality. Keep test likelihood fixed because decoding settings do not refit model parameters.</p>
+</div>
+</details></section>
 </section>
-<section id="exercises-and-worked-solutions">
-<h2>6.6 · Exercises and worked solutions<a class="headerlink" href="#exercises-and-worked-solutions" title="Link to this heading">#</a></h2>
+<section id="exercises">
+<h2>6.6 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p><strong>Teacher forcing:</strong> why can the training loss be small while generated sequences drift? <strong>Solution:</strong> training conditions on observed prefixes; generation conditions on the model’s own earlier samples. A locally plausible mistake can move later inputs away from the training distribution.</p></li>
-<li><p><strong>Nucleus filter:</strong> for probabilities <span class="math notranslate nohighlight">\((0.5,0.3,0.2)\)</span> and <span class="math notranslate nohighlight">\(p=0.6\)</span>, what survives? <strong>Solution:</strong> the first two tokens, because their cumulative mass first exceeds 0.6. Renormalized probabilities are <span class="math notranslate nohighlight">\((0.625,0.375,0)\)</span>.</p></li>
-<li><p><strong>Temperature:</strong> show that the log odds between two tokens become <span class="math notranslate nohighlight">\((z_i-z_j)/T\)</span>. <strong>Solution:</strong> take the logarithm of the ratio of their softmax probabilities; the normalization cancels. Decreasing positive temperature magnifies existing log-odds differences.</p></li>
-<li><p><strong>Test protocol:</strong> why not select temperature by reporting the best of 100 test generations? <strong>Solution:</strong> selection uses the test outcomes and changes the procedure being evaluated. Fix the selection rule on development prompts and evaluate its full distribution, including failed samples.</p></li>
-<li><p><strong>Loss unit:</strong> when do token-averaged and sequence-averaged losses agree? <strong>Solution:</strong> they agree when sequence lengths are equal, or accidentally when the relevant weighted and unweighted averages coincide. With varying lengths they generally estimate different targets.</p></li>
+<li><p><strong>Teacher forcing:</strong> why can the training loss be small while generated sequences drift?</p></li>
+<li><p><strong>Nucleus filter:</strong> for probabilities <span class="math notranslate nohighlight">\((0.5,0.3,0.2)\)</span> and <span class="math notranslate nohighlight">\(p=0.6\)</span>, what survives?</p></li>
+<li><p><strong>Temperature:</strong> show that the log odds between two tokens become <span class="math notranslate nohighlight">\((z_i-z_j)/T\)</span>.</p></li>
+<li><p><strong>Test protocol:</strong> why not select temperature by reporting the best of 100 test generations?</p></li>
+<li><p><strong>Loss unit:</strong> when do token-averaged and sequence-averaged losses agree?</p></li>
 </ol>
-</section>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Worked solutions — attempt the questions first</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text"><strong>1.</strong> training conditions on observed prefixes; generation conditions on the model’s own earlier samples. A locally plausible mistake can move later inputs away from the training distribution.</p>
+<p class="sd-card-text"><strong>2.</strong> the first two tokens, because their cumulative mass first exceeds 0.6. Renormalized probabilities are <span class="math notranslate nohighlight">\((0.625,0.375,0)\)</span>.</p>
+<p class="sd-card-text"><strong>3.</strong> take the logarithm of the ratio of their softmax probabilities; the normalization cancels. Decreasing positive temperature magnifies existing log-odds differences.</p>
+<p class="sd-card-text"><strong>4.</strong> selection uses the test outcomes and changes the procedure being evaluated. Fix the selection rule on development prompts and evaluate its full distribution, including failed samples.</p>
+<p class="sd-card-text"><strong>5.</strong> they agree when sequence lengths are equal, or accidentally when the relevant weighted and unweighted averages coincide. With varying lengths they generally estimate different targets.</p>
+</div>
+</details></section>
 <section id="further-reading-and-transition">
 <h2>6.7 · Further reading and transition<a class="headerlink" href="#further-reading-and-transition" title="Link to this heading">#</a></h2>
-<p>The official <a class="reference external" href="https://docs.pytorch.org/docs/stable/generated/torch.nn.GRU.html">PyTorch recurrent-layer documentation</a> describes the GRU used here. The <a class="reference external" href="https://arxiv.org/abs/1706.03762">transformer paper</a> provides an alternative conditional architecture. Next, <a class="reference internal" href="07-latent-variable-models.html"><span class="std std-doc">Chapter 7</span></a> constructs distributions through latent variables instead of a token-by-token factorization.</p>
+<p>The <a class="reference external" href="https://arxiv.org/abs/1706.03762">transformer paper</a> motivates the architecture reused from Chapter 5. <a class="reference internal" href="../appendices/b-real-llm-systems.html"><span class="std std-doc">Appendix B</span></a> moves from our trained toy decoder to an actual pretrained instruction model, including chat templates and bounded generation. A GRU is a possible architecture-comparison exercise, not a prerequisite for this chapter. Next, <a class="reference internal" href="07-latent-variable-models.html"><span class="std std-doc">Chapter 7</span></a> constructs distributions through latent variables instead of a token-by-token factorization.</p>
 </section>
 </section>
 
@@ -762,8 +840,11 @@ Generation left all model parameters unchanged.
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-distribution-after-each-decoding-choice">Define the distribution after each decoding choice</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prompting-versus-parameter-estimation">6.5 · Prompting versus parameter estimation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">6.6 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prompting-versus-parameter-estimation">6.5 · Prompting versus parameter estimation</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-compare-decoding-distributions">Coding and experiment practice · Compare decoding distributions</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">6.6 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#further-reading-and-transition">6.7 · Further reading and transition</a></li>
 </ul>
   </nav></div>
@@ -784,7 +865,7 @@ Generation left all model parameters unchanged.
   
   <div class="footer-item">
     <p class="last-updated">
-  Last updated on October 20, 2026.
+  Last updated on October 21, 2026.
   <br/>
 </p>
   </div>

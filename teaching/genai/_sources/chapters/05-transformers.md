@@ -12,6 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/05-transformers.ipynb)
 
+**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+
 Attention mixes information between positions. A transformer also transforms features within each position, preserves information through residual paths, and maps the resulting features to a prediction. We will build a small decoder-only model explicitly. The goal is to follow every tensor and verify the information boundary, not to reproduce the scale of a modern language model.
 
 **Prerequisites:** Chapters 2–4. **Outcomes:** trace IDs to logits; distinguish normalization across features from normalization across a batch; implement a decoder block; test causality end to end. The entire example uses a CPU and randomly initialized parameters.
@@ -247,13 +249,49 @@ The dense attention score matrix stores $B h T^2$ numbers. Doubling sequence len
 
 During autoregressive inference, earlier keys and values can be cached rather than recomputed. Our model does not implement that optimization. Truncating a long prompt to fit a context window changes the conditioning information, and learned absolute position tables do not automatically support unseen positions. Computational shortcuts must be evaluated for their effect on the task.
 
-## 5.8 · Exercises and worked solutions
 
-1. **Target alignment:** for input `[2, 5, 1]` from sequence `[2, 5, 1, 7]`, what are the targets? **Solution:** `[5, 1, 7]`. Predicting `[2, 5, 1]` would train reconstruction of visible tokens rather than next-token prediction.
-2. **Layer normalization:** can normalizing jointly across all time positions break causality? **Solution:** yes. A statistic computed from future positions can influence earlier representations even when attention itself is masked. Our `LayerNorm(width)` uses only the final feature axis.
-3. **Head width:** what happens if width 25 is divided into 3 equal heads? **Solution:** the split is undefined; the constructor rejects it. Choose a compatible width or a projection design with explicitly different head dimensions.
-4. **Memory:** how many score entries are needed for $B=2,h=4,T=128$? **Solution:** $2\cdot4\cdot128^2=131,072$. At four bytes each this array alone occupies 512 KiB. Training needs additional activations and gradients.
-5. **Ablation:** remove position embeddings and fit the same tiny dataset. What can be concluded? **Solution:** only how that change affects this specific task and training budget. The causal mask already supplies an asymmetry, and the simple arithmetic sequences may not require rich position representations. Use a task designed to test order dependence before claiming positions are unnecessary.
+### Coding and experiment practice · Trace a future-token intervention
+
+**Task.** Copy the full-model causality check. Replace the final token ID, keeping sequence length fixed, and compare earlier logits before and after. Then remove the causal mask in an experimental copy.
+
+**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+
+```python
+def earlier_logits_unchanged(model, original, changed):
+    model.eval()
+    with torch.no_grad():
+        return torch.allclose(model(original)[:, :-1], model(changed)[:, :-1])
+```
+
+:::{dropdown} Hint and acceptance checks
+For the masked model, expect equality within floating-point tolerance. Without the mask, an earlier logit can change. A single accidental equality does not prove causality; try several nonidentical token replacements. Evaluate the whole network, since normalization across positions could also leak information.
+:::
+
+## 5.8 · Exercises
+
+1. **Target alignment:** for input `[2, 5, 1]` from sequence `[2, 5, 1, 7]`, what are the targets?
+2. **Layer normalization:** can normalizing jointly across all time positions break causality?
+3. **Head width:** what happens if width 25 is divided into 3 equal heads?
+4. **Memory:** how many score entries are needed for $B=2,h=4,T=128$?
+5. **Ablation:** remove position embeddings and fit the same tiny dataset. What can be concluded?
+
+
+:::{dropdown} Worked solutions — attempt the questions first
+
+**1.** `[5, 1, 7]`. Predicting `[2, 5, 1]` would train reconstruction of visible tokens rather than next-token prediction.
+
+**2.** yes. A statistic computed from future positions can influence earlier representations even when attention itself is masked. Our `LayerNorm(width)` uses only the final feature axis.
+
+**3.** the split is undefined; the constructor rejects it. Choose a compatible width or a projection design with explicitly different head dimensions.
+
+**4.** $2\cdot4\cdot128^2=131,072$. At four bytes each this array alone occupies 512 KiB. Training needs additional activations and gradients.
+
+**5.** only how that change affects this specific task and training budget. The causal mask already supplies an asymmetry, and the simple arithmetic sequences may not require rich position representations. Use a task designed to test order dependence before claiming positions are unnecessary.
+:::
+
+### Continue with the implemented system
+
+Chapter 6 reuses these exact two model classes, then fits and selects their weights on a held-out grammar task. The four-sequence overfit check here remains a debugging test, not the final language-model evaluation.
 
 ## 5.9 · Reading and next step
 

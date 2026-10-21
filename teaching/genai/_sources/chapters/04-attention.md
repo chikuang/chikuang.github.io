@@ -12,6 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/04-attention.ipynb)
 
+**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+
 Attention constructs a weighted average whose weights depend on the current query. For a statistician, normalized kernel weighting is a useful starting analogy. The important differences are that the representations are learned, keys and values can differ, and several attention operations are composed inside a prediction model. This chapter calculates the weights, tests the causal information boundary, and implements multiple heads without hiding the dimensions.
 
 **Prerequisites:** Chapters 2–3, matrix products, and softmax. **Outcomes:** calculate attention by hand; implement stable masked attention; distinguish self-attention from cross-attention; explain what an attention plot can and cannot show.
@@ -217,14 +219,47 @@ A weight describes one intermediate calculation. The contribution of a value dep
 
 For a useful diagnostic, compare predictions after controlled changes to inputs, inspect performance on a specified task, and consider the full computation. Even an intervention on model inputs establishes behavior of that model, not a causal effect in the external world.
 
-## 4.8 · Exercises and worked solutions
 
-1. **Equal scores:** if all scores in a row equal $c$, what is the result? **Solution:** each weight is $1/n_k$, so the output is the mean of the values. Adding the same constant to every score never changes a softmax row.
-2. **Dimensions:** let $Q$ be $6\times8$, $K$ be $10\times8$, and $V$ be $10\times3$. **Solution:** scores and weights are $6\times10$; output is $6\times3$. A $10\times8$ value matrix is not required.
-3. **First causal position:** what can position zero attend to? **Solution:** only itself in our convention. Its attention weight is exactly one. It predicts the next token using the current prefix, not by looking at the next token's representation.
-4. **Wrong normalization:** why is applying a mask after softmax generally incorrect? **Solution:** setting forbidden weights to zero afterward makes the allowed weights sum to less than one. Renormalizing could recover the intended result, but masking logits is the direct and stable implementation.
-5. **Convexity:** can one output coordinate exceed the largest corresponding value coordinate? **Solution:** not for a single row of $AV$ with nonnegative weights summing to one. The later output projection or residual addition can exceed that range.
-6. **Permutation check:** implement a row permutation for unmasked attention and compare outputs. **Solution:** compute both the permuted input result and the original output permuted in the same way; they should agree up to floating-point error. Fixed position features or a causal mask change the symmetry.
+### Coding and experiment practice · Implement a causal weighted average
+
+**Task.** Write masked attention on a 3-by-3 score matrix and three values. Check forbidden weights, row sums, and invariance of the first output when only the final value changes.
+
+**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+
+```python
+def causal_average(scores, values):
+    # Mask scores before stable row-wise softmax.
+    return ..., ...  # weights, weighted values
+```
+
+:::{dropdown} Hint and acceptance checks
+Form a lower-triangular Boolean mask, replace disallowed scores by negative infinity, subtract each row maximum, exponentiate and normalize. Return `weights, weights @ values`. Row sums must be one; entries above the diagonal must be zero. Changing the final value may change the final output but cannot change earlier outputs.
+:::
+
+## 4.8 · Exercises
+
+1. **Equal scores:** if all scores in a row equal $c$, what is the result?
+2. **Dimensions:** let $Q$ be $6\times8$, $K$ be $10\times8$, and $V$ be $10\times3$.
+3. **First causal position:** what can position zero attend to?
+4. **Wrong normalization:** why is applying a mask after softmax generally incorrect?
+5. **Convexity:** can one output coordinate exceed the largest corresponding value coordinate?
+6. **Permutation check:** implement a row permutation for unmasked attention and compare outputs.
+
+
+:::{dropdown} Worked solutions — attempt the questions first
+
+**1.** each weight is $1/n_k$, so the output is the mean of the values. Adding the same constant to every score never changes a softmax row.
+
+**2.** scores and weights are $6\times10$; output is $6\times3$. A $10\times8$ value matrix is not required.
+
+**3.** only itself in our convention. Its attention weight is exactly one. It predicts the next token using the current prefix, not by looking at the next token's representation.
+
+**4.** setting forbidden weights to zero afterward makes the allowed weights sum to less than one. Renormalizing could recover the intended result, but masking logits is the direct and stable implementation.
+
+**5.** not for a single row of $AV$ with nonnegative weights summing to one. The later output projection or residual addition can exceed that range.
+
+**6.** compute both the permuted input result and the original output permuted in the same way; they should agree up to floating-point error. Fixed position features or a causal mask change the symmetry.
+:::
 
 ## 4.9 · Reading and next step
 

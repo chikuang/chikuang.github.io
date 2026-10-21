@@ -12,6 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/02-python-neural-networks.ipynb) · [Python setup](../python-workflow.md)
 
+**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+
 A neural network is a parameterized function fitted by an optimization procedure. Its hidden layers are learned basis expansions. This chapter starts with array operations, connects logistic regression to a small network, and makes the training loop visible. We will compare both models on the same simulated classification problem, using a validation set to select a checkpoint and a separate test set for final evaluation.
 
 **Prerequisites:** Chapter 1, matrix multiplication, likelihood, and differentiation. **Outcomes:** read tensor shapes; check a gradient; implement minibatch training; distinguish optimization error from generalization error. All cells run on a CPU using NumPy, Matplotlib, and PyTorch. Run them in order.
@@ -178,7 +180,7 @@ One epoch visits all training observations. A minibatch supplies a noisy gradien
 ```{code-cell} python
 import copy
 
-def fit(model, epochs=180):
+def fit(model, epochs=180, features=Z):
     optimizer = torch.optim.Adam(model.parameters(), lr=0.02, weight_decay=1e-3)
     loss_fn = nn.BCEWithLogitsLoss()
     history, best_loss, best_state = [], float('inf'), None
@@ -187,14 +189,14 @@ def fit(model, epochs=180):
         model.train()
         for batch in np.array_split(local_rng.permutation(train), 7):
             optimizer.zero_grad()
-            logits = model(Z[batch]).squeeze(-1)
+            logits = model(features[batch]).squeeze(-1)
             loss = loss_fn(logits, y_tensor[batch])
             loss.backward()
             optimizer.step()
         model.eval()
         with torch.no_grad():
-            train_loss = loss_fn(model(Z[train]).squeeze(-1), y_tensor[train]).item()
-            valid_loss = loss_fn(model(Z[valid]).squeeze(-1), y_tensor[valid]).item()
+            train_loss = loss_fn(model(features[train]).squeeze(-1), y_tensor[train]).item()
+            valid_loss = loss_fn(model(features[valid]).squeeze(-1), y_tensor[valid]).item()
         history.append((train_loss, valid_loss))
         if valid_loss < best_loss:
             best_loss = valid_loss
@@ -241,7 +243,20 @@ $$ (eq-checkpoint)
 
 The index set $\mathcal I_{\mathrm{val}}$ is disjoint from training and test indices. Equation {eq}`eq-checkpoint` corresponds to `best_loss` and the copied `best_state`, not to `backward()`.
 
-## 2.6 · Compare with a constant baseline on the test sample
+## 2.6 · Include a statistically informed baseline
+
+The generating log odds are linear in squared radius. Before inspecting test performance, include that fixed basis function in a logistic model. This is a stronger comparator than a linear model on the original coordinates; it makes the feature-learning question explicit. Because the original DGP is known, this baseline has privileged structural information. It is not evidence that such a basis will be available in an unknown application.
+
+```{code-cell} python
+basis = np.column_stack([X, np.sum(X**2, axis=1)])
+basis_mean = basis[train].mean(axis=0)
+basis_sd = basis[train].std(axis=0)
+Z_basis = torch.tensor((basis-basis_mean)/basis_sd, dtype=torch.float32)
+basis_model, basis_curve = fit(nn.Linear(3, 1), features=Z_basis)
+```
+
+`column_stack` adds one feature column. Its centering and scale are fitted on training rows only. `features=Z_basis` supplies a different design matrix to the same training procedure. All three models use the same validation/test split and update budget.
+
 
 ```{code-cell} python
 with torch.no_grad():
@@ -249,8 +264,9 @@ with torch.no_grad():
     baseline_loss = -np.mean(y[test] * np.log(baseline)
                             + (1-y[test]) * np.log(1-baseline))
     print(f'Constant baseline test log loss: {baseline_loss:.3f}')
-    for name, model in [('Linear', linear), ('Network', network)]:
-        logits = model(Z[test]).squeeze(-1)
+    for name, fitted, features in [('Linear', linear, Z), ('Network', network, Z),
+                                   ('Radius basis', basis_model, Z_basis)]:
+        logits = fitted(features[test]).squeeze(-1)
         test_loss = nn.functional.binary_cross_entropy_with_logits(logits, y_tensor[test])
         accuracy = ((logits > 0) == (y_tensor[test] > 0)).float().mean()
         print(f'{name}: test log loss={test_loss:.3f}, accuracy={accuracy:.3f}')
@@ -271,15 +287,34 @@ These numbers describe one simulated dataset and one training seed. They are not
 
 A useful development test is to overfit a tiny training subset deliberately. If a flexible network cannot fit a handful of examples, investigate the implementation before collecting more data. This is a debugging experiment, not evidence of generalization.
 
+
+### Coding and experiment practice · Verify the gradient before fitting
+
+**Task.** Implement mean logistic loss and its analytic gradient using NumPy. Compare the gradient with centered finite differences in each coordinate on a five-observation example.
+
+**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+
+```python
+def logistic_loss_gradient(X, y, beta):
+    # Return scalar mean loss and a gradient with beta.shape.
+    return ..., ...
+```
+
+:::{dropdown} Hint and acceptance checks
+Use `np.logaddexp(0, X @ beta) - y*(X @ beta)` for losses and `X.T @ (sigmoid(X @ beta)-y) / len(y)` for the gradient. Use a moderate coefficient vector, finite-difference step 1e-5, and `np.allclose` with an explicitly stated tolerance. Test a nonzero vector; checking only zero coefficients can miss errors.
+:::
+
 ## 2.8 · Exercises
 
 1. For `n=20, p=3, h=8`, list the shapes after both linear layers of a binary network and count its parameters.
 2. Derive the logistic-regression gradient and identify the term that corresponds to residuals.
-3. Add the squared radius as a fixed feature to logistic regression. Explain why this is an especially strong baseline here.
+3. Repeat the executed squared-radius baseline with a different training size. Explain why this is an especially strong baseline here.
 4. Set the learning rate to `0.5` and then `0.001`. Compare optimization behavior using validation curves, without selecting a model using test loss.
 5. Explain why fitting the standardization parameters to all observations changes the evaluation procedure even when labels are not used.
 
 ## 2.9 · Worked solutions
+
+:::{dropdown} Reveal worked solutions after your attempt
 
 **1.** For a batch of 20, the hidden representation has shape `(20, 8)` and the logits have shape `(20, 1)`. The first layer has $3\cdot8+8=32$ parameters; the second has $8+1=9$; total 41. Squeezing only the final dimension leaves one logit per observation.
 
@@ -290,6 +325,9 @@ A useful development test is to overfit a tiny training subset deliberately. If 
 **4.** A large learning rate can oscillate or diverge; a small one can make the fixed epoch budget inadequate. Neither outcome alone identifies the best function class. Record the full curve and selected epoch rather than only the last iterate.
 
 **5.** The fitted transformation would then depend on the evaluation sample. In deployment, future covariates may not be available jointly. A training-only transformation reproduces that intended information boundary. In this simulation the numerical effect may be small, but the experimental definition is still different.
+
+
+:::
 
 ## 2.10 · Reading and next step
 

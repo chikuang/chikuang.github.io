@@ -12,6 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/08-diffusion.ipynb)
 
+**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+
 Diffusion models train a reverse process for a known noising mechanism. We will fit a one-dimensional denoiser to a two-component Gaussian mixture, then run an explicit reverse chain. The example is small enough that we can also calculate the true noisy density's score and compare it with the learned function.
 
 **Prerequisites:** Chapters 2 and 7, Gaussian conditioning, and gradients. **Outcomes:** simulate the forward marginal; distinguish noise prediction from direct observation reconstruction; derive the score relation; inspect a learned reverse sampler. No images, pretrained weights, or external datasets are required.
@@ -275,13 +277,44 @@ A conditional denoiser receives additional information $c$, such as a class labe
 
 Our one-dimensional example explains noising, denoising, and sampling. It does not reproduce the architecture, latent compression, data scale, or perceptual evaluation of an image-generation system. The statistical questions remain: what distribution is modeled, what is conditioned on, and how is the generated distribution evaluated?
 
-## 8.6 · Exercises and worked solutions
 
-1. **Forward mean and variance:** condition on $x_0$. **Solution:** the mean is $\sqrt{\bar\alpha_t}x_0$ and covariance is $(1-\bar\alpha_t)I$. Unconditionally, the covariance also includes $\bar\alpha_t\operatorname{Cov}(X_0)$.
-2. **Score distinction:** which derivative appears in diffusion? **Solution:** the derivative with respect to the noisy observation, not with respect to model parameters. Parameter derivatives are still used when fitting the denoiser by gradient descent.
-3. **Regression target:** why is the learned noise not the exact injected noise for each input? **Solution:** several clean/noise pairs can produce the same noisy observation. Squared-error regression estimates their conditional mean, leaving irreducible conditional variance.
-4. **Final step:** why is the reverse variance zero at mathematical time one with our choice? **Solution:** $1-\bar\alpha_0=0$. Adding a fresh nonzero noise draw afterward would blur the final samples and implement a different sampler.
-5. **Schedule:** if terminal $\bar\alpha_T$ is large, why is starting from $N(0,I)$ questionable? **Solution:** the terminal forward distribution retains substantial structure from the data. The sampler then starts from a distribution different from the one used to train its final-time denoiser.
+### Coding and experiment practice · Diagnose score error by noise level
+
+**Task.** Evaluate the learned score against the available exact mixture score at three prespecified diffusion times. Report mean squared score error separately at each time.
+
+**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+
+```python
+def score_mse(learned, exact):
+    assert learned.shape == exact.shape
+    return ...
+```
+
+:::{dropdown} Hint and acceptance checks
+Return the mean of `(learned-exact)**2`. Generate fresh noisy evaluation observations independently of optimizer draws. Do not average unweighted across noise levels and then claim uniform quality: score scale changes with time. Plot both functions and identify where discrepancies occur.
+:::
+
+## 8.6 · Exercises
+
+1. **Forward mean and variance:** condition on $x_0$.
+2. **Score distinction:** which derivative appears in diffusion?
+3. **Regression target:** why is the learned noise not the exact injected noise for each input?
+4. **Final step:** why is the reverse variance zero at mathematical time one with our choice?
+5. **Schedule:** if terminal $\bar\alpha_T$ is large, why is starting from $N(0,I)$ questionable?
+
+
+:::{dropdown} Worked solutions — attempt the questions first
+
+**1.** the mean is $\sqrt{\bar\alpha_t}x_0$ and covariance is $(1-\bar\alpha_t)I$. Unconditionally, the covariance also includes $\bar\alpha_t\operatorname{Cov}(X_0)$.
+
+**2.** the derivative with respect to the noisy observation, not with respect to model parameters. Parameter derivatives are still used when fitting the denoiser by gradient descent.
+
+**3.** several clean/noise pairs can produce the same noisy observation. Squared-error regression estimates their conditional mean, leaving irreducible conditional variance.
+
+**4.** $1-\bar\alpha_0=0$. Adding a fresh nonzero noise draw afterward would blur the final samples and implement a different sampler.
+
+**5.** the terminal forward distribution retains substantial structure from the data. The sampler then starts from a distribution different from the one used to train its final-time denoiser.
+:::
 
 ## 8.7 · Reading and next step
 

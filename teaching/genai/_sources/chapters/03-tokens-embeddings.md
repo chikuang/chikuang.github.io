@@ -12,6 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/03-tokens-embeddings.ipynb)
 
+**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+
 A model receives numbers, not the meaning of a sentence. Tokenization defines the discrete observations; an embedding maps those observations into vectors. We will construct both operations explicitly, fit a small distributional representation, and test what it fails to preserve. The statistical analogues are the construction of a design matrix and the estimation of a feature map.
 
 **Prerequisites:** Chapters 1–2 and singular value decomposition (SVD). **Outcomes:** distinguish words from tokens; handle unknown inputs; interpret an embedding lookup; explain why proximity is task-dependent. The corpus below consists of short, course-authored sentences, so no download is necessary.
@@ -258,13 +260,44 @@ The input state is $X_{t,:}=E_{x_t,:}+P_{t,:}$. The sum preserves width $d$ whil
 
 Position features do not themselves create understanding. They allow a model to distinguish order when the prediction objective rewards doing so. Learned absolute positions and relative-position mechanisms are other options; each has implications for generalizing to lengths not seen in training. Padding positions also need an explicit mask so they do not become evidence.
 
-## 3.7 · Exercises and worked solutions
 
-1. **Lookup size.** A vocabulary has 10,000 tokens and embedding width 64. How many parameters are in its embedding matrix? **Solution:** $640,000$. A batch of 8 sequences of length 20 produces a tensor of shape `(8, 20, 64)`; batch size does not change the parameter count.
-2. **Unknowns.** What information is lost when both “variance” and “entropy” map to `<unk>`? **Solution:** the model receives the same token ID for distinct words. No downstream function of those IDs can recover which word was present without additional information.
-3. **Rotation.** Prove cosine similarity is unchanged by an orthogonal transformation. **Solution:** $aRR^\top b^\top=ab^\top$, and the same identity preserves both squared norms. General invertible transformations do not preserve cosine similarity.
-4. **Order.** Construct two sentences with the same bag of words but different meanings. **Solution:** “models explain data” and “data explain models” suffice. A mean-pooling baseline cannot distinguish them; an order-aware model can represent a distinction but must still learn it.
-5. **Sampling variation.** Repeat the SVD after removing one corpus sentence. What should be compared? **Solution:** compare neighbor rankings or pairwise similarities on a common vocabulary. Comparing raw coordinates is misleading because rotations and sign changes are arbitrary. Large changes reveal instability in this tiny corpus.
+### Coding and experiment practice · Test representation stability
+
+**Task.** Remove one sentence, refit the SVD, and compare nearest neighbors for a token present in both fitted vocabularies. Use the intersection vocabulary.
+
+**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+
+```python
+def neighbor_overlap(first, second, k):
+    # first and second are ranked token lists; return overlap / k.
+    return ...
+```
+
+:::{dropdown} Hint and acceptance checks
+Return `len(set(first[:k]) & set(second[:k])) / k`, after removing the query token and restricting both lists to the same vocabulary. Check that identical lists give 1 and disjoint lists give 0. Report which sentence was removed and how many tokens remain; raw SVD coordinates are not identifiable.
+:::
+
+## 3.7 · Exercises
+
+1. **Lookup size.** A vocabulary has 10,000 tokens and embedding width 64. How many parameters are in its embedding matrix?
+2. **Unknowns.** What information is lost when both “variance” and “entropy” map to `<unk>`?
+3. **Rotation.** Prove cosine similarity is unchanged by an orthogonal transformation.
+4. **Order.** Construct two sentences with the same bag of words but different meanings.
+5. **Sampling variation.** Repeat the SVD after removing one corpus sentence. What should be compared?
+
+
+:::{dropdown} Worked solutions — attempt the questions first
+
+**1.** $640,000$. A batch of 8 sequences of length 20 produces a tensor of shape `(8, 20, 64)`; batch size does not change the parameter count.
+
+**2.** the model receives the same token ID for distinct words. No downstream function of those IDs can recover which word was present without additional information.
+
+**3.** $aRR^\top b^\top=ab^\top$, and the same identity preserves both squared norms. General invertible transformations do not preserve cosine similarity.
+
+**4.** “models explain data” and “data explain models” suffice. A mean-pooling baseline cannot distinguish them; an order-aware model can represent a distinction but must still learn it.
+
+**5.** compare neighbor rankings or pairwise similarities on a common vocabulary. Comparing raw coordinates is misleading because rotations and sign changes are arbitrary. Large changes reveal instability in this tiny corpus.
+:::
 
 ## 3.8 · Reading and next step
 

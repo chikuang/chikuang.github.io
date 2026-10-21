@@ -12,6 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/10-rag.ipynb)
 
+**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+
 Suppose a student asks, **“How should bootstrap resampling handle dependent observations?”** A language model might answer from information stored in its weights. A course assistant instead needs to consult the instructor's notes, retain the condition about dependence, and show where the answer came from. RAG supplies question-specific evidence to the model before it answers.
 
 The three words name three different operations. **Retrieval** finds potentially relevant passages. **Augmentation** puts selected passages, identifiers, and the question into the generator's input. **Generation** produces an answer conditioned on that input. A search engine that only returns passages implements retrieval. A quoted-passage baseline adds a useful answer interface, but it is not an LLM generation experiment.
@@ -531,16 +533,56 @@ Questions requiring several facts may need several passages. Query decomposition
 
 An orchestration library can package this framework, but component names do not replace contracts. Whether it calls something a retriever, chain, node, or tool, inspect the actual text passed between stages. Save the corpus snapshot, chunking settings, encoder/index, retrieval settings, prompt, generator, evaluation questions, and rubric as one versioned experiment record.
 
-## 10.11 · Exercises and worked solutions
 
-1. **Find augmentation.** A system retrieves five passages but sends only the question to a model. Does it follow the diagram? **Solution:** no. The evidence never reached the model. Inspect serialized messages, not only the retrieval log.
-2. **Chunk boundaries.** A chunk claims coverage; the next states exchangeability. What must be tested? **Solution:** whether retrieval and packing preserve both claim and condition. Compare section-aware chunks or neighbor expansion on held-out questions, including context cost.
-3. **Rank fusion.** Why not simply add BM25 and cosine scores? **Solution:** their scales and meanings differ. Evaluate justified normalization, a fitted combination, or rank fusion; none automatically yields answer-confidence probabilities.
-4. **Two top-k values.** Twenty candidates are retrieved; three enter the prompt. Which set limits citations? **Solution:** the three supplied passages. The larger set diagnoses context-selection failures.
-5. **A successful validator.** The unsupported response in Section 10.7 passes. What is established? **Solution:** structure and citation membership only. Its meaning contradicts the evidence, so support still fails.
-6. **Recall denominator.** Seven of ten answerable questions retrieve their one relevant document; five additional questions are unanswerable. What is document recall@k? **Solution:** $7/10$. Report unanswerable answer/abstention behavior separately.
-7. **Locate the failure.** Useful evidence is retrieved but lost under the budget; oracle generation is correct. What comes first? **Solution:** inspect reranking and packing with the generator and candidates fixed. Fine-tuning would not directly restore excluded evidence.
-8. **Design a model extension.** What must an experiment replacing the extractive backend report? **Solution:** identify model/version, adapter, messages, and decoding settings; use fixed held-out questions and compare no-retrieval, extractive, oracle-context, and actual-RAG conditions. Report correctness, support, abstention, cost, and failures; structural validation is not answer accuracy.
+### Coding and experiment practice · Separate retrieval failure from generation failure
+
+**Task.** Use Appendix B to run the same questions with no context, retrieved context, and oracle context. Tabulate valid JSON, required-source retrieval, answer-rubric success, and abstentions separately.
+
+**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+
+```python
+def required_source_present(required_id, contexts):
+    return ...
+```
+
+:::{dropdown} Hint and acceptance checks
+Return `required_id is not None and required_id in contexts`. Keep unanswerable questions in a separate category. Read raw answers even when the keyword rubric passes: a negated statement can contain the right keyword. An oracle comparison diagnoses a component; it is not the deployable condition.
+:::
+
+### Continue with the implemented system
+
+The generator below was deliberately extractive. [Appendix B, B.4](../appendices/b-real-llm-systems.md) runs actual pretrained-model generation on no-context, retrieved-context, and oracle-context conditions, publishes raw responses, and separates schema validity from answer-rubric success. Follow that lab after understanding this transparent retrieval pipeline.
+
+## 10.11 · Exercises
+
+1. **Find augmentation.** A system retrieves five passages but sends only the question to a model. Does it follow the diagram?
+2. **Chunk boundaries.** A chunk claims coverage; the next states exchangeability. What must be tested?
+3. **Rank fusion.** Why not simply add BM25 and cosine scores?
+4. **Two top-k values.** Twenty candidates are retrieved; three enter the prompt. Which set limits citations?
+5. **A successful validator.** The unsupported response in Section 10.7 passes. What is established?
+6. **Recall denominator.** Seven of ten answerable questions retrieve their one relevant document; five additional questions are unanswerable. What is document recall@k?
+7. **Locate the failure.** Useful evidence is retrieved but lost under the budget; oracle generation is correct. What comes first?
+8. **Design a model extension.** What must an experiment replacing the extractive backend report?
+
+
+:::{dropdown} Worked solutions — attempt the questions first
+
+**1.** no. The evidence never reached the model. Inspect serialized messages, not only the retrieval log.
+
+**2.** whether retrieval and packing preserve both claim and condition. Compare section-aware chunks or neighbor expansion on held-out questions, including context cost.
+
+**3.** their scales and meanings differ. Evaluate justified normalization, a fitted combination, or rank fusion; none automatically yields answer-confidence probabilities.
+
+**4.** the three supplied passages. The larger set diagnoses context-selection failures.
+
+**5.** structure and citation membership only. Its meaning contradicts the evidence, so support still fails.
+
+**6.** $7/10$. Report unanswerable answer/abstention behavior separately.
+
+**7.** inspect reranking and packing with the generator and candidates fixed. Fine-tuning would not directly restore excluded evidence.
+
+**8.** identify model/version, adapter, messages, and decoding settings; use fixed held-out questions and compare no-retrieval, extractive, oracle-context, and actual-RAG conditions. Report correctness, support, abstention, cost, and failures; structural validation is not answer accuracy.
+:::
 
 ## 10.12 · Reading and next step
 

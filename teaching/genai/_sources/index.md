@@ -38,9 +38,9 @@ Each chapter also includes a **pipeline or framework diagram** with the inputs, 
 3. Use the [statistical translation guide](statistical-lens.md) and [selected readings](readings.md) when terminology is unfamiliar.
 4. Follow the [14-chapter course guide](syllabus.md), then complete the worked simulation-assistant project.
 
-**Complete core course:** All 14 chapters contain developed lessons, mathematical explanations, executable Python experiments, exercises, worked solutions, and downloadable notebooks. The examples run on a laptop CPU without API keys or pretrained-model downloads. The [short Python warm-up](01-python-lab.md) remains available as a supplement.
+**Complete core course:** All 14 chapters contain developed lessons, mathematical explanations, executable Python experiments, exercises, worked solutions, and downloadable notebooks. The core chapter examples run on a laptop CPU without API keys or pretrained-model downloads. [Appendix A](appendices/a-python-pytorch.md) supplies a step-by-step Python/PyTorch bridge. [Appendix B](appendices/b-real-llm-systems.md) adds a real local instruction model, RAG, an LLM tool policy, and a natural-language simulation assistant; its optional live run requires a model download, while the book analyzes saved real-model traces. The [short Python warm-up](01-python-lab.md) remains available as a supplement.
 
-The progression includes neural-network training, embeddings, masked attention, a tiny transformer, character generation, a VAE, diffusion, low-rank adaptation, preference learning, retrieval, uncertainty, tool-use policies, reliability experiments, and a worked statistical simulation assistant. Retrieval and agent labs use transparent offline baselines; language-model integrations are identified as extensions rather than presented as measured results.
+The progression includes neural-network training, embeddings, masked attention, a tiny transformer, character generation, a VAE, diffusion, low-rank adaptation, preference learning, retrieval, uncertainty, tool-use policies, reliability experiments, and a worked statistical simulation assistant. Chapters 5–6 use the same tiny decoder for architecture, training, held-out scoring, and generation. Retrieval and agent chapters retain transparent baselines and link to the executed real-model comparisons in Appendix B. All chapters include programming tasks, acceptance checks, and separate worked solutions.
 
 ```{toctree}
 :caption: Course guide
@@ -72,6 +72,15 @@ chapters/11-evaluation-uncertainty
 chapters/12-agents
 chapters/13-agent-reliability
 chapters/14-capstone
+```
+
+```{toctree}
+:caption: Appendices
+:maxdepth: 1
+:hidden:
+
+appendices/a-python-pytorch
+appendices/b-real-llm-systems
 ```
 
 ```{toctree}

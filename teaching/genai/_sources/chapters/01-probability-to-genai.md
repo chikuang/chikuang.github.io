@@ -12,6 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/01-probability-to-genai.ipynb) · [Set up Python](../python-workflow.md)
 
+**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+
 You already know how to define a model, estimate its parameters, assess its fit, and simulate from it. These are useful starting points for generative AI. The unfamiliar part is often the data representation and software vocabulary, rather than the basic idea of learning a distribution.
 
 By the end of this chapter you will fit a categorical distribution, generate observations from it, and build a small language model that generates short sequences. You will also understand why a model can assign high probability to a plausible sentence without establishing that the sentence is true.
@@ -685,6 +687,24 @@ The simulation ranges summarize variation across 300 independently generated tra
 **What this shows.** More simulation makes our description of the fitted model more precise. It does not move that model toward the data-generating law. Here the fit is held fixed; uncertainty from collecting and fitting a new training sample is a separate source of variation.
 :::
 
+
+### Coding and experiment practice · Audit a sampler
+
+**Task.** Implement `frequency_error(probabilities, size, seed)` returning the largest absolute difference between generated frequencies and the fitted probabilities. Compare sizes 100, 1,000, and 10,000 over 30 prespecified seeds.
+
+**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+
+```python
+def frequency_error(probabilities, size, seed):
+    rng = np.random.default_rng(seed)
+    # Draw size categorical observations; return a scalar error.
+    return ...
+```
+
+:::{dropdown} Hint and acceptance checks
+Use `rng.choice`, then `np.bincount(..., minlength=len(probabilities)) / size`. Compare the average error across the same fixed seed list at each size. Individual runs need not improve monotonically. This checks Monte Carlo approximation to the fitted law, not its fit to real data.
+:::
+
 ## 1.14 · Exercises
 
 Attempt the questions before reading the worked solutions. You can use the same notebook; keep experimental changes in separate cells so the main example remains reproducible.
@@ -729,11 +749,12 @@ Create twelve new, original sentences using a small vocabulary. Reserve complete
 
 ## 1.15 · Worked solutions
 
-### Solution 1
+
+**Solution 1**
 
 The scalar `a[1]` is `5`; `a[:2]` is an array `[2, 5]` with shape `(2,)`; normalization gives `[0.2, 0.5, 0.3]` with shape `(3,)`; and array multiplication gives `[4, 10, 6]`. Python list multiplication repeats items, producing `[2, 5, 3, 2, 5, 3]`.
 
-### Solution 2
+**Solution 2**
 
 The MLE is $(0.8,0.2,0)$; smoothing gives $(9/13,3/13,1/13)$. The loss on category three changes from infinity to $\log 13\approx2.565$ nats. The smoothed estimate is the posterior mean and one-step predictive vector. The posterior is Dirichlet$(9,3,1)$; its mode lies on the boundary, so it does not equal that mean.
 
@@ -744,7 +765,7 @@ print("Smoothed estimate:", exercise_prediction)
 print("Loss on third category:", -np.log(exercise_prediction[2]))
 ```
 
-### Solution 3
+**Solution 3**
 
 ```{code-cell} python
 rng_exercise = np.random.default_rng(7)
@@ -757,11 +778,11 @@ for n in [100, 1_000, 10_000]:
 
 `draw == 0` is a Boolean array; its mean is the proportion of `True` entries. The standard error decreases at rate $n^{-1/2}$, but realized deviations need not decrease monotonically. To include fitting uncertainty, repeatedly generate or resample training datasets under justified assumptions, refit the model, and then study predictions or generated summaries. A nested simulation can separate variability from fitting and from generation.
 
-### Solution 4
+**Solution 4**
 
 The normalization cancels in the ratio. The three ratios are $4$, $2$, and $\sqrt2$. Tied positive base probabilities remain tied at every positive temperature. These are probability ratios for modeled outcomes, with no independent statement about truth.
 
-### Solution 5
+**Solution 5**
 
 `data` has five outgoing events: `support` twice, `guide` once, and `<eos>` twice. There are nine output categories. The normalizer is $5+9(0.5)=9.5$. Therefore the requested probabilities are $2.5/9.5$, $2.5/9.5$, and $0.5/9.5$.
 
@@ -773,7 +794,7 @@ for token, expected in [("support", 2.5 / 9.5), ("<eos>", 2.5 / 9.5), ("generate
     print(token, round(float(actual), 4))
 ```
 
-### Solution 6
+**Solution 6**
 
 The product is $p(\texttt{data}\mid\texttt{<bos>})p(\texttt{support}\mid\texttt{data})p(\texttt{models}\mid\texttt{support})p(\texttt{<eos>}\mid\texttt{models})$. Its logarithm is the sum of the corresponding four log probabilities.
 
@@ -790,13 +811,15 @@ assert np.isclose(-log_probability / 4, bigram_log_loss(["data support models"],
 
 Leaving out `<eos>` scores the lexical prefix without scoring the decision to stop. The set of prediction events and denominator both change. Neither convention should be switched between competing systems without explanation.
 
-### Solution 7
+**Solution 7**
 
 The test set has become a tuning set. Split at the independent unit first; fit transition counts and vocabulary on training data; choose smoothing on validation data; then report the selected procedure's performance once on an untouched test set. If refitting on combined training and validation data, specify that step in advance. Resample independent documents rather than individual token losses when document-level dependence is the relevant structure. With few documents, uncertainty estimates remain unstable.
 
-### Solution 8 · Reporting checklist
+**Solution 8 · Reporting checklist**
 
 Record the corpus, tokenizer, split, vocabulary/unknown-token rule, smoothing choices, and score definition. Show both models' losses on the same test events and several generated outputs, including failures and stop reasons. State whether the apparent gain could be due to chance, repeated tuning, or an unusually favorable split. A negative or inconclusive result is a valid result.
+
+
 
 ## 1.16 · What this chapter gives us
 

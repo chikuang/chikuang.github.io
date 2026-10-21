@@ -35,7 +35,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=316925d6" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -54,6 +54,7 @@
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/09-adaptation-alignment';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/learning-controls.js?v=ed55b08a"></script>
     <link rel="canonical" href="https://chikuang.github.io/teaching/genai/chapters/09-adaptation-alignment.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -62,7 +63,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
-    <meta name="docbuild:last-update" content="October 20, 2026"/>
+    <meta name="docbuild:last-update" content="October 21, 2026"/>
   
     
     <script src="../_static/searchtools.js"></script>
@@ -186,6 +187,11 @@
 <li class="toctree-l1"><a class="reference internal" href="12-agents.html">12 · Agents: tools, state, and decisions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="13-agent-reliability.html">13 · Agent reliability and experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="14-capstone.html">14 · Capstone: a GenAI system for a statistician</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendices</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../appendices/a-python-pytorch.html">Appendix A · Python and PyTorch, one operation at a time</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices/b-real-llm-systems.html">Appendix B · A real local LLM, RAG, and tool-using agent</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Supplement</span></p>
 <ul class="nav bd-sidenav">
@@ -362,8 +368,11 @@
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-tiny-direct-preference-objective">9.5 · A tiny direct-preference objective</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-an-adaptation-evaluation">9.6 · Design an adaptation evaluation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">9.7 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-an-adaptation-evaluation">9.6 · Design an adaptation evaluation</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-check-a-low-rank-update">Coding and experiment practice · Check a low-rank update</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">9.7 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">9.8 · Reading and transition</a></li>
 </ul>
             </nav>
@@ -380,6 +389,7 @@
 <h1>9 · Fine-tuning, LoRA, and preference learning<a class="headerlink" href="#fine-tuning-lora-and-preference-learning" title="Link to this heading">#</a></h1>
 <p><strong>Question.</strong> How do we adapt an existing model, and whose preferences are represented?</p>
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/09-adaptation-alignment.ipynb">Download the executed notebook</a></p>
+<p><strong>Python support:</strong> <a class="reference internal" href="../appendices/a-python-pytorch.html"><span class="std std-doc">Appendix A</span></a> explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s <strong>Show all code</strong> control while working through the lab.</p>
 <p>Adaptation can change the conditioning information, some parameters, or all parameters. Preference learning adds another distinction: observations now describe comparisons between responses rather than necessarily providing a uniquely correct response. We will fit a low-rank update to a synthetic regression problem and then fit a small preference policy whose objective can be inspected directly.</p>
 <p><strong>Prerequisites:</strong> Chapters 2 and 6, matrix rank, and logistic likelihood. <strong>Outcomes:</strong> identify what is frozen; implement a low-rank update; interpret paired preference data; derive the role of a reference policy. These are small numerical experiments, not fine-tuning runs on a large pretrained language model.</p>
 <section id="pipeline-and-framework">
@@ -511,9 +521,9 @@ B\in\mathbb R^{r\times d_{out}}.
 
 <span class="n">full</span><span class="p">,</span> <span class="n">full_train</span><span class="p">,</span> <span class="n">full_test</span> <span class="o">=</span> <span class="n">fit_update</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">low</span><span class="p">,</span> <span class="n">low_train</span><span class="p">,</span> <span class="n">low_test</span> <span class="o">=</span> <span class="n">fit_update</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Trainable entries: full&#39;</span><span class="p">,</span> <span class="n">din</span><span class="o">*</span><span class="n">dout</span><span class="p">,</span> <span class="s1">&#39;low-rank&#39;</span><span class="p">,</span> <span class="n">rank</span><span class="o">*</span><span class="p">(</span><span class="n">din</span><span class="o">+</span><span class="n">dout</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Full update train/test MSE:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">full_train</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">full_test</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Low-rank update train/test MSE:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">low_train</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">low_test</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Trainable entries: full'</span><span class="p">,</span> <span class="n">din</span><span class="o">*</span><span class="n">dout</span><span class="p">,</span> <span class="s1">'low-rank'</span><span class="p">,</span> <span class="n">rank</span><span class="o">*</span><span class="p">(</span><span class="n">din</span><span class="o">+</span><span class="n">dout</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Full update train/test MSE:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">full_train</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">full_test</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Low-rank update train/test MSE:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">low_train</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">low_test</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
 <span class="k">assert</span> <span class="ow">not</span> <span class="n">W0</span><span class="o">.</span><span class="n">requires_grad</span>
 <span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_rank</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">rank</span>
 </pre></div>
@@ -562,12 +572,12 @@ y_{\mathrm{row}}&amp;=x_{\mathrm{row}}(W_{0,\mathrm{row}}+sAB),
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
 <details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">))</span>
-<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">matrix</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">&#39;True&#39;</span><span class="p">,</span> <span class="n">true_update</span><span class="p">,</span> <span class="s1">&#39;#705600&#39;</span><span class="p">),</span>
-                             <span class="p">(</span><span class="s1">&#39;Full fit&#39;</span><span class="p">,</span> <span class="n">full</span><span class="p">,</span> <span class="s1">&#39;#777777&#39;</span><span class="p">),</span>
-                             <span class="p">(</span><span class="s1">&#39;Low-rank fit&#39;</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="s1">&#39;#a2006e&#39;</span><span class="p">)]:</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">matrix</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">'True'</span><span class="p">,</span> <span class="n">true_update</span><span class="p">,</span> <span class="s1">'#705600'</span><span class="p">),</span>
+                             <span class="p">(</span><span class="s1">'Full fit'</span><span class="p">,</span> <span class="n">full</span><span class="p">,</span> <span class="s1">'#777777'</span><span class="p">),</span>
+                             <span class="p">(</span><span class="s1">'Low-rank fit'</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="s1">'#a2006e'</span><span class="p">)]:</span>
     <span class="n">singular</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svdvals</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">singular</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">singular</span><span class="p">,</span> <span class="s1">&#39;o-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Singular-value index&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Singular value&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">singular</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">singular</span><span class="p">,</span> <span class="s1">'o-'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">'Singular-value index'</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">'Singular value'</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -645,10 +655,10 @@ r(x,y)=\beta\log\frac{\pi^*(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}
     <span class="n">ratio</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">log</span><span class="p">()</span><span class="o">-</span><span class="n">reference</span><span class="o">.</span><span class="n">log</span><span class="p">()</span>
     <span class="n">test_margin</span> <span class="o">=</span> <span class="n">beta_preference</span><span class="o">*</span><span class="p">(</span><span class="n">ratio</span><span class="p">[</span><span class="n">winners</span><span class="p">[</span><span class="n">test_ids</span><span class="p">]]</span><span class="o">-</span><span class="n">ratio</span><span class="p">[</span><span class="n">losers</span><span class="p">[</span><span class="n">test_ids</span><span class="p">]])</span>
     <span class="n">heldout_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">logsigmoid</span><span class="p">(</span><span class="n">test_margin</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Reference probabilities:&#39;</span><span class="p">,</span> <span class="n">reference</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Fitted probabilities:&#39;</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Held-out preference log loss:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">heldout_loss</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Equal-preference log loss:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Reference probabilities:'</span><span class="p">,</span> <span class="n">reference</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Fitted probabilities:'</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Held-out preference log loss:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">heldout_loss</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Equal-preference log loss:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
 </pre></div>
 </div>
 </details></div>
@@ -675,17 +685,42 @@ Equal-preference log loss: 0.693
 <h2>9.6 · Design an adaptation evaluation<a class="headerlink" href="#design-an-adaptation-evaluation" title="Link to this heading">#</a></h2>
 <p>Keep separate evaluations for task quality, instruction compliance, factual support, and resource cost. Use a baseline with the same retrieval access and decoding budget. If preference tuning improves a judge score, inspect whether response length or style changed in a way the judge rewards independently of correctness.</p>
 <p>Record the base model, adaptation data, frozen parameters, trainable parameters, optimizer, checkpoint rule, and evaluation split. Prevent task-family leakage where paraphrases of the same underlying question appear in both training and testing. A comparison against an untuned baseline is informative only if the baseline receives an appropriate prompt and comparable evidence.</p>
+<section id="coding-and-experiment-practice-check-a-low-rank-update">
+<h3>Coding and experiment practice · Check a low-rank update<a class="headerlink" href="#coding-and-experiment-practice-check-a-low-rank-update" title="Link to this heading">#</a></h3>
+<p><strong>Task.</strong> Generate small A and B matrices, compute their product, and check its rank and trainable parameter count. Compare with a full matrix update under equal data and a declared optimization budget.</p>
+<p><strong>Submission.</strong> Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.</p>
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">lora_parameter_count</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">,</span> <span class="n">rank</span><span class="p">):</span>
+    <span class="k">return</span> <span class="o">...</span>
+</pre></div>
+</div>
+</details></div>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Hint and acceptance checks</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Return <code class="docutils literal notranslate"><span class="pre">rank</span> <span class="pre">*</span> <span class="pre">(d_in</span> <span class="pre">+</span> <span class="pre">d_out)</span></code>. Check the numerical rank of <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">&#64;</span> <span class="pre">B</span></code> is at most rank, using a declared tolerance. This constrains the update, not the rank of the original weight matrix plus update. The synthetic low-rank truth favors this constraint, so state that assumption in the comparison.</p>
+</div>
+</details></section>
 </section>
-<section id="exercises-and-worked-solutions">
-<h2>9.7 · Exercises and worked solutions<a class="headerlink" href="#exercises-and-worked-solutions" title="Link to this heading">#</a></h2>
+<section id="exercises">
+<h2>9.7 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p><strong>Parameter budget:</strong> for a <span class="math notranslate nohighlight">\(1024\times1024\)</span> update with rank eight, how many entries are trained? <strong>Solution:</strong> <span class="math notranslate nohighlight">\(8(1024+1024)=16,384\)</span>, versus <span class="math notranslate nohighlight">\(1,048,576\)</span> for a full update. This counts update parameters, not the entire model’s stored weights.</p></li>
-<li><p><strong>Initialization:</strong> derive <span class="math notranslate nohighlight">\(\nabla_A L\)</span> and <span class="math notranslate nohighlight">\(\nabla_B L\)</span> when <span class="math notranslate nohighlight">\(\Delta=AB\)</span>. <strong>Solution:</strong> if <span class="math notranslate nohighlight">\(G=\nabla_\Delta L\)</span>, the gradients are <span class="math notranslate nohighlight">\(GB^\top\)</span> and <span class="math notranslate nohighlight">\(A^\top G\)</span>. Both vanish if both factors are zero.</p></li>
-<li><p><strong>Identifiability:</strong> does paired-comparison data identify an absolute utility level? <strong>Solution:</strong> no. It identifies differences under the model, since adding a common constant leaves all comparison probabilities unchanged.</p></li>
-<li><p><strong>DPO direction:</strong> if policy and reference initially agree, what is each margin? <strong>Solution:</strong> zero. The loss is <span class="math notranslate nohighlight">\(\log2\)</span>. Updating increases the preferred response’s log ratio relative to the dispreferred response, subject to shared parameters and conflicting observations.</p></li>
-<li><p><strong>Scope:</strong> why might a rank-two update fail even with excellent optimization? <strong>Solution:</strong> the necessary parameter change may have higher rank or may be needed in layers that were not adapted. More optimization cannot remove a restriction imposed by the model class.</p></li>
+<li><p><strong>Parameter budget:</strong> for a <span class="math notranslate nohighlight">\(1024\times1024\)</span> update with rank eight, how many entries are trained?</p></li>
+<li><p><strong>Initialization:</strong> derive <span class="math notranslate nohighlight">\(\nabla_A L\)</span> and <span class="math notranslate nohighlight">\(\nabla_B L\)</span> when <span class="math notranslate nohighlight">\(\Delta=AB\)</span>.</p></li>
+<li><p><strong>Identifiability:</strong> does paired-comparison data identify an absolute utility level?</p></li>
+<li><p><strong>DPO direction:</strong> if policy and reference initially agree, what is each margin?</p></li>
+<li><p><strong>Scope:</strong> why might a rank-two update fail even with excellent optimization?</p></li>
 </ol>
-</section>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Worked solutions — attempt the questions first</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text"><strong>1.</strong> <span class="math notranslate nohighlight">\(8(1024+1024)=16,384\)</span>, versus <span class="math notranslate nohighlight">\(1,048,576\)</span> for a full update. This counts update parameters, not the entire model’s stored weights.</p>
+<p class="sd-card-text"><strong>2.</strong> if <span class="math notranslate nohighlight">\(G=\nabla_\Delta L\)</span>, the gradients are <span class="math notranslate nohighlight">\(GB^\top\)</span> and <span class="math notranslate nohighlight">\(A^\top G\)</span>. Both vanish if both factors are zero.</p>
+<p class="sd-card-text"><strong>3.</strong> no. It identifies differences under the model, since adding a common constant leaves all comparison probabilities unchanged.</p>
+<p class="sd-card-text"><strong>4.</strong> zero. The loss is <span class="math notranslate nohighlight">\(\log2\)</span>. Updating increases the preferred response’s log ratio relative to the dispreferred response, subject to shared parameters and conflicting observations.</p>
+<p class="sd-card-text"><strong>5.</strong> the necessary parameter change may have higher rank or may be needed in layers that were not adapted. More optimization cannot remove a restriction imposed by the model class.</p>
+</div>
+</details></section>
 <section id="reading-and-transition">
 <h2>9.8 · Reading and transition<a class="headerlink" href="#reading-and-transition" title="Link to this heading">#</a></h2>
 <p><a class="reference external" href="https://arxiv.org/abs/2106.09685">LoRA</a> develops low-rank parameter updates for large models. <a class="reference external" href="https://arxiv.org/abs/2305.18290">DPO</a> connects preference likelihoods with a reference-policy formulation. Next, <a class="reference internal" href="10-rag.html"><span class="std std-doc">Chapter 10</span></a> changes the evidence available at inference time while leaving model weights fixed.</p>
@@ -754,8 +789,11 @@ Equal-preference log loss: 0.693
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-tiny-direct-preference-objective">9.5 · A tiny direct-preference objective</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-an-adaptation-evaluation">9.6 · Design an adaptation evaluation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">9.7 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-an-adaptation-evaluation">9.6 · Design an adaptation evaluation</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-check-a-low-rank-update">Coding and experiment practice · Check a low-rank update</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">9.7 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">9.8 · Reading and transition</a></li>
 </ul>
   </nav></div>
@@ -776,7 +814,7 @@ Equal-preference log loss: 0.693
   
   <div class="footer-item">
     <p class="last-updated">
-  Last updated on October 20, 2026.
+  Last updated on October 21, 2026.
   <br/>
 </p>
   </div>

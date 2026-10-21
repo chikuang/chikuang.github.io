@@ -12,6 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/07-latent-variable-models.ipynb)
 
+**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+
 A latent-variable model generates an unobserved $Z$ and then generates $X$ conditional on it. This connects directly to mixture models and random-effects models. The difficulty is often integrating over $Z$. We will derive a variational objective, train a small variational autoencoder (VAE) on two-dimensional observations, and contrast its objective with adversarial learning and invertible transformations.
 
 **Prerequisites:** Chapters 1–2, conditional densities, Jensen's inequality, and KL divergence. **Outcomes:** distinguish prior, posterior approximation, and observation model; derive the ELBO; implement reparameterization; compare what a VAE, GAN, and flow can evaluate. The VAE is a small CPU experiment; GANs and flows are comparison topics with an exact change-of-variables calculation.
@@ -262,13 +264,44 @@ Expressive flows use transformations whose inverse and determinant remain comput
 **What this shows.** The transformation doubles lengths, so the density must halve to preserve probability mass. A flow needs both an inverse and its volume correction. Evaluating the base density at the inverse point alone is not a normalized density for the transformed observation.
 :::
 
-## 7.8 · Exercises and worked solutions
 
-1. **ELBO equality:** when is the bound exact? **Solution:** when $q_\phi(z\mid x)$ equals the model posterior almost everywhere. This does not imply that the fitted marginal equals the true data distribution.
-2. **Log variance:** if `logvar = log(4)`, what multiplier belongs on the standard normal noise? **Solution:** $\exp(\log(4)/2)=2$. Multiplying by four would produce variance 16.
-3. **Generation:** why must observation noise be added to the decoder mean in our VAE? **Solution:** the decoder parameterizes the mean of a Gaussian observation distribution. Omitting noise samples a different distribution, namely the distribution of conditional means.
-4. **Model comparison:** which method directly provides exact likelihood, a variational bound, or only a sampling mechanism? **Solution:** a tractable flow provides exact model likelihood; a VAE provides a computable ELBO and generative model; a standard implicit GAN primarily provides samples. These labels describe objectives and access, not universal quality rankings.
-5. **Failure probe:** fit a single Gaussian to the four-cluster data and compare its mean with the VAE. **Solution:** means may be close for both, while cluster occupancy and density between clusters differ. This demonstrates why evaluation needs more than first moments.
+### Coding and experiment practice · Compare distributions beyond their means
+
+**Task.** Fit one Gaussian and the VAE on the same training data. Define four nearest-center regions before evaluation; compare generated region frequencies on fixed simulation budgets.
+
+**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+
+```python
+def region_frequencies(samples, centers):
+    # Assign each sample to its nearest center, then count all regions.
+    return ...
+```
+
+:::{dropdown} Hint and acceptance checks
+Compute squared Euclidean distances with explicit sample and center axes; use `argmin(axis=1)` and `bincount(..., minlength=len(centers)) / len(samples)`. The frequencies must sum to one. Also inspect within-region spread: matching occupancy alone cannot establish equality of distributions.
+:::
+
+## 7.8 · Exercises
+
+1. **ELBO equality:** when is the bound exact?
+2. **Log variance:** if `logvar = log(4)`, what multiplier belongs on the standard normal noise?
+3. **Generation:** why must observation noise be added to the decoder mean in our VAE?
+4. **Model comparison:** which method directly provides exact likelihood, a variational bound, or only a sampling mechanism?
+5. **Failure probe:** fit a single Gaussian to the four-cluster data and compare its mean with the VAE.
+
+
+:::{dropdown} Worked solutions — attempt the questions first
+
+**1.** when $q_\phi(z\mid x)$ equals the model posterior almost everywhere. This does not imply that the fitted marginal equals the true data distribution.
+
+**2.** $\exp(\log(4)/2)=2$. Multiplying by four would produce variance 16.
+
+**3.** the decoder parameterizes the mean of a Gaussian observation distribution. Omitting noise samples a different distribution, namely the distribution of conditional means.
+
+**4.** a tractable flow provides exact model likelihood; a VAE provides a computable ELBO and generative model; a standard implicit GAN primarily provides samples. These labels describe objectives and access, not universal quality rankings.
+
+**5.** means may be close for both, while cluster occupancy and density between clusters differ. This demonstrates why evaluation needs more than first moments.
+:::
 
 ## 7.9 · Reading and next step
 

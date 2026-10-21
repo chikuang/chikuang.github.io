@@ -3,7 +3,13 @@
 
 **STAT XXXX Generative AI**
 
-This sequence assumes a strong statistics background and begins at an introductory level in deep learning and GenAI. Modules are learning units, not calendar weeks. Work through them at a comfortable pace, returning to the mathematics when it clarifies an experiment. All 14 chapters now include developed lessons, executable **Python** labs, exercises, and worked solutions. Core experiments progress from NumPy to PyTorch and then transparent retrieval and tool-use policies. They run on a CPU without model downloads or API credentials. External language-model integrations are explicit extensions.
+This sequence assumes a strong statistics background and begins at an introductory level in deep learning and GenAI. Modules are learning units, not calendar weeks. Work through them at a comfortable pace, returning to the mathematics when it clarifies an experiment. All 14 chapters now include developed lessons, executable **Python** labs, exercises, and worked solutions. Core experiments progress from NumPy to PyTorch and then transparent retrieval and tool-use policies. They run on a CPU without model downloads or API credentials. Appendix A supplies the Python/PyTorch prerequisites. Appendix B contains an optional executable local-LLM track with published real-model traces; model downloads are separate from the offline core and normal book builds.
+
+## Two complementary study routes
+
+For a first pass focused on attention and agents, read Chapters 1–6, then 10–14. Read Appendix A alongside the first six chapters and run Appendix B after the RAG and agent foundations. Chapters 7–9 supply the wider generative-model and adaptation perspective; return to them for variational inference, score estimation, and preference learning. They remain part of the full course, but need not delay the first functioning LLM system.
+
+Each chapter now separates questions from revealable answers and includes a coding/experiment task with acceptance criteria. Start with the original lab, make one controlled change, and write a short explanation of the target, result, and limitation. The **Show all code** button provides a persistent study preference; outputs stay visible and answers remain separately controlled.
 
 ## Road map
 
@@ -86,7 +92,7 @@ This sequence assumes a strong statistics background and begins at an introducto
 
 - **Learn:** next-token prediction, teacher forcing, context windows, pretraining versus inference, in-context examples, greedy decoding, temperature, top-k, and top-p.
 - **Statistical lens:** conditional likelihood, distribution shift, and transformations of a sampling distribution. In-context behavior can be studied statistically without assuming the model performs exact Bayesian inference.
-- **Python practice:** train a small character GRU on a synthetic sentence grammar, hold out complete sentence combinations, and compare decoding choices on fixed prompts.
+- **Python practice:** train the same tiny transformer from Chapter 5 on a synthetic sentence grammar, hold out complete sentence combinations, and compare decoding choices on fixed prompts.
 - **Self-check:** explain why perplexity is not a universal measure of usefulness and why prompting is not parameter estimation by gradient descent at inference time.
 
 (module-07)=

@@ -39,7 +39,7 @@ python -m pip install -r requirements.txt
 
 Here `-m` runs a Python module. `venv` creates the environment; activation makes `python` refer to that environment; `pip install` installs the packages listed in the file. Run `python --version` to check the interpreter. If PowerShell blocks activation, use `.venv\Scripts\python.exe` wherever the instructions say `python`; activation is a convenience, not a requirement.
 
-`requirements.txt` gives compatible package ranges. `requirements-lock.txt` records the tested macOS/Python 3.12 environment; a platform-specific package in that snapshot may need adjustment on another operating system. The first chapter runs on a CPU with no API key or model download.
+`requirements.txt` gives compatible package ranges. `requirements-lock.txt` is a version snapshot of the local Python 3.12 validation environment; it includes the optional local-model packages. Use the smaller `requirements.txt` for the core book. The snapshot is not a universal platform lock; CI separately validates Python 3.12 on Linux. The first chapter runs on a CPU with no API key or model download.
 
 ## 3 · Open a notebook
 
@@ -54,6 +54,15 @@ JupyterLab opens in your browser. Open the `.ipynb` file using its file browser.
 To check reproducibility, choose **Kernel → Restart Kernel and Run All Cells**. The downloaded notebook already contains the website's executed outputs, but you can edit the cells and run them again. Saving a notebook preserves its code and outputs; it does not preserve every object in the running kernel's memory.
 
 ## 4 · Build the website and PDF
+
+For HTML only, without installing TeX:
+
+```bash
+python scripts/build.py --format html
+```
+
+This executes the lesson notebooks and exports the website. Its PDF button points to the published PDF, since this command does not create a fresh PDF. Use the full command below when publishing synchronized HTML and PDF editions.
+
 
 From the repository root, with the environment active:
 
@@ -140,6 +149,14 @@ The course's GitHub Actions workflow independently executes and builds the lesso
 
 Chapters 1, 3, 4, and 10–14 use NumPy or the Python standard library. Chapters 2 and 5–9 also use PyTorch. All core examples use local synthetic or course-authored data. No cell sends data to an external model service.
 
-The full build executes 14 chapter notebooks plus the warm-up, validates that all code cells completed without errors, and exports the executed notebooks alongside the website and PDF. Numerical results can differ slightly across package versions and processors; retain seeds and version information when making comparisons.
+The full build executes 14 chapter notebooks, the Python warm-up, and both appendix notebooks, validates that all code cells completed without errors, and exports the executed notebooks alongside the website and PDF. Numerical results can differ slightly across package versions and processors; retain seeds and version information when making comparisons.
 
-The RAG, agent, and capstone notebooks clearly identify their deterministic or simulated components. To add an actual language-model provider, keep credentials outside the notebook, preserve the validated tool interfaces, and evaluate the new component against the included baseline.
+The RAG, agent, and capstone notebooks distinguish deterministic components from model-generated decisions. [Appendix B](appendices/b-real-llm-systems.md) gives a complete local-model implementation and analyzes recorded actual runs. To generate your own responses:
+
+```bash
+python -m pip install -r requirements-llm.txt
+python labs/download_model.py
+python labs/llm_lab.py --model-dir _models/qwen2.5-1.5b --output .runs/my-llm-run.json
+```
+
+Model downloads require internet and disk space; inference is local and needs no API key. The regular book build analyzes the selected saved trace without running a model. Do not overwrite the published record during routine exploration; compare your new record with the included pilot and follow-up. The task set is a diagnostic teaching set, not a representative performance benchmark.

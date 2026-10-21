@@ -12,6 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/09-adaptation-alignment.ipynb)
 
+**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+
 Adaptation can change the conditioning information, some parameters, or all parameters. Preference learning adds another distinction: observations now describe comparisons between responses rather than necessarily providing a uniquely correct response. We will fit a low-rank update to a synthetic regression problem and then fit a small preference policy whose objective can be inspected directly.
 
 **Prerequisites:** Chapters 2 and 6, matrix rank, and logistic likelihood. **Outcomes:** identify what is frozen; implement a low-rank update; interpret paired preference data; derive the role of a reference policy. These are small numerical experiments, not fine-tuning runs on a large pretrained language model.
@@ -257,13 +259,43 @@ Keep separate evaluations for task quality, instruction compliance, factual supp
 
 Record the base model, adaptation data, frozen parameters, trainable parameters, optimizer, checkpoint rule, and evaluation split. Prevent task-family leakage where paraphrases of the same underlying question appear in both training and testing. A comparison against an untuned baseline is informative only if the baseline receives an appropriate prompt and comparable evidence.
 
-## 9.7 · Exercises and worked solutions
 
-1. **Parameter budget:** for a $1024\times1024$ update with rank eight, how many entries are trained? **Solution:** $8(1024+1024)=16,384$, versus $1,048,576$ for a full update. This counts update parameters, not the entire model's stored weights.
-2. **Initialization:** derive $\nabla_A L$ and $\nabla_B L$ when $\Delta=AB$. **Solution:** if $G=\nabla_\Delta L$, the gradients are $GB^\top$ and $A^\top G$. Both vanish if both factors are zero.
-3. **Identifiability:** does paired-comparison data identify an absolute utility level? **Solution:** no. It identifies differences under the model, since adding a common constant leaves all comparison probabilities unchanged.
-4. **DPO direction:** if policy and reference initially agree, what is each margin? **Solution:** zero. The loss is $\log2$. Updating increases the preferred response's log ratio relative to the dispreferred response, subject to shared parameters and conflicting observations.
-5. **Scope:** why might a rank-two update fail even with excellent optimization? **Solution:** the necessary parameter change may have higher rank or may be needed in layers that were not adapted. More optimization cannot remove a restriction imposed by the model class.
+### Coding and experiment practice · Check a low-rank update
+
+**Task.** Generate small A and B matrices, compute their product, and check its rank and trainable parameter count. Compare with a full matrix update under equal data and a declared optimization budget.
+
+**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+
+```python
+def lora_parameter_count(d_in, d_out, rank):
+    return ...
+```
+
+:::{dropdown} Hint and acceptance checks
+Return `rank * (d_in + d_out)`. Check the numerical rank of `A @ B` is at most rank, using a declared tolerance. This constrains the update, not the rank of the original weight matrix plus update. The synthetic low-rank truth favors this constraint, so state that assumption in the comparison.
+:::
+
+## 9.7 · Exercises
+
+1. **Parameter budget:** for a $1024\times1024$ update with rank eight, how many entries are trained?
+2. **Initialization:** derive $\nabla_A L$ and $\nabla_B L$ when $\Delta=AB$.
+3. **Identifiability:** does paired-comparison data identify an absolute utility level?
+4. **DPO direction:** if policy and reference initially agree, what is each margin?
+5. **Scope:** why might a rank-two update fail even with excellent optimization?
+
+
+:::{dropdown} Worked solutions — attempt the questions first
+
+**1.** $8(1024+1024)=16,384$, versus $1,048,576$ for a full update. This counts update parameters, not the entire model's stored weights.
+
+**2.** if $G=\nabla_\Delta L$, the gradients are $GB^\top$ and $A^\top G$. Both vanish if both factors are zero.
+
+**3.** no. It identifies differences under the model, since adding a common constant leaves all comparison probabilities unchanged.
+
+**4.** zero. The loss is $\log2$. Updating increases the preferred response's log ratio relative to the dispreferred response, subject to shared parameters and conflicting observations.
+
+**5.** the necessary parameter change may have higher rank or may be needed in layers that were not adapted. More optimization cannot remove a restriction imposed by the model class.
+:::
 
 ## 9.8 · Reading and transition
 

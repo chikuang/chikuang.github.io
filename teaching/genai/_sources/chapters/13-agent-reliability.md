@@ -12,6 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/13-agent-reliability.ipynb)
 
+**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+
 A successful demonstration does not measure reliability. We need repeated tasks, failures with known causes, and a comparison that accounts for additional calls. This chapter constructs a controlled simulator: a cached answer, a one-pass tool workflow, and a bounded retry policy solve the same mean-estimation requests. These are programmed policies, not measured LLM agents. Their role is to teach experimental design before introducing an expensive or opaque policy.
 
 **Prerequisites:** Chapters 11–12. **Outcomes:** distinguish trajectories from tasks; classify failure modes; inject reproducible failures; compare paired outcomes with clustered uncertainty; measure the cost of recovery.
@@ -236,14 +238,50 @@ Do not repeatedly inspect test outcomes, change the policy, and continue calling
 
 Prompt injection tests should include untrusted documents and tool messages that request unauthorized behavior. Score whether the execution boundary rejects invalid actions, not merely whether the final response sounds cautious. The harmless adversarial-note experiment in Chapter 12 is one deterministic unit test, not a comprehensive security evaluation.
 
-## 13.7 · Exercises and worked solutions
 
-1. **Retry probability:** if independent attempts fail with a fixed probability $p$, what is success by three attempts? **Solution:** $1-p^3$. With task-specific failure rates, average $1-p_i^3$ across tasks; substituting the average failure rate generally gives a different result.
-2. **Persistent failure:** why can retries fail to help? **Solution:** an invalid credential, missing dataset, or malformed contract can persist across attempts. The independent transient-failure model then does not apply.
-3. **Experimental unit:** why bootstrap 80 tasks rather than 400 trajectories? **Solution:** repeated trajectories share task characteristics. Task resampling retains that dependence and targets variation across the sampled task population.
-4. **Cache fallback:** can answering more questions reduce reliability? **Solution:** yes. A stale cache may convert honest abstentions into incorrect answers. Report coverage and error among answered cases together.
-5. **Budget fairness:** are two policies equivalent because both have a three-call ceiling? **Solution:** no. Their actual call distributions can differ. Report both the permitted budget and realized costs, and compare utility under a declared cost model.
-6. **Multiple agents:** what baseline should precede adding more agents? **Solution:** a strong single-policy workflow with the same evidence and comparable total budget. Multiple samples, added tools, or extra tokens can explain gains without any benefit from agent-to-agent communication.
+### Coding and experiment practice · Complete a factorial ablation
+
+**Task.** Add the missing retry/cache combination to the reliability experiment. Define a two-by-two table of mean task success and mean calls, then calculate the interaction contrast.
+
+**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+
+```python
+def interaction(no_retry_no_cache, retry_only, cache_only, both):
+    return ...
+```
+
+:::{dropdown} Hint and acceptance checks
+Return `both - retry_only - cache_only + no_retry_no_cache`. Compute within-task contrasts before task-level uncertainty estimation. Hold the task set and retry budget fixed. A positive success interaction is not necessarily a positive utility interaction after costs.
+:::
+
+### Continue with the implemented system
+
+The controlled reliability experiment isolates mechanisms. [Appendix B](../appendices/b-real-llm-systems.md) adds actual LLM failures and call counts. Its observed failures motivate hypotheses, but its tiny task set and single greedy run cannot estimate general agent reliability. Use the factorial and task-sampling design here when expanding that experiment.
+
+## 13.7 · Exercises
+
+1. **Retry probability:** if independent attempts fail with a fixed probability $p$, what is success by three attempts?
+2. **Persistent failure:** why can retries fail to help?
+3. **Experimental unit:** why bootstrap 80 tasks rather than 400 trajectories?
+4. **Cache fallback:** can answering more questions reduce reliability?
+5. **Budget fairness:** are two policies equivalent because both have a three-call ceiling?
+6. **Multiple agents:** what baseline should precede adding more agents?
+
+
+:::{dropdown} Worked solutions — attempt the questions first
+
+**1.** $1-p^3$. With task-specific failure rates, average $1-p_i^3$ across tasks; substituting the average failure rate generally gives a different result.
+
+**2.** an invalid credential, missing dataset, or malformed contract can persist across attempts. The independent transient-failure model then does not apply.
+
+**3.** repeated trajectories share task characteristics. Task resampling retains that dependence and targets variation across the sampled task population.
+
+**4.** yes. A stale cache may convert honest abstentions into incorrect answers. Report coverage and error among answered cases together.
+
+**5.** no. Their actual call distributions can differ. Report both the permitted budget and realized costs, and compare utility under a declared cost model.
+
+**6.** a strong single-policy workflow with the same evidence and comparable total budget. Multiple samples, added tools, or extra tokens can explain gains without any benefit from agent-to-agent communication.
+:::
 
 ## 13.8 · Transition to a complete project
 

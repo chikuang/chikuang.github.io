@@ -12,7 +12,9 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/12-agents.ipynb)
 
-An agent repeatedly observes, selects an action, and updates its state. A language model can propose the actions, but a separate program must decide which actions are valid and execute them. We will build that loop using two narrow tools and a transparent rule-based policy. This isolates the mechanics without an API dependency. The policy is explicitly **not** an LLM; replacing it with a model is a later experiment, while the validation and execution boundary stays in place.
+**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+
+An agent repeatedly observes, selects an action, and updates its state. A language model can propose the actions, but a separate program must decide which actions are valid and execute them. We will build that loop using two narrow tools and a transparent rule-based policy. This isolates the mechanics without an API dependency. The policy is explicitly **not** an LLM; Appendix B performs the real-model replacement experiment, while the validation and execution boundary stays in place.
 
 **Prerequisites:** Chapters 2, 10, and 11. **Outcomes:** specify tool arguments; distinguish history from hidden environment state; execute bounded action loops; record observations and failures; identify when a fixed workflow is sufficient.
 
@@ -42,6 +44,10 @@ $$ (eq-agent-utility)
 where $\tau$ is a stopping time bounded by the implementation. Under Equation {eq}`eq-agent-utility`, a tool call is worthwhile only if its expected benefit justifies its cost. If one known sequence of operations suffices, a fixed workflow may be easier to validate than adaptive action selection.
 
 For this lab, the task is to summarize a named in-memory dataset. The first tool retrieves its values. The second calculates a requested summary. The policy reacts to observations rather than evaluating arbitrary code supplied by text.
+
+### Full history, memory, and a sufficient state
+
+With the complete history as state, earlier histories contain no additional information once $H_t$ is given. This representation grows with time. A fixed-size message summary $M_t=f(H_t)$ may discard information relevant to the next outcome, so it needs a separate sufficiency argument. Under a POMDP model, $b_t(s)=P(S_t=s\mid H_t)$ summarizes the history for controlled prediction. This is a Bayesian filtering connection, not a claim that a language model computes the posterior exactly. See [Kaelbling, Littman, and Cassandra](https://doi.org/10.1016/S0004-3702(98)00023-X).
 
 ### The probability law of a trajectory
 
@@ -192,6 +198,10 @@ assert len(result['trace']) == 2
 
 The trace records observable actions and returned data. It does not require a generated chain of thought or claim that natural-language reasoning faithfully exposes internal computation. In this implementation, one iteration is reserved for the final decision, so a budget of two iterations allows the two tool calls but not the finish proposal.
 
+```{raw} latex
+\clearpage
+```
+
 :::{admonition} Example 12.3 · Two tool calls require three policy decisions
 :class: course-example
 :name: ex-agent-trace-budget
@@ -271,13 +281,51 @@ To replace the rule policy, provide a language model with the user request, the 
 **What this shows.** Memory should preserve the information needed to distinguish future decisions: request, evidence, provenance, operation, and status. Shorter text is not automatically a sufficient state. Reusing a plausible number can answer the wrong question while appearing successful.
 :::
 
-## 12.7 · Exercises and worked solutions
 
-1. **State versus history:** is the history always Markov? **Solution:** no. It may omit hidden environment state or summarize observations inadequately. A Markov state representation is an assumption or construction, not a consequence of storing messages.
-2. **Value of information:** when should an extra lookup be skipped? **Solution:** when its expected improvement in task utility is smaller than its cost, or when the needed information is already reliable and current. Estimate this tradeoff on the intended task distribution.
-3. **Budget:** why does our loop need at least three iterations for a successful two-tool task? **Solution:** lookup, summarize, and finish are separate policy decisions. The trace has two tool calls, but the decision budget includes the final action selection.
-4. **Validation:** why reject `True` in a list of numeric observations? **Solution:** Python treats booleans as integer subclasses, but an explicit statistical-data contract can distinguish them. Silent coercion can conceal malformed tool arguments.
-5. **Workflow baseline:** does this task require an LLM? **Solution:** no. The dataset and statistic are already structured, and the valid sequence is known. Adding a language model is justified only if an expanded task requires interpretation or adaptive planning and evaluation shows a benefit.
+### Coding and experiment practice · Validate a real model proposal
+
+**Task.** Run the Appendix B agent. Add an unknown tool, an extra argument, a summarize-before-lookup action, and a fabricated finish value to the validator tests.
+
+**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+
+```python
+def rejected(call):
+    try:
+        call()
+    except (ValueError, TypeError):
+        return True
+    return False
+```
+
+:::{dropdown} Hint and acceptance checks
+Each invalid proposal must be rejected before any unauthorized operation. A finish value must match a computed result, but a correct number can still describe the wrong dataset or statistic; evaluate intent separately. Record failures, do not silently replace the model policy by the rule baseline.
+:::
+
+### Continue with the implemented system
+
+[Appendix B, B.5](../appendices/b-real-llm-systems.md) replaces the rule policy with a real instruction model. Compare direct answers, an LLM parser plus fixed workflow, and an LLM-selected action loop. Raw proposals, validation failures, tool observations, and budget exhaustion are preserved. This is the executable model-policy extension introduced above.
+
+## 12.7 · Exercises
+
+1. **State versus history:** is the full history $H_t$ a valid Markov state, and is a compressed memory necessarily one?
+2. **Value of information:** when should an extra lookup be skipped?
+3. **Budget:** why does our loop need at least three iterations for a successful two-tool task?
+4. **Validation:** why reject `True` in a list of numeric observations?
+5. **Workflow baseline:** does this task require an LLM?
+
+
+:::{dropdown} Worked solutions — attempt the questions first
+
+**1.** the full history is a valid history-state representation by construction: it contains all previous observable histories. Hidden environment state does not invalidate this fact. A latest observation, truncated history, or compressed memory need not be Markov. Under a specified POMDP model, the posterior belief over environment states is a sufficient statistic for the history.
+
+**2.** when its expected improvement in task utility is smaller than its cost, or when the needed information is already reliable and current. Estimate this tradeoff on the intended task distribution.
+
+**3.** lookup, summarize, and finish are separate policy decisions. The trace has two tool calls, but the decision budget includes the final action selection.
+
+**4.** Python treats booleans as integer subclasses, but an explicit statistical-data contract can distinguish them. Silent coercion can conceal malformed tool arguments.
+
+**5.** no. The dataset and statistic are already structured, and the valid sequence is known. Adding a language model is justified only if an expanded task requires interpretation or adaptive planning and evaluation shows a benefit.
+:::
 
 ## 12.8 · Reading and next step
 

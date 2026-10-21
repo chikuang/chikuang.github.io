@@ -12,6 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/14-capstone.ipynb)
 
+**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+
 This chapter completes a worked project: a bounded simulation assistant that investigates the coverage of an approximate confidence interval. It receives a structured request, runs an approved simulation, and returns an evidence-based report with Monte Carlo uncertainty. We compare it with a nominal-coverage baseline on scenarios excluded from development.
 
 The executable assistant uses deterministic planning and report templates. It is a baseline and execution core for a GenAI system, not a hidden LLM call. A language model can later translate a user's request into the schema or explain the returned evidence, while the numerical claims remain controlled by the tested tool. This separation makes the project runnable without an API key and makes the contribution of an LLM an explicit ablation.
@@ -43,7 +45,7 @@ $$ (eq-normal-interval)
 
 contain the population mean? Equation {eq}`eq-normal-interval` is an approximate normal interval using an estimated standard error. It is not the exact Student-t interval for normal data. Its nominal 95% label should not be confused with its actual finite-sample coverage.
 
-Our task population consists of predefined combinations of distribution and sample size. The main evaluation loss is absolute error in estimated coverage relative to an independently simulated high-precision reference. We also report invalid-request handling and computational budget. We do not claim validity for dependent observations, arbitrary distributions, or automatic real-data inference.
+Our task population consists of predefined combinations of distribution and sample size. The main evaluation loss is absolute error in estimated coverage relative to an analytic normal-family reference or an independently simulated exponential-family reference. We also report invalid-request handling and computational budget. We do not claim validity for dependent observations, arbitrary distributions, or automatic real-data inference.
 
 ### Define the estimand behind the reported number
 
@@ -200,17 +202,45 @@ for request in invalid_requests:
 
 These checks verify reproducibility, basic invariants, and the resource boundary. They do not prove the statistical formula correct. Review the formula separately: sample standard deviation uses `ddof=1`; the target mean is zero for the standard normal and one for the unit-rate exponential; coverage uses both interval endpoints.
 
+### Compare simulation with an independent analytic reference
+
+A second run of the same simulator has independent random draws but can share the same implementation error. For normal data we therefore check Equation {eq}`eq-normal-reference` directly, and separately check an interval using the Student-t critical value. This code uses 20,000 draws solely for verification; the assistant still receives its fixed 500-draw budget.
+
+```{code-cell} python
+from scipy.stats import t as student_t
+
+normal_truth = {}
+for n in [12, 60, 120]:
+    exact = 2 * student_t.cdf(1.96, df=n-1) - 1
+    normal_truth[n] = float(exact)
+    simulated = coverage_indicators('normal', n, 20000, seed=1900+n).mean()
+    mc_se = np.sqrt(exact * (1-exact) / 20000)
+    assert abs(simulated-exact) < 5 * mc_se
+    # Independent calculation of a control procedure with exact normal coverage.
+    sample = np.random.default_rng(2900+n).normal(size=(20000, n))
+    t_stat = np.sqrt(n) * sample.mean(axis=1) / sample.std(axis=1, ddof=1)
+    t_coverage = np.mean(np.abs(t_stat) <= student_t.ppf(0.975, df=n-1))
+    assert abs(t_coverage-0.95) < 5 * np.sqrt(0.95*0.05/20000)
+    print(n, 'analytic:', round(exact, 4), 'simulation:', round(simulated, 4),
+          't-interval control:', round(t_coverage, 4))
+```
+
+Five standard errors is a diagnostic tolerance, not a theorem guaranteeing that random tests always pass. The fixed seeds make this check reproducible. A systematic discrepancy calls for inspection of the standard-error formula and endpoints. The exact-t control changes the interval procedure, so it is not a competing estimate of the original procedure's coverage. Normal analytic checks do not prove the exponential branch correct; retain code review and independent implementations for that branch.
+
 ## 14.5 · Evaluate the locked scenarios
 
-The baseline always predicts coverage 0.95, interpreting the nominal label literally. The tool estimates coverage from 500 fresh replicates. An independent 20,000-replicate run supplies a more precise reference for this teaching comparison. The reference is still Monte Carlo, not an exact truth oracle.
+The baseline always predicts coverage 0.95, interpreting the nominal label literally. The tool estimates coverage from 500 fresh replicates. Normal scenarios use the exact Student-t CDF reference above. Exponential scenarios use an independent 20,000-replicate reference and report its Monte Carlo uncertainty. Independence of draws alone does not remove shared implementation errors.
 
 ```{code-cell} python
 rows = []
 for i, (family, n) in enumerate(EVALUATION):
     result = simulation_tool(Request(family, n, seed=1500+i))
-    reference_indicators = coverage_indicators(family, n, 20000, seed=9000+i)
-    reference = float(reference_indicators.mean())
-    reference_se = np.sqrt(reference*(1-reference)/len(reference_indicators))
+    if family == 'normal':
+        reference, reference_se = normal_truth[n], 0.0
+    else:
+        reference_indicators = coverage_indicators(family, n, 20000, seed=9000+i)
+        reference = float(reference_indicators.mean())
+        reference_se = np.sqrt(reference*(1-reference)/len(reference_indicators))
     rows.append({'family': family, 'n': n, 'nominal': 0.95,
                  'estimated': result['estimate'], 'reference': reference,
                  'reference_mc_se': reference_se,
@@ -230,7 +260,7 @@ error_bars = np.array([[r['estimated']-r['low'] for r in rows],
 ax.errorbar(x, estimated, yerr=error_bars, fmt='o', color='#a2006e',
             capsize=3, label='500-replicate estimate with MC interval')
 ax.scatter(x, [r['reference'] for r in rows], marker='x', color='#705600',
-           label='Independent 20,000-replicate reference')
+           label='Analytic normal / 20,000-replicate exponential reference')
 ax.axhline(0.95, ls=':', color='gray', label='Nominal baseline')
 ax.set(xticks=x, xticklabels=[f"{r['family']}\nn={r['n']}" for r in rows],
        ylabel='Coverage probability')
@@ -245,7 +275,7 @@ The expected pattern is that asymmetry and small sample size can make nominal co
 
 ### Include uncertainty in the reference comparison
 
-Let $\widehat\theta_R$ be the assistant's $R$-replicate estimate and $\widehat\theta_M^{\mathrm{ref}}$ an independent $M$-replicate estimate for the **same** scenario and interval procedure. Then
+For the exponential scenarios with a simulated reference, let $\widehat\theta_R$ be the assistant's $R$-replicate estimate and $\widehat\theta_M^{\mathrm{ref}}$ an independent $M$-replicate estimate for the **same** scenario and interval procedure. Then
 
 $$
 \mathbb E[\widehat\theta_R-\widehat\theta_M^{\mathrm{ref}}]=0,\qquad
@@ -254,6 +284,12 @@ $$
 $$ (eq-reference-variance)
 
 Equation {eq}`eq-reference-variance` assumes independence: common random numbers would add a covariance term. The displayed absolute error $|\widehat\theta_R-\widehat\theta_M^{\mathrm{ref}}|$ therefore contains simulation variation from both runs; it is not exact absolute error against $\theta$. Increasing the reference budget reduces only its contribution. For a fixed set of $J$ scenarios, the report averages these errors as $J^{-1}\sum_j|\widehat\theta_j-\widehat\theta_j^{\mathrm{ref}}|$, giving equal weight to the specified scenarios without implying that they were randomly sampled.
+
+For normal scenarios the reference is exact, so only the $\theta(1-\theta)/R$ term remains. Keep these two reference types distinct in plots and analysis.
+
+### Continue with the implemented system
+
+[Appendix B, B.6](../appendices/b-real-llm-systems.md) now implements this extension with a real model. It records natural-language translation, bounded simulation, generated reporting, and rejection of unsupported requests. Inspect both successful and failed traces before extending the task set.
 
 ## 14.6 · Add a generative component as an ablation
 
@@ -304,13 +340,44 @@ A final project report should state the question and task population, describe t
 
 For this worked example, a supported conclusion is narrow: the assistant executes a bounded coverage simulation and reports its numerical output faithfully. Any advantage over the nominal baseline is conditional on the evaluated scenarios and simulation budget. The lab has not demonstrated general natural-language planning or safe autonomous statistical analysis.
 
-## 14.8 · Exercises and worked solutions
 
-1. **Monte Carlo budget:** how does standard error scale with repetitions? **Solution:** for independent coverage indicators, it is $\sqrt{p(1-p)/R}$. Quadrupling repetitions approximately halves it; it does not fix bias from using the wrong sampling distribution or interval formula.
-2. **Two intervals:** distinguish the simulated confidence interval from the reported Monte Carlo interval. **Solution:** the first targets a population mean in one dataset; the second targets the coverage probability of that procedure under a specified simulator.
-3. **New scenario:** add dependent observations. **Solution:** update the schema, data generator, target assumptions, and evaluation suite explicitly. Keeping an iid standard-error formula may lead to poor coverage; that is a substantive finding, not merely a software bug.
-4. **Ablation:** what does removing the simulation tool test? **Solution:** it tests whether answers produced without numerical evidence are as accurate on the fixed coverage tasks. It does not isolate an LLM architecture effect unless model, prompts, and other resources are controlled.
-5. **Reporting:** why not say “the assistant guarantees 95% coverage”? **Solution:** it estimates coverage of a specified approximate procedure with Monte Carlo uncertainty. Neither the numerical simulation nor a fluent report supplies a universal theorem.
+### Coding and experiment practice · Validate the whole request-to-report chain
+
+**Task.** Use Appendix B to compare the natural-language request, parsed family and sample size, tool result, and reported estimate. Include an unsupported distribution and a deliberately mistranslated request.
+
+**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+
+```python
+def numeric_fields_match(report, tool_result):
+    # Require matching family, n, and estimate with a declared precision.
+    return ...
+```
+
+:::{dropdown} Hint and acceptance checks
+Compare family and n exactly, and the estimate at the declared display precision. Then separately check the parsed request against the original intended task. Numerical faithfulness cannot repair a mistranslation. Verify normal-family tool output against the analytic reference and inspect narrative claims manually.
+:::
+
+## 14.8 · Exercises
+
+1. **Monte Carlo budget:** how does standard error scale with repetitions?
+2. **Two intervals:** distinguish the simulated confidence interval from the reported Monte Carlo interval.
+3. **New scenario:** add dependent observations.
+4. **Ablation:** what does removing the simulation tool test?
+5. **Reporting:** why not say “the assistant guarantees 95% coverage”?
+
+
+:::{dropdown} Worked solutions — attempt the questions first
+
+**1.** for independent coverage indicators, it is $\sqrt{p(1-p)/R}$. Quadrupling repetitions approximately halves it; it does not fix bias from using the wrong sampling distribution or interval formula.
+
+**2.** the first targets a population mean in one dataset; the second targets the coverage probability of that procedure under a specified simulator.
+
+**3.** update the schema, data generator, target assumptions, and evaluation suite explicitly. Keeping an iid standard-error formula may lead to poor coverage; that is a substantive finding, not merely a software bug.
+
+**4.** it tests whether answers produced without numerical evidence are as accurate on the fixed coverage tasks. It does not isolate an LLM architecture effect unless model, prompts, and other resources are controlled.
+
+**5.** it estimates coverage of a specified approximate procedure with Monte Carlo uncertainty. Neither the numerical simulation nor a fluent report supplies a universal theorem.
+:::
 
 ## 14.9 · Choose your own extension
 

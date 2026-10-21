@@ -35,7 +35,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=316925d6" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -54,15 +54,16 @@
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/14-capstone';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/learning-controls.js?v=ed55b08a"></script>
     <link rel="canonical" href="https://chikuang.github.io/teaching/genai/chapters/14-capstone.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="First Python lab: probabilities to generation" href="../01-python-lab.html" />
+    <link rel="next" title="Appendix A · Python and PyTorch, one operation at a time" href="../appendices/a-python-pytorch.html" />
     <link rel="prev" title="13 · Agent reliability and experimental design" href="13-agent-reliability.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
-    <meta name="docbuild:last-update" content="October 20, 2026"/>
+    <meta name="docbuild:last-update" content="October 21, 2026"/>
   
     
     <script src="../_static/searchtools.js"></script>
@@ -186,6 +187,11 @@
 <li class="toctree-l1"><a class="reference internal" href="12-agents.html">12 · Agents: tools, state, and decisions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="13-agent-reliability.html">13 · Agent reliability and experimental design</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">14 · Capstone: a GenAI system for a statistician</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendices</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../appendices/a-python-pytorch.html">Appendix A · Python and PyTorch, one operation at a time</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices/b-real-llm-systems.html">Appendix B · A real local LLM, RAG, and tool-using agent</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Supplement</span></p>
 <ul class="nav bd-sidenav">
@@ -354,14 +360,21 @@
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-development-and-evaluation-scenarios-first">14.2 · Create development and evaluation scenarios first</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implement-the-statistical-tool">14.3 · Implement the statistical tool</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#establish-implementation-checks">14.4 · Establish implementation checks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#establish-implementation-checks">14.4 · Establish implementation checks</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#compare-simulation-with-an-independent-analytic-reference">Compare simulation with an independent analytic reference</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluate-the-locked-scenarios">14.5 · Evaluate the locked scenarios</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#include-uncertainty-in-the-reference-comparison">Include uncertainty in the reference comparison</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continue-with-the-implemented-system">Continue with the implemented system</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#add-a-generative-component-as-an-ablation">14.6 · Add a generative component as an ablation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#produce-a-reproducibility-manifest-and-report">14.7 · Produce a reproducibility manifest and report</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">14.8 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#produce-a-reproducibility-manifest-and-report">14.7 · Produce a reproducibility manifest and report</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-validate-the-whole-request-to-report-chain">Coding and experiment practice · Validate the whole request-to-report chain</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">14.8 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choose-your-own-extension">14.9 · Choose your own extension</a></li>
 </ul>
             </nav>
@@ -378,6 +391,7 @@
 <h1>14 · Capstone: a GenAI system for a statistician<a class="headerlink" href="#capstone-a-genai-system-for-a-statistician" title="Link to this heading">#</a></h1>
 <p><strong>Question.</strong> Can we build a small assistant whose claims can be reproduced and checked?</p>
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/14-capstone.ipynb">Download the executed notebook</a></p>
+<p><strong>Python support:</strong> <a class="reference internal" href="../appendices/a-python-pytorch.html"><span class="std std-doc">Appendix A</span></a> explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s <strong>Show all code</strong> control while working through the lab.</p>
 <p>This chapter completes a worked project: a bounded simulation assistant that investigates the coverage of an approximate confidence interval. It receives a structured request, runs an approved simulation, and returns an evidence-based report with Monte Carlo uncertainty. We compare it with a nominal-coverage baseline on scenarios excluded from development.</p>
 <p>The executable assistant uses deterministic planning and report templates. It is a baseline and execution core for a GenAI system, not a hidden LLM call. A language model can later translate a user’s request into the schema or explain the returned evidence, while the numerical claims remain controlled by the tested tool. This separation makes the project runnable without an API key and makes the contribution of an LLM an explicit ablation.</p>
 <p><strong>Prerequisites:</strong> Chapters 2, 11–13. <strong>Outcomes:</strong> write a scoped project specification; implement the complete evidence path; evaluate on held-out scenarios; report uncertainty and failures; define a meaningful generative extension.</p>
@@ -422,7 +436,7 @@
 \bar X\pm1.96\frac{S}{\sqrt n}
 \]</div>
 <p>contain the population mean? Equation <a class="reference internal" href="#equation-eq-normal-interval">(14.1)</a> is an approximate normal interval using an estimated standard error. It is not the exact Student-t interval for normal data. Its nominal 95% label should not be confused with its actual finite-sample coverage.</p>
-<p>Our task population consists of predefined combinations of distribution and sample size. The main evaluation loss is absolute error in estimated coverage relative to an independently simulated high-precision reference. We also report invalid-request handling and computational budget. We do not claim validity for dependent observations, arbitrary distributions, or automatic real-data inference.</p>
+<p>Our task population consists of predefined combinations of distribution and sample size. The main evaluation loss is absolute error in estimated coverage relative to an analytic normal-family reference or an independently simulated exponential-family reference. We also report invalid-request handling and computational budget. We do not claim validity for dependent observations, arbitrary distributions, or automatic real-data inference.</p>
 <section id="define-the-estimand-behind-the-reported-number">
 <h3>Define the estimand behind the reported number<a class="headerlink" href="#define-the-estimand-behind-the-reported-number" title="Link to this heading">#</a></h3>
 <p>For a sampling distribution <span class="math notranslate nohighlight">\(P\)</span> with finite variance and sample size <span class="math notranslate nohighlight">\(n\)</span>, let <span class="math notranslate nohighlight">\(\mu_P=\mathbb E_P[X]\)</span>, <span class="math notranslate nohighlight">\(\bar X=n^{-1}\sum_iX_i\)</span>, and <span class="math notranslate nohighlight">\(S^2=(n-1)^{-1}\sum_i(X_i-\bar X)^2\)</span>. Define the random interval <span class="math notranslate nohighlight">\(I_n(D)=[\bar X-1.96S/\sqrt n,\bar X+1.96S/\sqrt n]\)</span>. Its actual coverage is</p>
@@ -450,8 +464,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
-<span class="n">DEVELOPMENT</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;exponential&#39;</span><span class="p">,</span> <span class="mi">30</span><span class="p">)]</span>
-<span class="n">EVALUATION</span> <span class="o">=</span> <span class="p">[(</span><span class="n">family</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span> <span class="s1">&#39;exponential&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">120</span><span class="p">]]</span>
+<span class="n">DEVELOPMENT</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">'normal'</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span> <span class="p">(</span><span class="s1">'exponential'</span><span class="p">,</span> <span class="mi">30</span><span class="p">)]</span>
+<span class="n">EVALUATION</span> <span class="o">=</span> <span class="p">[(</span><span class="n">family</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'normal'</span><span class="p">,</span> <span class="s1">'exponential'</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">120</span><span class="p">]]</span>
 <span class="n">BUDGET</span> <span class="o">=</span> <span class="mi">500</span>
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -462,25 +476,25 @@
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1400</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">family</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span> <span class="s1">&#39;exponential&#39;</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Only normal and exponential families are supported&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">family</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'normal'</span><span class="p">,</span> <span class="s1">'exponential'</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Only normal and exponential families are supported'</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">int</span> <span class="ow">or</span> <span class="ow">not</span> <span class="mi">5</span> <span class="o">&lt;=</span> <span class="n">request</span><span class="o">.</span><span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">500</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Sample size must be an integer between 5 and 500&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Sample size must be an integer between 5 and 500'</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">repetitions</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">int</span> <span class="ow">or</span> <span class="ow">not</span> <span class="mi">100</span> <span class="o">&lt;=</span> <span class="n">request</span><span class="o">.</span><span class="n">repetitions</span> <span class="o">&lt;=</span> <span class="mi">5000</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Repetitions must be between 100 and 5000&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Repetitions must be between 100 and 5000'</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">int</span> <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">seed</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Seed must be a nonnegative integer&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Seed must be a nonnegative integer'</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Development:&#39;</span><span class="p">,</span> <span class="n">DEVELOPMENT</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Locked evaluation:&#39;</span><span class="p">,</span> <span class="n">EVALUATION</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Development:'</span><span class="p">,</span> <span class="n">DEVELOPMENT</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Locked evaluation:'</span><span class="p">,</span> <span class="n">EVALUATION</span><span class="p">)</span>
 </pre></div>
 </div>
 </details></div>
 </div>
 <div class="cell_output docutils container">
 <p class="course-output-label">Output</p>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Development: [(&#39;normal&#39;, 30), (&#39;exponential&#39;, 30)]
-Locked evaluation: [(&#39;normal&#39;, 12), (&#39;normal&#39;, 60), (&#39;normal&#39;, 120), (&#39;exponential&#39;, 12), (&#39;exponential&#39;, 60), (&#39;exponential&#39;, 120)]
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Development: [('normal', 30), ('exponential', 30)]
+Locked evaluation: [('normal', 12), ('normal', 60), ('normal', 120), ('exponential', 12), ('exponential', 60), ('exponential', 120)]
 </pre></div>
 </div>
 </div>
@@ -512,12 +526,12 @@ h&amp;=\frac{z}{a}\sqrt{\frac{\widehat\theta(1-\widehat\theta)}R+
 <div class="course-code-fold-wrapper docutils container">
 <details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">coverage_indicators</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">repetitions</span><span class="p">,</span> <span class="n">seed</span><span class="p">):</span>
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s1">&#39;normal&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s1">'normal'</span><span class="p">:</span>
         <span class="n">values</span><span class="p">,</span> <span class="n">population_mean</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">repetitions</span><span class="p">,</span> <span class="n">n</span><span class="p">)),</span> <span class="mf">0.0</span>
-    <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s1">&#39;exponential&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s1">'exponential'</span><span class="p">:</span>
         <span class="n">values</span><span class="p">,</span> <span class="n">population_mean</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">repetitions</span><span class="p">,</span> <span class="n">n</span><span class="p">)),</span> <span class="mf">1.0</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unsupported family&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Unsupported family'</span><span class="p">)</span>
     <span class="n">means</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">halfwidth</span> <span class="o">=</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">values</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">means</span><span class="o">-</span><span class="n">population_mean</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">halfwidth</span>
@@ -535,19 +549,19 @@ h&amp;=\frac{z}{a}\sqrt{\frac{\widehat\theta(1-\widehat\theta)}R+
                                   <span class="n">request</span><span class="o">.</span><span class="n">repetitions</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
     <span class="n">successes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">covered</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
     <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="o">=</span> <span class="n">wilson_interval</span><span class="p">(</span><span class="n">successes</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">repetitions</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;request&#39;</span><span class="p">:</span> <span class="n">asdict</span><span class="p">(</span><span class="n">request</span><span class="p">),</span> <span class="s1">&#39;covered&#39;</span><span class="p">:</span> <span class="n">successes</span><span class="p">,</span>
-            <span class="s1">&#39;estimate&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">covered</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span> <span class="s1">&#39;mc_interval&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">],</span>
-            <span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;mean +/- 1.96 * sample_sd / sqrt(n)&#39;</span><span class="p">}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">'request'</span><span class="p">:</span> <span class="n">asdict</span><span class="p">(</span><span class="n">request</span><span class="p">),</span> <span class="s1">'covered'</span><span class="p">:</span> <span class="n">successes</span><span class="p">,</span>
+            <span class="s1">'estimate'</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">covered</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span> <span class="s1">'mc_interval'</span><span class="p">:</span> <span class="p">[</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">],</span>
+            <span class="s1">'method'</span><span class="p">:</span> <span class="s1">'mean +/- 1.96 * sample_sd / sqrt(n)'</span><span class="p">}</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">report</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
-    <span class="n">r</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;request&#39;</span><span class="p">]</span>
-    <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;mc_interval&#39;</span><span class="p">]</span>
-    <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;For iid </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;family&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> samples with n=</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, the simulated coverage &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;was </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;estimate&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;repetitions&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> repetitions. &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;The approximate 95% Monte Carlo interval is [</span><span class="si">{</span><span class="n">low</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">high</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">]. &quot;</span>
-            <span class="s1">&#39;This describes the specified simulation and interval procedure.&#39;</span><span class="p">)</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">'request'</span><span class="p">]</span>
+    <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">'mc_interval'</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"For iid </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'family'</span><span class="p">]</span><span class="si">}</span><span class="s2"> samples with n=</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'n'</span><span class="p">]</span><span class="si">}</span><span class="s2">, the simulated coverage "</span>
+            <span class="sa">f</span><span class="s2">"was </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'estimate'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'repetitions'</span><span class="p">]</span><span class="si">}</span><span class="s2"> repetitions. "</span>
+            <span class="sa">f</span><span class="s2">"The approximate 95% Monte Carlo interval is [</span><span class="si">{</span><span class="n">low</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">high</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">]. "</span>
+            <span class="s1">'This describes the specified simulation and interval procedure.'</span><span class="p">)</span>
 
-<span class="n">example</span> <span class="o">=</span> <span class="n">simulation_tool</span><span class="p">(</span><span class="n">Request</span><span class="p">(</span><span class="s1">&#39;exponential&#39;</span><span class="p">,</span> <span class="mi">30</span><span class="p">))</span>
+<span class="n">example</span> <span class="o">=</span> <span class="n">simulation_tool</span><span class="p">(</span><span class="n">Request</span><span class="p">(</span><span class="s1">'exponential'</span><span class="p">,</span> <span class="mi">30</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">report</span><span class="p">(</span><span class="n">example</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">example</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
 </pre></div>
@@ -558,19 +572,19 @@ h&amp;=\frac{z}{a}\sqrt{\frac{\widehat\theta(1-\widehat\theta)}R+
 <p class="course-output-label">Output</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>For iid exponential samples with n=30, the simulated coverage was 0.878 in 500 repetitions. The approximate 95% Monte Carlo interval is [0.846, 0.904]. This describes the specified simulation and interval procedure.
 {
-  &quot;request&quot;: {
-    &quot;family&quot;: &quot;exponential&quot;,
-    &quot;n&quot;: 30,
-    &quot;repetitions&quot;: 500,
-    &quot;seed&quot;: 1400
+  "request": {
+    "family": "exponential",
+    "n": 30,
+    "repetitions": 500,
+    "seed": 1400
   },
-  &quot;covered&quot;: 439,
-  &quot;estimate&quot;: 0.878,
-  &quot;mc_interval&quot;: [
+  "covered": 439,
+  "estimate": 0.878,
+  "mc_interval": [
     0.8463946427702861,
     0.9038411456203509
   ],
-  &quot;method&quot;: &quot;mean +/- 1.96 * sample_sd / sqrt(n)&quot;
+  "method": "mean +/- 1.96 * sample_sd / sqrt(n)"
 }
 </pre></div>
 </div>
@@ -589,20 +603,20 @@ h&amp;=\frac{z}{a}\sqrt{\frac{\widehat\theta(1-\widehat\theta)}R+
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
-<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">again</span> <span class="o">=</span> <span class="n">simulation_tool</span><span class="p">(</span><span class="n">Request</span><span class="p">(</span><span class="s1">&#39;exponential&#39;</span><span class="p">,</span> <span class="mi">30</span><span class="p">))</span>
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">again</span> <span class="o">=</span> <span class="n">simulation_tool</span><span class="p">(</span><span class="n">Request</span><span class="p">(</span><span class="s1">'exponential'</span><span class="p">,</span> <span class="mi">30</span><span class="p">))</span>
 <span class="k">assert</span> <span class="n">again</span> <span class="o">==</span> <span class="n">example</span>
-<span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">example</span><span class="p">[</span><span class="s1">&#39;estimate&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span>
-<span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">example</span><span class="p">[</span><span class="s1">&#39;mc_interval&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">example</span><span class="p">[</span><span class="s1">&#39;mc_interval&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span>
+<span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">example</span><span class="p">[</span><span class="s1">'estimate'</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span>
+<span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">example</span><span class="p">[</span><span class="s1">'mc_interval'</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">example</span><span class="p">[</span><span class="s1">'mc_interval'</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span>
 
-<span class="n">invalid_requests</span> <span class="o">=</span> <span class="p">[</span><span class="n">Request</span><span class="p">(</span><span class="s1">&#39;unknown&#39;</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span> <span class="n">Request</span><span class="p">(</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
-                    <span class="n">Request</span><span class="p">(</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="n">repetitions</span><span class="o">=</span><span class="mi">1000000</span><span class="p">)]</span>
+<span class="n">invalid_requests</span> <span class="o">=</span> <span class="p">[</span><span class="n">Request</span><span class="p">(</span><span class="s1">'unknown'</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span> <span class="n">Request</span><span class="p">(</span><span class="s1">'normal'</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+                    <span class="n">Request</span><span class="p">(</span><span class="s1">'normal'</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="n">repetitions</span><span class="o">=</span><span class="mi">1000000</span><span class="p">)]</span>
 <span class="k">for</span> <span class="n">request</span> <span class="ow">in</span> <span class="n">invalid_requests</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">simulation_tool</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Rejected request:&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">'Rejected request:'</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;An invalid request was accepted&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">'An invalid request was accepted'</span><span class="p">)</span>
 </pre></div>
 </div>
 </details></div>
@@ -617,43 +631,83 @@ Rejected request: Repetitions must be between 100 and 5000
 </div>
 </div>
 <p>These checks verify reproducibility, basic invariants, and the resource boundary. They do not prove the statistical formula correct. Review the formula separately: sample standard deviation uses <code class="docutils literal notranslate"><span class="pre">ddof=1</span></code>; the target mean is zero for the standard normal and one for the unit-rate exponential; coverage uses both interval endpoints.</p>
+<section id="compare-simulation-with-an-independent-analytic-reference">
+<h3>Compare simulation with an independent analytic reference<a class="headerlink" href="#compare-simulation-with-an-independent-analytic-reference" title="Link to this heading">#</a></h3>
+<p>A second run of the same simulator has independent random draws but can share the same implementation error. For normal data we therefore check Equation <a class="reference internal" href="#equation-eq-normal-reference">(14.3)</a> directly, and separately check an interval using the Student-t critical value. This code uses 20,000 draws solely for verification; the assistant still receives its fixed 500-draw budget.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">t</span> <span class="k">as</span> <span class="n">student_t</span>
+
+<span class="n">normal_truth</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">120</span><span class="p">]:</span>
+    <span class="n">exact</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">student_t</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="mf">1.96</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">normal_truth</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">exact</span><span class="p">)</span>
+    <span class="n">simulated</span> <span class="o">=</span> <span class="n">coverage_indicators</span><span class="p">(</span><span class="s1">'normal'</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="mi">20000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1900</span><span class="o">+</span><span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">mc_se</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">exact</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">exact</span><span class="p">)</span> <span class="o">/</span> <span class="mi">20000</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">simulated</span><span class="o">-</span><span class="n">exact</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">mc_se</span>
+    <span class="c1"># Independent calculation of a control procedure with exact normal coverage.</span>
+    <span class="n">sample</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">2900</span><span class="o">+</span><span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">20000</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+    <span class="n">t_stat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">*</span> <span class="n">sample</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">sample</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">t_coverage</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">t_stat</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">student_t</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.975</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">t_coverage</span><span class="o">-</span><span class="mf">0.95</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">0.95</span><span class="o">*</span><span class="mf">0.05</span><span class="o">/</span><span class="mi">20000</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s1">'analytic:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">exact</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="s1">'simulation:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">simulated</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+          <span class="s1">'t-interval control:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">t_coverage</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>12 analytic: 0.9242 simulation: 0.9241 t-interval control: 0.9498
+60 analytic: 0.9453 simulation: 0.9461 t-interval control: 0.9503
+120 analytic: 0.9477 simulation: 0.9478 t-interval control: 0.9512
+</pre></div>
+</div>
+</div>
+</div>
+<p>Five standard errors is a diagnostic tolerance, not a theorem guaranteeing that random tests always pass. The fixed seeds make this check reproducible. A systematic discrepancy calls for inspection of the standard-error formula and endpoints. The exact-t control changes the interval procedure, so it is not a competing estimate of the original procedure’s coverage. Normal analytic checks do not prove the exponential branch correct; retain code review and independent implementations for that branch.</p>
+</section>
 </section>
 <section id="evaluate-the-locked-scenarios">
 <h2>14.5 · Evaluate the locked scenarios<a class="headerlink" href="#evaluate-the-locked-scenarios" title="Link to this heading">#</a></h2>
-<p>The baseline always predicts coverage 0.95, interpreting the nominal label literally. The tool estimates coverage from 500 fresh replicates. An independent 20,000-replicate run supplies a more precise reference for this teaching comparison. The reference is still Monte Carlo, not an exact truth oracle.</p>
+<p>The baseline always predicts coverage 0.95, interpreting the nominal label literally. The tool estimates coverage from 500 fresh replicates. Normal scenarios use the exact Student-t CDF reference above. Exponential scenarios use an independent 20,000-replicate reference and report its Monte Carlo uncertainty. Independence of draws alone does not remove shared implementation errors.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
 <details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">EVALUATION</span><span class="p">):</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">simulation_tool</span><span class="p">(</span><span class="n">Request</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1500</span><span class="o">+</span><span class="n">i</span><span class="p">))</span>
-    <span class="n">reference_indicators</span> <span class="o">=</span> <span class="n">coverage_indicators</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="mi">20000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">9000</span><span class="o">+</span><span class="n">i</span><span class="p">)</span>
-    <span class="n">reference</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">reference_indicators</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
-    <span class="n">reference_se</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">reference</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">reference</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">reference_indicators</span><span class="p">))</span>
-    <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;family&#39;</span><span class="p">:</span> <span class="n">family</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">:</span> <span class="n">n</span><span class="p">,</span> <span class="s1">&#39;nominal&#39;</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span>
-                 <span class="s1">&#39;estimated&#39;</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;estimate&#39;</span><span class="p">],</span> <span class="s1">&#39;reference&#39;</span><span class="p">:</span> <span class="n">reference</span><span class="p">,</span>
-                 <span class="s1">&#39;reference_mc_se&#39;</span><span class="p">:</span> <span class="n">reference_se</span><span class="p">,</span>
-                 <span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;mc_interval&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;mc_interval&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]})</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">family</span><span class="si">:</span><span class="s2">11s</span><span class="si">}</span><span class="s2"> n=</span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s2">3d</span><span class="si">}</span><span class="s2">: estimate=</span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;estimate&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, &quot;</span>
-          <span class="sa">f</span><span class="s2">&quot;reference=</span><span class="si">{</span><span class="n">reference</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, reference MC SE=</span><span class="si">{</span><span class="n">reference_se</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s1">'normal'</span><span class="p">:</span>
+        <span class="n">reference</span><span class="p">,</span> <span class="n">reference_se</span> <span class="o">=</span> <span class="n">normal_truth</span><span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="mf">0.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">reference_indicators</span> <span class="o">=</span> <span class="n">coverage_indicators</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="mi">20000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">9000</span><span class="o">+</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">reference</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">reference_indicators</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+        <span class="n">reference_se</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">reference</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">reference</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">reference_indicators</span><span class="p">))</span>
+    <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">'family'</span><span class="p">:</span> <span class="n">family</span><span class="p">,</span> <span class="s1">'n'</span><span class="p">:</span> <span class="n">n</span><span class="p">,</span> <span class="s1">'nominal'</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span>
+                 <span class="s1">'estimated'</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="s1">'estimate'</span><span class="p">],</span> <span class="s1">'reference'</span><span class="p">:</span> <span class="n">reference</span><span class="p">,</span>
+                 <span class="s1">'reference_mc_se'</span><span class="p">:</span> <span class="n">reference_se</span><span class="p">,</span>
+                 <span class="s1">'low'</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="s1">'mc_interval'</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="s1">'high'</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="s1">'mc_interval'</span><span class="p">][</span><span class="mi">1</span><span class="p">]})</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">family</span><span class="si">:</span><span class="s2">11s</span><span class="si">}</span><span class="s2"> n=</span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s2">3d</span><span class="si">}</span><span class="s2">: estimate=</span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'estimate'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, "</span>
+          <span class="sa">f</span><span class="s2">"reference=</span><span class="si">{</span><span class="n">reference</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, reference MC SE=</span><span class="si">{</span><span class="n">reference_se</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="n">baseline_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">abs</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;nominal&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">])</span>
-<span class="n">tool_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">abs</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;estimated&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mean absolute error: nominal / tool&#39;</span><span class="p">,</span> <span class="n">baseline_error</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+<span class="n">baseline_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">abs</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'nominal'</span><span class="p">]</span><span class="o">-</span><span class="n">r</span><span class="p">[</span><span class="s1">'reference'</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">])</span>
+<span class="n">tool_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">abs</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'estimated'</span><span class="p">]</span><span class="o">-</span><span class="n">r</span><span class="p">[</span><span class="s1">'reference'</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Mean absolute error: nominal / tool'</span><span class="p">,</span> <span class="n">baseline_error</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
       <span class="n">tool_error</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mf">4.2</span><span class="p">))</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">))</span>
-<span class="n">estimated</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;estimated&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">])</span>
-<span class="n">error_bars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;estimated&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;low&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">],</span>
-                       <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;high&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;estimated&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">]])</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">estimated</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">error_bars</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#a2006e&#39;</span><span class="p">,</span>
-            <span class="n">capsize</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;500-replicate estimate with MC interval&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#705600&#39;</span><span class="p">,</span>
-           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Independent 20,000-replicate reference&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Nominal baseline&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xticks</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">xticklabels</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;family&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">n=</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">],</span>
-       <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Coverage probability&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower center&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.02</span><span class="p">))</span>
+<span class="n">estimated</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="s1">'estimated'</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">])</span>
+<span class="n">error_bars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">r</span><span class="p">[</span><span class="s1">'estimated'</span><span class="p">]</span><span class="o">-</span><span class="n">r</span><span class="p">[</span><span class="s1">'low'</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">],</span>
+                       <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s1">'high'</span><span class="p">]</span><span class="o">-</span><span class="n">r</span><span class="p">[</span><span class="s1">'estimated'</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">]])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">estimated</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">error_bars</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">'o'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#a2006e'</span><span class="p">,</span>
+            <span class="n">capsize</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'500-replicate estimate with MC interval'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s1">'reference'</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s1">'x'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#705600'</span><span class="p">,</span>
+           <span class="n">label</span><span class="o">=</span><span class="s1">'Analytic normal / 20,000-replicate exponential reference'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">':'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'gray'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Nominal baseline'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xticks</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">xticklabels</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'family'</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">n=</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'n'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">],</span>
+       <span class="n">ylabel</span><span class="o">=</span><span class="s1">'Coverage probability'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">'lower center'</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.02</span><span class="p">))</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -662,23 +716,23 @@ Rejected request: Repetitions must be between 100 and 5000
 </div>
 <div class="cell_output docutils container">
 <p class="course-output-label">Output</p>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>normal      n= 12: estimate=0.938, reference=0.924, reference MC SE=0.0019
-normal      n= 60: estimate=0.944, reference=0.946, reference MC SE=0.0016
-normal      n=120: estimate=0.958, reference=0.951, reference MC SE=0.0015
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>normal      n= 12: estimate=0.938, reference=0.924, reference MC SE=0.0000
+normal      n= 60: estimate=0.944, reference=0.945, reference MC SE=0.0000
+normal      n=120: estimate=0.958, reference=0.948, reference MC SE=0.0000
 exponential n= 12: estimate=0.862, reference=0.878, reference MC SE=0.0023
 exponential n= 60: estimate=0.938, reference=0.932, reference MC SE=0.0018
 exponential n=120: estimate=0.958, reference=0.944, reference MC SE=0.0016
 Mean absolute error: nominal / tool 0.021 0.01
 </pre></div>
 </div>
-<img alt="../_images/c8f5e302f16ff6f734e5ac4c84bba092a3568bfebb08eb2c01c72f76ed99e2f3.png" src="../_images/c8f5e302f16ff6f734e5ac4c84bba092a3568bfebb08eb2c01c72f76ed99e2f3.png" />
+<img alt="../_images/ed4a6c75ecbafb086bf7bbdc10dcb2da292a9f7c4126bff66488cfa993ffbe37.png" src="../_images/ed4a6c75ecbafb086bf7bbdc10dcb2da292a9f7c4126bff66488cfa993ffbe37.png" />
 </div>
 </div>
 <p>There are only six fixed scenarios. Do not attach an iid-task confidence interval to their average error without defining how they were sampled from a task population. The per-scenario Monte Carlo intervals answer a different question: uncertainty from the finite simulation budget conditional on that scenario.</p>
 <p>The expected pattern is that asymmetry and small sample size can make nominal coverage misleading. Interpret the displayed results rather than asserting a guaranteed ranking. The simulation tool can be noisier than the baseline in a scenario whose actual coverage happens to be close to 0.95.</p>
 <section id="include-uncertainty-in-the-reference-comparison">
 <h3>Include uncertainty in the reference comparison<a class="headerlink" href="#include-uncertainty-in-the-reference-comparison" title="Link to this heading">#</a></h3>
-<p>Let <span class="math notranslate nohighlight">\(\widehat\theta_R\)</span> be the assistant’s <span class="math notranslate nohighlight">\(R\)</span>-replicate estimate and <span class="math notranslate nohighlight">\(\widehat\theta_M^{\mathrm{ref}}\)</span> an independent <span class="math notranslate nohighlight">\(M\)</span>-replicate estimate for the <strong>same</strong> scenario and interval procedure. Then</p>
+<p>For the exponential scenarios with a simulated reference, let <span class="math notranslate nohighlight">\(\widehat\theta_R\)</span> be the assistant’s <span class="math notranslate nohighlight">\(R\)</span>-replicate estimate and <span class="math notranslate nohighlight">\(\widehat\theta_M^{\mathrm{ref}}\)</span> an independent <span class="math notranslate nohighlight">\(M\)</span>-replicate estimate for the <strong>same</strong> scenario and interval procedure. Then</p>
 <div class="math notranslate nohighlight" id="equation-eq-reference-variance">
 <span class="eqno">(14.6)<a class="headerlink" href="#equation-eq-reference-variance" title="Link to this equation">#</a></span>\[
 \mathbb E[\widehat\theta_R-\widehat\theta_M^{\mathrm{ref}}]=0,\qquad
@@ -686,6 +740,11 @@ Mean absolute error: nominal / tool 0.021 0.01
 =\theta(1-\theta)\left(\frac1R+\frac1M\right).
 \]</div>
 <p>Equation <a class="reference internal" href="#equation-eq-reference-variance">(14.6)</a> assumes independence: common random numbers would add a covariance term. The displayed absolute error <span class="math notranslate nohighlight">\(|\widehat\theta_R-\widehat\theta_M^{\mathrm{ref}}|\)</span> therefore contains simulation variation from both runs; it is not exact absolute error against <span class="math notranslate nohighlight">\(\theta\)</span>. Increasing the reference budget reduces only its contribution. For a fixed set of <span class="math notranslate nohighlight">\(J\)</span> scenarios, the report averages these errors as <span class="math notranslate nohighlight">\(J^{-1}\sum_j|\widehat\theta_j-\widehat\theta_j^{\mathrm{ref}}|\)</span>, giving equal weight to the specified scenarios without implying that they were randomly sampled.</p>
+<p>For normal scenarios the reference is exact, so only the <span class="math notranslate nohighlight">\(\theta(1-\theta)/R\)</span> term remains. Keep these two reference types distinct in plots and analysis.</p>
+</section>
+<section id="continue-with-the-implemented-system">
+<h3>Continue with the implemented system<a class="headerlink" href="#continue-with-the-implemented-system" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="../appendices/b-real-llm-systems.html"><span class="std std-doc">Appendix B, B.6</span></a> now implements this extension with a real model. It records natural-language translation, bounded simulation, generated reporting, and rejection of unsupported requests. Inspect both successful and failed traces before extending the task set.</p>
 </section>
 </section>
 <section id="add-a-generative-component-as-an-ablation">
@@ -712,22 +771,22 @@ Mean absolute error: nominal / tool 0.021 0.01
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
 <details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">manifest</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="s1">&#39;Coverage simulation assistant&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="s1">&#39;Synthetic iid samples generated inside this notebook&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;development_scenarios&#39;</span><span class="p">:</span> <span class="n">DEVELOPMENT</span><span class="p">,</span>
-    <span class="s1">&#39;evaluation_scenarios&#39;</span><span class="p">:</span> <span class="n">EVALUATION</span><span class="p">,</span>
-    <span class="s1">&#39;assistant_repetitions&#39;</span><span class="p">:</span> <span class="n">BUDGET</span><span class="p">,</span>
-    <span class="s1">&#39;reference_repetitions&#39;</span><span class="p">:</span> <span class="mi">20000</span><span class="p">,</span>
-    <span class="s1">&#39;evaluation_seeds&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1500</span><span class="p">,</span> <span class="mi">1500</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">EVALUATION</span><span class="p">))),</span>
-    <span class="s1">&#39;reference_seeds&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">9000</span><span class="p">,</span> <span class="mi">9000</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">EVALUATION</span><span class="p">))),</span>
-    <span class="s1">&#39;python&#39;</span><span class="p">:</span> <span class="n">platform</span><span class="o">.</span><span class="n">python_version</span><span class="p">(),</span>
-    <span class="s1">&#39;numpy&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span>
-    <span class="s1">&#39;scope&#39;</span><span class="p">:</span> <span class="s1">&#39;Normal/exponential iid data; approximate z intervals with estimated SD&#39;</span><span class="p">,</span>
+    <span class="s1">'project'</span><span class="p">:</span> <span class="s1">'Coverage simulation assistant'</span><span class="p">,</span>
+    <span class="s1">'data'</span><span class="p">:</span> <span class="s1">'Synthetic iid samples generated inside this notebook'</span><span class="p">,</span>
+    <span class="s1">'development_scenarios'</span><span class="p">:</span> <span class="n">DEVELOPMENT</span><span class="p">,</span>
+    <span class="s1">'evaluation_scenarios'</span><span class="p">:</span> <span class="n">EVALUATION</span><span class="p">,</span>
+    <span class="s1">'assistant_repetitions'</span><span class="p">:</span> <span class="n">BUDGET</span><span class="p">,</span>
+    <span class="s1">'reference_repetitions'</span><span class="p">:</span> <span class="mi">20000</span><span class="p">,</span>
+    <span class="s1">'evaluation_seeds'</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1500</span><span class="p">,</span> <span class="mi">1500</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">EVALUATION</span><span class="p">))),</span>
+    <span class="s1">'reference_seeds'</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">9000</span><span class="p">,</span> <span class="mi">9000</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">EVALUATION</span><span class="p">))),</span>
+    <span class="s1">'python'</span><span class="p">:</span> <span class="n">platform</span><span class="o">.</span><span class="n">python_version</span><span class="p">(),</span>
+    <span class="s1">'numpy'</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span>
+    <span class="s1">'scope'</span><span class="p">:</span> <span class="s1">'Normal/exponential iid data; approximate z intervals with estimated SD'</span><span class="p">,</span>
 <span class="p">}</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;family,n,nominal,estimated,reference&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'family,n,nominal,estimated,reference'</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;family&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;nominal&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;estimated&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'family'</span><span class="p">]</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'n'</span><span class="p">]</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'nominal'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'estimated'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'reference'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </details></div>
@@ -735,47 +794,47 @@ Mean absolute error: nominal / tool 0.021 0.01
 <div class="cell_output docutils container">
 <p class="course-output-label">Output</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{
-  &quot;project&quot;: &quot;Coverage simulation assistant&quot;,
-  &quot;data&quot;: &quot;Synthetic iid samples generated inside this notebook&quot;,
-  &quot;development_scenarios&quot;: [
+  "project": "Coverage simulation assistant",
+  "data": "Synthetic iid samples generated inside this notebook",
+  "development_scenarios": [
     [
-      &quot;normal&quot;,
+      "normal",
       30
     ],
     [
-      &quot;exponential&quot;,
+      "exponential",
       30
     ]
   ],
-  &quot;evaluation_scenarios&quot;: [
+  "evaluation_scenarios": [
     [
-      &quot;normal&quot;,
+      "normal",
       12
     ],
     [
-      &quot;normal&quot;,
+      "normal",
       60
     ],
     [
-      &quot;normal&quot;,
+      "normal",
       120
     ],
     [
-      &quot;exponential&quot;,
+      "exponential",
       12
     ],
     [
-      &quot;exponential&quot;,
+      "exponential",
       60
     ],
     [
-      &quot;exponential&quot;,
+      "exponential",
       120
     ]
   ],
-  &quot;assistant_repetitions&quot;: 500,
-  &quot;reference_repetitions&quot;: 20000,
-  &quot;evaluation_seeds&quot;: [
+  "assistant_repetitions": 500,
+  "reference_repetitions": 20000,
+  "evaluation_seeds": [
     1500,
     1501,
     1502,
@@ -783,7 +842,7 @@ Mean absolute error: nominal / tool 0.021 0.01
     1504,
     1505
   ],
-  &quot;reference_seeds&quot;: [
+  "reference_seeds": [
     9000,
     9001,
     9002,
@@ -791,14 +850,14 @@ Mean absolute error: nominal / tool 0.021 0.01
     9004,
     9005
   ],
-  &quot;python&quot;: &quot;3.13.16&quot;,
-  &quot;numpy&quot;: &quot;2.5.3&quot;,
-  &quot;scope&quot;: &quot;Normal/exponential iid data; approximate z intervals with estimated SD&quot;
+  "python": "3.12.14",
+  "numpy": "2.5.4",
+  "scope": "Normal/exponential iid data; approximate z intervals with estimated SD"
 }
 family,n,nominal,estimated,reference
-normal,12,0.9500,0.9380,0.9237
-normal,60,0.9500,0.9440,0.9458
-normal,120,0.9500,0.9580,0.9508
+normal,12,0.9500,0.9380,0.9242
+normal,60,0.9500,0.9440,0.9453
+normal,120,0.9500,0.9580,0.9477
 exponential,12,0.9500,0.8620,0.8778
 exponential,60,0.9500,0.9380,0.9324
 exponential,120,0.9500,0.9580,0.9438
@@ -808,17 +867,43 @@ exponential,120,0.9500,0.9580,0.9438
 </div>
 <p>A final project report should state the question and task population, describe the baseline and extension, document splits and seeds, show results with uncertainty and failures, and explain limitations in plain language. Include the executable notebook and environment information so another reader can reproduce the evidence.</p>
 <p>For this worked example, a supported conclusion is narrow: the assistant executes a bounded coverage simulation and reports its numerical output faithfully. Any advantage over the nominal baseline is conditional on the evaluated scenarios and simulation budget. The lab has not demonstrated general natural-language planning or safe autonomous statistical analysis.</p>
+<section id="coding-and-experiment-practice-validate-the-whole-request-to-report-chain">
+<h3>Coding and experiment practice · Validate the whole request-to-report chain<a class="headerlink" href="#coding-and-experiment-practice-validate-the-whole-request-to-report-chain" title="Link to this heading">#</a></h3>
+<p><strong>Task.</strong> Use Appendix B to compare the natural-language request, parsed family and sample size, tool result, and reported estimate. Include an unsupported distribution and a deliberately mistranslated request.</p>
+<p><strong>Submission.</strong> Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.</p>
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">numeric_fields_match</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">tool_result</span><span class="p">):</span>
+    <span class="c1"># Require matching family, n, and estimate with a declared precision.</span>
+    <span class="k">return</span> <span class="o">...</span>
+</pre></div>
+</div>
+</details></div>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Hint and acceptance checks</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Compare family and n exactly, and the estimate at the declared display precision. Then separately check the parsed request against the original intended task. Numerical faithfulness cannot repair a mistranslation. Verify normal-family tool output against the analytic reference and inspect narrative claims manually.</p>
+</div>
+</details></section>
 </section>
-<section id="exercises-and-worked-solutions">
-<h2>14.8 · Exercises and worked solutions<a class="headerlink" href="#exercises-and-worked-solutions" title="Link to this heading">#</a></h2>
+<section id="exercises">
+<h2>14.8 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p><strong>Monte Carlo budget:</strong> how does standard error scale with repetitions? <strong>Solution:</strong> for independent coverage indicators, it is <span class="math notranslate nohighlight">\(\sqrt{p(1-p)/R}\)</span>. Quadrupling repetitions approximately halves it; it does not fix bias from using the wrong sampling distribution or interval formula.</p></li>
-<li><p><strong>Two intervals:</strong> distinguish the simulated confidence interval from the reported Monte Carlo interval. <strong>Solution:</strong> the first targets a population mean in one dataset; the second targets the coverage probability of that procedure under a specified simulator.</p></li>
-<li><p><strong>New scenario:</strong> add dependent observations. <strong>Solution:</strong> update the schema, data generator, target assumptions, and evaluation suite explicitly. Keeping an iid standard-error formula may lead to poor coverage; that is a substantive finding, not merely a software bug.</p></li>
-<li><p><strong>Ablation:</strong> what does removing the simulation tool test? <strong>Solution:</strong> it tests whether answers produced without numerical evidence are as accurate on the fixed coverage tasks. It does not isolate an LLM architecture effect unless model, prompts, and other resources are controlled.</p></li>
-<li><p><strong>Reporting:</strong> why not say “the assistant guarantees 95% coverage”? <strong>Solution:</strong> it estimates coverage of a specified approximate procedure with Monte Carlo uncertainty. Neither the numerical simulation nor a fluent report supplies a universal theorem.</p></li>
+<li><p><strong>Monte Carlo budget:</strong> how does standard error scale with repetitions?</p></li>
+<li><p><strong>Two intervals:</strong> distinguish the simulated confidence interval from the reported Monte Carlo interval.</p></li>
+<li><p><strong>New scenario:</strong> add dependent observations.</p></li>
+<li><p><strong>Ablation:</strong> what does removing the simulation tool test?</p></li>
+<li><p><strong>Reporting:</strong> why not say “the assistant guarantees 95% coverage”?</p></li>
 </ol>
-</section>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Worked solutions — attempt the questions first</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text"><strong>1.</strong> for independent coverage indicators, it is <span class="math notranslate nohighlight">\(\sqrt{p(1-p)/R}\)</span>. Quadrupling repetitions approximately halves it; it does not fix bias from using the wrong sampling distribution or interval formula.</p>
+<p class="sd-card-text"><strong>2.</strong> the first targets a population mean in one dataset; the second targets the coverage probability of that procedure under a specified simulator.</p>
+<p class="sd-card-text"><strong>3.</strong> update the schema, data generator, target assumptions, and evaluation suite explicitly. Keeping an iid standard-error formula may lead to poor coverage; that is a substantive finding, not merely a software bug.</p>
+<p class="sd-card-text"><strong>4.</strong> it tests whether answers produced without numerical evidence are as accurate on the fixed coverage tasks. It does not isolate an LLM architecture effect unless model, prompts, and other resources are controlled.</p>
+<p class="sd-card-text"><strong>5.</strong> it estimates coverage of a specified approximate procedure with Monte Carlo uncertainty. Neither the numerical simulation nor a fluent report supplies a universal theorem.</p>
+</div>
+</details></section>
 <section id="choose-your-own-extension">
 <h2>14.9 · Choose your own extension<a class="headerlink" href="#choose-your-own-extension" title="Link to this heading">#</a></h2>
 <p>Three natural extensions are a citation-grounded explanation assistant using Chapter 10’s notes, a more flexible simulation planner using Chapter 12’s dispatcher, or a calibrated answer/abstention system using Chapter 11. Choose one change, specify how it should help, and evaluate it against the completed baseline before adding more components.</p>
@@ -847,11 +932,11 @@ exponential,120,0.9500,0.9580,0.9438
       </div>
     </a>
     <a class="right-next"
-       href="../01-python-lab.html"
+       href="../appendices/a-python-pytorch.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">First Python lab: probabilities to generation</p>
+        <p class="prev-next-title">Appendix A · Python and PyTorch, one operation at a time</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -880,14 +965,21 @@ exponential,120,0.9500,0.9580,0.9438
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-development-and-evaluation-scenarios-first">14.2 · Create development and evaluation scenarios first</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implement-the-statistical-tool">14.3 · Implement the statistical tool</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#establish-implementation-checks">14.4 · Establish implementation checks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#establish-implementation-checks">14.4 · Establish implementation checks</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#compare-simulation-with-an-independent-analytic-reference">Compare simulation with an independent analytic reference</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluate-the-locked-scenarios">14.5 · Evaluate the locked scenarios</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#include-uncertainty-in-the-reference-comparison">Include uncertainty in the reference comparison</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continue-with-the-implemented-system">Continue with the implemented system</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#add-a-generative-component-as-an-ablation">14.6 · Add a generative component as an ablation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#produce-a-reproducibility-manifest-and-report">14.7 · Produce a reproducibility manifest and report</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">14.8 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#produce-a-reproducibility-manifest-and-report">14.7 · Produce a reproducibility manifest and report</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-validate-the-whole-request-to-report-chain">Coding and experiment practice · Validate the whole request-to-report chain</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">14.8 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choose-your-own-extension">14.9 · Choose your own extension</a></li>
 </ul>
   </nav></div>
@@ -908,7 +1000,7 @@ exponential,120,0.9500,0.9580,0.9438
   
   <div class="footer-item">
     <p class="last-updated">
-  Last updated on October 20, 2026.
+  Last updated on October 21, 2026.
   <br/>
 </p>
   </div>

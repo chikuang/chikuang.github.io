@@ -35,7 +35,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=316925d6" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -54,6 +54,7 @@
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/08-diffusion';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/learning-controls.js?v=ed55b08a"></script>
     <link rel="canonical" href="https://chikuang.github.io/teaching/genai/chapters/08-diffusion.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -62,7 +63,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
-    <meta name="docbuild:last-update" content="October 20, 2026"/>
+    <meta name="docbuild:last-update" content="October 21, 2026"/>
   
     
     <script src="../_static/searchtools.js"></script>
@@ -186,6 +187,11 @@
 <li class="toctree-l1"><a class="reference internal" href="12-agents.html">12 · Agents: tools, state, and decisions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="13-agent-reliability.html">13 · Agent reliability and experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="14-capstone.html">14 · Capstone: a GenAI system for a statistician</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendices</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../appendices/a-python-pytorch.html">Appendix A · Python and PyTorch, one operation at a time</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices/b-real-llm-systems.html">Appendix B · A real local LLM, RAG, and tool-using agent</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Supplement</span></p>
 <ul class="nav bd-sidenav">
@@ -358,8 +364,11 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-reverse-mean-and-variance-come-from">Where the reverse mean and variance come from</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditioning-and-the-limits-of-the-example">8.5 · Conditioning and the limits of the example</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">8.6 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditioning-and-the-limits-of-the-example">8.5 · Conditioning and the limits of the example</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-diagnose-score-error-by-noise-level">Coding and experiment practice · Diagnose score error by noise level</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">8.6 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">8.7 · Reading and next step</a></li>
 </ul>
             </nav>
@@ -376,6 +385,7 @@
 <h1>8 · Diffusion and score-based generation<a class="headerlink" href="#diffusion-and-score-based-generation" title="Link to this heading">#</a></h1>
 <p><strong>Question.</strong> How can learning to remove noise support generation from noise?</p>
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/08-diffusion.ipynb">Download the executed notebook</a></p>
+<p><strong>Python support:</strong> <a class="reference internal" href="../appendices/a-python-pytorch.html"><span class="std std-doc">Appendix A</span></a> explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s <strong>Show all code</strong> control while working through the lab.</p>
 <p>Diffusion models train a reverse process for a known noising mechanism. We will fit a one-dimensional denoiser to a two-component Gaussian mixture, then run an explicit reverse chain. The example is small enough that we can also calculate the true noisy density’s score and compare it with the learned function.</p>
 <p><strong>Prerequisites:</strong> Chapters 2 and 7, Gaussian conditioning, and gradients. <strong>Outcomes:</strong> simulate the forward marginal; distinguish noise prediction from direct observation reconstruction; derive the score relation; inspect a learned reverse sampler. No images, pretrained weights, or external datasets are required.</p>
 <section id="pipeline-and-framework">
@@ -453,11 +463,11 @@ x_t=\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar\alpha_t}\,\epsilon,
 <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">))</span>
 <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="n">T</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
     <span class="n">xt</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">noisy_sample</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x0</span><span class="p">),),</span> <span class="n">index</span><span class="p">))</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">xt</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">bins</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#fed34c&#39;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Time </span><span class="si">{</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Noisy observation&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Density&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">xt</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">bins</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#fed34c'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s1">'Time </span><span class="si">{</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">'</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s1">'Noisy observation'</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">'Density'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Final cumulative signal coefficient:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">alpha_bar</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">4</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Final cumulative signal coefficient:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">alpha_bar</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">4</span><span class="p">))</span>
 </pre></div>
 </div>
 </details></div>
@@ -514,8 +524,8 @@ x_t=\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar\alpha_t}\,\epsilon,
     <span class="n">noisy</span><span class="p">,</span> <span class="n">noise</span> <span class="o">=</span> <span class="n">noisy_sample</span><span class="p">(</span><span class="n">clean</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span>
     <span class="n">mse</span> <span class="o">=</span> <span class="p">((</span><span class="n">model</span><span class="p">(</span><span class="n">noisy</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span><span class="o">-</span><span class="n">noise</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
     <span class="n">zero_mse</span> <span class="o">=</span> <span class="p">(</span><span class="n">noise</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Fresh-sample noise MSE:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">mse</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Zero-prediction baseline:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">zero_mse</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Fresh-sample noise MSE:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">mse</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Zero-prediction baseline:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">zero_mse</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">mse</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -573,9 +583,9 @@ s_t(x)=-\frac{\mathbb E[\epsilon\mid X_t=x]}{\sqrt{1-\bar\alpha_t}}.
 <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
     <span class="n">predicted_score</span> <span class="o">=</span> <span class="o">-</span><span class="n">model</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">),),</span> <span class="n">index</span><span class="p">))</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">)</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">5.5</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">))</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">exact_score</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Exact mixture score&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#705600&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">predicted_score</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Learned score&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#a2006e&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Noisy observation&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Score&#39;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Time </span><span class="si">{</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">exact_score</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Exact mixture score'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#705600'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">predicted_score</span><span class="p">,</span> <span class="s1">'--'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Learned score'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#a2006e'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">'Noisy observation'</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">'Score'</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s1">'Time </span><span class="si">{</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -585,7 +595,7 @@ s_t(x)=-\frac{\mathbb E[\epsilon\mid X_t=x]}{\sqrt{1-\bar\alpha_t}}.
 </div>
 <div class="cell_output docutils container">
 <p class="course-output-label">Output</p>
-<img alt="../_images/14b40ca4667927824fe8754e7c78ceb8f9f995244f97868e1b0c120221f542ac.png" src="../_images/14b40ca4667927824fe8754e7c78ceb8f9f995244f97868e1b0c120221f542ac.png" />
+<img alt="../_images/e48a184cd7fecfc30c45f7a7b48f92248a56b67a71bae99f4b81da151e68faac.png" src="../_images/e48a184cd7fecfc30c45f7a7b48f92248a56b67a71bae99f4b81da151e68faac.png" />
 </div>
 </div>
 <p>Agreement near high-density regions does not guarantee accuracy in the tails. A global average training loss can conceal local failures important to the reverse trajectory.</p>
@@ -619,15 +629,15 @@ s_t(x)=-\frac{\mathbb E[\epsilon\mid X_t=x]}{\sqrt{1-\bar\alpha_t}}.
 <span class="n">generated</span> <span class="o">=</span> <span class="n">sample_reverse</span><span class="p">(</span><span class="mi">3000</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 <span class="n">fresh</span> <span class="o">=</span> <span class="n">data_sample</span><span class="p">(</span><span class="mi">3000</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mf">3.4</span><span class="p">))</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">fresh</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">65</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Target samples&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#fed34c&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">generated</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">65</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.8</span><span class="p">,</span>
-        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Reverse-chain samples&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#a2006e&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Observation&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Density&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">fresh</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">65</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Target samples'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#fed34c'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">generated</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">65</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="s1">'step'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.8</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s1">'Reverse-chain samples'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#a2006e'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">'Observation'</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">'Density'</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Target / generated positive mass:&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">fresh</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="p">(</span><span class="n">generated</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Target / generated standard deviation:&#39;</span><span class="p">,</span> <span class="n">fresh</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">generated</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Target / generated positive mass:'</span><span class="p">,</span> <span class="p">(</span><span class="n">fresh</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="p">(</span><span class="n">generated</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Target / generated standard deviation:'</span><span class="p">,</span> <span class="n">fresh</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">generated</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
 <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">generated</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -676,17 +686,43 @@ q(x_{t-1}\mid x_t,x_0)=N(\widetilde\mu_t(x_t,x_0),\widetilde\beta_t I),
 <h2>8.5 · Conditioning and the limits of the example<a class="headerlink" href="#conditioning-and-the-limits-of-the-example" title="Link to this heading">#</a></h2>
 <p>A conditional denoiser receives additional information <span class="math notranslate nohighlight">\(c\)</span>, such as a class label or text representation, and estimates <span class="math notranslate nohighlight">\(\epsilon_\theta(x_t,t,c)\)</span>. Guidance methods modify the reverse direction to favor a condition, which can change the diversity–fidelity tradeoff. They do not establish that a requested scientific or factual property is true.</p>
 <p>Our one-dimensional example explains noising, denoising, and sampling. It does not reproduce the architecture, latent compression, data scale, or perceptual evaluation of an image-generation system. The statistical questions remain: what distribution is modeled, what is conditioned on, and how is the generated distribution evaluated?</p>
+<section id="coding-and-experiment-practice-diagnose-score-error-by-noise-level">
+<h3>Coding and experiment practice · Diagnose score error by noise level<a class="headerlink" href="#coding-and-experiment-practice-diagnose-score-error-by-noise-level" title="Link to this heading">#</a></h3>
+<p><strong>Task.</strong> Evaluate the learned score against the available exact mixture score at three prespecified diffusion times. Report mean squared score error separately at each time.</p>
+<p><strong>Submission.</strong> Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.</p>
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">score_mse</span><span class="p">(</span><span class="n">learned</span><span class="p">,</span> <span class="n">exact</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">learned</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">exact</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">return</span> <span class="o">...</span>
+</pre></div>
+</div>
+</details></div>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Hint and acceptance checks</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Return the mean of <code class="docutils literal notranslate"><span class="pre">(learned-exact)**2</span></code>. Generate fresh noisy evaluation observations independently of optimizer draws. Do not average unweighted across noise levels and then claim uniform quality: score scale changes with time. Plot both functions and identify where discrepancies occur.</p>
+</div>
+</details></section>
 </section>
-<section id="exercises-and-worked-solutions">
-<h2>8.6 · Exercises and worked solutions<a class="headerlink" href="#exercises-and-worked-solutions" title="Link to this heading">#</a></h2>
+<section id="exercises">
+<h2>8.6 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p><strong>Forward mean and variance:</strong> condition on <span class="math notranslate nohighlight">\(x_0\)</span>. <strong>Solution:</strong> the mean is <span class="math notranslate nohighlight">\(\sqrt{\bar\alpha_t}x_0\)</span> and covariance is <span class="math notranslate nohighlight">\((1-\bar\alpha_t)I\)</span>. Unconditionally, the covariance also includes <span class="math notranslate nohighlight">\(\bar\alpha_t\operatorname{Cov}(X_0)\)</span>.</p></li>
-<li><p><strong>Score distinction:</strong> which derivative appears in diffusion? <strong>Solution:</strong> the derivative with respect to the noisy observation, not with respect to model parameters. Parameter derivatives are still used when fitting the denoiser by gradient descent.</p></li>
-<li><p><strong>Regression target:</strong> why is the learned noise not the exact injected noise for each input? <strong>Solution:</strong> several clean/noise pairs can produce the same noisy observation. Squared-error regression estimates their conditional mean, leaving irreducible conditional variance.</p></li>
-<li><p><strong>Final step:</strong> why is the reverse variance zero at mathematical time one with our choice? <strong>Solution:</strong> <span class="math notranslate nohighlight">\(1-\bar\alpha_0=0\)</span>. Adding a fresh nonzero noise draw afterward would blur the final samples and implement a different sampler.</p></li>
-<li><p><strong>Schedule:</strong> if terminal <span class="math notranslate nohighlight">\(\bar\alpha_T\)</span> is large, why is starting from <span class="math notranslate nohighlight">\(N(0,I)\)</span> questionable? <strong>Solution:</strong> the terminal forward distribution retains substantial structure from the data. The sampler then starts from a distribution different from the one used to train its final-time denoiser.</p></li>
+<li><p><strong>Forward mean and variance:</strong> condition on <span class="math notranslate nohighlight">\(x_0\)</span>.</p></li>
+<li><p><strong>Score distinction:</strong> which derivative appears in diffusion?</p></li>
+<li><p><strong>Regression target:</strong> why is the learned noise not the exact injected noise for each input?</p></li>
+<li><p><strong>Final step:</strong> why is the reverse variance zero at mathematical time one with our choice?</p></li>
+<li><p><strong>Schedule:</strong> if terminal <span class="math notranslate nohighlight">\(\bar\alpha_T\)</span> is large, why is starting from <span class="math notranslate nohighlight">\(N(0,I)\)</span> questionable?</p></li>
 </ol>
-</section>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Worked solutions — attempt the questions first</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text"><strong>1.</strong> the mean is <span class="math notranslate nohighlight">\(\sqrt{\bar\alpha_t}x_0\)</span> and covariance is <span class="math notranslate nohighlight">\((1-\bar\alpha_t)I\)</span>. Unconditionally, the covariance also includes <span class="math notranslate nohighlight">\(\bar\alpha_t\operatorname{Cov}(X_0)\)</span>.</p>
+<p class="sd-card-text"><strong>2.</strong> the derivative with respect to the noisy observation, not with respect to model parameters. Parameter derivatives are still used when fitting the denoiser by gradient descent.</p>
+<p class="sd-card-text"><strong>3.</strong> several clean/noise pairs can produce the same noisy observation. Squared-error regression estimates their conditional mean, leaving irreducible conditional variance.</p>
+<p class="sd-card-text"><strong>4.</strong> <span class="math notranslate nohighlight">\(1-\bar\alpha_0=0\)</span>. Adding a fresh nonzero noise draw afterward would blur the final samples and implement a different sampler.</p>
+<p class="sd-card-text"><strong>5.</strong> the terminal forward distribution retains substantial structure from the data. The sampler then starts from a distribution different from the one used to train its final-time denoiser.</p>
+</div>
+</details></section>
 <section id="reading-and-next-step">
 <h2>8.7 · Reading and next step<a class="headerlink" href="#reading-and-next-step" title="Link to this heading">#</a></h2>
 <p><a class="reference external" href="https://arxiv.org/abs/2006.11239">Denoising Diffusion Probabilistic Models</a> gives the discrete-time formulation and training/sampling algorithms behind this miniature experiment. Next, <a class="reference internal" href="09-adaptation-alignment.html"><span class="std std-doc">Chapter 9</span></a> asks how an existing model can be adapted with limited parameters or preference observations.</p>
@@ -751,8 +787,11 @@ q(x_{t-1}\mid x_t,x_0)=N(\widetilde\mu_t(x_t,x_0),\widetilde\beta_t I),
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-reverse-mean-and-variance-come-from">Where the reverse mean and variance come from</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditioning-and-the-limits-of-the-example">8.5 · Conditioning and the limits of the example</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">8.6 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditioning-and-the-limits-of-the-example">8.5 · Conditioning and the limits of the example</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-diagnose-score-error-by-noise-level">Coding and experiment practice · Diagnose score error by noise level</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">8.6 · Exercises</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">8.7 · Reading and next step</a></li>
 </ul>
   </nav></div>
@@ -773,7 +812,7 @@ q(x_{t-1}\mid x_t,x_0)=N(\widetilde\mu_t(x_t,x_0),\widetilde\beta_t I),
   
   <div class="footer-item">
     <p class="last-updated">
-  Last updated on October 20, 2026.
+  Last updated on October 21, 2026.
   <br/>
 </p>
   </div>

@@ -12,15 +12,17 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/06-language-models.ipynb)
 
+**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+
 A language model specifies conditional token distributions. A prompt supplies conditioning information; a decoder turns probabilities into a sequence. These are three different objects. We will train a small character model on an explicitly artificial sentence distribution, evaluate it on held-out combinations, and sample it under several decoding rules.
 
-**Prerequisites:** Chapters 1–5. **Outcomes:** align shifted targets; distinguish teacher forcing from generation; evaluate held-out log loss; implement temperature, top-k, and nucleus sampling. We use a small recurrent model here to keep the training experiment short. Its conditional-likelihood objective is also used by causal transformers; the architecture is not the point of this experiment.
+**Prerequisites:** Chapters 1–5. **Outcomes:** align shifted targets; distinguish teacher forcing from generation; evaluate held-out log loss; implement temperature, top-k, and nucleus sampling. We continue the exact `DecoderBlock` and `TinyDecoder` from Chapter 5, now fitting them on training text and selecting a checkpoint on validation text. [Appendix A](../appendices/a-python-pytorch.md) explains the Python syntax and tensor operations step by step.
 
 ## Pipeline and framework
 
 ![Training fits and selects model parameters from shifted token targets; generation repeatedly predicts, decodes and appends the next token using frozen parameters. Remember: training changes weights; decoding chooses the next token.](../_static/diagrams/06-language-model.png)
 
-The output of training is a **parameterized conditional distribution**. The output of decoding is a sequence drawn or selected using that distribution. Prompting supplies a prefix; it does not run an optimizer. This chapter uses a GRU so the two procedures can be inspected on a CPU, while the same distinction applies to transformer language models.
+The output of training is a **parameterized conditional distribution**. The output of decoding is a sequence drawn or selected using that distribution. Prompting supplies a prefix; it does not run an optimizer. The same decoder architecture from Chapter 5 now learns its weights. Chapter 5 checked the forward calculation and causality; this chapter checks prediction on held-out sequences.
 
 | Stage | Artifact | Question to ask |
 |:--|:--|:--|
@@ -46,6 +48,7 @@ Our corpus enumerates combinations of four subjects, four verbs, and four object
 
 ```{code-cell} python
 import copy
+import math
 import itertools
 import numpy as np
 import torch
@@ -82,7 +85,7 @@ print('Split sizes:', len(train_text), len(valid_text), len(test_text))
 print('Training input and target shape:', tuple(Xtr.shape), tuple(Ytr.shape))
 ```
 
-`^` marks the beginning of a sequence, newline marks its end, and zero is padding. Padding positions are excluded from the loss. Because the GRU processes left to right, padding after a sentence cannot affect its earlier predictions.
+`^` marks the beginning of a sequence, newline marks its end, and zero is padding. Padding positions are excluded from the loss. The causal attention mask prevents right-padding after a sentence from affecting its earlier predictions. We do not left-pad: earlier padding would require an additional key-padding mask.
 
 ### Make the padding mask part of the objective
 
@@ -108,28 +111,62 @@ Equation {eq}`eq-masked-token-loss` is what cross-entropy with ignored padding c
 
 ## 6.2 · Fit a small conditional model
 
-A gated recurrent unit (GRU) summarizes the prefix in a hidden state. The embedding width is 16 and hidden-state width is 32. This is a compact way to demonstrate the training and sampling distinction without requiring downloaded parameters.
+We reuse the two classes from Chapter 5 verbatim below so this downloaded notebook can run independently. The vocabulary now contains the character alphabet. The maximum context is 96 positions, longer than every training sentence. Width 24 still splits into three heads of width 8; this is the same architecture, fitted on a different task.
 
 ```{code-cell} python
-class CharacterModel(nn.Module):
-    def __init__(self):
+class DecoderBlock(nn.Module):
+    def __init__(self, width=24, heads=3):
         super().__init__()
-        self.embedding = nn.Embedding(len(chars), 16, padding_idx=0)
-        self.recurrent = nn.GRU(16, 32, batch_first=True)
-        self.head = nn.Linear(32, len(chars))
+        assert width % heads == 0
+        self.heads = heads
+        self.head_width = width // heads
+        self.norm1 = nn.LayerNorm(width)
+        self.norm2 = nn.LayerNorm(width)
+        self.qkv = nn.Linear(width, 3 * width)
+        self.project = nn.Linear(width, width)
+        self.ffn = nn.Sequential(nn.Linear(width, 4 * width), nn.GELU(),
+                                 nn.Linear(4 * width, width))
+
+    def forward(self, x):
+        B, T, D = x.shape
+        normalized = self.norm1(x)
+        # Split feature coordinates, then expose a separate head axis.
+        q, k, v = self.qkv(normalized).chunk(3, dim=-1)
+        q, k, v = [a.reshape(B, T, self.heads, self.head_width)
+                    .transpose(1, 2) for a in (q, k, v)]
+        scores = q @ k.transpose(-2, -1) / math.sqrt(self.head_width)
+        allowed = torch.ones(T, T, dtype=torch.bool, device=x.device).tril()
+        weights = torch.softmax(scores.masked_fill(~allowed, -torch.inf), dim=-1)
+        mixed = (weights @ v).transpose(1, 2).contiguous().reshape(B, T, D)
+        x = x + self.project(mixed)
+        return x + self.ffn(self.norm2(x))
+
+class TinyDecoder(nn.Module):
+    def __init__(self, vocab_size=12, width=24, max_length=32):
+        super().__init__()
+        self.max_length = max_length
+        self.token = nn.Embedding(vocab_size, width)
+        self.position = nn.Embedding(max_length, width)
+        self.block = DecoderBlock(width=width, heads=3)
+        self.final_norm = nn.LayerNorm(width)
+        self.head = nn.Linear(width, vocab_size)
 
     def forward(self, ids):
-        features, _ = self.recurrent(self.embedding(ids))
-        return self.head(features)
+        T = ids.shape[1]
+        if T > self.max_length:
+            raise ValueError('Sequence exceeds the position table')
+        positions = torch.arange(T, device=ids.device)
+        x = self.token(ids) + self.position(positions)
+        return self.head(self.final_norm(self.block(x)))
 
-model = CharacterModel()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.015)
+model = TinyDecoder(vocab_size=len(chars), width=24, max_length=96)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.008)
 def log_loss(x, y):
     return nn.functional.cross_entropy(model(x).reshape(-1, len(chars)),
                                         y.reshape(-1), ignore_index=0)
 
 history, best, checkpoint = [], float('inf'), None
-for epoch in range(180):
+for epoch in range(220):
     model.train()
     optimizer.zero_grad()
     loss = log_loss(Xtr, Ytr)
@@ -152,6 +189,10 @@ ax.legend()
 plt.tight_layout()
 plt.show()
 ```
+
+Read the update as six operations: `zero_grad()` clears the previous derivative; `model(Xtr)` computes logits; cross-entropy compares them with shifted targets; `backward()` computes derivatives; clipping bounds their norm; `step()` changes parameters. `reshape(-1, len(chars))` pools batch and time into the observation axis while preserving the vocabulary axis. `ignore_index=0` removes padded target positions from both sum and denominator.
+
+Validation runs with gradients disabled. `deepcopy(model.state_dict())` takes a snapshot; assigning the live dictionary alone would let later updates change the saved weights. We fix 220 updates and the learning rate in advance; the test set cannot select either. Appendix A builds this loop one operation at a time.
 
 Gradient clipping limits the gradient norm; it does not change the data split or turn a poor model into a valid estimator. The checkpoint is selected by validation loss, and only then evaluated on test text.
 
@@ -217,15 +258,20 @@ def generate(prompt='the ', seed=1, greedy=False, **settings):
     model.eval()
     ids = [char_id[c] for c in '^' + prompt]
     generator = torch.Generator().manual_seed(seed)
+    stop_reason = 'length_limit'
     for _ in range(60):
+        if len(ids) > model.max_length:
+            stop_reason = 'context_limit'
+            break
         logits = model(torch.tensor([ids]))[0, -1]
         probabilities = decoding_probabilities(logits, **settings)
         next_id = int(probabilities.argmax()) if greedy else int(
             torch.multinomial(probabilities, 1, generator=generator))
         if chars[next_id] == '\n':
+            stop_reason = 'end_token'
             break
         ids.append(next_id)
-    return ''.join(chars[i] for i in ids[1:])
+    return {'text': ''.join(chars[i] for i in ids[1:]), 'stop_reason': stop_reason}
 
 print('Greedy:', generate(greedy=True))
 for temperature in [0.6, 1.0, 1.4]:
@@ -260,14 +306,45 @@ print('Generation left all model parameters unchanged.')
 
 Pretraining estimates a broad conditional model. Supervised instruction tuning changes parameters using instruction/response examples. Retrieval supplies external context. A system can combine all three. None is a substitute for checking whether the output answers the intended question using valid evidence.
 
-## 6.6 · Exercises and worked solutions
 
-1. **Teacher forcing:** why can the training loss be small while generated sequences drift? **Solution:** training conditions on observed prefixes; generation conditions on the model's own earlier samples. A locally plausible mistake can move later inputs away from the training distribution.
-2. **Nucleus filter:** for probabilities $(0.5,0.3,0.2)$ and $p=0.6$, what survives? **Solution:** the first two tokens, because their cumulative mass first exceeds 0.6. Renormalized probabilities are $(0.625,0.375,0)$.
-3. **Temperature:** show that the log odds between two tokens become $(z_i-z_j)/T$. **Solution:** take the logarithm of the ratio of their softmax probabilities; the normalization cancels. Decreasing positive temperature magnifies existing log-odds differences.
-4. **Test protocol:** why not select temperature by reporting the best of 100 test generations? **Solution:** selection uses the test outcomes and changes the procedure being evaluated. Fix the selection rule on development prompts and evaluate its full distribution, including failed samples.
-5. **Loss unit:** when do token-averaged and sequence-averaged losses agree? **Solution:** they agree when sequence lengths are equal, or accidentally when the relevant weighted and unweighted averages coincide. With varying lengths they generally estimate different targets.
+### Coding and experiment practice · Compare decoding distributions
+
+**Task.** Use the trained Chapter 5 decoder from this chapter. Run three temperatures on the same ten fixed seeds; record text, stop reason, and whether the generated sentence belongs to the known grammar.
+
+**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+
+```python
+def grammar_hit(generation, allowed_sentences):
+    # generation has text and stop_reason fields.
+    return ...
+```
+
+:::{dropdown} Hint and acceptance checks
+Return `generation["stop_reason"] == "end_token" and generation["text"] in allowed_sentences`. Treat length- or context-limited output as incomplete. Report grammar membership and diversity separately; neither is unrestricted language quality. Keep test likelihood fixed because decoding settings do not refit model parameters.
+:::
+
+## 6.6 · Exercises
+
+1. **Teacher forcing:** why can the training loss be small while generated sequences drift?
+2. **Nucleus filter:** for probabilities $(0.5,0.3,0.2)$ and $p=0.6$, what survives?
+3. **Temperature:** show that the log odds between two tokens become $(z_i-z_j)/T$.
+4. **Test protocol:** why not select temperature by reporting the best of 100 test generations?
+5. **Loss unit:** when do token-averaged and sequence-averaged losses agree?
+
+
+:::{dropdown} Worked solutions — attempt the questions first
+
+**1.** training conditions on observed prefixes; generation conditions on the model's own earlier samples. A locally plausible mistake can move later inputs away from the training distribution.
+
+**2.** the first two tokens, because their cumulative mass first exceeds 0.6. Renormalized probabilities are $(0.625,0.375,0)$.
+
+**3.** take the logarithm of the ratio of their softmax probabilities; the normalization cancels. Decreasing positive temperature magnifies existing log-odds differences.
+
+**4.** selection uses the test outcomes and changes the procedure being evaluated. Fix the selection rule on development prompts and evaluate its full distribution, including failed samples.
+
+**5.** they agree when sequence lengths are equal, or accidentally when the relevant weighted and unweighted averages coincide. With varying lengths they generally estimate different targets.
+:::
 
 ## 6.7 · Further reading and transition
 
-The official [PyTorch recurrent-layer documentation](https://docs.pytorch.org/docs/stable/generated/torch.nn.GRU.html) describes the GRU used here. The [transformer paper](https://arxiv.org/abs/1706.03762) provides an alternative conditional architecture. Next, [Chapter 7](07-latent-variable-models.md) constructs distributions through latent variables instead of a token-by-token factorization.
+The [transformer paper](https://arxiv.org/abs/1706.03762) motivates the architecture reused from Chapter 5. [Appendix B](../appendices/b-real-llm-systems.md) moves from our trained toy decoder to an actual pretrained instruction model, including chat templates and bounded generation. A GRU is a possible architecture-comparison exercise, not a prerequisite for this chapter. Next, [Chapter 7](07-latent-variable-models.md) constructs distributions through latent variables instead of a token-by-token factorization.
