@@ -69,9 +69,9 @@ The mean negative log likelihood is
 
 $$
 L(w,b)=\frac1n\sum_i\{\log(1+e^{\eta_i})-y_i\eta_i\}.
-$$
+$$ (eq-logistic-loss)
 
-Its gradient in $w$ is $X^\top(p-y)/n$. A hidden layer replaces the fixed features with $h(x)=\tanh(W_1x+b_1)$ and uses $\eta=w_2^\top h(x)+b_2$. Both layers are estimated jointly. The resulting likelihood is familiar; the feature map and nonconvex optimization are the new parts. A deeper model does not remove the need for a sampling model, a baseline, or independent evaluation.
+The gradient of Equation {eq}`eq-logistic-loss` in $w$ is $X^\top(p-y)/n$. A hidden layer replaces the fixed features with $h(x)=\tanh(W_1x+b_1)$ and uses $\eta=w_2^\top h(x)+b_2$. Both layers are estimated jointly. The resulting likelihood is familiar; the feature map and nonconvex optimization are the new parts. A deeper model does not remove the need for a sampling model, a baseline, or independent evaluation.
 
 We use `BCEWithLogitsLoss`, which accepts logits and implements a stable binary cross-entropy. Do **not** apply a sigmoid before passing predictions to this loss. Apply it when you need probabilities for interpretation.
 
@@ -82,9 +82,9 @@ For a minibatch of $m$ rows, let $X\in\mathbb R^{m\times p}$, $W_1\in\mathbb R^{
 $$
 A=XW_1+\mathbf1_m b_1^\top,\quad H=\tanh(A),\quad
 \eta=Hw_2+b_2\mathbf1_m,\quad \pi=\sigma(\eta).
-$$
+$$ (eq-neural-forward)
 
-Here $\pi\in(0,1)^m$ is the vector of predicted probabilities and $p$ counts input features. With $\delta=(\pi-y)/m$, the chain rule gives the **unregularized minibatch-loss** gradients
+Here $\pi\in(0,1)^m$ is the vector of predicted probabilities and $p$ counts input features. Differentiating the forward map in Equation {eq}`eq-neural-forward` with $\delta=(\pi-y)/m$, the chain rule gives the **unregularized minibatch-loss** gradients
 
 $$
 \begin{aligned}
@@ -92,9 +92,9 @@ $$
 G&=(\delta w_2^\top)\odot(1-H\odot H),& \nabla_{W_1}L&=X^\top G,\\
 \nabla_{b_1}L&=G^\top\mathbf1_m.&&
 \end{aligned}
-$$
+$$ (eq-backprop)
 
-$\odot$ multiplies entries, and $G$ has shape $m\times h$. The derivative $1-\tanh^2(A)$ explains how a saturated hidden unit can transmit a small gradient. `nn.Linear(p, h)` stores the transpose of our $W_1$, with shape `(h, p)`; its forward calculation still implements this map. In the experiment $p=2$ and $h=16$.
+$\odot$ multiplies entries, and $G$ has shape $m\times h$. The derivative $1-\tanh^2(A)$ in Equation {eq}`eq-backprop` explains how a saturated hidden unit can transmit a small gradient. `nn.Linear(p, h)` stores the transpose of our $W_1$, with shape `(h, p)`; its forward calculation still implements this map. In the experiment $p=2$ and $h=16$.
 
 ## 2.3 · Check automatic differentiation on a known answer
 
@@ -215,9 +215,9 @@ $$
 e^*\in\operatorname*{arg\min}_{1\le e\le E}
 \frac1{n_{\mathrm{val}}}\sum_{i\in\mathcal I_{\mathrm{val}}}
 \ell_i(\theta^{(e)}),\qquad \widehat\theta=\theta^{(e^*)}.
-$$
+$$ (eq-checkpoint)
 
-The index set $\mathcal I_{\mathrm{val}}$ is disjoint from training and test indices. This equation corresponds to `best_loss` and the copied `best_state`, not to `backward()`.
+The index set $\mathcal I_{\mathrm{val}}$ is disjoint from training and test indices. Equation {eq}`eq-checkpoint` corresponds to `best_loss` and the copied `best_state`, not to `backward()`.
 
 ## 2.6 · Compare with a constant baseline on the test sample
 

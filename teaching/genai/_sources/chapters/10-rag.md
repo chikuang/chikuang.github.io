@@ -42,15 +42,15 @@ Let $q$ be a question, $z$ a passage, and $y$ an answer. A simplified sequence-l
 
 $$
 p(y\mid q)=\sum_z p_\eta(z\mid q)p_\theta(y\mid q,z).
-$$
+$$ (eq-rag-mixture)
 
 The retriever is indexed by $\eta$ and the generator by $\theta$. The [original RAG paper](https://arxiv.org/abs/2005.11401) develops retrieval-conditioned generation and distinguishes sequence-level and token-level passage use. A common application pipeline instead constructs a deterministic context $C_k(q)$ from a top-k search and samples or decodes from
 
 $$
 p_\theta\{y\mid q,C_k(q),\text{instructions}\}.
-$$
+$$ (eq-rag-context)
 
-This second expression describes our diagram. It does not explicitly marginalize over documents. A cosine similarity, rank-fusion score, or reranker score should not automatically be called a retrieval probability. None is automatically the probability that the final answer is correct.
+Equation {eq}`eq-rag-context` describes our diagram. Unlike Equation {eq}`eq-rag-mixture`, it conditions on one selected context rather than explicitly marginalizing over documents. A cosine similarity, rank-fusion score, or reranker score should not automatically be called a retrieval probability. None is automatically the probability that the final answer is correct.
 
 **RAG versus fine-tuning.** Replacing a document and rebuilding its index can change the information supplied to a fixed generator. Fine-tuning changes model parameters. For a changing course policy, first ask whether the correct version is in the index and reaches the prompt. For reliably following a report format, prompting or adaptation may be relevant. These interventions can be combined, but they solve different parts of the problem.
 
@@ -123,9 +123,9 @@ For term $w$ and passage $d$, define
 $$
 v_d(w)=tf(w,d)\left[\log\frac{N+1}{df_w+1}+1\right],
 \qquad s(q,d)=\frac{v_q^Tv_d}{\|v_q\|\|v_d\|}.
-$$
+$$ (eq-tfidf)
 
-Here $N$ counts indexed chunks and $df_w$ counts chunks containing the term. The query uses the **same vocabulary and IDF weights** as the index. Fit these objects once, then apply them to every question; a separate query vocabulary would destroy coordinate alignment.
+In Equation {eq}`eq-tfidf`, $N$ counts indexed chunks and $df_w$ counts chunks containing the term. The query uses the **same vocabulary and IDF weights** as the index. Fit these objects once, then apply them to every question; a separate query vocabulary would destroy coordinate alignment.
 
 ```{code-cell} python
 stopwords = {'the', 'a', 'an', 'of', 'and', 'or', 'to', 'in', 'is', 'does',
@@ -177,16 +177,16 @@ $$
 p_\eta(d\mid q,\mathcal D_q)=
 \frac{\exp\{s_\eta(q,d)/\tau_r\}}
 {\sum_{u\in\mathcal D_q}\exp\{s_\eta(q,u)/\tau_r\}},\qquad \tau_r>0.
-$$
+$$ (eq-retriever-probability)
 
 For one labeled positive passage $d_i^+$ and a candidate set containing it and chosen negatives, a contrastive loss is
 
 $$
 L_{\mathrm{ret}}(\eta)=-\frac1N\sum_{i=1}^{N}
 \log p_\eta(d_i^+\mid q_i,\mathcal D_{q_i}).
-$$
+$$ (eq-retriever-loss)
 
-This formalizes the positive-versus-negative training idea in [DPR](https://arxiv.org/abs/2004.04906). The denominator depends on candidate selection; this probability is not the probability of a fact being true. Negatives that actually contain an answer create incorrect supervision. Our TF-IDF notebook uses a fixed similarity function and does **not** optimize this neural loss.
+Equation {eq}`eq-retriever-loss` trains the candidate-set distribution in Equation {eq}`eq-retriever-probability`. It formalizes the positive-versus-negative training idea in [DPR](https://arxiv.org/abs/2004.04906). The denominator depends on candidate selection; this probability is not the probability of a fact being true. Negatives that actually contain an answer create incorrect supervision. Our TF-IDF notebook uses a fixed similarity function and does **not** optimize this neural loss.
 
 | Method | What is compared? | Useful property | Failure to inspect |
 |:--|:--|:--|:--|
@@ -201,9 +201,9 @@ One way to combine lists without adding incompatible raw scores is [reciprocal r
 
 $$
 \operatorname{RRF}(d)=\sum_{j:\,d\in L_j}\frac{1}{c+\operatorname{rank}_j(d)}.
-$$
+$$ (eq-rrf)
 
-Ranks start at one; $c>0$ controls how strongly early positions dominate. This is a rank-fusion rule, not a probability model. The code demonstrates the rule with supplied lists; it does not run a dense encoder.
+In Equation {eq}`eq-rrf`, ranks start at one; $c>0$ controls how strongly early positions dominate. This is a rank-fusion rule, not a probability model. The code demonstrates the rule with supplied lists; it does not run a dense encoder.
 
 ```{code-cell} python
 def reciprocal_rank_fusion(rankings, c=60):
@@ -231,16 +231,16 @@ Let $\mathcal D$ be the indexed chunks, $H_K(q)\subseteq\mathcal D$ the top-$K$ 
 
 $$
 J(y)\subseteq\{\operatorname{id}(d):d\in C(q)\}.
-$$
+$$ (eq-citation-membership)
 
 For a real model with context limit $B_{\max}$, the relevant feasibility check is
 
 $$
 \operatorname{tokens}\{\operatorname{serialize}(I,q,C(q))\}
 +B_{\mathrm{out}}\le B_{\max},
-$$
+$$ (eq-context-budget)
 
-where $I$ denotes instructions, serialization includes metadata and delimiters, and $B_{\mathrm{out}}$ reserves output capacity. Summing passage lengths alone can omit substantial overhead. The simplified word counter below checks only its declared evidence budget; it does not implement this full tokenizer-based inequality.
+where $I$ denotes instructions, serialization includes metadata and delimiters, and $B_{\mathrm{out}}$ reserves output capacity. Summing passage lengths alone can omit substantial overhead. The simplified word counter below checks only its declared evidence budget; it does not implement the full tokenizer-based constraint in Equation {eq}`eq-context-budget`.
 
 A generative backend then uses $p_\theta(y\mid I,q,C)=\prod_{t=1}^{T_y}p_\theta(y_t\mid I,q,C,y_{<t})$. Supplying evidence changes these conditionals, but the factorization imposes no logical entailment constraint. That is why citation membership and factual support are checked separately.
 
@@ -308,7 +308,7 @@ The next section uses `generator(messages) -> response_object`. An API adapter c
 
 ## 10.7 · Validate the response without confusing format with truth
 
-We can mechanically check types, citation membership, and consistency between abstention and citations. Those checks cannot establish that a passage entails a claim. Citation IDs must occur in the **packed context**, not merely somewhere in the corpus or larger retrieved list.
+We can mechanically check types, citation membership, and consistency between abstention and citations. Those checks cannot establish that a passage entails a claim. Equation {eq}`eq-citation-membership` requires citation IDs to occur in the **packed context**, not merely somewhere in the corpus or larger retrieved list. `validate_response` enforces this set-membership rule; it does not estimate the semantic support measures in Equation {eq}`eq-citation-support`.
 
 ```{code-cell} python
 def validate_response(response, selected):
@@ -407,15 +407,15 @@ At a fixed retrieval unit (documents or chunks), let $R_i$ be the nonempty relev
 $$
 \operatorname{Recall}_i@k=\frac{|R_i\cap H_{ik}|}{|R_i|},\qquad
 \operatorname{Precision}_i@k=\frac{|R_i\cap H_{ik}|}{|H_{ik}|},
-$$
+$$ (eq-retrieval-precision-recall)
 
 $$
 \operatorname{Hit}_i@k=\mathbf1\{|R_i\cap H_{ik}|>0\},\qquad
 \operatorname{MRR}@k=\frac1{n_a}\sum_{i=1}^{n_a}
 \frac{\mathbf1\{r_i\le k\}}{r_i}.
-$$
+$$ (eq-retrieval-hit-mrr)
 
-Here $n_a$ counts answerable evaluation questions and $r_i$ is the rank of the first relevant result, with contribution zero if none appears by rank $k$. Precision for an empty returned set is undefined unless a reporting convention is declared. With one relevant document, recall equals hit rate; with several, a hit can still leave most evidence missing. For context retention, replace $H_{ik}$ by the selected context IDs. Deduplicate chunk-to-document mappings before computing document metrics.
+Here $n_a$ counts answerable evaluation questions and $r_i$ is the rank of the first relevant result, with contribution zero if none appears by rank $k$. Precision for an empty returned set is undefined unless a reporting convention is declared. With one relevant document, recall in Equation {eq}`eq-retrieval-precision-recall` equals the hit indicator in Equation {eq}`eq-retrieval-hit-mrr`; with several, a hit can still leave most evidence missing. For context retention, replace $H_{ik}$ by the selected context IDs. Deduplicate chunk-to-document mappings before computing document metrics.
 
 For citation evaluation, first annotate $M$ verifiable answer claims. Let $J_m$ be the citations attached to claim $m$, and $e_{mj}=1$ if cited passage $j$ supports that claim under a declared rubric. One explicit pairwise precision is
 
@@ -423,9 +423,9 @@ $$
 \operatorname{CitationPrecision}=\frac{\sum_{m=1}^{M}\sum_{j\in J_m}e_{mj}}
 {\sum_{m=1}^{M}|J_m|},\qquad
 \operatorname{SupportedClaimRate}=\frac1M\sum_{m=1}^{M}b_m,
-$$
+$$ (eq-citation-support)
 
-where $b_m=1$ means the **cited evidence collectively** supports claim $m$. A multi-hop claim can require several passages jointly, so $b_m$ is not necessarily $\max_j e_{mj}$. Report undefined ratios when there are no citation pairs or no claims, and evaluate abstentions separately. These are rubric-dependent semantic measures; the code's valid-ID check estimates neither. Missing claims needed to answer the question require a separate answer-completeness assessment.
+where $b_m=1$ means the **cited evidence collectively** supports claim $m$. A multi-hop claim can require several passages jointly, so $b_m$ is not necessarily $\max_j e_{mj}$. Report undefined ratios when there are no citation pairs or no claims, and evaluate abstentions separately. The measures in Equation {eq}`eq-citation-support` depend on a semantic rubric; the code's valid-ID check estimates neither. Missing claims needed to answer the question require a separate answer-completeness assessment.
 
 Unanswerable questions have no supporting document in the collection. Do not put them in a recall denominator as failures to retrieve a nonexistent document. Evaluate abstention and unsupported answering separately. These hand-authored questions are a diagnostic set, not a realistic benchmark.
 

@@ -39,9 +39,9 @@ The user is a statistics instructor preparing a simulation lesson. The question 
 
 $$
 \bar X\pm1.96\frac{S}{\sqrt n}
-$$
+$$ (eq-normal-interval)
 
-contain the population mean? This is an approximate normal interval using an estimated standard error. It is not the exact Student-t interval for normal data. Its nominal 95% label should not be confused with its actual finite-sample coverage.
+contain the population mean? Equation {eq}`eq-normal-interval` is an approximate normal interval using an estimated standard error. It is not the exact Student-t interval for normal data. Its nominal 95% label should not be confused with its actual finite-sample coverage.
 
 Our task population consists of predefined combinations of distribution and sample size. The main evaluation loss is absolute error in estimated coverage relative to an independently simulated high-precision reference. We also report invalid-request handling and computational budget. We do not claim validity for dependent observations, arbitrary distributions, or automatic real-data inference.
 
@@ -51,15 +51,15 @@ For a sampling distribution $P$ with finite variance and sample size $n$, let $\
 
 $$
 \theta(P,n)=\mathbb P_{D\sim P^n}\{\mu_P\in I_n(D)\}.
-$$
+$$ (eq-coverage-target)
 
-The probability is over a new dataset $D$, with $P,n$ and the interval rule fixed. It is not a posterior probability that a fixed mean lies in a realized interval. Under normal sampling, $\sqrt n(\bar X-\mu_P)/S\sim t_{n-1}$, so an analytic check is
+Equation {eq}`eq-coverage-target` averages over a new dataset $D$, with $P,n$ and the interval rule in Equation {eq}`eq-normal-interval` fixed. It is not a posterior probability that a fixed mean lies in a realized interval. Under normal sampling, $\sqrt n(\bar X-\mu_P)/S\sim t_{n-1}$, so an analytic check is
 
 $$
 \theta(P,n)=2F_{t_{n-1}}(1.96)-1.
-$$
+$$ (eq-normal-reference)
 
-$F_{t_{n-1}}$ is the Student-t CDF. Thus the normal-family simulation has a reference available without Monte Carlo. This expression is not valid for the exponential family at finite $n$; both families remain evaluated under the same approximate-normal interval rule.
+$F_{t_{n-1}}$ is the Student-t CDF. Thus the normal-family simulation has a reference available without Monte Carlo. Equation {eq}`eq-normal-reference` is not valid for the exponential family at finite $n$; both families remain evaluated under the same approximate-normal interval rule.
 
 ## 14.2 · Create development and evaluation scenarios first
 
@@ -109,9 +109,9 @@ $$
 \widehat\theta=\frac1R\sum_{r=1}^{R}I_r,\qquad
 \operatorname{Var}(\widehat\theta)=\frac{\theta(1-\theta)}R,\qquad
 \widehat{\operatorname{SE}}=\sqrt{\frac{\widehat\theta(1-\widehat\theta)}R}.
-$$
+$$ (eq-coverage-mc)
 
-The plug-in standard error is zero when all indicators agree, which does not mean the coverage probability is known exactly. The Wilson interval below avoids that zero-width endpoint behavior. With $z=1.96$, define
+The plug-in standard error in Equation {eq}`eq-coverage-mc` is zero when all indicators agree, which does not mean the coverage probability is known exactly. The Wilson interval below avoids that zero-width endpoint behavior. With $z=1.96$, define
 
 $$
 \begin{aligned}
@@ -119,9 +119,9 @@ a&=1+z^2/R,&c&=(\widehat\theta+z^2/(2R))/a,\\
 h&=\frac{z}{a}\sqrt{\frac{\widehat\theta(1-\widehat\theta)}R+
 \frac{z^2}{4R^2}},&I_{\mathrm{MC}}&=[c-h,c+h].
 \end{aligned}
-$$
+$$ (eq-wilson)
 
-This inverts the binomial score inequality $(\widehat\theta-\theta)^2\le z^2\theta(1-\theta)/R$. Its coverage is approximate, not an exact 95% finite-sample guarantee. `center`, `radius`, and `denominator` below correspond to $c,h,a$. The target of $I_{\mathrm{MC}}$ is $\theta(P,n)$; the target of each simulated $I_n(D_r)$ is $\mu_P$.
+Equation {eq}`eq-wilson` inverts the binomial score inequality $(\widehat\theta-\theta)^2\le z^2\theta(1-\theta)/R$. Its coverage is approximate, not an exact 95% finite-sample guarantee. `center`, `radius`, and `denominator` below correspond to $c,h,a$. The Wilson interval in Equation {eq}`eq-wilson` targets the coverage probability in Equation {eq}`eq-coverage-target`; each simulated interval in Equation {eq}`eq-normal-interval` instead targets $\mu_P$.
 
 ```{code-cell} python
 def coverage_indicators(family, n, repetitions, seed):
@@ -240,9 +240,9 @@ $$
 \mathbb E[\widehat\theta_R-\widehat\theta_M^{\mathrm{ref}}]=0,\qquad
 \operatorname{Var}(\widehat\theta_R-\widehat\theta_M^{\mathrm{ref}})
 =\theta(1-\theta)\left(\frac1R+\frac1M\right).
-$$
+$$ (eq-reference-variance)
 
-Independence matters: common random numbers would add a covariance term. The displayed absolute error $|\widehat\theta_R-\widehat\theta_M^{\mathrm{ref}}|$ therefore contains simulation variation from both runs; it is not exact absolute error against $\theta$. Increasing the reference budget reduces only its contribution. For a fixed set of $J$ scenarios, the report averages these errors as $J^{-1}\sum_j|\widehat\theta_j-\widehat\theta_j^{\mathrm{ref}}|$, giving equal weight to the specified scenarios without implying that they were randomly sampled.
+Equation {eq}`eq-reference-variance` assumes independence: common random numbers would add a covariance term. The displayed absolute error $|\widehat\theta_R-\widehat\theta_M^{\mathrm{ref}}|$ therefore contains simulation variation from both runs; it is not exact absolute error against $\theta$. Increasing the reference budget reduces only its contribution. For a fixed set of $J$ scenarios, the report averages these errors as $J^{-1}\sum_j|\widehat\theta_j-\widehat\theta_j^{\mathrm{ref}}|$, giving equal weight to the specified scenarios without implying that they were randomly sampled.
 
 ## 14.6 · Add a generative component as an ablation
 

@@ -30,7 +30,7 @@ $$
 p_\theta(x_{1:T})=\prod_{t=1}^{T}p_\theta(x_t\mid x_{<t}).
 $$
 
-Training commonly minimizes the sum of negative log conditional probabilities. Generation then samples from a conditional distribution, often modified by a decoding rule. Training and decoding answer different questions.
+The chain rule is developed in Equation {eq}`eq-chain-rule` in Chapter 1; Equation {eq}`eq-lm-objective` in Chapter 6 gives its token-averaged training objective. Generation then samples from a conditional distribution, often modified by a decoding rule. Training and decoding answer different questions.
 
 ### Attention forms a data-dependent weighted average
 
@@ -41,7 +41,7 @@ A=\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}+M\right),
 \qquad Z=AV,
 $$
 
-where softmax is applied row by row and $M$ can mask unavailable positions. With $Q\in\mathbb R^{n_q\times d_k}$, $K\in\mathbb R^{n_k\times d_k}$, and $V\in\mathbb R^{n_k\times d_v}$, the output is $Z\in\mathbb R^{n_q\times d_v}$. Each row of $A$ sums to one over allowed positions. This invites a comparison to a normalized smoother, while the learned representations and end-to-end training make it different from a fixed kernel estimator. See [Vaswani et al.](https://arxiv.org/abs/1706.03762).
+where softmax is applied row by row and $M$ can mask unavailable positions. With $Q\in\mathbb R^{n_q\times d_k}$, $K\in\mathbb R^{n_k\times d_k}$, and $V\in\mathbb R^{n_k\times d_v}$, the output is $Z\in\mathbb R^{n_q\times d_v}$. Each row of $A$ sums to one over allowed positions; Equation {eq}`eq-attention` in Chapter 4 makes the allowed-key set and denominator explicit. This invites a comparison to a normalized smoother, while the learned representations and end-to-end training make it different from a fixed kernel estimator. See [Vaswani et al.](https://arxiv.org/abs/1706.03762).
 
 ### Evaluate a system on a specified task distribution
 
@@ -49,7 +49,7 @@ $$
 R(\pi)=\mathbb E_{\tau\sim\mathcal D}\!\left[L(\pi,\tau)\right].
 $$
 
-Here $\pi$ is the full system, $\tau$ a task, and $L$ a loss that may include failure, cost, and latency. Specify the task population and sampling design before reporting a performance estimate. For stochastic systems, distinguish between-task variation from variation across repeated runs of the same task.
+Here $\pi$ is the full system, $\tau$ a task, and $L$ a loss that may include failure, cost, and latency. Specify the task population and sampling design before reporting a performance estimate. For stochastic systems, distinguish between-task variation from variation across repeated runs of the same task, as quantified by Equation {eq}`eq-task-variance` in Chapter 13.
 
 ## Questions for every paper or experiment
 

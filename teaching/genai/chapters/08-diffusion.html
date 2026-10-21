@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=e2d75153" />
@@ -419,12 +419,12 @@
 q(x_t\mid x_{t-1})=N(\sqrt{\alpha_t}x_{t-1},\beta_t I).
 \]</div>
 <p>Gaussian composition gives a direct marginal draw:</p>
-<div class="math notranslate nohighlight">
-\[
+<div class="math notranslate nohighlight" id="equation-eq-forward-noise">
+<span class="eqno">(33)<a class="headerlink" href="#equation-eq-forward-noise" title="Link to this equation">#</a></span>\[
 x_t=\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar\alpha_t}\,\epsilon,
 \qquad \epsilon\sim N(0,I).
 \]</div>
-<p>Thus training can sample a random time and generate its noisy observation without running every earlier transition. The schedule below leaves little signal at its final time. Starting the reverse chain at a standard normal is still an approximation unless the terminal forward marginal is exactly that normal distribution.</p>
+<p>Equation <a class="reference internal" href="#equation-eq-forward-noise">(33)</a> lets training sample a random time and generate its noisy observation without running every earlier transition. The schedule below leaves little signal at its final time. Starting the reverse chain at a standard normal is still an approximation unless the terminal forward marginal is exactly that normal distribution.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
@@ -525,8 +525,8 @@ Zero-prediction baseline: 1.029
 <section id="state-the-regression-target-and-its-irreducible-error">
 <h3>State the regression target and its irreducible error<a class="headerlink" href="#state-the-regression-target-and-its-irreducible-error" title="Link to this heading">#</a></h3>
 <p>For <span class="math notranslate nohighlight">\(X_0\sim P_0\)</span>, <span class="math notranslate nohighlight">\(t\sim\operatorname{Uniform}\{1,\ldots,T\}\)</span>, and independent <span class="math notranslate nohighlight">\(\epsilon\sim N(0,I_d)\)</span>, define</p>
-<div class="math notranslate nohighlight">
-\[
+<div class="math notranslate nohighlight" id="equation-eq-noise-objective">
+<span class="eqno">(34)<a class="headerlink" href="#equation-eq-noise-objective" title="Link to this equation">#</a></span>\[
 L_{\mathrm{noise}}(\theta)=\mathbb E_{t,X_0,\epsilon}
 \left\|\epsilon-\epsilon_\theta\left(
 \sqrt{\bar\alpha_t}X_0+\sqrt{1-\bar\alpha_t}\epsilon,t\right)\right\|_2^2.
@@ -538,17 +538,17 @@ L_{\mathrm{noise}}(\theta)=\mathbb E_{t,X_0,\epsilon}
 =\operatorname{tr}\operatorname{Cov}(\epsilon\mid X_t=x,t)
 +\|m_t(x)-a\|_2^2.
 \]</div>
-<p>The first term does not depend on the prediction <span class="math notranslate nohighlight">\(a\)</span>, so the optimum is the conditional mean, not recovery of every injected noise realization. The code averages one-dimensional squared errors. With <span class="math notranslate nohighlight">\(d\)</span> coordinates, averaging rather than summing coordinates rescales this objective by <span class="math notranslate nohighlight">\(1/d\)</span> but does not change its population minimizer. The time weighting and schedule remain part of the objective.</p>
+<p>The first term does not depend on the prediction <span class="math notranslate nohighlight">\(a\)</span>, so the optimum is the conditional mean, not recovery of every injected noise realization. The code averages one-dimensional squared errors. With <span class="math notranslate nohighlight">\(d\)</span> coordinates, averaging rather than summing coordinates rescales this objective by <span class="math notranslate nohighlight">\(1/d\)</span> but does not change its population minimizer. The time weighting and schedule remain part of Equation <a class="reference internal" href="#equation-eq-noise-objective">(34)</a>.</p>
 </section>
 </section>
 <section id="the-score-is-a-derivative-with-respect-to-the-observation">
 <h2>8.3 · The score is a derivative with respect to the observation<a class="headerlink" href="#the-score-is-a-derivative-with-respect-to-the-observation" title="Link to this heading">#</a></h2>
 <p>For the noisy marginal density <span class="math notranslate nohighlight">\(p_t(x)\)</span>, the score is <span class="math notranslate nohighlight">\(s_t(x)=\nabla_x\log p_t(x)\)</span>. This differs from the parametric likelihood score <span class="math notranslate nohighlight">\(\nabla_\theta\log p_\theta(x)\)</span>. Differentiating the Gaussian noising density and averaging over the conditional distribution of <span class="math notranslate nohighlight">\(X_0\)</span> gives</p>
-<div class="math notranslate nohighlight">
-\[
+<div class="math notranslate nohighlight" id="equation-eq-noise-score">
+<span class="eqno">(35)<a class="headerlink" href="#equation-eq-noise-score" title="Link to this equation">#</a></span>\[
 s_t(x)=-\frac{\mathbb E[\epsilon\mid X_t=x]}{\sqrt{1-\bar\alpha_t}}.
 \]</div>
-<p>For our mixture, each noised component is Gaussian with means <span class="math notranslate nohighlight">\(\pm2\sqrt{\bar\alpha_t}\)</span> and variance <span class="math notranslate nohighlight">\(0.35^2\bar\alpha_t+1-\bar\alpha_t\)</span>. Its exact score is the posterior-component-weighted average of the component scores. This gives an unusually informative diagnostic that would be unavailable for a general dataset.</p>
+<p>Equation <a class="reference internal" href="#equation-eq-noise-score">(35)</a> converts the optimal noise predictor under Equation <a class="reference internal" href="#equation-eq-noise-objective">(34)</a> into a score. For our mixture, each noised component is Gaussian with means <span class="math notranslate nohighlight">\(\pm2\sqrt{\bar\alpha_t}\)</span> and variance <span class="math notranslate nohighlight">\(0.35^2\bar\alpha_t+1-\bar\alpha_t\)</span>. Its exact score is the posterior-component-weighted average of the component scores. This gives an unusually informative diagnostic that would be unavailable for a general dataset.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
@@ -584,8 +584,8 @@ s_t(x)=-\frac{\mathbb E[\epsilon\mid X_t=x]}{\sqrt{1-\bar\alpha_t}}.
 <section id="a-learned-reverse-chain">
 <h2>8.4 · A learned reverse chain<a class="headerlink" href="#a-learned-reverse-chain" title="Link to this heading">#</a></h2>
 <p>We use the standard noise-prediction mean parameterization</p>
-<div class="math notranslate nohighlight">
-\[
+<div class="math notranslate nohighlight" id="equation-eq-reverse-mean">
+<span class="eqno">(36)<a class="headerlink" href="#equation-eq-reverse-mean" title="Link to this equation">#</a></span>\[
 \mu_\theta(x_t,t)=\frac1{\sqrt{\alpha_t}}
 \left(x_t-\frac{\beta_t}{\sqrt{1-\bar\alpha_t}}\epsilon_\theta(x_t,t)\right).
 \]</div>
@@ -640,19 +640,19 @@ Target / generated standard deviation: 2.027 2.001
 \[
 q(x_{t-1}\mid x_t,x_0)=N(\widetilde\mu_t(x_t,x_0),\widetilde\beta_t I),
 \]</div>
-<div class="math notranslate nohighlight">
-\[
+<div class="math notranslate nohighlight" id="equation-eq-posterior-mean">
+<span class="eqno">(37)<a class="headerlink" href="#equation-eq-posterior-mean" title="Link to this equation">#</a></span>\[
 \widetilde\mu_t(x_t,x_0)=
 \frac{\sqrt{\bar\alpha_{t-1}}\beta_t}{1-\bar\alpha_t}x_0
 +\frac{\sqrt{\alpha_t}(1-\bar\alpha_{t-1})}{1-\bar\alpha_t}x_t.
 \]</div>
 <p>The clean observation is unavailable during generation. Substitute the denoiser’s estimate</p>
-<div class="math notranslate nohighlight">
-\[
+<div class="math notranslate nohighlight" id="equation-eq-clean-estimate">
+<span class="eqno">(38)<a class="headerlink" href="#equation-eq-clean-estimate" title="Link to this equation">#</a></span>\[
 \widehat x_0(x_t,t)=\frac{x_t-\sqrt{1-\bar\alpha_t}\epsilon_\theta(x_t,t)}
 {\sqrt{\bar\alpha_t}}
 \]</div>
-<p>into <span class="math notranslate nohighlight">\(\widetilde\mu_t\)</span> and simplify to obtain the <span class="math notranslate nohighlight">\(\mu_\theta\)</span> used above. Then sample <span class="math notranslate nohighlight">\(x_{t-1}=\mu_\theta(x_t,t)+\sqrt{\widetilde\beta_t}\,\xi_t\)</span> with fresh independent <span class="math notranslate nohighlight">\(\xi_t\sim N(0,I)\)</span>; at <span class="math notranslate nohighlight">\(t=1\)</span>, use the mean without extra noise. These are the Gaussian identities behind the <a class="reference external" href="https://arxiv.org/abs/2006.11239">DDPM update</a>.</p>
+<p>from Equation <a class="reference internal" href="#equation-eq-clean-estimate">(38)</a> into the posterior mean in Equation <a class="reference internal" href="#equation-eq-posterior-mean">(37)</a> and simplify to obtain Equation <a class="reference internal" href="#equation-eq-reverse-mean">(36)</a>. Then sample <span class="math notranslate nohighlight">\(x_{t-1}=\mu_\theta(x_t,t)+\sqrt{\widetilde\beta_t}\,\xi_t\)</span> with fresh independent <span class="math notranslate nohighlight">\(\xi_t\sim N(0,I)\)</span>; at <span class="math notranslate nohighlight">\(t=1\)</span>, use the mean without extra noise. These are the Gaussian identities behind the <a class="reference external" href="https://arxiv.org/abs/2006.11239">DDPM update</a>.</p>
 <p>Conditioning on both <span class="math notranslate nohighlight">\(x_t\)</span> and <span class="math notranslate nohighlight">\(x_0\)</span> is crucial: <span class="math notranslate nohighlight">\(q(x_{t-1}\mid x_t)\)</span> integrates over unknown clean data and need not be Gaussian. Replacing <span class="math notranslate nohighlight">\(x_0\)</span> by a learned estimate and fixing the variance does not make the finite-step reverse transition exact, even if noise prediction reaches its population optimum.</p>
 </section>
 </section>

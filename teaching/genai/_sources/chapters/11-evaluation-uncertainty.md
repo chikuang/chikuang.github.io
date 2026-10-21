@@ -72,7 +72,7 @@ For independent sampled questions, let $A_i,B_i\in\{0,1\}$ indicate correctness 
 $$
 \Delta=\mathbb E[D_i],\qquad \widehat\Delta=\frac1n\sum_iD_i,\qquad
 \widehat{\operatorname{SE}}(\widehat\Delta)=\frac{s_D}{\sqrt n},
-$$
+$$ (eq-paired-difference)
 
 where $s_D^2=(n-1)^{-1}\sum_i(D_i-\widehat\Delta)^2$. The population identity
 
@@ -81,7 +81,7 @@ $$
 -2\operatorname{Cov}(A_i,B_i)
 $$
 
-explains why independently resampling the two systems loses information. The code resamples whole paired differences and uses bootstrap quantiles rather than this normal-approximation standard error. For zero-one loss, the risk difference $R_B-R_A=-\Delta$; report the direction so a positive improvement is not mistaken for a larger loss.
+explains why independently resampling the two systems loses information. The code resamples whole paired differences to estimate uncertainty in Equation {eq}`eq-paired-difference`, using bootstrap quantiles rather than its normal-approximation standard error. For zero-one loss, the risk difference $R_B-R_A=-\Delta$; report the direction so a positive improvement is not mistaken for a larger loss.
 
 ## 11.3 · Separate factual labels from judging machinery
 
@@ -99,7 +99,7 @@ For a binary probability prediction $P\in[0,1]$, population calibration means
 
 $$
 \mathbb E[Y\mid P]=P\quad\text{almost surely}.
-$$
+$$ (eq-calibration)
 
 It does not require a continuous predictor to take any exact prespecified value with positive probability. Bins estimate averages of this relationship. On $n$ evaluation cases, the Brier score is $n^{-1}\sum_i(p_i-y_i)^2$; it measures overall probability error, not calibration alone.
 
@@ -110,9 +110,9 @@ $$
 \frac1{|\mathcal V|}\sum_{i\in\mathcal V}
 \left[\log(1+e^{z_i/\tau})-y_i z_i/\tau\right],
 \qquad \widetilde p_i=\sigma(z_i/\widehat\tau).
-$$
+$$ (eq-temperature-fit)
 
-$\mathcal T\subset(0,\infty)$ is the finite grid used below. `logaddexp` evaluates the first term stably. Positive temperature preserves binary ranking and the zero-logit decision boundary; it can improve probabilities without changing 0.5-threshold accuracy. Fitting this restricted map does not guarantee exact population calibration.
+$\mathcal T\subset(0,\infty)$ is the finite grid used below. `logaddexp` evaluates the first term stably. Positive temperature preserves binary ranking and the zero-logit decision boundary; it can improve probabilities without changing 0.5-threshold accuracy. Fitting Equation {eq}`eq-temperature-fit` does not guarantee the population calibration property in Equation {eq}`eq-calibration`.
 
 Below a fixed simulated predictor is deliberately overconfident. A temperature is selected using a validation sample. We then evaluate on a disjoint test sample; a separate calibration sample is reserved for conformal prediction.
 
@@ -167,9 +167,9 @@ For $A_\tau=\mathbf1\{c(Q)\ge\tau\}$ and a fixed system loss $L$, the population
 $$
 \operatorname{Coverage}(\tau)=\mathbb P(A_\tau=1),\qquad
 \operatorname{Risk}(\tau)=\frac{\mathbb E[L A_\tau]}{\mathbb E[A_\tau]}.
-$$
+$$ (eq-risk-coverage)
 
-Their empirical counterparts are $n^{-1}\sum_i A_{\tau i}$ and $\sum_i\ell_i A_{\tau i}/\sum_i A_{\tau i}$. Selective risk is defined only at positive coverage. In this lab $c_i=\max(\widetilde p_i,1-\widetilde p_i)$ and $\ell_i$ is a binary classification error. These definitions also apply to answer/abstain decisions in RAG after defining a suitable answer-level loss and confidence score.
+The empirical counterparts of Equation {eq}`eq-risk-coverage` are $n^{-1}\sum_i A_{\tau i}$ and $\sum_i\ell_i A_{\tau i}/\sum_i A_{\tau i}$. Selective risk is defined only at positive coverage. In this lab $c_i=\max(\widetilde p_i,1-\widetilde p_i)$ and $\ell_i$ is a binary classification error. These definitions also apply to answer/abstain decisions in RAG after defining a suitable answer-level loss and confidence score.
 
 ```{code-cell} python
 confidence = np.maximum(calibrated_p, 1-calibrated_p)
@@ -198,7 +198,7 @@ We now construct sets of labels in $\{0,1\}$ using a predictor fixed before the 
 
 $$
 C(x)=\{y:1-\widehat p_y(x)\le \widehat q\}.
-$$
+$$ (eq-conformal-set)
 
 Under exchangeability of calibration and future examples, with the predictor fixed independently of these calibration outcomes, this construction gives marginal coverage at least $1-\alpha$. Ties make the nonrandomized version potentially conservative. The guarantee is over calibration and future examples jointly, not a guarantee of coverage conditional on every covariate value.
 
@@ -207,14 +207,14 @@ In symbols, with $s_{(k)}$ the kth ordered calibration score,
 $$
 \widehat q=\begin{cases}s_{(k)},&k\le n_c,\\+\infty,&k=n_c+1,\end{cases}
 \quad k=\lceil(n_c+1)(1-\alpha)\rceil,\quad 0<\alpha<1,
-$$
+$$ (eq-conformal-quantile)
 
 $$
 \mathbb P_{\mathcal D_{\mathrm{cal}},(X_{\mathrm{new}},Y_{\mathrm{new}})}
 \{Y_{\mathrm{new}}\in C(X_{\mathrm{new}})\}\ge 1-\alpha.
-$$
+$$ (eq-conformal-coverage)
 
-For distinct exchangeable scores, the new score's rank among $n_c+1$ scores is uniform; choosing this rank gives the finite-sample correction. Ties with the displayed non-strict inclusion preserve the lower bound. The probability averages over both a new calibration sample and a future case, conditional on the independently fitted predictor; it is not a statement that every realized calibration sample or every covariate subgroup has coverage $1-\alpha$. See the [split-conformal construction](https://arxiv.org/abs/2107.07511).
+Equation {eq}`eq-conformal-coverage` applies to the set in Equation {eq}`eq-conformal-set` with the threshold in Equation {eq}`eq-conformal-quantile`. For distinct exchangeable scores, the new score's rank among $n_c+1$ scores is uniform; choosing this rank gives the finite-sample correction. Ties with the displayed non-strict inclusion preserve the lower bound. The probability averages over both a new calibration sample and a future case, conditional on the independently fitted predictor; it is not a statement that every realized calibration sample or every covariate subgroup has coverage $1-\alpha$. See the [split-conformal construction](https://arxiv.org/abs/2107.07511).
 
 ```{code-cell} python
 alpha = 0.1
@@ -232,7 +232,7 @@ print('Average set size:', round(sets.sum(1).mean(), 3))
 print('Empty / singleton / doubleton counts:', np.bincount(sets.sum(1), minlength=3))
 ```
 
-The observed test fraction can lie below the nominal level in one finite sample. The theorem is not a statement that every test batch achieves the target exactly. Larger prediction sets may deliver coverage while being less informative. Evaluate both coverage and set size.
+The observed test fraction can lie below the nominal level in one finite sample. Equation {eq}`eq-conformal-coverage` does not assert that every test batch achieves the target exactly. Larger prediction sets may deliver coverage while being less informative. Evaluate both coverage and set size.
 
 A set of finite class labels is not a set of all semantically correct free-text answers. Applying conformal ideas to generated text requires specifying an assessable target, a score, and assumptions appropriate to that target. Distribution shift, adaptive reuse of calibration data, and dependence can invalidate a naive guarantee.
 

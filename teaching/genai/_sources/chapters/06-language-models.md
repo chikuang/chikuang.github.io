@@ -38,9 +38,9 @@ The autoregressive factorization is
 $$
 p_\theta(x_{1:T})=\prod_{t=1}^T p_\theta(x_t\mid x_{<t}),\qquad
 \widehat L=-\frac{\sum_s\sum_t\log p_\theta(x_{st}\mid x_{s,<t})}{\sum_s T_s}.
-$$
+$$ (eq-lm-objective)
 
-This token-weighted loss gives longer sequences more weight. A mean of per-sequence losses answers a different question. Always state the averaging unit. During teacher forcing, each prefix contains observed training tokens. During generation, later prefixes contain sampled tokens, so mistakes can change the distribution of future inputs.
+Equation {eq}`eq-lm-objective` applies the chain rule from Equation {eq}`eq-chain-rule` to training sequences. Its token-weighted loss gives longer sequences more weight. A mean of per-sequence losses answers a different question. Always state the averaging unit. During teacher forcing, each prefix contains observed training tokens. During generation, later prefixes contain sampled tokens, so mistakes can change the distribution of future inputs.
 
 Our corpus enumerates combinations of four subjects, four verbs, and four objects. We hold out complete combinations before making batches. This avoids overlapping-window leakage, but it remains a tiny, deliberately repetitive grammar; it is not evidence about unrestricted English.
 
@@ -91,9 +91,9 @@ Let $z_{stj}$ be the logit for token $j$ at prediction position $t$ of sequence 
 $$
 \widehat L(\theta)=\frac1{N_{\mathrm{tok}}}
 \sum_{s,t}m_{st}\left[\log\sum_{j=1}^{V}e^{z_{stj}}-z_{st,y_{st}}\right].
-$$
+$$ (eq-masked-token-loss)
 
-This is what cross-entropy with ignored padding computes. In this corpus, the beginning marker is input context and the end marker is a genuine prediction target. Ignoring a padding target removes that **position's loss**; it does not automatically remove the padding class from the softmax denominator at other positions. The sampler below separately forbids generating padding and a new beginning marker.
+Equation {eq}`eq-masked-token-loss` is what cross-entropy with ignored padding computes; it makes the valid-token denominator in Equation {eq}`eq-lm-objective` explicit. In this corpus, the beginning marker is input context and the end marker is a genuine prediction target. Ignoring a padding target removes that **position's loss**; it does not automatically remove the padding class from the softmax denominator at other positions. The sampler below separately forbids generating padding and a new beginning marker.
 
 ## 6.2 · Fit a small conditional model
 
@@ -170,15 +170,15 @@ Use $\tau>0$ for temperature here, reserving $T$ for sequence length, and let $\
 $$
 r_j=\frac{\mathbf1\{j\in K\}e^{z_j/\tau}}
 {\sum_{v\in K}e^{z_v/\tau}}.
-$$
+$$ (eq-top-k)
 
-Sort these probabilities as $r_{(1)}\ge r_{(2)}\ge\cdots$. For nucleus mass $\rho\in(0,1]$, keep the shortest prefix $S$ ending at $m^*=\min\{m:\sum_{j=1}^{m}r_{(j)}\ge\rho\}$. The final sampling law is
+Sort the probabilities from Equation {eq}`eq-top-k` as $r_{(1)}\ge r_{(2)}\ge\cdots$. For nucleus mass $\rho\in(0,1]$, keep the shortest prefix $S$ ending at $m^*=\min\{m:\sum_{j=1}^{m}r_{(j)}\ge\rho\}$. The final sampling law is
 
 $$
 q_j=\frac{r_j\mathbf1\{j\in S\}}{\sum_{v\in S}r_v}.
-$$
+$$ (eq-nucleus)
 
-This includes the token that first reaches the threshold, exactly as `cumsum - sorted_p` does below. The denominator uses the distribution **after** top-k, so changing filter order changes $q$. A fixed tie-breaking rule is needed at equal scores. The resulting sequence law is the product of these modified conditionals until the end token or length limit; its log likelihood is generally different from the original model's test likelihood. Greedy selection takes an argmax instead of drawing from $q$.
+The set $S$ in Equation {eq}`eq-nucleus` includes the token that first reaches the threshold, exactly as `cumsum - sorted_p` does below. The denominator uses the distribution **after** top-k, so changing filter order changes $q$. A fixed tie-breaking rule is needed at equal scores. The resulting sequence law is the product of these modified conditionals until the end token or length limit; its log likelihood is generally different from the original model's test likelihood. Greedy selection takes an argmax instead of drawing from $q$.
 
 ```{code-cell} python
 def decoding_probabilities(logits, temperature=1.0, top_k=None, top_p=1.0):

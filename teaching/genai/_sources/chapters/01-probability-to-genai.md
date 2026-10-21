@@ -47,9 +47,9 @@ $$
 \widehat\theta\in\operatorname*{arg\min}_{\theta\in\Theta}
 \left\{-\frac1N\sum_{i=1}^N\log p_\theta(X_i)\right\},
 \qquad \widetilde X\mid D\sim P_{\widehat\theta(D)}.
-$$
+$$ (eq-fit-generate)
 
-Here $\widetilde X$ is a new **model-generated** draw; it is not automatically a new draw from $P_0$. With a prompt $c$, replace the sampling law by $p_{\widehat\theta}(y\mid c)$. A Bayesian posterior predictive instead averages $p_\theta(y\mid c)$ over $p(\theta\mid D)$. That integration represents parameter uncertainty; drawing many times at one fitted parameter does not.
+In Equation {eq}`eq-fit-generate`, $\widetilde X$ is a new **model-generated** draw; it is not automatically a new draw from $P_0$. With a prompt $c$, replace the sampling law by $p_{\widehat\theta}(y\mid c)$. A Bayesian posterior predictive instead averages $p_\theta(y\mid c)$ over $p(\theta\mid D)$. That integration represents parameter uncertainty; drawing many times at one fitted parameter does not.
 
 ### A small vocabulary
 
@@ -176,9 +176,9 @@ $$
 L(p)=\prod_{i=1}^{N}p_{Y_i}=\prod_{j=1}^{K}p_j^{n_j},
 \qquad
 \ell(p)=\sum_{j=1}^{K}n_j\log p_j.
-$$
+$$ (eq-categorical-likelihood)
 
-Maximize this expression subject to $p_j\geq0$ and $\sum_jp_j=1$. For positive counts, a Lagrange multiplier gives
+Maximize the log likelihood in Equation {eq}`eq-categorical-likelihood` subject to $p_j\geq0$ and $\sum_jp_j=1$. For positive counts, a Lagrange multiplier gives
 
 $$
 \frac{\partial}{\partial p_j}\left[\sum_k n_k\log p_k+
@@ -212,11 +212,11 @@ To evaluate a probability assignment $q$, score each observed outcome by $-\log 
 
 $$
 \widehat R(q)=-\frac1n\sum_{i=1}^n\log q_{Y_i}.
-$$
+$$ (eq-log-loss)
 
 This is empirical cross-entropy, or average negative log likelihood. With natural logarithms, the unit is **nats per observation**. Maximizing training likelihood is equivalent to minimizing training log loss. The important change for evaluation is to use observations that did not determine the fitted model or its tuning choices.
 
-Here is a reusable function:
+The following function implements Equation {eq}`eq-log-loss` by looking up each observed category, taking its negative log probability, and averaging:
 
 ```{code-cell} python
 def mean_log_loss(probabilities, observed_ids):
@@ -246,18 +246,18 @@ For a true categorical distribution $p_0$ and a candidate $q$ with positive mass
 $$
 \mathbb E_{p_0}[-\log q(Y)]
 =H(p_0)+D_{\mathrm{KL}}(p_0\Vert q).
-$$
+$$ (eq-cross-entropy-kl)
 
 Thus the population expected loss is minimized at $q=p_0$. This statement concerns the probability target and the evaluation population. It does not imply that a low-loss language model answers factual questions accurately: the outcome being predicted is an observed token, not a truth label.
 
-In that identity, entropy and KL divergence mean
+In Equation {eq}`eq-cross-entropy-kl`, entropy and KL divergence mean
 
 $$
 H(p_0)=-\sum_j p_{0j}\log p_{0j},\qquad
 D_{\mathrm{KL}}(p_0\Vert q)=\sum_{j:p_{0j}>0}p_{0j}\log\frac{p_{0j}}{q_j}.
-$$
+$$ (eq-entropy-kl)
 
-Use $0\log0=0$ by continuity. If $p_{0j}>0$ but $q_j=0$, the KL divergence and expected log loss are infinite. KL is nonnegative but generally asymmetric; it is not a distance metric. These definitions recur in variational inference, adaptation, and evaluation.
+Use $0\log0=0$ by continuity. If $p_{0j}>0$ but $q_j=0$, the KL divergence and expected log loss are infinite. KL is nonnegative but generally asymmetric; it is not a distance metric. The KL definition in Equation {eq}`eq-entropy-kl` also supplies the regularization term in the VAE bound, Equation {eq}`eq-elbo` in Chapter 7.
 
 **Perplexity** is $\exp(\widehat R)$ when natural logs are used. A uniform distribution on $K$ outcomes has perplexity $K$. General perplexity is an effective uncertainty scale, not a literal count of equally likely words. Comparisons require compatible tokenization, vocabulary conventions, datasets, and averaging rules; a word-level score and a subword score are not directly interchangeable.
 
@@ -269,9 +269,9 @@ A simple alternative is
 
 $$
 \widetilde p_j=\frac{n_j+\alpha}{N+K\alpha},\qquad\alpha>0.
-$$
+$$ (eq-smoothing)
 
-Under a symmetric $\operatorname{Dirichlet}(\alpha,\ldots,\alpha)$ prior and a multinomial model, this is both the posterior mean of $p_j$ and the one-step posterior predictive probability. It is generally **not the posterior mode**. It is also a shrinkage estimate:
+Under a symmetric $\operatorname{Dirichlet}(\alpha,\ldots,\alpha)$ prior and a multinomial model, Equation {eq}`eq-smoothing` is both the posterior mean of $p_j$ and the one-step posterior predictive probability. It is generally **not the posterior mode**. It is also a shrinkage estimate:
 
 $$
 \widetilde p_j=\frac{N}{N+K\alpha}\widehat p_j+
@@ -348,7 +348,7 @@ Many generation interfaces offer a **temperature** parameter. For finite logits 
 
 $$
 q_T(j)=\frac{\exp(z_j/T)}{\sum_k\exp(z_k/T)}.
-$$
+$$ (eq-temperature)
 
 If $z_j=\log p_j$ with all $p_j>0$, then $q_T(j)\propto p_j^{1/T}$. At $T=1$ we recover $p$. Smaller $T$ concentrates mass on the largest probabilities. As $T\to\infty$, the distribution approaches uniformity over this finite support. As $T\downarrow0$, mass concentrates on maximizers; ties require care. Greedy decoding chooses a maximizer directly and is a distinct algorithm.
 
@@ -398,9 +398,9 @@ Independent token sampling discards order. For a sequence $x_1,\ldots,x_T$, the 
 
 $$
 p_\theta(x_{1:T})=\prod_{t=1}^{T}p_\theta(x_t\mid x_{<t}).
-$$
+$$ (eq-chain-rule)
 
-The chain rule is an identity; it does not assume a Markov process. A **bigram model** adds the approximation
+The chain rule in Equation {eq}`eq-chain-rule` is an identity; it does not assume a Markov process. A **bigram model** adds the approximation
 
 $$
 p_\theta(x_t\mid x_{<t})=p_\theta(x_t\mid x_{t-1}).
@@ -625,14 +625,14 @@ $$
 \widehat\mu_M-\mu_0
 =\underbrace{\widehat\mu_M-\mu_{\widehat\theta}}_{\text{Monte Carlo error}}
 +\underbrace{\mu_{\widehat\theta}-\mu_0}_{\text{fitting and model error}},
-$$
+$$ (eq-simulation-error)
 
 $$
 \operatorname{Var}(\widehat\mu_M\mid D)
 =\frac{\operatorname{Var}_{P_{\widehat\theta}}\{g(X)\}}{M}.
-$$
+$$ (eq-mc-variance)
 
-The variance identity assumes a finite second moment and independent draws conditional on the fitted model. For a category frequency, take $g(x)=\mathbf1\{x=j\}$. Increasing `size` in a sampling call reduces the first error term; collecting better training data or improving the model addresses the second. This is the mathematical reason for the separate simulation and evaluation lanes in the framework.
+Equation {eq}`eq-mc-variance` assumes a finite second moment and independent draws conditional on the fitted model. It quantifies only the first term of Equation {eq}`eq-simulation-error`. For a category frequency, take $g(x)=\mathbf1\{x=j\}$. Increasing `size` in a sampling call reduces the first error term; collecting better training data or improving the model addresses the second. This is the mathematical reason for the separate simulation and evaluation lanes in the framework.
 
 For each training size, fit a smoothed probability vector and calculate its exact KL divergence from the true vector. The repeated fits represent sampling variation in estimation. A separate large generated sample then approximates one fitted vector, not the unknown truth.
 
@@ -687,7 +687,7 @@ $$
 \frac{q_T(i)}{q_T(j)}=\left(\frac{p_i}{p_j}\right)^{1/T}.
 $$
 
-Compute the ratio when $p_i=0.6$, $p_j=0.3$, and $T\in\{0.5,1,2\}$. What happens if the base probabilities are tied? Does the ratio tell you whether either token is true?
+Use the temperature distribution in Equation {eq}`eq-temperature` to compute the ratio when $p_i=0.6$, $p_j=0.3$, and $T\in\{0.5,1,2\}$. What happens if the base probabilities are tied? Does the ratio tell you whether either token is true?
 
 ### Exercise 5 · Audit one transition row
 

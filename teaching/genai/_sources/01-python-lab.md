@@ -39,7 +39,7 @@ $$
 \widehat L(p)=-\frac{1}{n}\sum_{i=1}^n\log p_{y_i}.
 $$
 
-Here the observations are token indices. The array `p[observed]` looks up the predicted probability of each observed token.
+This is the empirical log loss in Equation {eq}`eq-log-loss` from Chapter 1. Here the observations are token indices. The array `p[observed]` looks up the predicted probability of each observed token.
 
 ```{code-cell} python
 observed = np.array([0, 0, 1, 0, 2, 1])
@@ -60,7 +60,7 @@ $$
 p_T(j)=\frac{\exp(z_j/T)}{\sum_k\exp(z_k/T)}.
 $$
 
-Taking $z_j=\log p_j$ recovers the original distribution at $T=1$. Lower temperatures concentrate probability on higher-scoring tokens. Higher temperatures move this finite-vocabulary distribution toward uniformity. Neither operation establishes that a generated statement is true.
+This is the temperature transformation in Equation {eq}`eq-temperature` from Chapter 1. Taking $z_j=\log p_j$ recovers the original distribution at $T=1$. Lower temperatures concentrate probability on higher-scoring tokens. Higher temperatures move this finite-vocabulary distribution toward uniformity. Neither operation establishes that a generated statement is true.
 
 ```{code-cell} python
 def softmax(logits, temperature=1.0):

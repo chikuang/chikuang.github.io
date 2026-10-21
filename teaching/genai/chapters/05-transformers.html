@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=e2d75153" />
@@ -445,38 +445,38 @@
 <section id="residual-paths-and-layer-normalization">
 <h2>5.2 · Residual paths and layer normalization<a class="headerlink" href="#residual-paths-and-layer-normalization" title="Link to this heading">#</a></h2>
 <p>We use a pre-normalization block:</p>
-<div class="math notranslate nohighlight">
-\[
+<div class="math notranslate nohighlight" id="equation-eq-decoder-block">
+<span class="eqno">(20)<a class="headerlink" href="#equation-eq-decoder-block" title="Link to this equation">#</a></span>\[
 U=X+\operatorname{Attention}(\operatorname{LN}(X)),\qquad
 H=U+\operatorname{FFN}(\operatorname{LN}(U)).
 \]</div>
-<p>A residual connection adds an update to an existing representation. It also creates a direct path for gradients. Layer normalization standardizes each position’s feature vector, then applies learned scale and shift parameters. It does not estimate a mean across the observations in the batch. In particular, it does not mix future positions into earlier ones.</p>
+<p>Each residual connection in Equation <a class="reference internal" href="#equation-eq-decoder-block">(20)</a> adds an update to an existing representation. Its attention sublayer uses the masked weights in Equation <a class="reference internal" href="04-attention.html#equation-eq-attention">(18)</a> and the head combination in Equation <a class="reference internal" href="04-attention.html#equation-eq-multihead">(19)</a>. It also creates a direct path for gradients. Layer normalization standardizes each position’s feature vector, then applies learned scale and shift parameters. It does not estimate a mean across the observations in the batch. In particular, it does not mix future positions into earlier ones.</p>
 <p>The feed-forward network applies the <strong>same</strong> nonlinear function to each position independently, typically expanding the width and then projecting back. It introduces nonlinear feature interactions; attention is the component that communicates across positions. Pre-normalization is a teaching architecture choice and differs in detail from the post-normalization arrangement in the original transformer paper.</p>
 <section id="expand-the-two-sublayers">
 <h3>Expand the two sublayers<a class="headerlink" href="#expand-the-two-sublayers" title="Link to this heading">#</a></h3>
 <p>For a single position’s row vector <span class="math notranslate nohighlight">\(x\in\mathbb R^d\)</span>, layer normalization is</p>
-<div class="math notranslate nohighlight">
-\[
+<div class="math notranslate nohighlight" id="equation-eq-layernorm">
+<span class="eqno">(21)<a class="headerlink" href="#equation-eq-layernorm" title="Link to this equation">#</a></span>\[
 \mu(x)=\frac1d\sum_{j=1}^d x_j,\quad
 v(x)=\frac1d\sum_{j=1}^d(x_j-\mu(x))^2,\quad
 \operatorname{LN}(x)_j=\gamma_j\frac{x_j-\mu(x)}{\sqrt{v(x)+\varepsilon}}+\beta_j.
 \]</div>
 <p><span class="math notranslate nohighlight">\(\gamma,\beta\in\mathbb R^d\)</span> are learned, and <span class="math notranslate nohighlight">\(\varepsilon&gt;0\)</span> stabilizes division. The variance uses denominator <span class="math notranslate nohighlight">\(d\)</span>, not <span class="math notranslate nohighlight">\(d-1\)</span>: this is a feature transformation, not an unbiased population-variance estimator. Each normalization layer has its own scale and shift. Batch and time axes remain separate.</p>
 <p>With rows representing positions, our positionwise network is</p>
-<div class="math notranslate nohighlight">
-\[
+<div class="math notranslate nohighlight" id="equation-eq-ffn">
+<span class="eqno">(22)<a class="headerlink" href="#equation-eq-ffn" title="Link to this equation">#</a></span>\[
 \operatorname{FFN}(X)=\operatorname{GELU}(XW_1+\mathbf1 b_1^\top)W_2
 +\mathbf1 b_2^\top,
 \]</div>
-<p>where <span class="math notranslate nohighlight">\(W_1\in\mathbb R^{d\times d_{ff}}\)</span>, <span class="math notranslate nohighlight">\(W_2\in\mathbb R^{d_{ff}\times d}\)</span>, <span class="math notranslate nohighlight">\(b_1\in\mathbb R^{d_{ff}}\)</span>, <span class="math notranslate nohighlight">\(b_2\in\mathbb R^d\)</span>, and <span class="math notranslate nohighlight">\(d_{ff}=4d\)</span> here. GELU acts on entries: <span class="math notranslate nohighlight">\(\operatorname{GELU}(u)=u\Phi(u)\)</span>, where <span class="math notranslate nohighlight">\(\Phi\)</span> is the standard normal CDF. The two residual updates above both return an <span class="math notranslate nohighlight">\(n\times d\)</span> matrix, so their additions are well-defined.</p>
+<p>where <span class="math notranslate nohighlight">\(W_1\in\mathbb R^{d\times d_{ff}}\)</span>, <span class="math notranslate nohighlight">\(W_2\in\mathbb R^{d_{ff}\times d}\)</span>, <span class="math notranslate nohighlight">\(b_1\in\mathbb R^{d_{ff}}\)</span>, <span class="math notranslate nohighlight">\(b_2\in\mathbb R^d\)</span>, and <span class="math notranslate nohighlight">\(d_{ff}=4d\)</span> here. GELU acts on entries: <span class="math notranslate nohighlight">\(\operatorname{GELU}(u)=u\Phi(u)\)</span>, where <span class="math notranslate nohighlight">\(\Phi\)</span> is the standard normal CDF. Equations <a class="reference internal" href="#equation-eq-layernorm">(21)</a> and <a class="reference internal" href="#equation-eq-ffn">(22)</a> preserve the dimensions required by the residual additions in Equation <a class="reference internal" href="#equation-eq-decoder-block">(20)</a>.</p>
 <p>After the last block, the vocabulary head gives</p>
-<div class="math notranslate nohighlight">
-\[
+<div class="math notranslate nohighlight" id="equation-eq-vocabulary-head">
+<span class="eqno">(23)<a class="headerlink" href="#equation-eq-vocabulary-head" title="Link to this equation">#</a></span>\[
 Z=\operatorname{LN}(H)W_{\mathrm{vocab}}+\mathbf1 b_{\mathrm{vocab}}^\top,
 \qquad p_\theta(x_{t+1}=j\mid x_{\le t})=
 \frac{e^{Z_{tj}}}{\sum_{v=1}^{V}e^{Z_{tv}}}.
 \]</div>
-<p><span class="math notranslate nohighlight">\(W_{\mathrm{vocab}}\in\mathbb R^{d\times V}\)</span> and <span class="math notranslate nohighlight">\(Z\in\mathbb R^{n\times V}\)</span> for one sequence. The batch axis adds a leading dimension to every expression. <code class="docutils literal notranslate"><span class="pre">final_norm</span></code> and <code class="docutils literal notranslate"><span class="pre">head</span></code> implement this last equation; using the final-position row during generation is a selection of logits, not another learned layer.</p>
+<p><span class="math notranslate nohighlight">\(W_{\mathrm{vocab}}\in\mathbb R^{d\times V}\)</span> and <span class="math notranslate nohighlight">\(Z\in\mathbb R^{n\times V}\)</span> for one sequence. The batch axis adds a leading dimension to every expression. <code class="docutils literal notranslate"><span class="pre">final_norm</span></code> and <code class="docutils literal notranslate"><span class="pre">head</span></code> implement Equation <a class="reference internal" href="#equation-eq-vocabulary-head">(23)</a>; using the final-position row during generation is a selection of logits, not another learned layer.</p>
 </section>
 </section>
 <section id="implement-a-small-decoder-block">

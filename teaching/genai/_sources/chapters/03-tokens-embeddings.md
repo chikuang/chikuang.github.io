@@ -131,9 +131,9 @@ Let $C_{ij}$ count how often token $j$ occurs within a window of token $i$. Posi
 $$
 M_{ij}=\max\left\{0,\log\frac{C_{ij}N}{C_{i+}C_{+j}}\right\},
 \qquad N=\sum_{ij}C_{ij}.
-$$
+$$ (eq-ppmi)
 
-Zero-count cells receive zero in this illustrative PPMI matrix. Rare co-occurrences can have large values, so smoothing and frequency thresholds matter in larger applications. We factor $M\approx U_dS_dV_d^\top$ and use $U_dS_d^{1/2}$ as an embedding. This is a distributional matrix-factorization example, not a pretrained language model.
+Zero-count cells receive zero in this illustrative PPMI matrix. Rare co-occurrences can have large values, so smoothing and frequency thresholds matter in larger applications. We factor the PPMI matrix from Equation {eq}`eq-ppmi` as $M\approx U_dS_dV_d^\top$ and use $U_dS_d^{1/2}$ as an embedding. This is a distributional matrix-factorization example, not a pretrained language model.
 
 ```{code-cell} python
 C = np.zeros((len(vocab), len(vocab)))
@@ -182,17 +182,17 @@ For the full SVD $M=U\Sigma V^\top$, retaining the $d$ largest singular values g
 $$
 M_d\in\operatorname*{arg\min}_{\operatorname{rank}(A)\le d}
 \|M-A\|_F^2,\qquad M_d=U_d\Sigma_dV_d^\top.
-$$
+$$ (eq-low-rank-embedding)
 
-The Frobenius norm sums squared matrix entries. This is a low-rank approximation to **PPMI**, not maximum likelihood for a language model. The row embedding $E=U_d\Sigma_d^{1/2}$ and context embedding $F=V_d\Sigma_d^{1/2}$ satisfy $EF^\top=M_d$; in general $EE^\top\ne M_d$.
+The Frobenius norm sums squared matrix entries. Equation {eq}`eq-low-rank-embedding` is a low-rank approximation to **PPMI**, not maximum likelihood for a language model. The row embedding $E=U_d\Sigma_d^{1/2}$ and context embedding $F=V_d\Sigma_d^{1/2}$ satisfy $EF^\top=M_d$; in general $EE^\top\ne M_d$.
 
 For two nonzero row vectors $a,b\in\mathbb R^d$, the neighbor score is
 
 $$
 \operatorname{cos}(a,b)=\frac{ab^\top}{\sqrt{aa^\top}\sqrt{bb^\top}}\in[-1,1].
-$$
+$$ (eq-cosine)
 
-Unit-normalizing vectors turns cosine into a dot product. A zero vector has no mathematically defined cosine; the code protects its normalization numerically, but the resulting zero row contains no directional information. Neighbors of such a row should not be interpreted as semantic evidence.
+Unit-normalizing the vectors in Equation {eq}`eq-cosine` turns cosine into a dot product. The lexical RAG retriever in Chapter 10 uses this same similarity in Equation {eq}`eq-tfidf`. A zero vector has no mathematically defined cosine; the code protects its normalization numerically, but the resulting zero row contains no directional information. Neighbors of such a row should not be interpreted as semantic evidence.
 
 ## 3.5 · Identifiability and the loss of order
 

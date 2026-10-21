@@ -37,9 +37,9 @@ Let $H_t$ be the observable history through step $t$. A policy $\pi(a\mid H_t)$ 
 
 $$
 \mathbb E\left[U(\text{final answer},Y)-\lambda\sum_{t=1}^{\tau}c(a_t)\right],
-$$
+$$ (eq-agent-utility)
 
-where $\tau$ is a stopping time bounded by the implementation. A tool call is worthwhile only if its expected benefit justifies its cost. If one known sequence of operations suffices, a fixed workflow may be easier to validate than adaptive action selection.
+where $\tau$ is a stopping time bounded by the implementation. Under Equation {eq}`eq-agent-utility`, a tool call is worthwhile only if its expected benefit justifies its cost. If one known sequence of operations suffices, a fixed workflow may be easier to validate than adaptive action selection.
 
 For this lab, the task is to summarize a named in-memory dataset. The first tool retrieves its values. The second calculates a requested summary. The policy reacts to observations rather than evaluating arbitrary code supplied by text.
 
@@ -50,9 +50,9 @@ Let $H_0=q$ contain the request. At decision $t$, an action proposal $A_t\sim\pi
 $$
 p_\pi(a_{1:T},o_{1:T}\mid q)=\prod_{t=1}^{T}
 \pi(a_t\mid h_{t-1})K(o_t\mid h_{t-1},a_t).
-$$
+$$ (eq-trajectory-law)
 
-For continuous observations, interpret the factors as conditional densities or kernels. No Markov assumption about the latest observation is needed. The kernel includes validation errors and tool failures, not just successful numeric results. A deterministic policy is the special case assigning probability one to its chosen action.
+For continuous observations, interpret the factors as conditional densities or kernels. No Markov assumption about the latest observation is needed. The kernel in Equation {eq}`eq-trajectory-law` includes validation errors and tool failures, not just successful numeric results. A deterministic policy is the special case assigning probability one to its chosen action.
 
 Include `finish` among the decisions and make a finished history absorbing. A bounded stop rule $\tau\le T_{\max}$ must depend only on information available by the stopping decision: $\{\tau\le t\}$ is determined by the observed history. This prevents a policy from claiming it stopped because of a future outcome. In the lab, `max_steps` counts decisions, including the final `finish`; tool calls are only a subset of those decisions. Set the tool-call cost of `finish` to zero when comparing call budgets.
 
@@ -117,9 +117,9 @@ $$
 \operatorname{Tool}(a),&a\in\mathcal A(H),\\
 \operatorname{Error}(a,H),&a\notin\mathcal A(H).
 \end{cases}
-$$
+$$ (eq-execution-gate)
 
-Membership is checked by the dispatcher and loop, not inferred from how confidently the policy proposes $a$. Error results also enter the trace and can change the next decision. In this lab, `dispatch` validates schemas and numeric domains while `run_agent` enforces the decision budget. A memory compression $M_t=m(H_t)$ can replace full history only at a possible information cost; a sufficient summary would preserve the relevant conditional laws of future observations and utility for every allowed action.
+The gate in Equation {eq}`eq-execution-gate` is checked by the dispatcher and loop, not inferred from how confidently the policy proposes $a$. Its error branch is also an observation under Equation {eq}`eq-trajectory-law`. Error results also enter the trace and can change the next decision. In this lab, `dispatch` validates schemas and numeric domains while `run_agent` enforces the decision budget. A memory compression $M_t=m(H_t)$ can replace full history only at a possible information cost; a sufficient summary would preserve the relevant conditional laws of future observations and utility for every allowed action.
 
 ## 12.3 · Keep policy proposals separate from execution
 

@@ -50,9 +50,9 @@ For instruction/response pairs $(x_i,y_i)$, write $y_i=(y_{i1},\ldots,y_{iT_i})$
 $$
 L_{\mathrm{SFT}}(\theta)=-\frac1{\sum_iT_i}
 \sum_i\sum_{t=1}^{T_i}\log\pi_\theta(y_{it}\mid x_i,y_{i,<t}).
-$$
+$$ (eq-sft)
 
-The instruction is conditioning information; its tokens do not contribute targets in this convention. Padding is excluded too. A per-example mean would first divide each response loss by $T_i$ and then average examples, changing the weighting. State the convention before comparing runs. LoRA below restricts which parameters can change; it can use this same loss in a language model, whereas our runnable example uses regression MSE.
+The instruction is conditioning information; its tokens do not contribute targets in this convention. Padding is excluded too. A per-example mean would first divide each response loss by $T_i$ and then average examples, changing the weighting. State the convention before comparing runs. LoRA below restricts which parameters can change; it can use Equation {eq}`eq-sft` in a language model, whereas our runnable example uses regression MSE.
 
 ## 9.2 · Low-rank adaptation as a constrained update
 
@@ -61,9 +61,9 @@ Use row-vector inputs and a weight matrix $W_0\in\mathbb R^{d_{in}\times d_{out}
 $$
 W=W_0+sAB,\quad A\in\mathbb R^{d_{in}\times r},\quad
 B\in\mathbb R^{r\times d_{out}}.
-$$
+$$ (eq-lora)
 
-The update has rank at most $r$ and $r(d_{in}+d_{out})$ trainable entries, compared with $d_{in}d_{out}$ for a full update. The scale $s$ is explicit; conventions often express it as a hyperparameter divided by rank. The restriction can reduce variance or prevent fitting a necessary high-rank change. It is not guaranteed to improve accuracy.
+The update in Equation {eq}`eq-lora` has rank at most $r$ and $r(d_{in}+d_{out})$ trainable entries, compared with $d_{in}d_{out}$ for a full update. The scale $s$ is explicit; conventions often express it as a hyperparameter divided by rank. The restriction can reduce variance or prevent fitting a necessary high-rank change. It is not guaranteed to improve accuracy.
 
 Initialize one factor randomly and the other at zero. If **both** factors start at zero, gradients of their product are zero and the update cannot begin learning.
 
@@ -133,9 +133,9 @@ For $\Delta=sAB$ and $G=\partial L/\partial\Delta$,
 
 $$
 \nabla_A L=sGB^\top,\qquad \nabla_B L=sA^\top G.
-$$
+$$ (eq-lora-gradients)
 
-At $B=0$ and random nonzero $A$, the initial update is zero, but $\nabla_B L$ can be nonzero. Once $B$ moves, $A$ can also receive a gradient. Initializing **both** factors at zero blocks both gradients. This explains the initialization choice without treating low rank as a different prediction objective.
+Equation {eq}`eq-lora-gradients` shows why, at $B=0$ and random nonzero $A$, the initial update is zero, but $\nabla_B L$ can be nonzero. Once $B$ moves, $A$ can also receive a gradient. Initializing **both** factors at zero blocks both gradients. This explains the initialization choice without treating low rank as a different prediction objective.
 
 ## 9.3 · Inspect the fitted update, not only parameter counts
 
@@ -160,7 +160,7 @@ For a prompt $x$, suppose a latent utility function $r(x,y)$ determines pairwise
 
 $$
 P(y_a\succ y_b\mid x)=\sigma\{r(x,y_a)-r(x,y_b)\}.
-$$
+$$ (eq-bradley-terry)
 
 Adding a constant to all utilities for a prompt leaves these probabilities unchanged. The model describes a population of preference observations, not an objective notion of truth. Annotator selection, ambiguous instructions, response length, presentation order, and disagreement all affect the labels.
 
@@ -173,28 +173,28 @@ For fixed prompt $x$ and $\beta>0$, suppose $\pi_{\mathrm{ref}}$ has support on 
 $$
 Z(x)=\sum_y\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta},\qquad
 \pi^*(y\mid x)=\frac{\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}}{Z(x)}.
-$$
+$$ (eq-optimal-policy)
 
-Rearranging yields
+Rearranging Equation {eq}`eq-optimal-policy` yields
 
 $$
 r(x,y)=\beta\log\frac{\pi^*(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}
 +\beta\log Z(x).
-$$
+$$ (eq-reward-ratio)
 
 The prompt-specific constant cancels when comparing two responses. Substituting a trainable $\pi_\theta$ for $\pi^*$ produces the paired logistic objective below, following [DPO](https://arxiv.org/abs/2305.18290). Here $\beta$ controls the reference penalty, not the sampling temperature. The closed-form optimum assumes unrestricted policies; a finite neural family and noisy optimization need not attain it.
 
 ## 9.5 · A tiny direct-preference objective
 
-Substituting the log policy ratio into the paired-comparison likelihood gives the DPO loss for a preferred response $y_w$ and a dispreferred response $y_l$:
+Substituting the reward representation in Equation {eq}`eq-reward-ratio` into the Bradley–Terry model in Equation {eq}`eq-bradley-terry`, then replacing $\pi^*$ by $\pi_\theta$, gives the DPO loss for a preferred response $y_w$ and a dispreferred response $y_l$:
 
 $$
 -\log\sigma\left(\beta\left[
 \log\frac{\pi_\theta(y_w\mid x)}{\pi_{ref}(y_w\mid x)}
 -\log\frac{\pi_\theta(y_l\mid x)}{\pi_{ref}(y_l\mid x)}\right]\right).
-$$
+$$ (eq-dpo)
 
-We use one prompt with three possible responses, a uniform reference, and simulated noisy preferences. For language models, each response log probability is a sum of token log probabilities, with careful handling of prompt masking and sequence length. The discrete example makes the reference term and preference direction easy to verify.
+The code optimizes Equation {eq}`eq-dpo` using one prompt with three possible responses, a uniform reference, and simulated noisy preferences. For language models, each response log probability is a sum of token log probabilities, with careful handling of prompt masking and sequence length. The discrete example makes the reference term and preference direction easy to verify.
 
 ```{code-cell} python
 rng = np.random.default_rng(90)

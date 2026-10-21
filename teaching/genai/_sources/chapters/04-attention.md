@@ -57,9 +57,9 @@ A_{ij}=\begin{cases}
 0,&j\notin\mathcal J_i,
 \end{cases}
 \qquad o_i=\sum_{j\in\mathcal J_i}A_{ij}v_j.
-$$
+$$ (eq-attention)
 
-Thus $A\in\mathbb R^{n_q\times n_k}$ and $O\in\mathbb R^{n_q\times d_v}$. Each row sums to one **over keys for that query**, not over feature coordinates. Causal self-attention sets $\mathcal J_i=\{1,\ldots,i\}$, with padding exclusions if needed. In matrix form this is $A=\operatorname{softmax}_{\mathrm{rows}}(QK^\top/\sqrt{d_k}+M)$, where allowed entries of $M$ are zero and forbidden entries are $-\infty$. An all-masked row has no valid probability distribution.
+Thus $A\in\mathbb R^{n_q\times n_k}$ and $O\in\mathbb R^{n_q\times d_v}$. Equation {eq}`eq-attention` normalizes each row **over keys for that query**, not over feature coordinates. Causal self-attention sets $\mathcal J_i=\{1,\ldots,i\}$, with padding exclusions if needed. In matrix form this is $A=\operatorname{softmax}_{\mathrm{rows}}(QK^\top/\sqrt{d_k}+M)$, where allowed entries of $M$ are zero and forbidden entries are $-\infty$. An all-masked row has no valid probability distribution.
 
 ## 4.2 · Work through three keys
 
@@ -185,9 +185,9 @@ $$
 
 $$
 \operatorname{MHA}(X)=\operatorname{Concat}(O^{(1)},\ldots,O^{(h)})W_O.
-$$
+$$ (eq-multihead)
 
-Here $W_Q^{(r)},W_K^{(r)}\in\mathbb R^{d\times d_k}$, $W_V^{(r)}\in\mathbb R^{d\times d_v}$, and $W_O\in\mathbb R^{hd_v\times d}$. Concatenation joins feature columns, not token rows. The examples set $d_k=d_v=d/h$; the final projection restores width $d$. Biases are omitted in this notation but included in the next chapter's linear layers. Cross-attention replaces the key/value input by a separate observed sequence and can have $n_q\ne n_k$.
+Here $W_Q^{(r)},W_K^{(r)}\in\mathbb R^{d\times d_k}$, $W_V^{(r)}\in\mathbb R^{d\times d_v}$, and $W_O\in\mathbb R^{hd_v\times d}$. In Equation {eq}`eq-multihead`, concatenation joins feature columns, not token rows. The examples set $d_k=d_v=d/h$; the final projection restores width $d$. Biases are omitted in this notation but included in the next chapter's linear layers. Cross-attention replaces the key/value input by a separate observed sequence and can have $n_q\ne n_k$.
 
 ## 4.7 · What attention weights do not establish
 

@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=e2d75153" />
@@ -461,30 +461,30 @@ Keep a column dimension: (3, 1)
 \sigma(u)=\frac{1}{1+e^{-u}}.
 \]</div>
 <p>The mean negative log likelihood is</p>
-<div class="math notranslate nohighlight">
-\[
+<div class="math notranslate nohighlight" id="equation-eq-logistic-loss">
+<span class="eqno">(11)<a class="headerlink" href="#equation-eq-logistic-loss" title="Link to this equation">#</a></span>\[
 L(w,b)=\frac1n\sum_i\{\log(1+e^{\eta_i})-y_i\eta_i\}.
 \]</div>
-<p>Its gradient in <span class="math notranslate nohighlight">\(w\)</span> is <span class="math notranslate nohighlight">\(X^\top(p-y)/n\)</span>. A hidden layer replaces the fixed features with <span class="math notranslate nohighlight">\(h(x)=\tanh(W_1x+b_1)\)</span> and uses <span class="math notranslate nohighlight">\(\eta=w_2^\top h(x)+b_2\)</span>. Both layers are estimated jointly. The resulting likelihood is familiar; the feature map and nonconvex optimization are the new parts. A deeper model does not remove the need for a sampling model, a baseline, or independent evaluation.</p>
+<p>The gradient of Equation <a class="reference internal" href="#equation-eq-logistic-loss">(11)</a> in <span class="math notranslate nohighlight">\(w\)</span> is <span class="math notranslate nohighlight">\(X^\top(p-y)/n\)</span>. A hidden layer replaces the fixed features with <span class="math notranslate nohighlight">\(h(x)=\tanh(W_1x+b_1)\)</span> and uses <span class="math notranslate nohighlight">\(\eta=w_2^\top h(x)+b_2\)</span>. Both layers are estimated jointly. The resulting likelihood is familiar; the feature map and nonconvex optimization are the new parts. A deeper model does not remove the need for a sampling model, a baseline, or independent evaluation.</p>
 <p>We use <code class="docutils literal notranslate"><span class="pre">BCEWithLogitsLoss</span></code>, which accepts logits and implements a stable binary cross-entropy. Do <strong>not</strong> apply a sigmoid before passing predictions to this loss. Apply it when you need probabilities for interpretation.</p>
 <section id="forward-and-backward-passes-with-dimensions">
 <h3>Forward and backward passes with dimensions<a class="headerlink" href="#forward-and-backward-passes-with-dimensions" title="Link to this heading">#</a></h3>
 <p>For a minibatch of <span class="math notranslate nohighlight">\(m\)</span> rows, let <span class="math notranslate nohighlight">\(X\in\mathbb R^{m\times p}\)</span>, <span class="math notranslate nohighlight">\(W_1\in\mathbb R^{p\times h}\)</span>, <span class="math notranslate nohighlight">\(b_1,w_2\in\mathbb R^h\)</span>, and <span class="math notranslate nohighlight">\(b_2\in\mathbb R\)</span>. The column-vector formula above becomes</p>
-<div class="math notranslate nohighlight">
-\[
+<div class="math notranslate nohighlight" id="equation-eq-neural-forward">
+<span class="eqno">(12)<a class="headerlink" href="#equation-eq-neural-forward" title="Link to this equation">#</a></span>\[
 A=XW_1+\mathbf1_m b_1^\top,\quad H=\tanh(A),\quad
 \eta=Hw_2+b_2\mathbf1_m,\quad \pi=\sigma(\eta).
 \]</div>
-<p>Here <span class="math notranslate nohighlight">\(\pi\in(0,1)^m\)</span> is the vector of predicted probabilities and <span class="math notranslate nohighlight">\(p\)</span> counts input features. With <span class="math notranslate nohighlight">\(\delta=(\pi-y)/m\)</span>, the chain rule gives the <strong>unregularized minibatch-loss</strong> gradients</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
+<p>Here <span class="math notranslate nohighlight">\(\pi\in(0,1)^m\)</span> is the vector of predicted probabilities and <span class="math notranslate nohighlight">\(p\)</span> counts input features. Differentiating the forward map in Equation <a class="reference internal" href="#equation-eq-neural-forward">(12)</a> with <span class="math notranslate nohighlight">\(\delta=(\pi-y)/m\)</span>, the chain rule gives the <strong>unregularized minibatch-loss</strong> gradients</p>
+<div class="math notranslate nohighlight" id="equation-eq-backprop">
+<span class="eqno">(13)<a class="headerlink" href="#equation-eq-backprop" title="Link to this equation">#</a></span>\[\begin{split}
 \begin{aligned}
 \nabla_{w_2}L&amp;=H^\top\delta,&amp;\quad \partial L/\partial b_2&amp;=\mathbf1_m^\top\delta,\\
 G&amp;=(\delta w_2^\top)\odot(1-H\odot H),&amp; \nabla_{W_1}L&amp;=X^\top G,\\
 \nabla_{b_1}L&amp;=G^\top\mathbf1_m.&amp;&amp;
 \end{aligned}
 \end{split}\]</div>
-<p><span class="math notranslate nohighlight">\(\odot\)</span> multiplies entries, and <span class="math notranslate nohighlight">\(G\)</span> has shape <span class="math notranslate nohighlight">\(m\times h\)</span>. The derivative <span class="math notranslate nohighlight">\(1-\tanh^2(A)\)</span> explains how a saturated hidden unit can transmit a small gradient. <code class="docutils literal notranslate"><span class="pre">nn.Linear(p,</span> <span class="pre">h)</span></code> stores the transpose of our <span class="math notranslate nohighlight">\(W_1\)</span>, with shape <code class="docutils literal notranslate"><span class="pre">(h,</span> <span class="pre">p)</span></code>; its forward calculation still implements this map. In the experiment <span class="math notranslate nohighlight">\(p=2\)</span> and <span class="math notranslate nohighlight">\(h=16\)</span>.</p>
+<p><span class="math notranslate nohighlight">\(\odot\)</span> multiplies entries, and <span class="math notranslate nohighlight">\(G\)</span> has shape <span class="math notranslate nohighlight">\(m\times h\)</span>. The derivative <span class="math notranslate nohighlight">\(1-\tanh^2(A)\)</span> in Equation <a class="reference internal" href="#equation-eq-backprop">(13)</a> explains how a saturated hidden unit can transmit a small gradient. <code class="docutils literal notranslate"><span class="pre">nn.Linear(p,</span> <span class="pre">h)</span></code> stores the transpose of our <span class="math notranslate nohighlight">\(W_1\)</span>, with shape <code class="docutils literal notranslate"><span class="pre">(h,</span> <span class="pre">p)</span></code>; its forward calculation still implements this map. In the experiment <span class="math notranslate nohighlight">\(p=2\)</span> and <span class="math notranslate nohighlight">\(h=16\)</span>.</p>
 </section>
 </section>
 <section id="check-automatic-differentiation-on-a-known-answer">
@@ -626,13 +626,13 @@ g_k=\frac1{|\mathcal B_k|}\sum_{i\in\mathcal B_k}
 \]</div>
 <p><span class="math notranslate nohighlight">\(\eta_k&gt;0\)</span> is a learning rate. Uniform sampling of a fresh minibatch gives an unbiased gradient of the empirical mean loss conditional on the current weights; successive batches sampled without replacement need not have that conditional property. The code uses Adam, which rescales gradients using running moments, and includes weight decay, so its <code class="docutils literal notranslate"><span class="pre">step()</span></code> is not exactly this plain update.</p>
 <p>For saved epoch checkpoints <span class="math notranslate nohighlight">\(\theta^{(1)},\ldots,\theta^{(E)}\)</span>, selection is</p>
-<div class="math notranslate nohighlight">
-\[
+<div class="math notranslate nohighlight" id="equation-eq-checkpoint">
+<span class="eqno">(14)<a class="headerlink" href="#equation-eq-checkpoint" title="Link to this equation">#</a></span>\[
 e^*\in\operatorname*{arg\min}_{1\le e\le E}
 \frac1{n_{\mathrm{val}}}\sum_{i\in\mathcal I_{\mathrm{val}}}
 \ell_i(\theta^{(e)}),\qquad \widehat\theta=\theta^{(e^*)}.
 \]</div>
-<p>The index set <span class="math notranslate nohighlight">\(\mathcal I_{\mathrm{val}}\)</span> is disjoint from training and test indices. This equation corresponds to <code class="docutils literal notranslate"><span class="pre">best_loss</span></code> and the copied <code class="docutils literal notranslate"><span class="pre">best_state</span></code>, not to <code class="docutils literal notranslate"><span class="pre">backward()</span></code>.</p>
+<p>The index set <span class="math notranslate nohighlight">\(\mathcal I_{\mathrm{val}}\)</span> is disjoint from training and test indices. Equation <a class="reference internal" href="#equation-eq-checkpoint">(14)</a> corresponds to <code class="docutils literal notranslate"><span class="pre">best_loss</span></code> and the copied <code class="docutils literal notranslate"><span class="pre">best_state</span></code>, not to <code class="docutils literal notranslate"><span class="pre">backward()</span></code>.</p>
 </section>
 </section>
 <section id="compare-with-a-constant-baseline-on-the-test-sample">

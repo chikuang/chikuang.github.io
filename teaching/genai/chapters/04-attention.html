@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/course.css?v=e2d75153" />
@@ -427,8 +427,8 @@ V\in\mathbb R^{n_k\times d_v}.
 <section id="write-the-weights-entry-by-entry">
 <h3>Write the weights entry by entry<a class="headerlink" href="#write-the-weights-entry-by-entry" title="Link to this heading">#</a></h3>
 <p>Let <span class="math notranslate nohighlight">\(\mathcal J_i\)</span> be the nonempty set of key positions available to query <span class="math notranslate nohighlight">\(i\)</span>. With <span class="math notranslate nohighlight">\(q_i,k_j\)</span> as rows of <span class="math notranslate nohighlight">\(Q,K\)</span> and <span class="math notranslate nohighlight">\(v_j\)</span> a row of <span class="math notranslate nohighlight">\(V\)</span>,</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
+<div class="math notranslate nohighlight" id="equation-eq-attention">
+<span class="eqno">(18)<a class="headerlink" href="#equation-eq-attention" title="Link to this equation">#</a></span>\[\begin{split}
 A_{ij}=\begin{cases}
 \displaystyle\frac{\exp(q_i k_j^\top/\sqrt{d_k})}
 {\sum_{\ell\in\mathcal J_i}\exp(q_i k_\ell^\top/\sqrt{d_k})},
@@ -437,7 +437,7 @@ A_{ij}=\begin{cases}
 \end{cases}
 \qquad o_i=\sum_{j\in\mathcal J_i}A_{ij}v_j.
 \end{split}\]</div>
-<p>Thus <span class="math notranslate nohighlight">\(A\in\mathbb R^{n_q\times n_k}\)</span> and <span class="math notranslate nohighlight">\(O\in\mathbb R^{n_q\times d_v}\)</span>. Each row sums to one <strong>over keys for that query</strong>, not over feature coordinates. Causal self-attention sets <span class="math notranslate nohighlight">\(\mathcal J_i=\{1,\ldots,i\}\)</span>, with padding exclusions if needed. In matrix form this is <span class="math notranslate nohighlight">\(A=\operatorname{softmax}_{\mathrm{rows}}(QK^\top/\sqrt{d_k}+M)\)</span>, where allowed entries of <span class="math notranslate nohighlight">\(M\)</span> are zero and forbidden entries are <span class="math notranslate nohighlight">\(-\infty\)</span>. An all-masked row has no valid probability distribution.</p>
+<p>Thus <span class="math notranslate nohighlight">\(A\in\mathbb R^{n_q\times n_k}\)</span> and <span class="math notranslate nohighlight">\(O\in\mathbb R^{n_q\times d_v}\)</span>. Equation <a class="reference internal" href="#equation-eq-attention">(18)</a> normalizes each row <strong>over keys for that query</strong>, not over feature coordinates. Causal self-attention sets <span class="math notranslate nohighlight">\(\mathcal J_i=\{1,\ldots,i\}\)</span>, with padding exclusions if needed. In matrix form this is <span class="math notranslate nohighlight">\(A=\operatorname{softmax}_{\mathrm{rows}}(QK^\top/\sqrt{d_k}+M)\)</span>, where allowed entries of <span class="math notranslate nohighlight">\(M\)</span> are zero and forbidden entries are <span class="math notranslate nohighlight">\(-\infty\)</span>. An all-masked row has no valid probability distribution.</p>
 </section>
 </section>
 <section id="work-through-three-keys">
@@ -609,11 +609,11 @@ Cross-attention: (2, 7) -&gt; (2, 4)
 O^{(r)}=\operatorname{Attention}(XW_Q^{(r)},XW_K^{(r)},XW_V^{(r)}),
 \quad r=1,\ldots,h,
 \]</div>
-<div class="math notranslate nohighlight">
-\[
+<div class="math notranslate nohighlight" id="equation-eq-multihead">
+<span class="eqno">(19)<a class="headerlink" href="#equation-eq-multihead" title="Link to this equation">#</a></span>\[
 \operatorname{MHA}(X)=\operatorname{Concat}(O^{(1)},\ldots,O^{(h)})W_O.
 \]</div>
-<p>Here <span class="math notranslate nohighlight">\(W_Q^{(r)},W_K^{(r)}\in\mathbb R^{d\times d_k}\)</span>, <span class="math notranslate nohighlight">\(W_V^{(r)}\in\mathbb R^{d\times d_v}\)</span>, and <span class="math notranslate nohighlight">\(W_O\in\mathbb R^{hd_v\times d}\)</span>. Concatenation joins feature columns, not token rows. The examples set <span class="math notranslate nohighlight">\(d_k=d_v=d/h\)</span>; the final projection restores width <span class="math notranslate nohighlight">\(d\)</span>. Biases are omitted in this notation but included in the next chapter’s linear layers. Cross-attention replaces the key/value input by a separate observed sequence and can have <span class="math notranslate nohighlight">\(n_q\ne n_k\)</span>.</p>
+<p>Here <span class="math notranslate nohighlight">\(W_Q^{(r)},W_K^{(r)}\in\mathbb R^{d\times d_k}\)</span>, <span class="math notranslate nohighlight">\(W_V^{(r)}\in\mathbb R^{d\times d_v}\)</span>, and <span class="math notranslate nohighlight">\(W_O\in\mathbb R^{hd_v\times d}\)</span>. In Equation <a class="reference internal" href="#equation-eq-multihead">(19)</a>, concatenation joins feature columns, not token rows. The examples set <span class="math notranslate nohighlight">\(d_k=d_v=d/h\)</span>; the final projection restores width <span class="math notranslate nohighlight">\(d\)</span>. Biases are omitted in this notation but included in the next chapter’s linear layers. Cross-attention replaces the key/value input by a separate observed sequence and can have <span class="math notranslate nohighlight">\(n_q\ne n_k\)</span>.</p>
 </section>
 </section>
 <section id="what-attention-weights-do-not-establish">

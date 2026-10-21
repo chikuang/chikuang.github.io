@@ -51,16 +51,16 @@ $$
  -\operatorname{KL}\{q_\phi(z\mid x)\Vert p(z)\}
  =\mathcal L(\theta,\phi;x).
 \end{aligned}
-$$
+$$ (eq-elbo)
 
-The gap is $\operatorname{KL}\{q_\phi(z\mid x)\Vert p_\theta(z\mid x)\}\ge0$. Thus improving the bound can involve both improving the marginal model and making the approximate posterior closer to the exact posterior. An expressive decoder does not automatically make the bound tight.
+The gap in Equation {eq}`eq-elbo` is $\operatorname{KL}\{q_\phi(z\mid x)\Vert p_\theta(z\mid x)\}\ge0$. Thus improving the bound can involve both improving the marginal model and making the approximate posterior closer to the exact posterior. An expressive decoder does not automatically make the bound tight.
 
 For a diagonal Gaussian encoder and a standard normal prior,
 
 $$
 \operatorname{KL}\{N(\mu,\operatorname{diag}(e^\ell))\Vert N(0,I)\}
 =\frac12\sum_j(\mu_j^2+e^{\ell_j}-1-\ell_j).
-$$
+$$ (eq-gaussian-kl)
 
 Here $\ell$ is log variance, not log standard deviation. With $p_\theta(x\mid z)=N(f_\theta(z),\sigma_x^2I)$, the reconstruction contribution to negative ELBO, up to a fixed constant, is $\|x-f_\theta(z)\|^2/(2\sigma_x^2)$. Changing this scale changes the observation model and the balance with KL; it is not a harmless numerical adjustment.
 
@@ -122,9 +122,9 @@ $$
 \frac{\|x_i-f_\theta(g_\phi(x_i,\epsilon_i))\|_2^2}{2\sigma_x^2}
 +\frac12\sum_{j=1}^{d_z}
 \{\mu_{ij}^2+e^{\ell_{ij}}-1-\ell_{ij}\}\right].
-$$
+$$ (eq-vae-loss)
 
-The inner sums run over coordinates, and the outer mean runs over observations. Here $d_x=d_z=2$ and $\sigma_x=0.18$. The omitted negative-log-Gaussian constant is $d_x\log(2\pi\sigma_x^2)/2$ per observation; it is fixed only because the observation variance is fixed. Averaging coordinate errors instead of summing them would change the reconstruction/KL balance.
+Equation {eq}`eq-vae-loss` combines a sampled reconstruction term from Equation {eq}`eq-elbo` with the analytic Gaussian KL in Equation {eq}`eq-gaussian-kl`. Its inner sums run over coordinates, and the outer mean runs over observations. Here $d_x=d_z=2$ and $\sigma_x=0.18$. The omitted negative-log-Gaussian constant is $d_x\log(2\pi\sigma_x^2)/2$ per observation; it is fixed only because the observation variance is fixed. Averaging coordinate errors instead of summing them would change the reconstruction/KL balance.
 
 Under conditions allowing differentiation through the expectation,
 
@@ -163,7 +163,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-The reported objective omits the fixed Gaussian normalization constant. It is therefore not an exact negative log likelihood. Repeated validation draws reduce Monte Carlo noise conditional on the fitted model; they do not measure uncertainty from sampling a new training dataset.
+The reported objective is Equation {eq}`eq-vae-loss`, which omits the fixed Gaussian normalization constant. It is therefore not an exact negative log likelihood. Repeated validation draws reduce Monte Carlo noise conditional on the fitted model; they do not measure uncertainty from sampling a new training dataset.
 
 A small KL term can mean that the encoder stays close to the prior. If the decoder also ignores $z$, this is posterior collapse. A good reconstruction score alone is insufficient: the prior samples could still occupy regions the decoder handles poorly.
 
@@ -196,7 +196,7 @@ $$
 \min_\theta\max_\psi\left[
 \mathbb E_{P_0}\log D_\psi(X)
 +\mathbb E_Z\log\{1-D_\psi(G_\theta(Z))\}\right].
-$$
+$$ (eq-gan-minimax)
 
 For fixed distributions and an unrestricted optimal discriminator, $D^*(x)=p_0(x)/(p_0(x)+p_G(x))$ where the density expression is defined. This motivates a density-ratio interpretation, but practical networks and alternating optimization do not achieve that ideal automatically. Mode collapse means the generator can neglect portions of the target distribution. Unlike our VAE observation model, a general GAN does not supply a tractable density for an arbitrary observation.
 
@@ -206,7 +206,7 @@ $$
 L_G^{\mathrm{NS}}(\theta)=-\mathbb E_{Z\sim p_Z}\log D_\psi(G_\theta(Z)),
 $$
 
-holding $\psi$ fixed during that update. It encourages generated samples to receive large discriminator scores, but it has a different gradient from the minimax generator loss $\mathbb E_Z\log(1-D_\psi(G_\theta(Z)))$. The discriminator output is a real-versus-generated classification score under its training mixture, not a calibrated probability that a sample is scientifically valid. This chapter explains the objectives; it does not execute GAN training.
+holding $\psi$ fixed during that update. It encourages generated samples to receive large discriminator scores, but it has a different gradient from the generator term of Equation {eq}`eq-gan-minimax`, namely $\mathbb E_Z\log(1-D_\psi(G_\theta(Z)))$. The discriminator output is a real-versus-generated classification score under its training mixture, not a calibrated probability that a sample is scientifically valid. This chapter explains the objectives; it does not execute GAN training.
 
 ## 7.7 · Flows: retain an invertible map and its Jacobian
 
@@ -215,7 +215,7 @@ For an invertible differentiable map $x=f_\theta(z)$ of equal-dimensional spaces
 $$
 \log p_X(x)=\log p_Z(f_\theta^{-1}(x))
 -\log|\det J_{f_\theta}(f_\theta^{-1}(x))|.
-$$
+$$ (eq-flow-density)
 
 Writing $g_\theta=f_\theta^{-1}$ makes the equivalent inverse-map formula and fitting objective explicit:
 
@@ -224,7 +224,7 @@ $$
 \qquad \widehat L_{\mathrm{flow}}=-\frac1N\sum_{i=1}^N\log p_X(x_i).
 $$
 
-The sign changes because the inverse Jacobian determinant is the reciprocal of the forward determinant. The identity assumes an invertible differentiable map with a nonzero Jacobian determinant at the evaluated points. Both maps act on the same dimension; the encoder of a general VAE has no such invertibility requirement.
+Relative to Equation {eq}`eq-flow-density`, the sign changes because the inverse Jacobian determinant is the reciprocal of the forward determinant. The identity assumes an invertible differentiable map with a nonzero Jacobian determinant at the evaluated points. Both maps act on the same dimension; the encoder of a general VAE has no such invertibility requirement.
 
 Consider the one-dimensional affine flow $X=aZ+b$, $a>0$. Its density is exactly a normal density with mean $b$ and standard deviation $a$.
 

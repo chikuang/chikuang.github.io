@@ -44,17 +44,17 @@ For policy $\pi$, define $U_{ir}^{\pi}=S_{ir}^{\pi}-\lambda C_{ir}^{\pi}$ and
 $$
 V(\pi)=\mathbb E_{Q}\mathbb E_{\xi\mid Q}
 [S^{\pi}(Q,\xi)-\lambda C^{\pi}(Q,\xi)].
-$$
+$$ (eq-policy-value)
 
-Here $Q$ is a sampled task and $\xi$ denotes environment and policy randomness. The comparison target is $\Delta=V(\pi_B)-V(\pi_A)$. With $n$ tasks and $m$ repetitions each,
+Here $Q$ is a sampled task and $\xi$ denotes environment and policy randomness. Using the policy value in Equation {eq}`eq-policy-value`, the comparison target is $\Delta=V(\pi_B)-V(\pi_A)$. With $n$ tasks and $m$ repetitions each,
 
 $$
 D_{ir}=U_{ir}^{B}-U_{ir}^{A},\qquad
 \overline D_i=\frac1m\sum_{r=1}^m D_{ir},\qquad
 \widehat\Delta=\frac1n\sum_{i=1}^n\overline D_i.
-$$
+$$ (eq-task-contrast)
 
-Every task has equal weight. With unequal repetition counts $m_i$, averaging all trajectories together would instead weight tasks by $m_i$. The success comparison in Section 13.4 is this estimator with $\lambda=0$; Section 13.5 reports utility with $\lambda=0.03$.
+Equation {eq}`eq-task-contrast` gives every task equal weight. With unequal repetition counts $m_i$, averaging all trajectories together would instead weight tasks by $m_i$. The success comparison in Section 13.4 is this estimator with $\lambda=0$; Section 13.5 reports utility with $\lambda=0.03$.
 
 ## 13.2 · Construct tasks and repeatable tool failures
 
@@ -167,17 +167,17 @@ $$
 \operatorname{Var}(\widehat\Delta)=
 \frac{\operatorname{Var}_Q\{\delta(Q)\}}{n}
 +\frac{\mathbb E_Q\{\sigma^2(Q)\}}{nm}.
-$$
+$$ (eq-task-variance)
 
-Increasing repetitions $m$ reduces the second term, but leaves the between-task term unchanged. More independent tasks $n$ reduce both. Shared failure conditions across repetitions require additional covariance terms; the displayed simplification would no longer hold.
+In Equation {eq}`eq-task-variance`, increasing repetitions $m$ reduces the second term, but leaves the between-task term unchanged. More independent tasks $n$ reduce both. Shared failure conditions across repetitions require additional covariance terms; the displayed simplification would no longer hold.
 
 The implemented cluster bootstrap draws $I_1^{(b)},\ldots,I_n^{(b)}$ independently and uniformly from $\{1,\ldots,n\}$ and forms
 
 $$
 \widehat\Delta^{*(b)}=\frac1n\sum_{j=1}^n\overline D_{I_j^{(b)}}.
-$$
+$$ (eq-cluster-bootstrap)
 
-Taking the 0.025 and 0.975 empirical quantiles of these values gives the displayed approximate interval. `paired_by_task` contains $\overline D_i$; `ids` selects whole task contributions. Resampling individual calls would change the experimental unit and does not implement this procedure.
+Taking the 0.025 and 0.975 empirical quantiles of these values gives the displayed approximate interval. Equation {eq}`eq-cluster-bootstrap` is implemented by `paired_by_task`, which contains the task means from Equation {eq}`eq-task-contrast`, and `ids`, which selects whole task contributions. Resampling individual calls would change the experimental unit and does not implement this procedure.
 
 ## 13.5 · Inspect cost and failure examples
 

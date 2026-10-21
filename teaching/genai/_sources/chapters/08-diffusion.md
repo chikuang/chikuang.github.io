@@ -44,9 +44,9 @@ Gaussian composition gives a direct marginal draw:
 $$
 x_t=\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar\alpha_t}\,\epsilon,
 \qquad \epsilon\sim N(0,I).
-$$
+$$ (eq-forward-noise)
 
-Thus training can sample a random time and generate its noisy observation without running every earlier transition. The schedule below leaves little signal at its final time. Starting the reverse chain at a standard normal is still an approximation unless the terminal forward marginal is exactly that normal distribution.
+Equation {eq}`eq-forward-noise` lets training sample a random time and generate its noisy observation without running every earlier transition. The schedule below leaves little signal at its final time. Starting the reverse chain at a standard normal is still an approximation unless the terminal forward marginal is exactly that normal distribution.
 
 ```{code-cell} python
 import numpy as np
@@ -133,7 +133,7 @@ $$
 L_{\mathrm{noise}}(\theta)=\mathbb E_{t,X_0,\epsilon}
 \left\|\epsilon-\epsilon_\theta\left(
 \sqrt{\bar\alpha_t}X_0+\sqrt{1-\bar\alpha_t}\epsilon,t\right)\right\|_2^2.
-$$
+$$ (eq-noise-objective)
 
 At a fixed noisy input $x$ and time $t$, let $m_t(x)=\mathbb E[\epsilon\mid X_t=x,t]$. The squared-error decomposition is
 
@@ -143,7 +143,7 @@ $$
 +\|m_t(x)-a\|_2^2.
 $$
 
-The first term does not depend on the prediction $a$, so the optimum is the conditional mean, not recovery of every injected noise realization. The code averages one-dimensional squared errors. With $d$ coordinates, averaging rather than summing coordinates rescales this objective by $1/d$ but does not change its population minimizer. The time weighting and schedule remain part of the objective.
+The first term does not depend on the prediction $a$, so the optimum is the conditional mean, not recovery of every injected noise realization. The code averages one-dimensional squared errors. With $d$ coordinates, averaging rather than summing coordinates rescales this objective by $1/d$ but does not change its population minimizer. The time weighting and schedule remain part of Equation {eq}`eq-noise-objective`.
 
 ## 8.3 · The score is a derivative with respect to the observation
 
@@ -151,9 +151,9 @@ For the noisy marginal density $p_t(x)$, the score is $s_t(x)=\nabla_x\log p_t(x
 
 $$
 s_t(x)=-\frac{\mathbb E[\epsilon\mid X_t=x]}{\sqrt{1-\bar\alpha_t}}.
-$$
+$$ (eq-noise-score)
 
-For our mixture, each noised component is Gaussian with means $\pm2\sqrt{\bar\alpha_t}$ and variance $0.35^2\bar\alpha_t+1-\bar\alpha_t$. Its exact score is the posterior-component-weighted average of the component scores. This gives an unusually informative diagnostic that would be unavailable for a general dataset.
+Equation {eq}`eq-noise-score` converts the optimal noise predictor under Equation {eq}`eq-noise-objective` into a score. For our mixture, each noised component is Gaussian with means $\pm2\sqrt{\bar\alpha_t}$ and variance $0.35^2\bar\alpha_t+1-\bar\alpha_t$. Its exact score is the posterior-component-weighted average of the component scores. This gives an unusually informative diagnostic that would be unavailable for a general dataset.
 
 ```{code-cell} python
 index = 25
@@ -186,7 +186,7 @@ We use the standard noise-prediction mean parameterization
 $$
 \mu_\theta(x_t,t)=\frac1{\sqrt{\alpha_t}}
 \left(x_t-\frac{\beta_t}{\sqrt{1-\bar\alpha_t}}\epsilon_\theta(x_t,t)\right).
-$$
+$$ (eq-reverse-mean)
 
 The chosen reverse variance is $\tilde\beta_t=\beta_t(1-\bar\alpha_{t-1})/(1-\bar\alpha_t)$, with $\bar\alpha_0=1$. At the last reverse step, no extra noise is added. Even with this parameterization, finite steps and an imperfect denoiser introduce approximation error.
 
@@ -234,16 +234,16 @@ $$
 \widetilde\mu_t(x_t,x_0)=
 \frac{\sqrt{\bar\alpha_{t-1}}\beta_t}{1-\bar\alpha_t}x_0
 +\frac{\sqrt{\alpha_t}(1-\bar\alpha_{t-1})}{1-\bar\alpha_t}x_t.
-$$
+$$ (eq-posterior-mean)
 
 The clean observation is unavailable during generation. Substitute the denoiser's estimate
 
 $$
 \widehat x_0(x_t,t)=\frac{x_t-\sqrt{1-\bar\alpha_t}\epsilon_\theta(x_t,t)}
 {\sqrt{\bar\alpha_t}}
-$$
+$$ (eq-clean-estimate)
 
-into $\widetilde\mu_t$ and simplify to obtain the $\mu_\theta$ used above. Then sample $x_{t-1}=\mu_\theta(x_t,t)+\sqrt{\widetilde\beta_t}\,\xi_t$ with fresh independent $\xi_t\sim N(0,I)$; at $t=1$, use the mean without extra noise. These are the Gaussian identities behind the [DDPM update](https://arxiv.org/abs/2006.11239).
+from Equation {eq}`eq-clean-estimate` into the posterior mean in Equation {eq}`eq-posterior-mean` and simplify to obtain Equation {eq}`eq-reverse-mean`. Then sample $x_{t-1}=\mu_\theta(x_t,t)+\sqrt{\widetilde\beta_t}\,\xi_t$ with fresh independent $\xi_t\sim N(0,I)$; at $t=1$, use the mean without extra noise. These are the Gaussian identities behind the [DDPM update](https://arxiv.org/abs/2006.11239).
 
 Conditioning on both $x_t$ and $x_0$ is crucial: $q(x_{t-1}\mid x_t)$ integrates over unknown clean data and need not be Gaussian. Replacing $x_0$ by a learned estimate and fixing the variance does not make the finite-step reverse transition exact, even if noise prediction reaches its population optimum.
 
