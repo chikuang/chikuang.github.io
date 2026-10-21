@@ -538,11 +538,11 @@ Final segments: {&#39;learn&#39;: [&#39;learn&#39;, &#39;&lt;/w&gt;&#39;], &#39;
 <h2>3.4 · Learn a small representation from co-occurrence<a class="headerlink" href="#learn-a-small-representation-from-co-occurrence" title="Link to this heading">#</a></h2>
 <p>Let <span class="math notranslate nohighlight">\(C_{ij}\)</span> count how often token <span class="math notranslate nohighlight">\(j\)</span> occurs within a window of token <span class="math notranslate nohighlight">\(i\)</span>. Positive pointwise mutual information compares joint occurrence with independence:</p>
 <div class="math notranslate nohighlight" id="equation-eq-ppmi">
-<span class="eqno">(15)<a class="headerlink" href="#equation-eq-ppmi" title="Link to this equation">#</a></span>\[
+<span class="eqno">(3.1)<a class="headerlink" href="#equation-eq-ppmi" title="Link to this equation">#</a></span>\[
 M_{ij}=\max\left\{0,\log\frac{C_{ij}N}{C_{i+}C_{+j}}\right\},
 \qquad N=\sum_{ij}C_{ij}.
 \]</div>
-<p>Zero-count cells receive zero in this illustrative PPMI matrix. Rare co-occurrences can have large values, so smoothing and frequency thresholds matter in larger applications. We factor the PPMI matrix from Equation <a class="reference internal" href="#equation-eq-ppmi">(15)</a> as <span class="math notranslate nohighlight">\(M\approx U_dS_dV_d^\top\)</span> and use <span class="math notranslate nohighlight">\(U_dS_d^{1/2}\)</span> as an embedding. This is a distributional matrix-factorization example, not a pretrained language model.</p>
+<p>Zero-count cells receive zero in this illustrative PPMI matrix. Rare co-occurrences can have large values, so smoothing and frequency thresholds matter in larger applications. We factor the PPMI matrix from Equation <a class="reference internal" href="#equation-eq-ppmi">(3.1)</a> as <span class="math notranslate nohighlight">\(M\approx U_dS_dV_d^\top\)</span> and use <span class="math notranslate nohighlight">\(U_dS_d^{1/2}\)</span> as an embedding. This is a distributional matrix-factorization example, not a pretrained language model.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
@@ -598,17 +598,17 @@ Neighbors of attention: [(&#39;use&#39;, 0.993), (&#39;to&#39;, 0.87), (&#39;mod
 <h3>What the factorization and similarity measure optimize<a class="headerlink" href="#what-the-factorization-and-similarity-measure-optimize" title="Link to this heading">#</a></h3>
 <p>For the full SVD <span class="math notranslate nohighlight">\(M=U\Sigma V^\top\)</span>, retaining the <span class="math notranslate nohighlight">\(d\)</span> largest singular values gives a solution to</p>
 <div class="math notranslate nohighlight" id="equation-eq-low-rank-embedding">
-<span class="eqno">(16)<a class="headerlink" href="#equation-eq-low-rank-embedding" title="Link to this equation">#</a></span>\[
+<span class="eqno">(3.2)<a class="headerlink" href="#equation-eq-low-rank-embedding" title="Link to this equation">#</a></span>\[
 M_d\in\operatorname*{arg\min}_{\operatorname{rank}(A)\le d}
 \|M-A\|_F^2,\qquad M_d=U_d\Sigma_dV_d^\top.
 \]</div>
-<p>The Frobenius norm sums squared matrix entries. Equation <a class="reference internal" href="#equation-eq-low-rank-embedding">(16)</a> is a low-rank approximation to <strong>PPMI</strong>, not maximum likelihood for a language model. The row embedding <span class="math notranslate nohighlight">\(E=U_d\Sigma_d^{1/2}\)</span> and context embedding <span class="math notranslate nohighlight">\(F=V_d\Sigma_d^{1/2}\)</span> satisfy <span class="math notranslate nohighlight">\(EF^\top=M_d\)</span>; in general <span class="math notranslate nohighlight">\(EE^\top\ne M_d\)</span>.</p>
+<p>The Frobenius norm sums squared matrix entries. Equation <a class="reference internal" href="#equation-eq-low-rank-embedding">(3.2)</a> is a low-rank approximation to <strong>PPMI</strong>, not maximum likelihood for a language model. The row embedding <span class="math notranslate nohighlight">\(E=U_d\Sigma_d^{1/2}\)</span> and context embedding <span class="math notranslate nohighlight">\(F=V_d\Sigma_d^{1/2}\)</span> satisfy <span class="math notranslate nohighlight">\(EF^\top=M_d\)</span>; in general <span class="math notranslate nohighlight">\(EE^\top\ne M_d\)</span>.</p>
 <p>For two nonzero row vectors <span class="math notranslate nohighlight">\(a,b\in\mathbb R^d\)</span>, the neighbor score is</p>
 <div class="math notranslate nohighlight" id="equation-eq-cosine">
-<span class="eqno">(17)<a class="headerlink" href="#equation-eq-cosine" title="Link to this equation">#</a></span>\[
+<span class="eqno">(3.3)<a class="headerlink" href="#equation-eq-cosine" title="Link to this equation">#</a></span>\[
 \operatorname{cos}(a,b)=\frac{ab^\top}{\sqrt{aa^\top}\sqrt{bb^\top}}\in[-1,1].
 \]</div>
-<p>Unit-normalizing the vectors in Equation <a class="reference internal" href="#equation-eq-cosine">(17)</a> turns cosine into a dot product. The lexical RAG retriever in Chapter 10 uses this same similarity in Equation <a class="reference internal" href="10-rag.html#equation-eq-tfidf">(48)</a>. A zero vector has no mathematically defined cosine; the code protects its normalization numerically, but the resulting zero row contains no directional information. Neighbors of such a row should not be interpreted as semantic evidence.</p>
+<p>Unit-normalizing the vectors in Equation <a class="reference internal" href="#equation-eq-cosine">(3.3)</a> turns cosine into a dot product. The lexical RAG retriever in Chapter 10 uses this same similarity in Equation <a class="reference internal" href="10-rag.html#equation-eq-tfidf">(10.3)</a>. A zero vector has no mathematically defined cosine; the code protects its normalization numerically, but the resulting zero row contains no directional information. Neighbors of such a row should not be interpreted as semantic evidence.</p>
 </section>
 </section>
 <section id="identifiability-and-the-loss-of-order">

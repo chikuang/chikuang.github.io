@@ -419,7 +419,7 @@
 <h2>7.2 · Derive the evidence lower bound<a class="headerlink" href="#derive-the-evidence-lower-bound" title="Link to this heading">#</a></h2>
 <p>For any suitable density <span class="math notranslate nohighlight">\(q_\phi(z\mid x)\)</span>,</p>
 <div class="math notranslate nohighlight" id="equation-eq-elbo">
-<span class="eqno">(28)<a class="headerlink" href="#equation-eq-elbo" title="Link to this equation">#</a></span>\[\begin{split}
+<span class="eqno">(7.1)<a class="headerlink" href="#equation-eq-elbo" title="Link to this equation">#</a></span>\[\begin{split}
 \begin{aligned}
 \log p_\theta(x)
 &amp;=\log\mathbb E_{q_\phi}\left[\frac{p_\theta(x,z)}{q_\phi(z\mid x)}\right]\\
@@ -428,10 +428,10 @@
  =\mathcal L(\theta,\phi;x).
 \end{aligned}
 \end{split}\]</div>
-<p>The gap in Equation <a class="reference internal" href="#equation-eq-elbo">(28)</a> is <span class="math notranslate nohighlight">\(\operatorname{KL}\{q_\phi(z\mid x)\Vert p_\theta(z\mid x)\}\ge0\)</span>. Thus improving the bound can involve both improving the marginal model and making the approximate posterior closer to the exact posterior. An expressive decoder does not automatically make the bound tight.</p>
+<p>The gap in Equation <a class="reference internal" href="#equation-eq-elbo">(7.1)</a> is <span class="math notranslate nohighlight">\(\operatorname{KL}\{q_\phi(z\mid x)\Vert p_\theta(z\mid x)\}\ge0\)</span>. Thus improving the bound can involve both improving the marginal model and making the approximate posterior closer to the exact posterior. An expressive decoder does not automatically make the bound tight.</p>
 <p>For a diagonal Gaussian encoder and a standard normal prior,</p>
 <div class="math notranslate nohighlight" id="equation-eq-gaussian-kl">
-<span class="eqno">(29)<a class="headerlink" href="#equation-eq-gaussian-kl" title="Link to this equation">#</a></span>\[
+<span class="eqno">(7.2)<a class="headerlink" href="#equation-eq-gaussian-kl" title="Link to this equation">#</a></span>\[
 \operatorname{KL}\{N(\mu,\operatorname{diag}(e^\ell))\Vert N(0,I)\}
 =\frac12\sum_j(\mu_j^2+e^{\ell_j}-1-\ell_j).
 \]</div>
@@ -493,13 +493,13 @@
 <h3>The loss actually estimated by a minibatch<a class="headerlink" href="#the-loss-actually-estimated-by-a-minibatch" title="Link to this heading">#</a></h3>
 <p>For <span class="math notranslate nohighlight">\(x_i\in\mathbb R^{d_x}\)</span> and <span class="math notranslate nohighlight">\(z_i\in\mathbb R^{d_z}\)</span>, let <span class="math notranslate nohighlight">\(g_\phi(x_i,\epsilon_i)=\mu_\phi(x_i)+\exp(\ell_\phi(x_i)/2)\odot\epsilon_i\)</span>. With independent <span class="math notranslate nohighlight">\(\epsilon_i\sim N(0,I_{d_z})\)</span>, the code uses one latent draw per observation to estimate</p>
 <div class="math notranslate nohighlight" id="equation-eq-vae-loss">
-<span class="eqno">(30)<a class="headerlink" href="#equation-eq-vae-loss" title="Link to this equation">#</a></span>\[
+<span class="eqno">(7.3)<a class="headerlink" href="#equation-eq-vae-loss" title="Link to this equation">#</a></span>\[
 \widehat J=\frac1m\sum_{i=1}^m\left[
 \frac{\|x_i-f_\theta(g_\phi(x_i,\epsilon_i))\|_2^2}{2\sigma_x^2}
 +\frac12\sum_{j=1}^{d_z}
 \{\mu_{ij}^2+e^{\ell_{ij}}-1-\ell_{ij}\}\right].
 \]</div>
-<p>Equation <a class="reference internal" href="#equation-eq-vae-loss">(30)</a> combines a sampled reconstruction term from Equation <a class="reference internal" href="#equation-eq-elbo">(28)</a> with the analytic Gaussian KL in Equation <a class="reference internal" href="#equation-eq-gaussian-kl">(29)</a>. Its inner sums run over coordinates, and the outer mean runs over observations. Here <span class="math notranslate nohighlight">\(d_x=d_z=2\)</span> and <span class="math notranslate nohighlight">\(\sigma_x=0.18\)</span>. The omitted negative-log-Gaussian constant is <span class="math notranslate nohighlight">\(d_x\log(2\pi\sigma_x^2)/2\)</span> per observation; it is fixed only because the observation variance is fixed. Averaging coordinate errors instead of summing them would change the reconstruction/KL balance.</p>
+<p>Equation <a class="reference internal" href="#equation-eq-vae-loss">(7.3)</a> combines a sampled reconstruction term from Equation <a class="reference internal" href="#equation-eq-elbo">(7.1)</a> with the analytic Gaussian KL in Equation <a class="reference internal" href="#equation-eq-gaussian-kl">(7.2)</a>. Its inner sums run over coordinates, and the outer mean runs over observations. Here <span class="math notranslate nohighlight">\(d_x=d_z=2\)</span> and <span class="math notranslate nohighlight">\(\sigma_x=0.18\)</span>. The omitted negative-log-Gaussian constant is <span class="math notranslate nohighlight">\(d_x\log(2\pi\sigma_x^2)/2\)</span> per observation; it is fixed only because the observation variance is fixed. Averaging coordinate errors instead of summing them would change the reconstruction/KL balance.</p>
 <p>Under conditions allowing differentiation through the expectation,</p>
 <div class="math notranslate nohighlight">
 \[
@@ -548,7 +548,7 @@
 <img alt="../_images/cd400a5e9b2f6fe373335e824fa31eeea32cec139186a67d08f07c708efaf8f6.png" src="../_images/cd400a5e9b2f6fe373335e824fa31eeea32cec139186a67d08f07c708efaf8f6.png" />
 </div>
 </div>
-<p>The reported objective is Equation <a class="reference internal" href="#equation-eq-vae-loss">(30)</a>, which omits the fixed Gaussian normalization constant. It is therefore not an exact negative log likelihood. Repeated validation draws reduce Monte Carlo noise conditional on the fitted model; they do not measure uncertainty from sampling a new training dataset.</p>
+<p>The reported objective is Equation <a class="reference internal" href="#equation-eq-vae-loss">(7.3)</a>, which omits the fixed Gaussian normalization constant. It is therefore not an exact negative log likelihood. Repeated validation draws reduce Monte Carlo noise conditional on the fitted model; they do not measure uncertainty from sampling a new training dataset.</p>
 <p>A small KL term can mean that the encoder stays close to the prior. If the decoder also ignores <span class="math notranslate nohighlight">\(z\)</span>, this is posterior collapse. A good reconstruction score alone is insufficient: the prior samples could still occupy regions the decoder handles poorly.</p>
 </section>
 <section id="generate-from-the-prior-not-the-encoder">
@@ -588,7 +588,7 @@ Generated mean: [-0.003  0.069]
 <h2>7.6 · GANs: learn through a discrimination problem<a class="headerlink" href="#gans-learn-through-a-discrimination-problem" title="Link to this heading">#</a></h2>
 <p>A generative adversarial network maps a simple random input through <span class="math notranslate nohighlight">\(G_\theta\)</span> and trains a discriminator <span class="math notranslate nohighlight">\(D_\psi\)</span> to separate observed from generated samples. The original minimax objective is</p>
 <div class="math notranslate nohighlight" id="equation-eq-gan-minimax">
-<span class="eqno">(31)<a class="headerlink" href="#equation-eq-gan-minimax" title="Link to this equation">#</a></span>\[
+<span class="eqno">(7.4)<a class="headerlink" href="#equation-eq-gan-minimax" title="Link to this equation">#</a></span>\[
 \min_\theta\max_\psi\left[
 \mathbb E_{P_0}\log D_\psi(X)
 +\mathbb E_Z\log\{1-D_\psi(G_\theta(Z))\}\right].
@@ -599,13 +599,13 @@ Generated mean: [-0.003  0.069]
 \[
 L_G^{\mathrm{NS}}(\theta)=-\mathbb E_{Z\sim p_Z}\log D_\psi(G_\theta(Z)),
 \]</div>
-<p>holding <span class="math notranslate nohighlight">\(\psi\)</span> fixed during that update. It encourages generated samples to receive large discriminator scores, but it has a different gradient from the generator term of Equation <a class="reference internal" href="#equation-eq-gan-minimax">(31)</a>, namely <span class="math notranslate nohighlight">\(\mathbb E_Z\log(1-D_\psi(G_\theta(Z)))\)</span>. The discriminator output is a real-versus-generated classification score under its training mixture, not a calibrated probability that a sample is scientifically valid. This chapter explains the objectives; it does not execute GAN training.</p>
+<p>holding <span class="math notranslate nohighlight">\(\psi\)</span> fixed during that update. It encourages generated samples to receive large discriminator scores, but it has a different gradient from the generator term of Equation <a class="reference internal" href="#equation-eq-gan-minimax">(7.4)</a>, namely <span class="math notranslate nohighlight">\(\mathbb E_Z\log(1-D_\psi(G_\theta(Z)))\)</span>. The discriminator output is a real-versus-generated classification score under its training mixture, not a calibrated probability that a sample is scientifically valid. This chapter explains the objectives; it does not execute GAN training.</p>
 </section>
 <section id="flows-retain-an-invertible-map-and-its-jacobian">
 <h2>7.7 · Flows: retain an invertible map and its Jacobian<a class="headerlink" href="#flows-retain-an-invertible-map-and-its-jacobian" title="Link to this heading">#</a></h2>
 <p>For an invertible differentiable map <span class="math notranslate nohighlight">\(x=f_\theta(z)\)</span> of equal-dimensional spaces,</p>
 <div class="math notranslate nohighlight" id="equation-eq-flow-density">
-<span class="eqno">(32)<a class="headerlink" href="#equation-eq-flow-density" title="Link to this equation">#</a></span>\[
+<span class="eqno">(7.5)<a class="headerlink" href="#equation-eq-flow-density" title="Link to this equation">#</a></span>\[
 \log p_X(x)=\log p_Z(f_\theta^{-1}(x))
 -\log|\det J_{f_\theta}(f_\theta^{-1}(x))|.
 \]</div>
@@ -615,7 +615,7 @@ L_G^{\mathrm{NS}}(\theta)=-\mathbb E_{Z\sim p_Z}\log D_\psi(G_\theta(Z)),
 \log p_X(x)=\log p_Z(g_\theta(x))+\log|\det J_{g_\theta}(x)|,
 \qquad \widehat L_{\mathrm{flow}}=-\frac1N\sum_{i=1}^N\log p_X(x_i).
 \]</div>
-<p>Relative to Equation <a class="reference internal" href="#equation-eq-flow-density">(32)</a>, the sign changes because the inverse Jacobian determinant is the reciprocal of the forward determinant. The identity assumes an invertible differentiable map with a nonzero Jacobian determinant at the evaluated points. Both maps act on the same dimension; the encoder of a general VAE has no such invertibility requirement.</p>
+<p>Relative to Equation <a class="reference internal" href="#equation-eq-flow-density">(7.5)</a>, the sign changes because the inverse Jacobian determinant is the reciprocal of the forward determinant. The identity assumes an invertible differentiable map with a nonzero Jacobian determinant at the evaluated points. Both maps act on the same dimension; the encoder of a general VAE has no such invertibility requirement.</p>
 <p>Consider the one-dimensional affine flow <span class="math notranslate nohighlight">\(X=aZ+b\)</span>, <span class="math notranslate nohighlight">\(a&gt;0\)</span>. Its density is exactly a normal density with mean <span class="math notranslate nohighlight">\(b\)</span> and standard deviation <span class="math notranslate nohighlight">\(a\)</span>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">

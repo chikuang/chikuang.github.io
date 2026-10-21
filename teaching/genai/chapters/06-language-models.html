@@ -415,11 +415,11 @@
 <h2>6.1 · The likelihood and the training distribution<a class="headerlink" href="#the-likelihood-and-the-training-distribution" title="Link to this heading">#</a></h2>
 <p>The autoregressive factorization is</p>
 <div class="math notranslate nohighlight" id="equation-eq-lm-objective">
-<span class="eqno">(24)<a class="headerlink" href="#equation-eq-lm-objective" title="Link to this equation">#</a></span>\[
+<span class="eqno">(6.1)<a class="headerlink" href="#equation-eq-lm-objective" title="Link to this equation">#</a></span>\[
 p_\theta(x_{1:T})=\prod_{t=1}^T p_\theta(x_t\mid x_{&lt;t}),\qquad
 \widehat L=-\frac{\sum_s\sum_t\log p_\theta(x_{st}\mid x_{s,&lt;t})}{\sum_s T_s}.
 \]</div>
-<p>Equation <a class="reference internal" href="#equation-eq-lm-objective">(24)</a> applies the chain rule from Equation <a class="reference internal" href="01-probability-to-genai.html#equation-eq-chain-rule">(8)</a> to training sequences. Its token-weighted loss gives longer sequences more weight. A mean of per-sequence losses answers a different question. Always state the averaging unit. During teacher forcing, each prefix contains observed training tokens. During generation, later prefixes contain sampled tokens, so mistakes can change the distribution of future inputs.</p>
+<p>Equation <a class="reference internal" href="#equation-eq-lm-objective">(6.1)</a> applies the chain rule from Equation <a class="reference internal" href="01-probability-to-genai.html#equation-eq-chain-rule">(1.8)</a> to training sequences. Its token-weighted loss gives longer sequences more weight. A mean of per-sequence losses answers a different question. Always state the averaging unit. During teacher forcing, each prefix contains observed training tokens. During generation, later prefixes contain sampled tokens, so mistakes can change the distribution of future inputs.</p>
 <p>Our corpus enumerates combinations of four subjects, four verbs, and four objects. We hold out complete combinations before making batches. This avoids overlapping-window leakage, but it remains a tiny, deliberately repetitive grammar; it is not evidence about unrestricted English.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -475,11 +475,11 @@ Training input and target shape: (42, 34) (42, 34)
 <h3>Make the padding mask part of the objective<a class="headerlink" href="#make-the-padding-mask-part-of-the-objective" title="Link to this heading">#</a></h3>
 <p>Let <span class="math notranslate nohighlight">\(z_{stj}\)</span> be the logit for token <span class="math notranslate nohighlight">\(j\)</span> at prediction position <span class="math notranslate nohighlight">\(t\)</span> of sequence <span class="math notranslate nohighlight">\(s\)</span>, <span class="math notranslate nohighlight">\(y_{st}\)</span> its next-token target, and <span class="math notranslate nohighlight">\(m_{st}\in\{0,1\}\)</span> indicate a non-padding target. With <span class="math notranslate nohighlight">\(N_{\mathrm{tok}}=\sum_{s,t}m_{st}&gt;0\)</span>,</p>
 <div class="math notranslate nohighlight" id="equation-eq-masked-token-loss">
-<span class="eqno">(25)<a class="headerlink" href="#equation-eq-masked-token-loss" title="Link to this equation">#</a></span>\[
+<span class="eqno">(6.2)<a class="headerlink" href="#equation-eq-masked-token-loss" title="Link to this equation">#</a></span>\[
 \widehat L(\theta)=\frac1{N_{\mathrm{tok}}}
 \sum_{s,t}m_{st}\left[\log\sum_{j=1}^{V}e^{z_{stj}}-z_{st,y_{st}}\right].
 \]</div>
-<p>Equation <a class="reference internal" href="#equation-eq-masked-token-loss">(25)</a> is what cross-entropy with ignored padding computes; it makes the valid-token denominator in Equation <a class="reference internal" href="#equation-eq-lm-objective">(24)</a> explicit. In this corpus, the beginning marker is input context and the end marker is a genuine prediction target. Ignoring a padding target removes that <strong>position’s loss</strong>; it does not automatically remove the padding class from the softmax denominator at other positions. The sampler below separately forbids generating padding and a new beginning marker.</p>
+<p>Equation <a class="reference internal" href="#equation-eq-masked-token-loss">(6.2)</a> is what cross-entropy with ignored padding computes; it makes the valid-token denominator in Equation <a class="reference internal" href="#equation-eq-lm-objective">(6.1)</a> explicit. In this corpus, the beginning marker is input context and the end marker is a genuine prediction target. Ignoring a padding target removes that <strong>position’s loss</strong>; it does not automatically remove the padding class from the softmax denominator at other positions. The sampler below separately forbids generating padding and a new beginning marker.</p>
 </section>
 </section>
 <section id="fit-a-small-conditional-model">
@@ -575,16 +575,16 @@ Character perplexity: 1.168
 <h3>Define the distribution after each decoding choice<a class="headerlink" href="#define-the-distribution-after-each-decoding-choice" title="Link to this heading">#</a></h3>
 <p>Use <span class="math notranslate nohighlight">\(\tau&gt;0\)</span> for temperature here, reserving <span class="math notranslate nohighlight">\(T\)</span> for sequence length, and let <span class="math notranslate nohighlight">\(\mathcal A\)</span> exclude forbidden special tokens. If top-k is active, let <span class="math notranslate nohighlight">\(K\)</span> be the <span class="math notranslate nohighlight">\(k\)</span> largest-logit eligible tokens (or all eligible tokens if fewer exist); otherwise <span class="math notranslate nohighlight">\(K=\mathcal A\)</span>. Temperature followed by top-k gives</p>
 <div class="math notranslate nohighlight" id="equation-eq-top-k">
-<span class="eqno">(26)<a class="headerlink" href="#equation-eq-top-k" title="Link to this equation">#</a></span>\[
+<span class="eqno">(6.3)<a class="headerlink" href="#equation-eq-top-k" title="Link to this equation">#</a></span>\[
 r_j=\frac{\mathbf1\{j\in K\}e^{z_j/\tau}}
 {\sum_{v\in K}e^{z_v/\tau}}.
 \]</div>
-<p>Sort the probabilities from Equation <a class="reference internal" href="#equation-eq-top-k">(26)</a> as <span class="math notranslate nohighlight">\(r_{(1)}\ge r_{(2)}\ge\cdots\)</span>. For nucleus mass <span class="math notranslate nohighlight">\(\rho\in(0,1]\)</span>, keep the shortest prefix <span class="math notranslate nohighlight">\(S\)</span> ending at <span class="math notranslate nohighlight">\(m^*=\min\{m:\sum_{j=1}^{m}r_{(j)}\ge\rho\}\)</span>. The final sampling law is</p>
+<p>Sort the probabilities from Equation <a class="reference internal" href="#equation-eq-top-k">(6.3)</a> as <span class="math notranslate nohighlight">\(r_{(1)}\ge r_{(2)}\ge\cdots\)</span>. For nucleus mass <span class="math notranslate nohighlight">\(\rho\in(0,1]\)</span>, keep the shortest prefix <span class="math notranslate nohighlight">\(S\)</span> ending at <span class="math notranslate nohighlight">\(m^*=\min\{m:\sum_{j=1}^{m}r_{(j)}\ge\rho\}\)</span>. The final sampling law is</p>
 <div class="math notranslate nohighlight" id="equation-eq-nucleus">
-<span class="eqno">(27)<a class="headerlink" href="#equation-eq-nucleus" title="Link to this equation">#</a></span>\[
+<span class="eqno">(6.4)<a class="headerlink" href="#equation-eq-nucleus" title="Link to this equation">#</a></span>\[
 q_j=\frac{r_j\mathbf1\{j\in S\}}{\sum_{v\in S}r_v}.
 \]</div>
-<p>The set <span class="math notranslate nohighlight">\(S\)</span> in Equation <a class="reference internal" href="#equation-eq-nucleus">(27)</a> includes the token that first reaches the threshold, exactly as <code class="docutils literal notranslate"><span class="pre">cumsum</span> <span class="pre">-</span> <span class="pre">sorted_p</span></code> does below. The denominator uses the distribution <strong>after</strong> top-k, so changing filter order changes <span class="math notranslate nohighlight">\(q\)</span>. A fixed tie-breaking rule is needed at equal scores. The resulting sequence law is the product of these modified conditionals until the end token or length limit; its log likelihood is generally different from the original model’s test likelihood. Greedy selection takes an argmax instead of drawing from <span class="math notranslate nohighlight">\(q\)</span>.</p>
+<p>The set <span class="math notranslate nohighlight">\(S\)</span> in Equation <a class="reference internal" href="#equation-eq-nucleus">(6.4)</a> includes the token that first reaches the threshold, exactly as <code class="docutils literal notranslate"><span class="pre">cumsum</span> <span class="pre">-</span> <span class="pre">sorted_p</span></code> does below. The denominator uses the distribution <strong>after</strong> top-k, so changing filter order changes <span class="math notranslate nohighlight">\(q\)</span>. A fixed tie-breaking rule is needed at equal scores. The resulting sequence law is the product of these modified conditionals until the end token or length limit; its log likelihood is generally different from the original model’s test likelihood. Greedy selection takes an argmax instead of drawing from <span class="math notranslate nohighlight">\(q\)</span>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">

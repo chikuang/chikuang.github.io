@@ -453,22 +453,22 @@
 <h3>Define which tokens supervised tuning fits<a class="headerlink" href="#define-which-tokens-supervised-tuning-fits" title="Link to this heading">#</a></h3>
 <p>For instruction/response pairs <span class="math notranslate nohighlight">\((x_i,y_i)\)</span>, write <span class="math notranslate nohighlight">\(y_i=(y_{i1},\ldots,y_{iT_i})\)</span>, including any end marker used as a target. A token-weighted response-only objective is</p>
 <div class="math notranslate nohighlight" id="equation-eq-sft">
-<span class="eqno">(39)<a class="headerlink" href="#equation-eq-sft" title="Link to this equation">#</a></span>\[
+<span class="eqno">(9.1)<a class="headerlink" href="#equation-eq-sft" title="Link to this equation">#</a></span>\[
 L_{\mathrm{SFT}}(\theta)=-\frac1{\sum_iT_i}
 \sum_i\sum_{t=1}^{T_i}\log\pi_\theta(y_{it}\mid x_i,y_{i,&lt;t}).
 \]</div>
-<p>The instruction is conditioning information; its tokens do not contribute targets in this convention. Padding is excluded too. A per-example mean would first divide each response loss by <span class="math notranslate nohighlight">\(T_i\)</span> and then average examples, changing the weighting. State the convention before comparing runs. LoRA below restricts which parameters can change; it can use Equation <a class="reference internal" href="#equation-eq-sft">(39)</a> in a language model, whereas our runnable example uses regression MSE.</p>
+<p>The instruction is conditioning information; its tokens do not contribute targets in this convention. Padding is excluded too. A per-example mean would first divide each response loss by <span class="math notranslate nohighlight">\(T_i\)</span> and then average examples, changing the weighting. State the convention before comparing runs. LoRA below restricts which parameters can change; it can use Equation <a class="reference internal" href="#equation-eq-sft">(9.1)</a> in a language model, whereas our runnable example uses regression MSE.</p>
 </section>
 </section>
 <section id="low-rank-adaptation-as-a-constrained-update">
 <h2>9.2 · Low-rank adaptation as a constrained update<a class="headerlink" href="#low-rank-adaptation-as-a-constrained-update" title="Link to this heading">#</a></h2>
 <p>Use row-vector inputs and a weight matrix <span class="math notranslate nohighlight">\(W_0\in\mathbb R^{d_{in}\times d_{out}}\)</span>. We freeze <span class="math notranslate nohighlight">\(W_0\)</span> and fit</p>
 <div class="math notranslate nohighlight" id="equation-eq-lora">
-<span class="eqno">(40)<a class="headerlink" href="#equation-eq-lora" title="Link to this equation">#</a></span>\[
+<span class="eqno">(9.2)<a class="headerlink" href="#equation-eq-lora" title="Link to this equation">#</a></span>\[
 W=W_0+sAB,\quad A\in\mathbb R^{d_{in}\times r},\quad
 B\in\mathbb R^{r\times d_{out}}.
 \]</div>
-<p>The update in Equation <a class="reference internal" href="#equation-eq-lora">(40)</a> has rank at most <span class="math notranslate nohighlight">\(r\)</span> and <span class="math notranslate nohighlight">\(r(d_{in}+d_{out})\)</span> trainable entries, compared with <span class="math notranslate nohighlight">\(d_{in}d_{out}\)</span> for a full update. The scale <span class="math notranslate nohighlight">\(s\)</span> is explicit; conventions often express it as a hyperparameter divided by rank. The restriction can reduce variance or prevent fitting a necessary high-rank change. It is not guaranteed to improve accuracy.</p>
+<p>The update in Equation <a class="reference internal" href="#equation-eq-lora">(9.2)</a> has rank at most <span class="math notranslate nohighlight">\(r\)</span> and <span class="math notranslate nohighlight">\(r(d_{in}+d_{out})\)</span> trainable entries, compared with <span class="math notranslate nohighlight">\(d_{in}d_{out}\)</span> for a full update. The scale <span class="math notranslate nohighlight">\(s\)</span> is explicit; conventions often express it as a hyperparameter divided by rank. The restriction can reduce variance or prevent fitting a necessary high-rank change. It is not guaranteed to improve accuracy.</p>
 <p>Initialize one factor randomly and the other at zero. If <strong>both</strong> factors start at zero, gradients of their product are zero and the update cannot begin learning.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -543,10 +543,10 @@ y_{\mathrm{row}}&amp;=x_{\mathrm{row}}(W_{0,\mathrm{row}}+sAB),
 <p>with <span class="math notranslate nohighlight">\(A=A_{\mathrm{col}}^\top\in\mathbb R^{d_{\mathrm{in}}\times r}\)</span> and <span class="math notranslate nohighlight">\(B=B_{\mathrm{col}}^\top\in\mathbb R^{r\times d_{\mathrm{out}}}\)</span>. The factor names differ between conventions; the linear map does not. The scale <span class="math notranslate nohighlight">\(s\)</span> is fixed (one in this lab; often <span class="math notranslate nohighlight">\(\alpha/r\)</span> in LoRA).</p>
 <p>For <span class="math notranslate nohighlight">\(\Delta=sAB\)</span> and <span class="math notranslate nohighlight">\(G=\partial L/\partial\Delta\)</span>,</p>
 <div class="math notranslate nohighlight" id="equation-eq-lora-gradients">
-<span class="eqno">(41)<a class="headerlink" href="#equation-eq-lora-gradients" title="Link to this equation">#</a></span>\[
+<span class="eqno">(9.3)<a class="headerlink" href="#equation-eq-lora-gradients" title="Link to this equation">#</a></span>\[
 \nabla_A L=sGB^\top,\qquad \nabla_B L=sA^\top G.
 \]</div>
-<p>Equation <a class="reference internal" href="#equation-eq-lora-gradients">(41)</a> shows why, at <span class="math notranslate nohighlight">\(B=0\)</span> and random nonzero <span class="math notranslate nohighlight">\(A\)</span>, the initial update is zero, but <span class="math notranslate nohighlight">\(\nabla_B L\)</span> can be nonzero. Once <span class="math notranslate nohighlight">\(B\)</span> moves, <span class="math notranslate nohighlight">\(A\)</span> can also receive a gradient. Initializing <strong>both</strong> factors at zero blocks both gradients. This explains the initialization choice without treating low rank as a different prediction objective.</p>
+<p>Equation <a class="reference internal" href="#equation-eq-lora-gradients">(9.3)</a> shows why, at <span class="math notranslate nohighlight">\(B=0\)</span> and random nonzero <span class="math notranslate nohighlight">\(A\)</span>, the initial update is zero, but <span class="math notranslate nohighlight">\(\nabla_B L\)</span> can be nonzero. Once <span class="math notranslate nohighlight">\(B\)</span> moves, <span class="math notranslate nohighlight">\(A\)</span> can also receive a gradient. Initializing <strong>both</strong> factors at zero blocks both gradients. This explains the initialization choice without treating low rank as a different prediction objective.</p>
 </section>
 </section>
 <section id="inspect-the-fitted-update-not-only-parameter-counts">
@@ -578,7 +578,7 @@ y_{\mathrm{row}}&amp;=x_{\mathrm{row}}(W_{0,\mathrm{row}}+sAB),
 <h2>9.4 · Preference observations and Bradley–Terry probabilities<a class="headerlink" href="#preference-observations-and-bradleyterry-probabilities" title="Link to this heading">#</a></h2>
 <p>For a prompt <span class="math notranslate nohighlight">\(x\)</span>, suppose a latent utility function <span class="math notranslate nohighlight">\(r(x,y)\)</span> determines pairwise preference probabilities:</p>
 <div class="math notranslate nohighlight" id="equation-eq-bradley-terry">
-<span class="eqno">(42)<a class="headerlink" href="#equation-eq-bradley-terry" title="Link to this equation">#</a></span>\[
+<span class="eqno">(9.4)<a class="headerlink" href="#equation-eq-bradley-terry" title="Link to this equation">#</a></span>\[
 P(y_a\succ y_b\mid x)=\sigma\{r(x,y_a)-r(x,y_b)\}.
 \]</div>
 <p>Adding a constant to all utilities for a prompt leaves these probabilities unchanged. The model describes a population of preference observations, not an objective notion of truth. Annotator selection, ambiguous instructions, response length, presentation order, and disagreement all affect the labels.</p>
@@ -587,13 +587,13 @@ P(y_a\succ y_b\mid x)=\sigma\{r(x,y_a)-r(x,y_b)\}.
 <h3>From a KL penalty to a policy ratio<a class="headerlink" href="#from-a-kl-penalty-to-a-policy-ratio" title="Link to this heading">#</a></h3>
 <p>For fixed prompt <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(\beta&gt;0\)</span>, suppose <span class="math notranslate nohighlight">\(\pi_{\mathrm{ref}}\)</span> has support on every allowed response and the following sum is finite:</p>
 <div class="math notranslate nohighlight" id="equation-eq-optimal-policy">
-<span class="eqno">(43)<a class="headerlink" href="#equation-eq-optimal-policy" title="Link to this equation">#</a></span>\[
+<span class="eqno">(9.5)<a class="headerlink" href="#equation-eq-optimal-policy" title="Link to this equation">#</a></span>\[
 Z(x)=\sum_y\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta},\qquad
 \pi^*(y\mid x)=\frac{\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}}{Z(x)}.
 \]</div>
-<p>Rearranging Equation <a class="reference internal" href="#equation-eq-optimal-policy">(43)</a> yields</p>
+<p>Rearranging Equation <a class="reference internal" href="#equation-eq-optimal-policy">(9.5)</a> yields</p>
 <div class="math notranslate nohighlight" id="equation-eq-reward-ratio">
-<span class="eqno">(44)<a class="headerlink" href="#equation-eq-reward-ratio" title="Link to this equation">#</a></span>\[
+<span class="eqno">(9.6)<a class="headerlink" href="#equation-eq-reward-ratio" title="Link to this equation">#</a></span>\[
 r(x,y)=\beta\log\frac{\pi^*(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}
 +\beta\log Z(x).
 \]</div>
@@ -602,14 +602,14 @@ r(x,y)=\beta\log\frac{\pi^*(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}
 </section>
 <section id="a-tiny-direct-preference-objective">
 <h2>9.5 · A tiny direct-preference objective<a class="headerlink" href="#a-tiny-direct-preference-objective" title="Link to this heading">#</a></h2>
-<p>Substituting the reward representation in Equation <a class="reference internal" href="#equation-eq-reward-ratio">(44)</a> into the Bradley–Terry model in Equation <a class="reference internal" href="#equation-eq-bradley-terry">(42)</a>, then replacing <span class="math notranslate nohighlight">\(\pi^*\)</span> by <span class="math notranslate nohighlight">\(\pi_\theta\)</span>, gives the DPO loss for a preferred response <span class="math notranslate nohighlight">\(y_w\)</span> and a dispreferred response <span class="math notranslate nohighlight">\(y_l\)</span>:</p>
+<p>Substituting the reward representation in Equation <a class="reference internal" href="#equation-eq-reward-ratio">(9.6)</a> into the Bradley–Terry model in Equation <a class="reference internal" href="#equation-eq-bradley-terry">(9.4)</a>, then replacing <span class="math notranslate nohighlight">\(\pi^*\)</span> by <span class="math notranslate nohighlight">\(\pi_\theta\)</span>, gives the DPO loss for a preferred response <span class="math notranslate nohighlight">\(y_w\)</span> and a dispreferred response <span class="math notranslate nohighlight">\(y_l\)</span>:</p>
 <div class="math notranslate nohighlight" id="equation-eq-dpo">
-<span class="eqno">(45)<a class="headerlink" href="#equation-eq-dpo" title="Link to this equation">#</a></span>\[
+<span class="eqno">(9.7)<a class="headerlink" href="#equation-eq-dpo" title="Link to this equation">#</a></span>\[
 -\log\sigma\left(\beta\left[
 \log\frac{\pi_\theta(y_w\mid x)}{\pi_{ref}(y_w\mid x)}
 -\log\frac{\pi_\theta(y_l\mid x)}{\pi_{ref}(y_l\mid x)}\right]\right).
 \]</div>
-<p>The code optimizes Equation <a class="reference internal" href="#equation-eq-dpo">(45)</a> using one prompt with three possible responses, a uniform reference, and simulated noisy preferences. For language models, each response log probability is a sum of token log probabilities, with careful handling of prompt masking and sequence length. The discrete example makes the reference term and preference direction easy to verify.</p>
+<p>The code optimizes Equation <a class="reference internal" href="#equation-eq-dpo">(9.7)</a> using one prompt with three possible responses, a uniform reference, and simulated noisy preferences. For language models, each response log probability is a sum of token log probabilities, with careful handling of prompt masking and sequence length. The discrete example makes the reference term and preference direction easy to verify.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
