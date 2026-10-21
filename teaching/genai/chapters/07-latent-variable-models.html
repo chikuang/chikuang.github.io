@@ -350,7 +350,10 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#three-distributions-with-different-jobs">7.1 · Three distributions with different jobs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#derive-the-evidence-lower-bound">7.2 · Derive the evidence lower bound</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reparameterize-the-random-draw">7.3 · Reparameterize the random draw</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reparameterize-the-random-draw">7.3 · Reparameterize the random draw</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-loss-actually-estimated-by-a-minibatch">The loss actually estimated by a minibatch</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimize-and-inspect-both-objective-components">7.4 · Optimize and inspect both objective components</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generate-from-the-prior-not-the-encoder">7.5 · Generate from the prior, not the encoder</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gans-learn-through-a-discrimination-problem">7.6 · GANs: learn through a discrimination problem</a></li>
@@ -484,6 +487,25 @@
 </div>
 </div>
 <p>Clamping log variance limits extreme values in this small experiment and is part of the chosen encoder family. The first 1,200 observations are training data and the remaining 400 are validation data from the same simulated mixture. We use a fixed training budget; validation is a diagnostic rather than a source of repeated hyperparameter searches.</p>
+<section id="the-loss-actually-estimated-by-a-minibatch">
+<h3>The loss actually estimated by a minibatch<a class="headerlink" href="#the-loss-actually-estimated-by-a-minibatch" title="Link to this heading">#</a></h3>
+<p>For <span class="math notranslate nohighlight">\(x_i\in\mathbb R^{d_x}\)</span> and <span class="math notranslate nohighlight">\(z_i\in\mathbb R^{d_z}\)</span>, let <span class="math notranslate nohighlight">\(g_\phi(x_i,\epsilon_i)=\mu_\phi(x_i)+\exp(\ell_\phi(x_i)/2)\odot\epsilon_i\)</span>. With independent <span class="math notranslate nohighlight">\(\epsilon_i\sim N(0,I_{d_z})\)</span>, the code uses one latent draw per observation to estimate</p>
+<div class="math notranslate nohighlight">
+\[
+\widehat J=\frac1m\sum_{i=1}^m\left[
+\frac{\|x_i-f_\theta(g_\phi(x_i,\epsilon_i))\|_2^2}{2\sigma_x^2}
++\frac12\sum_{j=1}^{d_z}
+\{\mu_{ij}^2+e^{\ell_{ij}}-1-\ell_{ij}\}\right].
+\]</div>
+<p>The inner sums run over coordinates, and the outer mean runs over observations. Here <span class="math notranslate nohighlight">\(d_x=d_z=2\)</span> and <span class="math notranslate nohighlight">\(\sigma_x=0.18\)</span>. The omitted negative-log-Gaussian constant is <span class="math notranslate nohighlight">\(d_x\log(2\pi\sigma_x^2)/2\)</span> per observation; it is fixed only because the observation variance is fixed. Averaging coordinate errors instead of summing them would change the reconstruction/KL balance.</p>
+<p>Under conditions allowing differentiation through the expectation,</p>
+<div class="math notranslate nohighlight">
+\[
+\nabla_\phi\mathbb E_{\epsilon}[r_{\theta,\phi}(x,\epsilon)]
+=\mathbb E_{\epsilon}[\nabla_\phi r_{\theta,\phi}(x,\epsilon)],
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(r\)</span> is the reconstruction term. Autodiff follows <span class="math notranslate nohighlight">\(\epsilon\to z\to f_\theta(z)\)</span> with the sampled <span class="math notranslate nohighlight">\(\epsilon\)</span> held fixed; the KL term is differentiated analytically through its closed form. The stochastic estimate of negative ELBO need not itself bound the negative log likelihood for each individual noise draw; the bound concerns its expectation.</p>
+</section>
 </section>
 <section id="optimize-and-inspect-both-objective-components">
 <h2>7.4 · Optimize and inspect both objective components<a class="headerlink" href="#optimize-and-inspect-both-objective-components" title="Link to this heading">#</a></h2>
@@ -566,6 +588,12 @@ Generated mean: [-0.003  0.069]
 +\mathbb E_Z\log\{1-D_\psi(G_\theta(Z))\}\right].
 \]</div>
 <p>For fixed distributions and an unrestricted optimal discriminator, <span class="math notranslate nohighlight">\(D^*(x)=p_0(x)/(p_0(x)+p_G(x))\)</span> where the density expression is defined. This motivates a density-ratio interpretation, but practical networks and alternating optimization do not achieve that ideal automatically. Mode collapse means the generator can neglect portions of the target distribution. Unlike our VAE observation model, a general GAN does not supply a tractable density for an arbitrary observation.</p>
+<p>A commonly used generator update instead minimizes the <strong>non-saturating</strong> loss</p>
+<div class="math notranslate nohighlight">
+\[
+L_G^{\mathrm{NS}}(\theta)=-\mathbb E_{Z\sim p_Z}\log D_\psi(G_\theta(Z)),
+\]</div>
+<p>holding <span class="math notranslate nohighlight">\(\psi\)</span> fixed during that update. It encourages generated samples to receive large discriminator scores, but it has a different gradient from the minimax generator loss <span class="math notranslate nohighlight">\(\mathbb E_Z\log(1-D_\psi(G_\theta(Z)))\)</span>. The discriminator output is a real-versus-generated classification score under its training mixture, not a calibrated probability that a sample is scientifically valid. This chapter explains the objectives; it does not execute GAN training.</p>
 </section>
 <section id="flows-retain-an-invertible-map-and-its-jacobian">
 <h2>7.7 · Flows: retain an invertible map and its Jacobian<a class="headerlink" href="#flows-retain-an-invertible-map-and-its-jacobian" title="Link to this heading">#</a></h2>
@@ -575,6 +603,13 @@ Generated mean: [-0.003  0.069]
 \log p_X(x)=\log p_Z(f_\theta^{-1}(x))
 -\log|\det J_{f_\theta}(f_\theta^{-1}(x))|.
 \]</div>
+<p>Writing <span class="math notranslate nohighlight">\(g_\theta=f_\theta^{-1}\)</span> makes the equivalent inverse-map formula and fitting objective explicit:</p>
+<div class="math notranslate nohighlight">
+\[
+\log p_X(x)=\log p_Z(g_\theta(x))+\log|\det J_{g_\theta}(x)|,
+\qquad \widehat L_{\mathrm{flow}}=-\frac1N\sum_{i=1}^N\log p_X(x_i).
+\]</div>
+<p>The sign changes because the inverse Jacobian determinant is the reciprocal of the forward determinant. The identity assumes an invertible differentiable map with a nonzero Jacobian determinant at the evaluated points. Both maps act on the same dimension; the encoder of a general VAE has no such invertibility requirement.</p>
 <p>Consider the one-dimensional affine flow <span class="math notranslate nohighlight">\(X=aZ+b\)</span>, <span class="math notranslate nohighlight">\(a&gt;0\)</span>. Its density is exactly a normal density with mean <span class="math notranslate nohighlight">\(b\)</span> and standard deviation <span class="math notranslate nohighlight">\(a\)</span>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -662,7 +697,10 @@ Generated mean: [-0.003  0.069]
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#three-distributions-with-different-jobs">7.1 · Three distributions with different jobs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#derive-the-evidence-lower-bound">7.2 · Derive the evidence lower bound</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reparameterize-the-random-draw">7.3 · Reparameterize the random draw</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reparameterize-the-random-draw">7.3 · Reparameterize the random draw</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-loss-actually-estimated-by-a-minibatch">The loss actually estimated by a minibatch</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimize-and-inspect-both-objective-components">7.4 · Optimize and inspect both objective components</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generate-from-the-prior-not-the-encoder">7.5 · Generate from the prior, not the encoder</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gans-learn-through-a-discrimination-problem">7.6 · GANs: learn through a discrimination problem</a></li>

@@ -33,7 +33,7 @@ A fixed pipeline always follows a predetermined sequence. An agent policy choose
 
 ## 12.1 · Sequential decisions and information
 
-Let $H_t$ be the observable history through step $t$. A policy $\pi(a\mid H_t)$ selects an action, and the environment returns an observation. The environment may contain information absent from $H_t$, so history is not necessarily a sufficient state representation. A useful objective balances task utility against costs:
+Let $H_t$ be the observable history through step $t$. A policy $\pi(a\mid H_t)$ selects an action, and the environment returns an observation. The environment may contain hidden information. We can condition on the full observable history without assuming that the latest observation, or a compressed memory summary, is a Markov state. A useful objective balances task utility against costs:
 
 $$
 \mathbb E\left[U(\text{final answer},Y)-\lambda\sum_{t=1}^{\tau}c(a_t)\right],
@@ -42,6 +42,19 @@ $$
 where $\tau$ is a stopping time bounded by the implementation. A tool call is worthwhile only if its expected benefit justifies its cost. If one known sequence of operations suffices, a fixed workflow may be easier to validate than adaptive action selection.
 
 For this lab, the task is to summarize a named in-memory dataset. The first tool retrieves its values. The second calculates a requested summary. The policy reacts to observations rather than evaluating arbitrary code supplied by text.
+
+### The probability law of a trajectory
+
+Let $H_0=q$ contain the request. At decision $t$, an action proposal $A_t\sim\pi(\cdot\mid H_{t-1})$ produces observation $O_t$ through a response kernel $K(\cdot\mid H_{t-1},A_t)$, then $H_t=(H_{t-1},A_t,O_t)$. For a fixed number $T$ of decisions, the chain rule gives
+
+$$
+p_\pi(a_{1:T},o_{1:T}\mid q)=\prod_{t=1}^{T}
+\pi(a_t\mid h_{t-1})K(o_t\mid h_{t-1},a_t).
+$$
+
+For continuous observations, interpret the factors as conditional densities or kernels. No Markov assumption about the latest observation is needed. The kernel includes validation errors and tool failures, not just successful numeric results. A deterministic policy is the special case assigning probability one to its chosen action.
+
+Include `finish` among the decisions and make a finished history absorbing. A bounded stop rule $\tau\le T_{\max}$ must depend only on information available by the stopping decision: $\{\tau\le t\}$ is determined by the observed history. This prevents a policy from claiming it stopped because of a future outcome. In the lab, `max_steps` counts decisions, including the final `finish`; tool calls are only a subset of those decisions. Set the tool-call cost of `finish` to zero when comparing call budgets.
 
 ## 12.2 · Define narrow tool contracts
 
@@ -94,6 +107,19 @@ print(dispatch({'tool': 'lookup', 'arguments': {'dataset': 'pilot_a'}}))
 ```
 
 The schema descriptions help a policy choose an action. They do not authorize additional operations. The dispatcher is the authority for allowed tools and argument types. Avoid `eval()` on generated expressions; a calculator can expose a small set of explicit operations instead.
+
+### An action proposal is not an executed action
+
+Let $\mathcal A(H)$ be the actions permitted by the tool contract, validated arguments, and remaining budget at history $H$. The execution boundary is
+
+$$
+\operatorname{Execute}(a,H)=\begin{cases}
+\operatorname{Tool}(a),&a\in\mathcal A(H),\\
+\operatorname{Error}(a,H),&a\notin\mathcal A(H).
+\end{cases}
+$$
+
+Membership is checked by the dispatcher and loop, not inferred from how confidently the policy proposes $a$. Error results also enter the trace and can change the next decision. In this lab, `dispatch` validates schemas and numeric domains while `run_agent` enforces the decision budget. A memory compression $M_t=m(H_t)$ can replace full history only at a possible information cost; a sufficient summary would preserve the relevant conditional laws of future observations and utility for every allowed action.
 
 ## 12.3 · Keep policy proposals separate from execution
 

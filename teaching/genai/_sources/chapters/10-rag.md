@@ -169,6 +169,25 @@ Query and passage share words such as “bootstrap,” “dependent,” and “o
 
 Exact words do not capture every paraphrase. In dense retrieval, a query encoder $f_\eta(q)$ and passage encoder $g_\eta(d)$ produce compatible vectors, and a score such as their dot product ranks passages. Passage vectors can be precomputed; the query vector is computed at request time. [Dense Passage Retrieval](https://arxiv.org/abs/2004.04906) is an example of learning representations for question answering.
 
+### Define a retrieval score and a training probability separately
+
+For vectors $f_\eta(q),g_\eta(d)\in\mathbb R^h$, define $s_\eta(q,d)=f_\eta(q)^\top g_\eta(d)$. If both vectors have unit norm, this is cosine similarity; otherwise vector magnitudes also affect ranking. Over a finite candidate set $\mathcal D_q$, a normalized score model is
+
+$$
+p_\eta(d\mid q,\mathcal D_q)=
+\frac{\exp\{s_\eta(q,d)/\tau_r\}}
+{\sum_{u\in\mathcal D_q}\exp\{s_\eta(q,u)/\tau_r\}},\qquad \tau_r>0.
+$$
+
+For one labeled positive passage $d_i^+$ and a candidate set containing it and chosen negatives, a contrastive loss is
+
+$$
+L_{\mathrm{ret}}(\eta)=-\frac1N\sum_{i=1}^{N}
+\log p_\eta(d_i^+\mid q_i,\mathcal D_{q_i}).
+$$
+
+This formalizes the positive-versus-negative training idea in [DPR](https://arxiv.org/abs/2004.04906). The denominator depends on candidate selection; this probability is not the probability of a fact being true. Negatives that actually contain an answer create incorrect supervision. Our TF-IDF notebook uses a fixed similarity function and does **not** optimize this neural loss.
+
 | Method | What is compared? | Useful property | Failure to inspect |
 |:--|:--|:--|:--|
 | Lexical, such as TF-IDF or BM25 | Query and indexed terms | Exact names, identifiers, and wording remain visible. | Synonyms and spelling variants may be missed. |
@@ -205,6 +224,25 @@ An index must match the encoder version, normalization, dimensions, and similari
 ## 10.5 · Select context under a budget
 
 The context window is shared by instructions, question, evidence, and output. Reserve room for all four. More retrieved passages can hurt if they add repetition, distractors, or contradictory versions. The packing step therefore needs an explicit policy and trace.
+
+### Track the sets and the budget
+
+Let $\mathcal D$ be the indexed chunks, $H_K(q)\subseteq\mathcal D$ the top-$K$ candidates, and $C(q)\subseteq H_K(q)$ the selected passages, with their serialized order recorded. Citation IDs $J(y)$ must satisfy
+
+$$
+J(y)\subseteq\{\operatorname{id}(d):d\in C(q)\}.
+$$
+
+For a real model with context limit $B_{\max}$, the relevant feasibility check is
+
+$$
+\operatorname{tokens}\{\operatorname{serialize}(I,q,C(q))\}
++B_{\mathrm{out}}\le B_{\max},
+$$
+
+where $I$ denotes instructions, serialization includes metadata and delimiters, and $B_{\mathrm{out}}$ reserves output capacity. Summing passage lengths alone can omit substantial overhead. The simplified word counter below checks only its declared evidence budget; it does not implement this full tokenizer-based inequality.
+
+A generative backend then uses $p_\theta(y\mid I,q,C)=\prod_{t=1}^{T_y}p_\theta(y_t\mid I,q,C,y_{<t})$. Supplying evidence changes these conditionals, but the factorization imposes no logical entailment constraint. That is why citation membership and factual support are checked separately.
 
 We keep ranked passages above a fixed threshold, remove repeated IDs, and add whole passages within an **evidence-word budget**. This is not a production token-budget estimator. With a real model, count the fully serialized prompt using its tokenizer and reserve output tokens too.
 
@@ -361,6 +399,33 @@ The routes differ: **no usable evidence** skips generation; **invalid output** i
 ## 10.9 · Evaluate retrieval, context, and answers separately
 
 For an answerable question $q_i$, let $R_i$ be its relevant-document set and $H_{ik}$ the retrieved documents. With one relevant document per question, the hit indicator is $1\{R_i\cap H_{ik}\ne\varnothing\}$. Its average is a hit rate, often called document recall@k in this single-relevant-document setting. With several relevant passages, also report the fraction retrieved and whether **all evidence required for the answer** reached the context.
+
+### Give every metric a denominator
+
+At a fixed retrieval unit (documents or chunks), let $R_i$ be the nonempty relevant set and $H_{ik}$ the returned set for an answerable question. Then
+
+$$
+\operatorname{Recall}_i@k=\frac{|R_i\cap H_{ik}|}{|R_i|},\qquad
+\operatorname{Precision}_i@k=\frac{|R_i\cap H_{ik}|}{|H_{ik}|},
+$$
+
+$$
+\operatorname{Hit}_i@k=\mathbf1\{|R_i\cap H_{ik}|>0\},\qquad
+\operatorname{MRR}@k=\frac1{n_a}\sum_{i=1}^{n_a}
+\frac{\mathbf1\{r_i\le k\}}{r_i}.
+$$
+
+Here $n_a$ counts answerable evaluation questions and $r_i$ is the rank of the first relevant result, with contribution zero if none appears by rank $k$. Precision for an empty returned set is undefined unless a reporting convention is declared. With one relevant document, recall equals hit rate; with several, a hit can still leave most evidence missing. For context retention, replace $H_{ik}$ by the selected context IDs. Deduplicate chunk-to-document mappings before computing document metrics.
+
+For citation evaluation, first annotate $M$ verifiable answer claims. Let $J_m$ be the citations attached to claim $m$, and $e_{mj}=1$ if cited passage $j$ supports that claim under a declared rubric. One explicit pairwise precision is
+
+$$
+\operatorname{CitationPrecision}=\frac{\sum_{m=1}^{M}\sum_{j\in J_m}e_{mj}}
+{\sum_{m=1}^{M}|J_m|},\qquad
+\operatorname{SupportedClaimRate}=\frac1M\sum_{m=1}^{M}b_m,
+$$
+
+where $b_m=1$ means the **cited evidence collectively** supports claim $m$. A multi-hop claim can require several passages jointly, so $b_m$ is not necessarily $\max_j e_{mj}$. Report undefined ratios when there are no citation pairs or no claims, and evaluate abstentions separately. These are rubric-dependent semantic measures; the code's valid-ID check estimates neither. Missing claims needed to answer the question require a separate answer-completeness assessment.
 
 Unanswerable questions have no supporting document in the collection. Do not put them in a recall denominator as failures to retrieve a nonexistent document. Evaluate abstention and unsupported answering separately. These hand-authored questions are a diagnostic set, not a realistic benchmark.
 

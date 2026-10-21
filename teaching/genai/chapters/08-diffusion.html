@@ -349,9 +349,15 @@
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-known-forward-process">8.1 · A known forward process</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-prediction-is-a-regression-problem">8.2 · Noise prediction is a regression problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-prediction-is-a-regression-problem">8.2 · Noise prediction is a regression problem</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#state-the-regression-target-and-its-irreducible-error">State the regression target and its irreducible error</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-score-is-a-derivative-with-respect-to-the-observation">8.3 · The score is a derivative with respect to the observation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-learned-reverse-chain">8.4 · A learned reverse chain</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-learned-reverse-chain">8.4 · A learned reverse chain</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-reverse-mean-and-variance-come-from">Where the reverse mean and variance come from</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditioning-and-the-limits-of-the-example">8.5 · Conditioning and the limits of the example</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">8.6 · Exercises and worked solutions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">8.7 · Reading and next step</a></li>
@@ -512,6 +518,24 @@ Zero-prediction baseline: 1.029
 </div>
 </div>
 <p>Fresh samples here come from a simulator, so training need not reuse a fixed finite dataset. The reported error measures generalization to new draws from that simulator. A fixed empirical image dataset would raise additional questions about memorization, coverage, and distribution shift.</p>
+<section id="state-the-regression-target-and-its-irreducible-error">
+<h3>State the regression target and its irreducible error<a class="headerlink" href="#state-the-regression-target-and-its-irreducible-error" title="Link to this heading">#</a></h3>
+<p>For <span class="math notranslate nohighlight">\(X_0\sim P_0\)</span>, <span class="math notranslate nohighlight">\(t\sim\operatorname{Uniform}\{1,\ldots,T\}\)</span>, and independent <span class="math notranslate nohighlight">\(\epsilon\sim N(0,I_d)\)</span>, define</p>
+<div class="math notranslate nohighlight">
+\[
+L_{\mathrm{noise}}(\theta)=\mathbb E_{t,X_0,\epsilon}
+\left\|\epsilon-\epsilon_\theta\left(
+\sqrt{\bar\alpha_t}X_0+\sqrt{1-\bar\alpha_t}\epsilon,t\right)\right\|_2^2.
+\]</div>
+<p>At a fixed noisy input <span class="math notranslate nohighlight">\(x\)</span> and time <span class="math notranslate nohighlight">\(t\)</span>, let <span class="math notranslate nohighlight">\(m_t(x)=\mathbb E[\epsilon\mid X_t=x,t]\)</span>. The squared-error decomposition is</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbb E[\|\epsilon-a\|_2^2\mid X_t=x,t]
+=\operatorname{tr}\operatorname{Cov}(\epsilon\mid X_t=x,t)
++\|m_t(x)-a\|_2^2.
+\]</div>
+<p>The first term does not depend on the prediction <span class="math notranslate nohighlight">\(a\)</span>, so the optimum is the conditional mean, not recovery of every injected noise realization. The code averages one-dimensional squared errors. With <span class="math notranslate nohighlight">\(d\)</span> coordinates, averaging rather than summing coordinates rescales this objective by <span class="math notranslate nohighlight">\(1/d\)</span> but does not change its population minimizer. The time weighting and schedule remain part of the objective.</p>
+</section>
 </section>
 <section id="the-score-is-a-derivative-with-respect-to-the-observation">
 <h2>8.3 · The score is a derivative with respect to the observation<a class="headerlink" href="#the-score-is-a-derivative-with-respect-to-the-observation" title="Link to this heading">#</a></h2>
@@ -601,6 +625,28 @@ Target / generated standard deviation: 2.027 2.001
 </div>
 </div>
 <p>Check both modes, central low-density regions, and tail spread. Sampling success is a property of the entire learned reverse chain, not just one denoising MSE. To compare schedules, retrain under each schedule and use the same evaluation function and sample budget.</p>
+<section id="where-the-reverse-mean-and-variance-come-from">
+<h3>Where the reverse mean and variance come from<a class="headerlink" href="#where-the-reverse-mean-and-variance-come-from" title="Link to this heading">#</a></h3>
+<p>For <span class="math notranslate nohighlight">\(t\ge2\)</span>, Gaussian conditioning in the <strong>known forward process</strong> gives</p>
+<div class="math notranslate nohighlight">
+\[
+q(x_{t-1}\mid x_t,x_0)=N(\widetilde\mu_t(x_t,x_0),\widetilde\beta_t I),
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+\widetilde\mu_t(x_t,x_0)=
+\frac{\sqrt{\bar\alpha_{t-1}}\beta_t}{1-\bar\alpha_t}x_0
++\frac{\sqrt{\alpha_t}(1-\bar\alpha_{t-1})}{1-\bar\alpha_t}x_t.
+\]</div>
+<p>The clean observation is unavailable during generation. Substitute the denoiser’s estimate</p>
+<div class="math notranslate nohighlight">
+\[
+\widehat x_0(x_t,t)=\frac{x_t-\sqrt{1-\bar\alpha_t}\epsilon_\theta(x_t,t)}
+{\sqrt{\bar\alpha_t}}
+\]</div>
+<p>into <span class="math notranslate nohighlight">\(\widetilde\mu_t\)</span> and simplify to obtain the <span class="math notranslate nohighlight">\(\mu_\theta\)</span> used above. Then sample <span class="math notranslate nohighlight">\(x_{t-1}=\mu_\theta(x_t,t)+\sqrt{\widetilde\beta_t}\,\xi_t\)</span> with fresh independent <span class="math notranslate nohighlight">\(\xi_t\sim N(0,I)\)</span>; at <span class="math notranslate nohighlight">\(t=1\)</span>, use the mean without extra noise. These are the Gaussian identities behind the <a class="reference external" href="https://arxiv.org/abs/2006.11239">DDPM update</a>.</p>
+<p>Conditioning on both <span class="math notranslate nohighlight">\(x_t\)</span> and <span class="math notranslate nohighlight">\(x_0\)</span> is crucial: <span class="math notranslate nohighlight">\(q(x_{t-1}\mid x_t)\)</span> integrates over unknown clean data and need not be Gaussian. Replacing <span class="math notranslate nohighlight">\(x_0\)</span> by a learned estimate and fixing the variance does not make the finite-step reverse transition exact, even if noise prediction reaches its population optimum.</p>
+</section>
 </section>
 <section id="conditioning-and-the-limits-of-the-example">
 <h2>8.5 · Conditioning and the limits of the example<a class="headerlink" href="#conditioning-and-the-limits-of-the-example" title="Link to this heading">#</a></h2>
@@ -672,9 +718,15 @@ Target / generated standard deviation: 2.027 2.001
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-known-forward-process">8.1 · A known forward process</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-prediction-is-a-regression-problem">8.2 · Noise prediction is a regression problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-prediction-is-a-regression-problem">8.2 · Noise prediction is a regression problem</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#state-the-regression-target-and-its-irreducible-error">State the regression target and its irreducible error</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-score-is-a-derivative-with-respect-to-the-observation">8.3 · The score is a derivative with respect to the observation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-learned-reverse-chain">8.4 · A learned reverse chain</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-learned-reverse-chain">8.4 · A learned reverse chain</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-reverse-mean-and-variance-come-from">Where the reverse mean and variance come from</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditioning-and-the-limits-of-the-example">8.5 · Conditioning and the limits of the example</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">8.6 · Exercises and worked solutions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">8.7 · Reading and next step</a></li>

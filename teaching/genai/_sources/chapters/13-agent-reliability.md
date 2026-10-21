@@ -37,6 +37,25 @@ A task requests the mean of a current dataset. Success requires a numeric answer
 
 For task $i$ and replicate $r$, let $S_{ir}$ be success and $C_{ir}$ the number of tool calls. We report mean success, mean calls, and a declared utility $S_{ir}-\lambda C_{ir}$. The value of $\lambda$ is a decision preference, not a quantity the experiment magically identifies.
 
+### Specify the task population and policy contrast
+
+For policy $\pi$, define $U_{ir}^{\pi}=S_{ir}^{\pi}-\lambda C_{ir}^{\pi}$ and
+
+$$
+V(\pi)=\mathbb E_{Q}\mathbb E_{\xi\mid Q}
+[S^{\pi}(Q,\xi)-\lambda C^{\pi}(Q,\xi)].
+$$
+
+Here $Q$ is a sampled task and $\xi$ denotes environment and policy randomness. The comparison target is $\Delta=V(\pi_B)-V(\pi_A)$. With $n$ tasks and $m$ repetitions each,
+
+$$
+D_{ir}=U_{ir}^{B}-U_{ir}^{A},\qquad
+\overline D_i=\frac1m\sum_{r=1}^m D_{ir},\qquad
+\widehat\Delta=\frac1n\sum_{i=1}^n\overline D_i.
+$$
+
+Every task has equal weight. With unequal repetition counts $m_i$, averaging all trajectories together would instead weight tasks by $m_i$. The success comparison in Section 13.4 is this estimator with $\lambda=0$; Section 13.5 reports utility with $\lambda=0.03$.
+
 ## 13.2 · Construct tasks and repeatable tool failures
 
 ```{code-cell} python
@@ -140,6 +159,26 @@ plt.show()
 
 The interval describes the chosen simulator and sampled task distribution. It does not include uncertainty about whether that simulator resembles production. When tasks are sampled by document or user, move the resampling unit to that higher level.
 
+### More repetitions and more tasks reduce different uncertainty
+
+Suppose tasks are iid and repetitions are independent conditional on their task, while A/B outcomes remain paired within each repetition. Write $\delta(Q)=\mathbb E[D_{ir}\mid Q]$ and $\sigma^2(Q)=\operatorname{Var}(D_{ir}\mid Q)$. The law of total variance gives
+
+$$
+\operatorname{Var}(\widehat\Delta)=
+\frac{\operatorname{Var}_Q\{\delta(Q)\}}{n}
++\frac{\mathbb E_Q\{\sigma^2(Q)\}}{nm}.
+$$
+
+Increasing repetitions $m$ reduces the second term, but leaves the between-task term unchanged. More independent tasks $n$ reduce both. Shared failure conditions across repetitions require additional covariance terms; the displayed simplification would no longer hold.
+
+The implemented cluster bootstrap draws $I_1^{(b)},\ldots,I_n^{(b)}$ independently and uniformly from $\{1,\ldots,n\}$ and forms
+
+$$
+\widehat\Delta^{*(b)}=\frac1n\sum_{j=1}^n\overline D_{I_j^{(b)}}.
+$$
+
+Taking the 0.025 and 0.975 empirical quantiles of these values gives the displayed approximate interval. `paired_by_task` contains $\overline D_i$; `ids` selects whole task contributions. Resampling individual calls would change the experimental unit and does not implement this procedure.
+
 ## 13.5 · Inspect cost and failure examples
 
 ```{code-cell} python
@@ -162,6 +201,14 @@ A useful failure taxonomy distinguishes task interpretation, invalid action prop
 ## 13.6 · Factorial comparisons and adaptive evaluation
 
 To test memory, vary only the memory feature while holding the other components fixed. To test retries, hold the policy and tool contracts fixed while changing the retry rule. For two factors, evaluate all four combinations and inspect interactions: memory could help after a retrieval failure while harmfully overriding fresh evidence when retrieval succeeds.
+
+For two binary interventions A and B, let $\mu_{ab}$ be expected utility with settings $(a,b)\in\{0,1\}^2$. The interaction contrast is
+
+$$
+\Delta_{AB}=(\mu_{11}-\mu_{01})-(\mu_{10}-\mu_{00}).
+$$
+
+It asks whether the effect of A changes when B is enabled. Estimate all four conditions on the same tasks and resample the paired task-level contrasts. A positive interaction is scale-dependent and does not establish that either factor improves every task. The current retry/cache comparison illustrates ablations; a complete two-factor experiment would add every required combination before estimating this contrast.
 
 Do not repeatedly inspect test outcomes, change the policy, and continue calling the same set “held out.” Use a development suite for repairs and a locked evaluation suite for final reporting. Record the number of policy variants considered, since selection among many noisy estimates creates optimism.
 

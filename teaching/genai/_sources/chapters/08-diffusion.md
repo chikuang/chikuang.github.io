@@ -125,6 +125,26 @@ assert np.isfinite(mse)
 
 Fresh samples here come from a simulator, so training need not reuse a fixed finite dataset. The reported error measures generalization to new draws from that simulator. A fixed empirical image dataset would raise additional questions about memorization, coverage, and distribution shift.
 
+### State the regression target and its irreducible error
+
+For $X_0\sim P_0$, $t\sim\operatorname{Uniform}\{1,\ldots,T\}$, and independent $\epsilon\sim N(0,I_d)$, define
+
+$$
+L_{\mathrm{noise}}(\theta)=\mathbb E_{t,X_0,\epsilon}
+\left\|\epsilon-\epsilon_\theta\left(
+\sqrt{\bar\alpha_t}X_0+\sqrt{1-\bar\alpha_t}\epsilon,t\right)\right\|_2^2.
+$$
+
+At a fixed noisy input $x$ and time $t$, let $m_t(x)=\mathbb E[\epsilon\mid X_t=x,t]$. The squared-error decomposition is
+
+$$
+\mathbb E[\|\epsilon-a\|_2^2\mid X_t=x,t]
+=\operatorname{tr}\operatorname{Cov}(\epsilon\mid X_t=x,t)
++\|m_t(x)-a\|_2^2.
+$$
+
+The first term does not depend on the prediction $a$, so the optimum is the conditional mean, not recovery of every injected noise realization. The code averages one-dimensional squared errors. With $d$ coordinates, averaging rather than summing coordinates rescales this objective by $1/d$ but does not change its population minimizer. The time weighting and schedule remain part of the objective.
+
 ## 8.3 · The score is a derivative with respect to the observation
 
 For the noisy marginal density $p_t(x)$, the score is $s_t(x)=\nabla_x\log p_t(x)$. This differs from the parametric likelihood score $\nabla_\theta\log p_\theta(x)$. Differentiating the Gaussian noising density and averaging over the conditional distribution of $X_0$ gives
@@ -201,6 +221,31 @@ assert np.isfinite(generated).all()
 ```
 
 Check both modes, central low-density regions, and tail spread. Sampling success is a property of the entire learned reverse chain, not just one denoising MSE. To compare schedules, retrain under each schedule and use the same evaluation function and sample budget.
+
+### Where the reverse mean and variance come from
+
+For $t\ge2$, Gaussian conditioning in the **known forward process** gives
+
+$$
+q(x_{t-1}\mid x_t,x_0)=N(\widetilde\mu_t(x_t,x_0),\widetilde\beta_t I),
+$$
+
+$$
+\widetilde\mu_t(x_t,x_0)=
+\frac{\sqrt{\bar\alpha_{t-1}}\beta_t}{1-\bar\alpha_t}x_0
++\frac{\sqrt{\alpha_t}(1-\bar\alpha_{t-1})}{1-\bar\alpha_t}x_t.
+$$
+
+The clean observation is unavailable during generation. Substitute the denoiser's estimate
+
+$$
+\widehat x_0(x_t,t)=\frac{x_t-\sqrt{1-\bar\alpha_t}\epsilon_\theta(x_t,t)}
+{\sqrt{\bar\alpha_t}}
+$$
+
+into $\widetilde\mu_t$ and simplify to obtain the $\mu_\theta$ used above. Then sample $x_{t-1}=\mu_\theta(x_t,t)+\sqrt{\widetilde\beta_t}\,\xi_t$ with fresh independent $\xi_t\sim N(0,I)$; at $t=1$, use the mean without extra noise. These are the Gaussian identities behind the [DDPM update](https://arxiv.org/abs/2006.11239).
+
+Conditioning on both $x_t$ and $x_0$ is crucial: $q(x_{t-1}\mid x_t)$ integrates over unknown clean data and need not be Gaussian. Replacing $x_0$ by a learned estimate and fixing the variance does not make the finite-step reverse transition exact, even if noise prediction reaches its population optimum.
 
 ## 8.5 · Conditioning and the limits of the example
 

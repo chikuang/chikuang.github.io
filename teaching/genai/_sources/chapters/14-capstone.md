@@ -45,6 +45,22 @@ contain the population mean? This is an approximate normal interval using an est
 
 Our task population consists of predefined combinations of distribution and sample size. The main evaluation loss is absolute error in estimated coverage relative to an independently simulated high-precision reference. We also report invalid-request handling and computational budget. We do not claim validity for dependent observations, arbitrary distributions, or automatic real-data inference.
 
+### Define the estimand behind the reported number
+
+For a sampling distribution $P$ with finite variance and sample size $n$, let $\mu_P=\mathbb E_P[X]$, $\bar X=n^{-1}\sum_iX_i$, and $S^2=(n-1)^{-1}\sum_i(X_i-\bar X)^2$. Define the random interval $I_n(D)=[\bar X-1.96S/\sqrt n,\bar X+1.96S/\sqrt n]$. Its actual coverage is
+
+$$
+\theta(P,n)=\mathbb P_{D\sim P^n}\{\mu_P\in I_n(D)\}.
+$$
+
+The probability is over a new dataset $D$, with $P,n$ and the interval rule fixed. It is not a posterior probability that a fixed mean lies in a realized interval. Under normal sampling, $\sqrt n(\bar X-\mu_P)/S\sim t_{n-1}$, so an analytic check is
+
+$$
+\theta(P,n)=2F_{t_{n-1}}(1.96)-1.
+$$
+
+$F_{t_{n-1}}$ is the Student-t CDF. Thus the normal-family simulation has a reference available without Monte Carlo. This expression is not valid for the exponential family at finite $n$; both families remain evaluated under the same approximate-normal interval rule.
+
 ## 14.2 · Create development and evaluation scenarios first
 
 Development uses sample size 30 under normal and exponential distributions. We fix the simulation budget at 500 repetitions and the report format before examining the evaluation scenarios. Evaluation uses sample sizes 12, 60, and 120. These are held-out scenario settings within known distribution families, not unseen families.
@@ -86,6 +102,26 @@ The schema prevents a generated plan from choosing an unbounded computation or q
 ## 14.3 · Implement the statistical tool
 
 For each replicate, simulate a sample, calculate its interval, and record a coverage indicator. A Wilson interval summarizes uncertainty in the Monte Carlo coverage proportion. This is an interval for the simulation's coverage probability, not an interval for the mean in one of the simulated samples.
+
+For $R$ independent simulated datasets, let $I_r=\mathbf1\{\mu_P\in I_n(D_r)\}$. Conditional on the scenario, $I_r\sim\operatorname{Bernoulli}(\theta)$, so
+
+$$
+\widehat\theta=\frac1R\sum_{r=1}^{R}I_r,\qquad
+\operatorname{Var}(\widehat\theta)=\frac{\theta(1-\theta)}R,\qquad
+\widehat{\operatorname{SE}}=\sqrt{\frac{\widehat\theta(1-\widehat\theta)}R}.
+$$
+
+The plug-in standard error is zero when all indicators agree, which does not mean the coverage probability is known exactly. The Wilson interval below avoids that zero-width endpoint behavior. With $z=1.96$, define
+
+$$
+\begin{aligned}
+a&=1+z^2/R,&c&=(\widehat\theta+z^2/(2R))/a,\\
+h&=\frac{z}{a}\sqrt{\frac{\widehat\theta(1-\widehat\theta)}R+
+\frac{z^2}{4R^2}},&I_{\mathrm{MC}}&=[c-h,c+h].
+\end{aligned}
+$$
+
+This inverts the binomial score inequality $(\widehat\theta-\theta)^2\le z^2\theta(1-\theta)/R$. Its coverage is approximate, not an exact 95% finite-sample guarantee. `center`, `radius`, and `denominator` below correspond to $c,h,a$. The target of $I_{\mathrm{MC}}$ is $\theta(P,n)$; the target of each simulated $I_n(D_r)$ is $\mu_P$.
 
 ```{code-cell} python
 def coverage_indicators(family, n, repetitions, seed):
@@ -195,6 +231,18 @@ plt.show()
 There are only six fixed scenarios. Do not attach an iid-task confidence interval to their average error without defining how they were sampled from a task population. The per-scenario Monte Carlo intervals answer a different question: uncertainty from the finite simulation budget conditional on that scenario.
 
 The expected pattern is that asymmetry and small sample size can make nominal coverage misleading. Interpret the displayed results rather than asserting a guaranteed ranking. The simulation tool can be noisier than the baseline in a scenario whose actual coverage happens to be close to 0.95.
+
+### Include uncertainty in the reference comparison
+
+Let $\widehat\theta_R$ be the assistant's $R$-replicate estimate and $\widehat\theta_M^{\mathrm{ref}}$ an independent $M$-replicate estimate for the **same** scenario and interval procedure. Then
+
+$$
+\mathbb E[\widehat\theta_R-\widehat\theta_M^{\mathrm{ref}}]=0,\qquad
+\operatorname{Var}(\widehat\theta_R-\widehat\theta_M^{\mathrm{ref}})
+=\theta(1-\theta)\left(\frac1R+\frac1M\right).
+$$
+
+Independence matters: common random numbers would add a covariance term. The displayed absolute error $|\widehat\theta_R-\widehat\theta_M^{\mathrm{ref}}|$ therefore contains simulation variation from both runs; it is not exact absolute error against $\theta$. Increasing the reference budget reduces only its contribution. For a fixed set of $J$ scenarios, the report averages these errors as $J^{-1}\sum_j|\widehat\theta_j-\widehat\theta_j^{\mathrm{ref}}|$, giving equal weight to the specified scenarios without implying that they were randomly sampled.
 
 ## 14.6 · Add a generative component as an ablation
 

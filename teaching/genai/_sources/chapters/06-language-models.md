@@ -84,6 +84,17 @@ print('Training input and target shape:', tuple(Xtr.shape), tuple(Ytr.shape))
 
 `^` marks the beginning of a sequence, newline marks its end, and zero is padding. Padding positions are excluded from the loss. Because the GRU processes left to right, padding after a sentence cannot affect its earlier predictions.
 
+### Make the padding mask part of the objective
+
+Let $z_{stj}$ be the logit for token $j$ at prediction position $t$ of sequence $s$, $y_{st}$ its next-token target, and $m_{st}\in\{0,1\}$ indicate a non-padding target. With $N_{\mathrm{tok}}=\sum_{s,t}m_{st}>0$,
+
+$$
+\widehat L(\theta)=\frac1{N_{\mathrm{tok}}}
+\sum_{s,t}m_{st}\left[\log\sum_{j=1}^{V}e^{z_{stj}}-z_{st,y_{st}}\right].
+$$
+
+This is what cross-entropy with ignored padding computes. In this corpus, the beginning marker is input context and the end marker is a genuine prediction target. Ignoring a padding target removes that **position's loss**; it does not automatically remove the padding class from the softmax denominator at other positions. The sampler below separately forbids generating padding and a new beginning marker.
+
 ## 6.2 · Fit a small conditional model
 
 A gated recurrent unit (GRU) summarizes the prefix in a hidden state. The embedding width is 16 and hidden-state width is 32. This is a compact way to demonstrate the training and sampling distinction without requiring downloaded parameters.
@@ -151,6 +162,23 @@ Perplexity is the exponential of mean token log loss. It is comparable here beca
 ## 6.4 · Decoding changes the sampling distribution
 
 Temperature $T>0$ maps logits $z_j$ to probabilities proportional to $\exp(z_j/T)$. Top-k retains the k largest logits. Nucleus (top-p) sampling retains the smallest descending-probability prefix whose total mass reaches p, then renormalizes. We apply temperature, then top-k if requested, then top-p. Specifying this order matters when combining filters.
+
+### Define the distribution after each decoding choice
+
+Use $\tau>0$ for temperature here, reserving $T$ for sequence length, and let $\mathcal A$ exclude forbidden special tokens. If top-k is active, let $K$ be the $k$ largest-logit eligible tokens (or all eligible tokens if fewer exist); otherwise $K=\mathcal A$. Temperature followed by top-k gives
+
+$$
+r_j=\frac{\mathbf1\{j\in K\}e^{z_j/\tau}}
+{\sum_{v\in K}e^{z_v/\tau}}.
+$$
+
+Sort these probabilities as $r_{(1)}\ge r_{(2)}\ge\cdots$. For nucleus mass $\rho\in(0,1]$, keep the shortest prefix $S$ ending at $m^*=\min\{m:\sum_{j=1}^{m}r_{(j)}\ge\rho\}$. The final sampling law is
+
+$$
+q_j=\frac{r_j\mathbf1\{j\in S\}}{\sum_{v\in S}r_v}.
+$$
+
+This includes the token that first reaches the threshold, exactly as `cumsum - sorted_p` does below. The denominator uses the distribution **after** top-k, so changing filter order changes $q$. A fixed tie-breaking rule is needed at equal scores. The resulting sequence law is the product of these modified conditionals until the end token or length limit; its log likelihood is generally different from the original model's test likelihood. Greedy selection takes an argmax instead of drawing from $q$.
 
 ```{code-cell} python
 def decoding_probabilities(logits, temperature=1.0, top_k=None, top_p=1.0):

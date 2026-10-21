@@ -65,6 +65,24 @@ The shared random variable is a convenient simulation construction, not an assum
 
 A percentile bootstrap interval is an approximation, not an exact finite-sample guarantee. Its interpretation depends on the sampled tasks representing the target population. It does not account for an unreported search over prompts or models using the same test set.
 
+### Why pairing changes uncertainty
+
+For independent sampled questions, let $A_i,B_i\in\{0,1\}$ indicate correctness and $D_i=B_i-A_i$. The accuracy estimand and estimator are
+
+$$
+\Delta=\mathbb E[D_i],\qquad \widehat\Delta=\frac1n\sum_iD_i,\qquad
+\widehat{\operatorname{SE}}(\widehat\Delta)=\frac{s_D}{\sqrt n},
+$$
+
+where $s_D^2=(n-1)^{-1}\sum_i(D_i-\widehat\Delta)^2$. The population identity
+
+$$
+\operatorname{Var}(D_i)=\operatorname{Var}(B_i)+\operatorname{Var}(A_i)
+-2\operatorname{Cov}(A_i,B_i)
+$$
+
+explains why independently resampling the two systems loses information. The code resamples whole paired differences and uses bootstrap quantiles rather than this normal-approximation standard error. For zero-one loss, the risk difference $R_B-R_A=-\Delta$; report the direction so a positive improvement is not mistaken for a larger loss.
+
 ## 11.3 · Separate factual labels from judging machinery
 
 For open-ended answers, define a rubric before viewing system identities: factual support, completeness, relevance, and required abstention may need separate labels. Use blinded ordering and audit disagreements. An LLM judge is another measurement instrument, with potential style preferences, positional effects, and shared errors with the evaluated system.
@@ -74,6 +92,27 @@ Report how labels were obtained and whether repeated annotations are independent
 ## 11.4 · Calibration is a relationship between probabilities and outcomes
 
 For binary outcomes, calibration informally asks whether events assigned probability $p$ occur at frequency $p$. A model can rank cases well while being overconfident. The Brier score averages $(p-y)^2$; log loss strongly penalizes confidently wrong probabilities. A binned reliability plot is descriptive and depends on bin definitions and sample size.
+
+### Calibration and temperature scaling in symbols
+
+For a binary probability prediction $P\in[0,1]$, population calibration means
+
+$$
+\mathbb E[Y\mid P]=P\quad\text{almost surely}.
+$$
+
+It does not require a continuous predictor to take any exact prespecified value with positive probability. Bins estimate averages of this relationship. On $n$ evaluation cases, the Brier score is $n^{-1}\sum_i(p_i-y_i)^2$; it measures overall probability error, not calibration alone.
+
+For fixed logits $z_i$, temperature fitting on the separate validation index set $\mathcal V$ is
+
+$$
+\widehat\tau\in\operatorname*{arg\min}_{\tau\in\mathcal T}
+\frac1{|\mathcal V|}\sum_{i\in\mathcal V}
+\left[\log(1+e^{z_i/\tau})-y_i z_i/\tau\right],
+\qquad \widetilde p_i=\sigma(z_i/\widehat\tau).
+$$
+
+$\mathcal T\subset(0,\infty)$ is the finite grid used below. `logaddexp` evaluates the first term stably. Positive temperature preserves binary ranking and the zero-logit decision boundary; it can improve probabilities without changing 0.5-threshold accuracy. Fitting this restricted map does not guarantee exact population calibration.
 
 Below a fixed simulated predictor is deliberately overconfident. A temperature is selected using a validation sample. We then evaluate on a disjoint test sample; a separate calibration sample is reserved for conformal prediction.
 
@@ -123,6 +162,15 @@ Temperature scaling preserves the ranking of binary logits when temperature is p
 
 Let $c_i$ be a confidence score and answer only if $c_i\ge\tau$. Coverage is the answered fraction. Selective risk is the average loss among answered cases. Both quantities matter.
 
+For $A_\tau=\mathbf1\{c(Q)\ge\tau\}$ and a fixed system loss $L$, the population quantities are
+
+$$
+\operatorname{Coverage}(\tau)=\mathbb P(A_\tau=1),\qquad
+\operatorname{Risk}(\tau)=\frac{\mathbb E[L A_\tau]}{\mathbb E[A_\tau]}.
+$$
+
+Their empirical counterparts are $n^{-1}\sum_i A_{\tau i}$ and $\sum_i\ell_i A_{\tau i}/\sum_i A_{\tau i}$. Selective risk is defined only at positive coverage. In this lab $c_i=\max(\widetilde p_i,1-\widetilde p_i)$ and $\ell_i$ is a binary classification error. These definitions also apply to answer/abstain decisions in RAG after defining a suitable answer-level loss and confidence score.
+
 ```{code-cell} python
 confidence = np.maximum(calibrated_p, 1-calibrated_p)
 prediction = calibrated_p >= 0.5
@@ -153,6 +201,20 @@ C(x)=\{y:1-\widehat p_y(x)\le \widehat q\}.
 $$
 
 Under exchangeability of calibration and future examples, with the predictor fixed independently of these calibration outcomes, this construction gives marginal coverage at least $1-\alpha$. Ties make the nonrandomized version potentially conservative. The guarantee is over calibration and future examples jointly, not a guarantee of coverage conditional on every covariate value.
+
+In symbols, with $s_{(k)}$ the kth ordered calibration score,
+
+$$
+\widehat q=\begin{cases}s_{(k)},&k\le n_c,\\+\infty,&k=n_c+1,\end{cases}
+\quad k=\lceil(n_c+1)(1-\alpha)\rceil,\quad 0<\alpha<1,
+$$
+
+$$
+\mathbb P_{\mathcal D_{\mathrm{cal}},(X_{\mathrm{new}},Y_{\mathrm{new}})}
+\{Y_{\mathrm{new}}\in C(X_{\mathrm{new}})\}\ge 1-\alpha.
+$$
+
+For distinct exchangeable scores, the new score's rank among $n_c+1$ scores is uniform; choosing this rank gives the finite-sample correction. Ties with the displayed non-strict inclusion preserve the lower bound. The probability averages over both a new calibration sample and a future case, conditional on the independently fitted predictor; it is not a statement that every realized calibration sample or every covariate subgroup has coverage $1-\alpha$. See the [split-conformal construction](https://arxiv.org/abs/2107.07511).
 
 ```{code-cell} python
 alpha = 0.1

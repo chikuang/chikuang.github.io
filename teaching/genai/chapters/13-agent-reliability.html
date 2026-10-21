@@ -348,10 +348,16 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-success-and-record-the-whole-trajectory">13.1 · Define success and record the whole trajectory</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-success-and-record-the-whole-trajectory">13.1 · Define success and record the whole trajectory</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#specify-the-task-population-and-policy-contrast">Specify the task population and policy contrast</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#construct-tasks-and-repeatable-tool-failures">13.2 · Construct tasks and repeatable tool failures</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compare-policy-interventions">13.3 · Compare policy interventions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resample-tasks-keeping-repetitions-together">13.4 · Resample tasks, keeping repetitions together</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resample-tasks-keeping-repetitions-together">13.4 · Resample tasks, keeping repetitions together</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#more-repetitions-and-more-tasks-reduce-different-uncertainty">More repetitions and more tasks reduce different uncertainty</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-cost-and-failure-examples">13.5 · Inspect cost and failure examples</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#factorial-comparisons-and-adaptive-evaluation">13.6 · Factorial comparisons and adaptive evaluation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">13.7 · Exercises and worked solutions</a></li>
@@ -410,6 +416,23 @@
 <h2>13.1 · Define success and record the whole trajectory<a class="headerlink" href="#define-success-and-record-the-whole-trajectory" title="Link to this heading">#</a></h2>
 <p>A task requests the mean of a current dataset. Success requires a numeric answer within a fixed tolerance of the true current mean. A cached answer may be stale. A tool can time out or return malformed data. Abstention, incorrect answers, invalid tool payloads, and exhaustion of the call budget are different outcomes and remain separate in the log.</p>
 <p>For task <span class="math notranslate nohighlight">\(i\)</span> and replicate <span class="math notranslate nohighlight">\(r\)</span>, let <span class="math notranslate nohighlight">\(S_{ir}\)</span> be success and <span class="math notranslate nohighlight">\(C_{ir}\)</span> the number of tool calls. We report mean success, mean calls, and a declared utility <span class="math notranslate nohighlight">\(S_{ir}-\lambda C_{ir}\)</span>. The value of <span class="math notranslate nohighlight">\(\lambda\)</span> is a decision preference, not a quantity the experiment magically identifies.</p>
+<section id="specify-the-task-population-and-policy-contrast">
+<h3>Specify the task population and policy contrast<a class="headerlink" href="#specify-the-task-population-and-policy-contrast" title="Link to this heading">#</a></h3>
+<p>For policy <span class="math notranslate nohighlight">\(\pi\)</span>, define <span class="math notranslate nohighlight">\(U_{ir}^{\pi}=S_{ir}^{\pi}-\lambda C_{ir}^{\pi}\)</span> and</p>
+<div class="math notranslate nohighlight">
+\[
+V(\pi)=\mathbb E_{Q}\mathbb E_{\xi\mid Q}
+[S^{\pi}(Q,\xi)-\lambda C^{\pi}(Q,\xi)].
+\]</div>
+<p>Here <span class="math notranslate nohighlight">\(Q\)</span> is a sampled task and <span class="math notranslate nohighlight">\(\xi\)</span> denotes environment and policy randomness. The comparison target is <span class="math notranslate nohighlight">\(\Delta=V(\pi_B)-V(\pi_A)\)</span>. With <span class="math notranslate nohighlight">\(n\)</span> tasks and <span class="math notranslate nohighlight">\(m\)</span> repetitions each,</p>
+<div class="math notranslate nohighlight">
+\[
+D_{ir}=U_{ir}^{B}-U_{ir}^{A},\qquad
+\overline D_i=\frac1m\sum_{r=1}^m D_{ir},\qquad
+\widehat\Delta=\frac1n\sum_{i=1}^n\overline D_i.
+\]</div>
+<p>Every task has equal weight. With unequal repetition counts <span class="math notranslate nohighlight">\(m_i\)</span>, averaging all trajectories together would instead weight tasks by <span class="math notranslate nohighlight">\(m_i\)</span>. The success comparison in Section 13.4 is this estimator with <span class="math notranslate nohighlight">\(\lambda=0\)</span>; Section 13.5 reports utility with <span class="math notranslate nohighlight">\(\lambda=0.03\)</span>.</p>
+</section>
 </section>
 <section id="construct-tasks-and-repeatable-tool-failures">
 <h2>13.2 · Construct tasks and repeatable tool failures<a class="headerlink" href="#construct-tasks-and-repeatable-tool-failures" title="Link to this heading">#</a></h2>
@@ -541,6 +564,23 @@ Task-cluster bootstrap interval: [0.195 0.28 ]
 </div>
 </div>
 <p>The interval describes the chosen simulator and sampled task distribution. It does not include uncertainty about whether that simulator resembles production. When tasks are sampled by document or user, move the resampling unit to that higher level.</p>
+<section id="more-repetitions-and-more-tasks-reduce-different-uncertainty">
+<h3>More repetitions and more tasks reduce different uncertainty<a class="headerlink" href="#more-repetitions-and-more-tasks-reduce-different-uncertainty" title="Link to this heading">#</a></h3>
+<p>Suppose tasks are iid and repetitions are independent conditional on their task, while A/B outcomes remain paired within each repetition. Write <span class="math notranslate nohighlight">\(\delta(Q)=\mathbb E[D_{ir}\mid Q]\)</span> and <span class="math notranslate nohighlight">\(\sigma^2(Q)=\operatorname{Var}(D_{ir}\mid Q)\)</span>. The law of total variance gives</p>
+<div class="math notranslate nohighlight">
+\[
+\operatorname{Var}(\widehat\Delta)=
+\frac{\operatorname{Var}_Q\{\delta(Q)\}}{n}
++\frac{\mathbb E_Q\{\sigma^2(Q)\}}{nm}.
+\]</div>
+<p>Increasing repetitions <span class="math notranslate nohighlight">\(m\)</span> reduces the second term, but leaves the between-task term unchanged. More independent tasks <span class="math notranslate nohighlight">\(n\)</span> reduce both. Shared failure conditions across repetitions require additional covariance terms; the displayed simplification would no longer hold.</p>
+<p>The implemented cluster bootstrap draws <span class="math notranslate nohighlight">\(I_1^{(b)},\ldots,I_n^{(b)}\)</span> independently and uniformly from <span class="math notranslate nohighlight">\(\{1,\ldots,n\}\)</span> and forms</p>
+<div class="math notranslate nohighlight">
+\[
+\widehat\Delta^{*(b)}=\frac1n\sum_{j=1}^n\overline D_{I_j^{(b)}}.
+\]</div>
+<p>Taking the 0.025 and 0.975 empirical quantiles of these values gives the displayed approximate interval. <code class="docutils literal notranslate"><span class="pre">paired_by_task</span></code> contains <span class="math notranslate nohighlight">\(\overline D_i\)</span>; <code class="docutils literal notranslate"><span class="pre">ids</span></code> selects whole task contributions. Resampling individual calls would change the experimental unit and does not implement this procedure.</p>
+</section>
 </section>
 <section id="inspect-cost-and-failure-examples">
 <h2>13.5 · Inspect cost and failure examples<a class="headerlink" href="#inspect-cost-and-failure-examples" title="Link to this heading">#</a></h2>
@@ -575,6 +615,12 @@ Recovery trace: {&#39;value&#39;: 0.8543511034891461, &#39;status&#39;: &#39;ans
 <section id="factorial-comparisons-and-adaptive-evaluation">
 <h2>13.6 · Factorial comparisons and adaptive evaluation<a class="headerlink" href="#factorial-comparisons-and-adaptive-evaluation" title="Link to this heading">#</a></h2>
 <p>To test memory, vary only the memory feature while holding the other components fixed. To test retries, hold the policy and tool contracts fixed while changing the retry rule. For two factors, evaluate all four combinations and inspect interactions: memory could help after a retrieval failure while harmfully overriding fresh evidence when retrieval succeeds.</p>
+<p>For two binary interventions A and B, let <span class="math notranslate nohighlight">\(\mu_{ab}\)</span> be expected utility with settings <span class="math notranslate nohighlight">\((a,b)\in\{0,1\}^2\)</span>. The interaction contrast is</p>
+<div class="math notranslate nohighlight">
+\[
+\Delta_{AB}=(\mu_{11}-\mu_{01})-(\mu_{10}-\mu_{00}).
+\]</div>
+<p>It asks whether the effect of A changes when B is enabled. Estimate all four conditions on the same tasks and resample the paired task-level contrasts. A positive interaction is scale-dependent and does not establish that either factor improves every task. The current retry/cache comparison illustrates ablations; a complete two-factor experiment would add every required combination before estimating this contrast.</p>
 <p>Do not repeatedly inspect test outcomes, change the policy, and continue calling the same set “held out.” Use a development suite for repairs and a locked evaluation suite for final reporting. Record the number of policy variants considered, since selection among many noisy estimates creates optimism.</p>
 <p>Prompt injection tests should include untrusted documents and tool messages that request unauthorized behavior. Score whether the execution boundary rejects invalid actions, not merely whether the final response sounds cautious. The harmless adversarial-note experiment in Chapter 12 is one deterministic unit test, not a comprehensive security evaluation.</p>
 </section>
@@ -643,10 +689,16 @@ Recovery trace: {&#39;value&#39;: 0.8543511034891461, &#39;status&#39;: &#39;ans
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-success-and-record-the-whole-trajectory">13.1 · Define success and record the whole trajectory</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-success-and-record-the-whole-trajectory">13.1 · Define success and record the whole trajectory</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#specify-the-task-population-and-policy-contrast">Specify the task population and policy contrast</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#construct-tasks-and-repeatable-tool-failures">13.2 · Construct tasks and repeatable tool failures</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compare-policy-interventions">13.3 · Compare policy interventions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resample-tasks-keeping-repetitions-together">13.4 · Resample tasks, keeping repetitions together</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resample-tasks-keeping-repetitions-together">13.4 · Resample tasks, keeping repetitions together</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#more-repetitions-and-more-tasks-reduce-different-uncertainty">More repetitions and more tasks reduce different uncertainty</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-cost-and-failure-examples">13.5 · Inspect cost and failure examples</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#factorial-comparisons-and-adaptive-evaluation">13.6 · Factorial comparisons and adaptive evaluation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">13.7 · Exercises and worked solutions</a></li>

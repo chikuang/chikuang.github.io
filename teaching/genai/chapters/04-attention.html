@@ -348,12 +348,18 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#queries-keys-and-values">4.1 · Queries, keys, and values</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#queries-keys-and-values">4.1 · Queries, keys, and values</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#write-the-weights-entry-by-entry">Write the weights entry by entry</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#work-through-three-keys">4.2 · Work through three keys</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-divide-by-the-square-root-of-width">4.3 · Why divide by the square root of width?</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mask-before-normalizing">4.4 · Mask before normalizing</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#test-causality-by-intervention">4.5 · Test causality by intervention</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#multiple-heads-and-cross-attention">4.6 · Multiple heads and cross-attention</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#multiple-heads-and-cross-attention">4.6 · Multiple heads and cross-attention</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multiple-heads-concatenate-then-project">Multiple heads: concatenate, then project</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-attention-weights-do-not-establish">4.7 · What attention weights do not establish</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">4.8 · Exercises and worked solutions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">4.9 · Reading and next step</a></li>
@@ -418,6 +424,21 @@ V\in\mathbb R^{n_k\times d_v}.
 \]</div>
 <p>The score matrix <span class="math notranslate nohighlight">\(S=QK^\top/\sqrt{d_k}\)</span> has shape <span class="math notranslate nohighlight">\(n_q\times n_k\)</span>. A row-wise softmax produces <span class="math notranslate nohighlight">\(A\)</span>, and the result is <span class="math notranslate nohighlight">\(O=AV\)</span> with shape <span class="math notranslate nohighlight">\(n_q\times d_v\)</span>. Each output row is a convex combination of value rows. It need not be a convex combination of the original token embeddings because the values are themselves projected features.</p>
 <p>In self-attention, <span class="math notranslate nohighlight">\(Q=XW_Q\)</span>, <span class="math notranslate nohighlight">\(K=XW_K\)</span>, and <span class="math notranslate nohighlight">\(V=XW_V\)</span> come from the same sequence. In cross-attention, queries come from one sequence and keys and values from another. The query and key counts need not agree.</p>
+<section id="write-the-weights-entry-by-entry">
+<h3>Write the weights entry by entry<a class="headerlink" href="#write-the-weights-entry-by-entry" title="Link to this heading">#</a></h3>
+<p>Let <span class="math notranslate nohighlight">\(\mathcal J_i\)</span> be the nonempty set of key positions available to query <span class="math notranslate nohighlight">\(i\)</span>. With <span class="math notranslate nohighlight">\(q_i,k_j\)</span> as rows of <span class="math notranslate nohighlight">\(Q,K\)</span> and <span class="math notranslate nohighlight">\(v_j\)</span> a row of <span class="math notranslate nohighlight">\(V\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+A_{ij}=\begin{cases}
+\displaystyle\frac{\exp(q_i k_j^\top/\sqrt{d_k})}
+{\sum_{\ell\in\mathcal J_i}\exp(q_i k_\ell^\top/\sqrt{d_k})},
+&amp;j\in\mathcal J_i,\\
+0,&amp;j\notin\mathcal J_i,
+\end{cases}
+\qquad o_i=\sum_{j\in\mathcal J_i}A_{ij}v_j.
+\end{split}\]</div>
+<p>Thus <span class="math notranslate nohighlight">\(A\in\mathbb R^{n_q\times n_k}\)</span> and <span class="math notranslate nohighlight">\(O\in\mathbb R^{n_q\times d_v}\)</span>. Each row sums to one <strong>over keys for that query</strong>, not over feature coordinates. Causal self-attention sets <span class="math notranslate nohighlight">\(\mathcal J_i=\{1,\ldots,i\}\)</span>, with padding exclusions if needed. In matrix form this is <span class="math notranslate nohighlight">\(A=\operatorname{softmax}_{\mathrm{rows}}(QK^\top/\sqrt{d_k}+M)\)</span>, where allowed entries of <span class="math notranslate nohighlight">\(M\)</span> are zero and forbidden entries are <span class="math notranslate nohighlight">\(-\infty\)</span>. An all-masked row has no valid probability distribution.</p>
+</section>
 </section>
 <section id="work-through-three-keys">
 <h2>4.2 · Work through three keys<a class="headerlink" href="#work-through-three-keys" title="Link to this heading">#</a></h2>
@@ -570,6 +591,20 @@ Cross-attention: (2, 7) -&gt; (2, 4)
 </div>
 </div>
 <p>Without positions or a mask, self-attention is permutation equivariant: permuting the input rows permutes the output rows in the same way. That is appropriate for sets, but sequence modeling requires information about order. Chapter 3’s positional features and this chapter’s causal constraint provide different forms of such information.</p>
+<section id="multiple-heads-concatenate-then-project">
+<h3>Multiple heads: concatenate, then project<a class="headerlink" href="#multiple-heads-concatenate-then-project" title="Link to this heading">#</a></h3>
+<p>For <span class="math notranslate nohighlight">\(h\)</span> self-attention heads on <span class="math notranslate nohighlight">\(X\in\mathbb R^{n\times d}\)</span>, define</p>
+<div class="math notranslate nohighlight">
+\[
+O^{(r)}=\operatorname{Attention}(XW_Q^{(r)},XW_K^{(r)},XW_V^{(r)}),
+\quad r=1,\ldots,h,
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+\operatorname{MHA}(X)=\operatorname{Concat}(O^{(1)},\ldots,O^{(h)})W_O.
+\]</div>
+<p>Here <span class="math notranslate nohighlight">\(W_Q^{(r)},W_K^{(r)}\in\mathbb R^{d\times d_k}\)</span>, <span class="math notranslate nohighlight">\(W_V^{(r)}\in\mathbb R^{d\times d_v}\)</span>, and <span class="math notranslate nohighlight">\(W_O\in\mathbb R^{hd_v\times d}\)</span>. Concatenation joins feature columns, not token rows. The examples set <span class="math notranslate nohighlight">\(d_k=d_v=d/h\)</span>; the final projection restores width <span class="math notranslate nohighlight">\(d\)</span>. Biases are omitted in this notation but included in the next chapter’s linear layers. Cross-attention replaces the key/value input by a separate observed sequence and can have <span class="math notranslate nohighlight">\(n_q\ne n_k\)</span>.</p>
+</section>
 </section>
 <section id="what-attention-weights-do-not-establish">
 <h2>4.7 · What attention weights do not establish<a class="headerlink" href="#what-attention-weights-do-not-establish" title="Link to this heading">#</a></h2>
@@ -641,12 +676,18 @@ Cross-attention: (2, 7) -&gt; (2, 4)
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#queries-keys-and-values">4.1 · Queries, keys, and values</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#queries-keys-and-values">4.1 · Queries, keys, and values</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#write-the-weights-entry-by-entry">Write the weights entry by entry</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#work-through-three-keys">4.2 · Work through three keys</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-divide-by-the-square-root-of-width">4.3 · Why divide by the square root of width?</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mask-before-normalizing">4.4 · Mask before normalizing</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#test-causality-by-intervention">4.5 · Test causality by intervention</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#multiple-heads-and-cross-attention">4.6 · Multiple heads and cross-attention</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#multiple-heads-and-cross-attention">4.6 · Multiple heads and cross-attention</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multiple-heads-concatenate-then-project">Multiple heads: concatenate, then project</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-attention-weights-do-not-establish">4.7 · What attention weights do not establish</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">4.8 · Exercises and worked solutions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">4.9 · Reading and next step</a></li>

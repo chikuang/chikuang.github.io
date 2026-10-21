@@ -348,10 +348,16 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-likelihood-and-the-training-distribution">6.1 · The likelihood and the training distribution</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-likelihood-and-the-training-distribution">6.1 · The likelihood and the training distribution</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#make-the-padding-mask-part-of-the-objective">Make the padding mask part of the objective</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fit-a-small-conditional-model">6.2 · Fit a small conditional model</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluate-likelihood-against-a-simple-baseline">6.3 · Evaluate likelihood against a simple baseline</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decoding-changes-the-sampling-distribution">6.4 · Decoding changes the sampling distribution</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decoding-changes-the-sampling-distribution">6.4 · Decoding changes the sampling distribution</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-distribution-after-each-decoding-choice">Define the distribution after each decoding choice</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prompting-versus-parameter-estimation">6.5 · Prompting versus parameter estimation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">6.6 · Exercises and worked solutions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#further-reading-and-transition">6.7 · Further reading and transition</a></li>
@@ -463,6 +469,16 @@ Training input and target shape: (42, 34) (42, 34)
 </div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">^</span></code> marks the beginning of a sequence, newline marks its end, and zero is padding. Padding positions are excluded from the loss. Because the GRU processes left to right, padding after a sentence cannot affect its earlier predictions.</p>
+<section id="make-the-padding-mask-part-of-the-objective">
+<h3>Make the padding mask part of the objective<a class="headerlink" href="#make-the-padding-mask-part-of-the-objective" title="Link to this heading">#</a></h3>
+<p>Let <span class="math notranslate nohighlight">\(z_{stj}\)</span> be the logit for token <span class="math notranslate nohighlight">\(j\)</span> at prediction position <span class="math notranslate nohighlight">\(t\)</span> of sequence <span class="math notranslate nohighlight">\(s\)</span>, <span class="math notranslate nohighlight">\(y_{st}\)</span> its next-token target, and <span class="math notranslate nohighlight">\(m_{st}\in\{0,1\}\)</span> indicate a non-padding target. With <span class="math notranslate nohighlight">\(N_{\mathrm{tok}}=\sum_{s,t}m_{st}&gt;0\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[
+\widehat L(\theta)=\frac1{N_{\mathrm{tok}}}
+\sum_{s,t}m_{st}\left[\log\sum_{j=1}^{V}e^{z_{stj}}-z_{st,y_{st}}\right].
+\]</div>
+<p>This is what cross-entropy with ignored padding computes. In this corpus, the beginning marker is input context and the end marker is a genuine prediction target. Ignoring a padding target removes that <strong>position’s loss</strong>; it does not automatically remove the padding class from the softmax denominator at other positions. The sampler below separately forbids generating padding and a new beginning marker.</p>
+</section>
 </section>
 <section id="fit-a-small-conditional-model">
 <h2>6.2 · Fit a small conditional model<a class="headerlink" href="#fit-a-small-conditional-model" title="Link to this heading">#</a></h2>
@@ -549,6 +565,20 @@ Character perplexity: 1.168
 <section id="decoding-changes-the-sampling-distribution">
 <h2>6.4 · Decoding changes the sampling distribution<a class="headerlink" href="#decoding-changes-the-sampling-distribution" title="Link to this heading">#</a></h2>
 <p>Temperature <span class="math notranslate nohighlight">\(T&gt;0\)</span> maps logits <span class="math notranslate nohighlight">\(z_j\)</span> to probabilities proportional to <span class="math notranslate nohighlight">\(\exp(z_j/T)\)</span>. Top-k retains the k largest logits. Nucleus (top-p) sampling retains the smallest descending-probability prefix whose total mass reaches p, then renormalizes. We apply temperature, then top-k if requested, then top-p. Specifying this order matters when combining filters.</p>
+<section id="define-the-distribution-after-each-decoding-choice">
+<h3>Define the distribution after each decoding choice<a class="headerlink" href="#define-the-distribution-after-each-decoding-choice" title="Link to this heading">#</a></h3>
+<p>Use <span class="math notranslate nohighlight">\(\tau&gt;0\)</span> for temperature here, reserving <span class="math notranslate nohighlight">\(T\)</span> for sequence length, and let <span class="math notranslate nohighlight">\(\mathcal A\)</span> exclude forbidden special tokens. If top-k is active, let <span class="math notranslate nohighlight">\(K\)</span> be the <span class="math notranslate nohighlight">\(k\)</span> largest-logit eligible tokens (or all eligible tokens if fewer exist); otherwise <span class="math notranslate nohighlight">\(K=\mathcal A\)</span>. Temperature followed by top-k gives</p>
+<div class="math notranslate nohighlight">
+\[
+r_j=\frac{\mathbf1\{j\in K\}e^{z_j/\tau}}
+{\sum_{v\in K}e^{z_v/\tau}}.
+\]</div>
+<p>Sort these probabilities as <span class="math notranslate nohighlight">\(r_{(1)}\ge r_{(2)}\ge\cdots\)</span>. For nucleus mass <span class="math notranslate nohighlight">\(\rho\in(0,1]\)</span>, keep the shortest prefix <span class="math notranslate nohighlight">\(S\)</span> ending at <span class="math notranslate nohighlight">\(m^*=\min\{m:\sum_{j=1}^{m}r_{(j)}\ge\rho\}\)</span>. The final sampling law is</p>
+<div class="math notranslate nohighlight">
+\[
+q_j=\frac{r_j\mathbf1\{j\in S\}}{\sum_{v\in S}r_v}.
+\]</div>
+<p>This includes the token that first reaches the threshold, exactly as <code class="docutils literal notranslate"><span class="pre">cumsum</span> <span class="pre">-</span> <span class="pre">sorted_p</span></code> does below. The denominator uses the distribution <strong>after</strong> top-k, so changing filter order changes <span class="math notranslate nohighlight">\(q\)</span>. A fixed tie-breaking rule is needed at equal scores. The resulting sequence law is the product of these modified conditionals until the end token or length limit; its log likelihood is generally different from the original model’s test likelihood. Greedy selection takes an argmax instead of drawing from <span class="math notranslate nohighlight">\(q\)</span>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">decoding_probabilities</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">top_p</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
@@ -606,6 +636,7 @@ Character perplexity: 1.168
 </div>
 </div>
 <p>Read the generated strings, including malformed ones. Higher sampling entropy does not imply more useful diversity. Greedy decoding optimizes a local choice and need not find the globally most probable sequence. Sampling settings should be selected for a specified use case on development prompts, then evaluated on new prompts and repeated seeds.</p>
+</section>
 </section>
 <section id="prompting-versus-parameter-estimation">
 <h2>6.5 · Prompting versus parameter estimation<a class="headerlink" href="#prompting-versus-parameter-estimation" title="Link to this heading">#</a></h2>
@@ -694,10 +725,16 @@ Generation left all model parameters unchanged.
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-likelihood-and-the-training-distribution">6.1 · The likelihood and the training distribution</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-likelihood-and-the-training-distribution">6.1 · The likelihood and the training distribution</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#make-the-padding-mask-part-of-the-objective">Make the padding mask part of the objective</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fit-a-small-conditional-model">6.2 · Fit a small conditional model</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluate-likelihood-against-a-simple-baseline">6.3 · Evaluate likelihood against a simple baseline</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decoding-changes-the-sampling-distribution">6.4 · Decoding changes the sampling distribution</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decoding-changes-the-sampling-distribution">6.4 · Decoding changes the sampling distribution</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-distribution-after-each-decoding-choice">Define the distribution after each decoding choice</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prompting-versus-parameter-estimation">6.5 · Prompting versus parameter estimation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">6.6 · Exercises and worked solutions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#further-reading-and-transition">6.7 · Further reading and transition</a></li>

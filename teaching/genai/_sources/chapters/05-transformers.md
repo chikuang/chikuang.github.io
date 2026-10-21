@@ -57,6 +57,37 @@ A residual connection adds an update to an existing representation. It also crea
 
 The feed-forward network applies the **same** nonlinear function to each position independently, typically expanding the width and then projecting back. It introduces nonlinear feature interactions; attention is the component that communicates across positions. Pre-normalization is a teaching architecture choice and differs in detail from the post-normalization arrangement in the original transformer paper.
 
+### Expand the two sublayers
+
+For a single position's row vector $x\in\mathbb R^d$, layer normalization is
+
+$$
+\mu(x)=\frac1d\sum_{j=1}^d x_j,\quad
+v(x)=\frac1d\sum_{j=1}^d(x_j-\mu(x))^2,\quad
+\operatorname{LN}(x)_j=\gamma_j\frac{x_j-\mu(x)}{\sqrt{v(x)+\varepsilon}}+\beta_j.
+$$
+
+$\gamma,\beta\in\mathbb R^d$ are learned, and $\varepsilon>0$ stabilizes division. The variance uses denominator $d$, not $d-1$: this is a feature transformation, not an unbiased population-variance estimator. Each normalization layer has its own scale and shift. Batch and time axes remain separate.
+
+With rows representing positions, our positionwise network is
+
+$$
+\operatorname{FFN}(X)=\operatorname{GELU}(XW_1+\mathbf1 b_1^\top)W_2
++\mathbf1 b_2^\top,
+$$
+
+where $W_1\in\mathbb R^{d\times d_{ff}}$, $W_2\in\mathbb R^{d_{ff}\times d}$, $b_1\in\mathbb R^{d_{ff}}$, $b_2\in\mathbb R^d$, and $d_{ff}=4d$ here. GELU acts on entries: $\operatorname{GELU}(u)=u\Phi(u)$, where $\Phi$ is the standard normal CDF. The two residual updates above both return an $n\times d$ matrix, so their additions are well-defined.
+
+After the last block, the vocabulary head gives
+
+$$
+Z=\operatorname{LN}(H)W_{\mathrm{vocab}}+\mathbf1 b_{\mathrm{vocab}}^\top,
+\qquad p_\theta(x_{t+1}=j\mid x_{\le t})=
+\frac{e^{Z_{tj}}}{\sum_{v=1}^{V}e^{Z_{tv}}}.
+$$
+
+$W_{\mathrm{vocab}}\in\mathbb R^{d\times V}$ and $Z\in\mathbb R^{n\times V}$ for one sequence. The batch axis adds a leading dimension to every expression. `final_norm` and `head` implement this last equation; using the final-position row during generation is a selection of logits, not another learned layer.
+
 ## 5.3 · Implement a small decoder block
 
 ```{code-cell} python

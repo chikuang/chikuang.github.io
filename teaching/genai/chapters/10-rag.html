@@ -351,12 +351,21 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-conditional-distribution-view">10.1 · The conditional-distribution view</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documents-chunks-and-provenance">10.2 · Documents, chunks, and provenance</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#build-a-lexical-baseline">10.3 · Build a lexical baseline</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dense-hybrid-and-reranked-retrieval">10.4 · Dense, hybrid, and reranked retrieval</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#select-context-under-a-budget">10.5 · Select context under a budget</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dense-hybrid-and-reranked-retrieval">10.4 · Dense, hybrid, and reranked retrieval</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-a-retrieval-score-and-a-training-probability-separately">Define a retrieval score and a training probability separately</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#select-context-under-a-budget">10.5 · Select context under a budget</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#track-the-sets-and-the-budget">Track the sets and the budget</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#augmentation-build-the-actual-generator-input">10.6 · Augmentation: build the actual generator input</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#validate-the-response-without-confusing-format-with-truth">10.7 · Validate the response without confusing format with truth</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#connect-the-components-into-an-observable-pipeline">10.8 · Connect the components into an observable pipeline</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluate-retrieval-context-and-answers-separately">10.9 · Evaluate retrieval, context, and answers separately</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluate-retrieval-context-and-answers-separately">10.9 · Evaluate retrieval, context, and answers separately</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#give-every-metric-a-denominator">Give every metric a denominator</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-framework-for-diagnosing-and-improving-rag">10.10 · A framework for diagnosing and improving RAG</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">10.11 · Exercises and worked solutions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">10.12 · Reading and next step</a></li>
@@ -581,6 +590,22 @@ v_d(w)=tf(w,d)\left[\log\frac{N+1}{df_w+1}+1\right],
 <section id="dense-hybrid-and-reranked-retrieval">
 <h2>10.4 · Dense, hybrid, and reranked retrieval<a class="headerlink" href="#dense-hybrid-and-reranked-retrieval" title="Link to this heading">#</a></h2>
 <p>Exact words do not capture every paraphrase. In dense retrieval, a query encoder <span class="math notranslate nohighlight">\(f_\eta(q)\)</span> and passage encoder <span class="math notranslate nohighlight">\(g_\eta(d)\)</span> produce compatible vectors, and a score such as their dot product ranks passages. Passage vectors can be precomputed; the query vector is computed at request time. <a class="reference external" href="https://arxiv.org/abs/2004.04906">Dense Passage Retrieval</a> is an example of learning representations for question answering.</p>
+<section id="define-a-retrieval-score-and-a-training-probability-separately">
+<h3>Define a retrieval score and a training probability separately<a class="headerlink" href="#define-a-retrieval-score-and-a-training-probability-separately" title="Link to this heading">#</a></h3>
+<p>For vectors <span class="math notranslate nohighlight">\(f_\eta(q),g_\eta(d)\in\mathbb R^h\)</span>, define <span class="math notranslate nohighlight">\(s_\eta(q,d)=f_\eta(q)^\top g_\eta(d)\)</span>. If both vectors have unit norm, this is cosine similarity; otherwise vector magnitudes also affect ranking. Over a finite candidate set <span class="math notranslate nohighlight">\(\mathcal D_q\)</span>, a normalized score model is</p>
+<div class="math notranslate nohighlight">
+\[
+p_\eta(d\mid q,\mathcal D_q)=
+\frac{\exp\{s_\eta(q,d)/\tau_r\}}
+{\sum_{u\in\mathcal D_q}\exp\{s_\eta(q,u)/\tau_r\}},\qquad \tau_r&gt;0.
+\]</div>
+<p>For one labeled positive passage <span class="math notranslate nohighlight">\(d_i^+\)</span> and a candidate set containing it and chosen negatives, a contrastive loss is</p>
+<div class="math notranslate nohighlight">
+\[
+L_{\mathrm{ret}}(\eta)=-\frac1N\sum_{i=1}^{N}
+\log p_\eta(d_i^+\mid q_i,\mathcal D_{q_i}).
+\]</div>
+<p>This formalizes the positive-versus-negative training idea in <a class="reference external" href="https://arxiv.org/abs/2004.04906">DPR</a>. The denominator depends on candidate selection; this probability is not the probability of a fact being true. Negatives that actually contain an answer create incorrect supervision. Our TF-IDF notebook uses a fixed similarity function and does <strong>not</strong> optimize this neural loss.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head text-left"><p>Method</p></th>
@@ -644,9 +669,25 @@ v_d(w)=tf(w,d)\left[\log\frac{N+1}{df_w+1}+1\right],
 </div>
 <p>An index must match the encoder version, normalization, dimensions, and similarity rule used for queries. Swapping an encoder without rebuilding its stored vectors is not a valid update. A vector database stores and searches representations; it is not itself the generator or a guarantee of correctness. Start with exact search for a small corpus, then measure approximate-search recall before introducing it for scale.</p>
 </section>
+</section>
 <section id="select-context-under-a-budget">
 <h2>10.5 · Select context under a budget<a class="headerlink" href="#select-context-under-a-budget" title="Link to this heading">#</a></h2>
 <p>The context window is shared by instructions, question, evidence, and output. Reserve room for all four. More retrieved passages can hurt if they add repetition, distractors, or contradictory versions. The packing step therefore needs an explicit policy and trace.</p>
+<section id="track-the-sets-and-the-budget">
+<h3>Track the sets and the budget<a class="headerlink" href="#track-the-sets-and-the-budget" title="Link to this heading">#</a></h3>
+<p>Let <span class="math notranslate nohighlight">\(\mathcal D\)</span> be the indexed chunks, <span class="math notranslate nohighlight">\(H_K(q)\subseteq\mathcal D\)</span> the top-<span class="math notranslate nohighlight">\(K\)</span> candidates, and <span class="math notranslate nohighlight">\(C(q)\subseteq H_K(q)\)</span> the selected passages, with their serialized order recorded. Citation IDs <span class="math notranslate nohighlight">\(J(y)\)</span> must satisfy</p>
+<div class="math notranslate nohighlight">
+\[
+J(y)\subseteq\{\operatorname{id}(d):d\in C(q)\}.
+\]</div>
+<p>For a real model with context limit <span class="math notranslate nohighlight">\(B_{\max}\)</span>, the relevant feasibility check is</p>
+<div class="math notranslate nohighlight">
+\[
+\operatorname{tokens}\{\operatorname{serialize}(I,q,C(q))\}
++B_{\mathrm{out}}\le B_{\max},
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(I\)</span> denotes instructions, serialization includes metadata and delimiters, and <span class="math notranslate nohighlight">\(B_{\mathrm{out}}\)</span> reserves output capacity. Summing passage lengths alone can omit substantial overhead. The simplified word counter below checks only its declared evidence budget; it does not implement this full tokenizer-based inequality.</p>
+<p>A generative backend then uses <span class="math notranslate nohighlight">\(p_\theta(y\mid I,q,C)=\prod_{t=1}^{T_y}p_\theta(y_t\mid I,q,C,y_{&lt;t})\)</span>. Supplying evidence changes these conditionals, but the factorization imposes no logical entailment constraint. That is why citation membership and factual support are checked separately.</p>
 <p>We keep ranked passages above a fixed threshold, remove repeated IDs, and add whole passages within an <strong>evidence-word budget</strong>. This is not a production token-budget estimator. With a real model, count the fully serialized prompt using its tokenizer and reserve output tokens too.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -687,6 +728,7 @@ Evidence words: 14
 </div>
 </div>
 <p>If a relevant passage is too large, this policy skips it and may return no usable context. Address that visible limitation with better chunking or a documented expansion/compression policy. Compression must preserve assumptions and provenance. The threshold is a demonstration constant, not calibrated confidence; choose deployable thresholds on separate development questions.</p>
+</section>
 </section>
 <section id="augmentation-build-the-actual-generator-input">
 <h2>10.6 · Augmentation: build the actual generator input<a class="headerlink" href="#augmentation-build-the-actual-generator-input" title="Link to this heading">#</a></h2>
@@ -849,6 +891,29 @@ No-evidence route: abstain | bad-response route: rejected
 <section id="evaluate-retrieval-context-and-answers-separately">
 <h2>10.9 · Evaluate retrieval, context, and answers separately<a class="headerlink" href="#evaluate-retrieval-context-and-answers-separately" title="Link to this heading">#</a></h2>
 <p>For an answerable question <span class="math notranslate nohighlight">\(q_i\)</span>, let <span class="math notranslate nohighlight">\(R_i\)</span> be its relevant-document set and <span class="math notranslate nohighlight">\(H_{ik}\)</span> the retrieved documents. With one relevant document per question, the hit indicator is <span class="math notranslate nohighlight">\(1\{R_i\cap H_{ik}\ne\varnothing\}\)</span>. Its average is a hit rate, often called document recall&#64;k in this single-relevant-document setting. With several relevant passages, also report the fraction retrieved and whether <strong>all evidence required for the answer</strong> reached the context.</p>
+<section id="give-every-metric-a-denominator">
+<h3>Give every metric a denominator<a class="headerlink" href="#give-every-metric-a-denominator" title="Link to this heading">#</a></h3>
+<p>At a fixed retrieval unit (documents or chunks), let <span class="math notranslate nohighlight">\(R_i\)</span> be the nonempty relevant set and <span class="math notranslate nohighlight">\(H_{ik}\)</span> the returned set for an answerable question. Then</p>
+<div class="math notranslate nohighlight">
+\[
+\operatorname{Recall}_i&#64;k=\frac{|R_i\cap H_{ik}|}{|R_i|},\qquad
+\operatorname{Precision}_i&#64;k=\frac{|R_i\cap H_{ik}|}{|H_{ik}|},
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+\operatorname{Hit}_i&#64;k=\mathbf1\{|R_i\cap H_{ik}|&gt;0\},\qquad
+\operatorname{MRR}&#64;k=\frac1{n_a}\sum_{i=1}^{n_a}
+\frac{\mathbf1\{r_i\le k\}}{r_i}.
+\]</div>
+<p>Here <span class="math notranslate nohighlight">\(n_a\)</span> counts answerable evaluation questions and <span class="math notranslate nohighlight">\(r_i\)</span> is the rank of the first relevant result, with contribution zero if none appears by rank <span class="math notranslate nohighlight">\(k\)</span>. Precision for an empty returned set is undefined unless a reporting convention is declared. With one relevant document, recall equals hit rate; with several, a hit can still leave most evidence missing. For context retention, replace <span class="math notranslate nohighlight">\(H_{ik}\)</span> by the selected context IDs. Deduplicate chunk-to-document mappings before computing document metrics.</p>
+<p>For citation evaluation, first annotate <span class="math notranslate nohighlight">\(M\)</span> verifiable answer claims. Let <span class="math notranslate nohighlight">\(J_m\)</span> be the citations attached to claim <span class="math notranslate nohighlight">\(m\)</span>, and <span class="math notranslate nohighlight">\(e_{mj}=1\)</span> if cited passage <span class="math notranslate nohighlight">\(j\)</span> supports that claim under a declared rubric. One explicit pairwise precision is</p>
+<div class="math notranslate nohighlight">
+\[
+\operatorname{CitationPrecision}=\frac{\sum_{m=1}^{M}\sum_{j\in J_m}e_{mj}}
+{\sum_{m=1}^{M}|J_m|},\qquad
+\operatorname{SupportedClaimRate}=\frac1M\sum_{m=1}^{M}b_m,
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(b_m=1\)</span> means the <strong>cited evidence collectively</strong> supports claim <span class="math notranslate nohighlight">\(m\)</span>. A multi-hop claim can require several passages jointly, so <span class="math notranslate nohighlight">\(b_m\)</span> is not necessarily <span class="math notranslate nohighlight">\(\max_j e_{mj}\)</span>. Report undefined ratios when there are no citation pairs or no claims, and evaluate abstentions separately. These are rubric-dependent semantic measures; the code’s valid-ID check estimates neither. Missing claims needed to answer the question require a separate answer-completeness assessment.</p>
 <p>Unanswerable questions have no supporting document in the collection. Do not put them in a recall denominator as failures to retrieve a nonexistent document. Evaluate abstention and unsupported answering separately. These hand-authored questions are a diagnostic set, not a realistic benchmark.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -932,6 +997,7 @@ Answer rate on unanswerable questions: 0.3333333333333333
 </table>
 </div>
 <p>Create development and final evaluation questions before tuning chunk size, candidate count, reranking, prompts, or thresholds. Split by document/topic/user when questions share those sources of dependence. The source corpus can be available while evaluation questions remain held out; answer keys and oracle passages must not leak into production retrieval.</p>
+</section>
 </section>
 <section id="a-framework-for-diagnosing-and-improving-rag">
 <h2>10.10 · A framework for diagnosing and improving RAG<a class="headerlink" href="#a-framework-for-diagnosing-and-improving-rag" title="Link to this heading">#</a></h2>
@@ -1046,12 +1112,21 @@ Answer rate on unanswerable questions: 0.3333333333333333
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-conditional-distribution-view">10.1 · The conditional-distribution view</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documents-chunks-and-provenance">10.2 · Documents, chunks, and provenance</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#build-a-lexical-baseline">10.3 · Build a lexical baseline</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dense-hybrid-and-reranked-retrieval">10.4 · Dense, hybrid, and reranked retrieval</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#select-context-under-a-budget">10.5 · Select context under a budget</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dense-hybrid-and-reranked-retrieval">10.4 · Dense, hybrid, and reranked retrieval</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-a-retrieval-score-and-a-training-probability-separately">Define a retrieval score and a training probability separately</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#select-context-under-a-budget">10.5 · Select context under a budget</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#track-the-sets-and-the-budget">Track the sets and the budget</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#augmentation-build-the-actual-generator-input">10.6 · Augmentation: build the actual generator input</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#validate-the-response-without-confusing-format-with-truth">10.7 · Validate the response without confusing format with truth</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#connect-the-components-into-an-observable-pipeline">10.8 · Connect the components into an observable pipeline</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluate-retrieval-context-and-answers-separately">10.9 · Evaluate retrieval, context, and answers separately</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluate-retrieval-context-and-answers-separately">10.9 · Evaluate retrieval, context, and answers separately</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#give-every-metric-a-denominator">Give every metric a denominator</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-framework-for-diagnosing-and-improving-rag">10.10 · A framework for diagnosing and improving RAG</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">10.11 · Exercises and worked solutions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">10.12 · Reading and next step</a></li>

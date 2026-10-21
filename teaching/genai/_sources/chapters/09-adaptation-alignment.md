@@ -43,6 +43,17 @@ The low-rank regression lab below isolates the geometric constraint. The discret
 
 Supervised fine-tuning minimizes a response-token negative log likelihood conditional on the instruction. Often the instruction tokens are excluded from that loss. Data provenance, duplicates, and separation by task or document matter: a large collection of nearly identical instructions is not equivalent to a large collection of independent tasks.
 
+### Define which tokens supervised tuning fits
+
+For instruction/response pairs $(x_i,y_i)$, write $y_i=(y_{i1},\ldots,y_{iT_i})$, including any end marker used as a target. A token-weighted response-only objective is
+
+$$
+L_{\mathrm{SFT}}(\theta)=-\frac1{\sum_iT_i}
+\sum_i\sum_{t=1}^{T_i}\log\pi_\theta(y_{it}\mid x_i,y_{i,<t}).
+$$
+
+The instruction is conditioning information; its tokens do not contribute targets in this convention. Padding is excluded too. A per-example mean would first divide each response loss by $T_i$ and then average examples, changing the weighting. State the convention before comparing runs. LoRA below restricts which parameters can change; it can use this same loss in a language model, whereas our runnable example uses regression MSE.
+
 ## 9.2 · Low-rank adaptation as a constrained update
 
 Use row-vector inputs and a weight matrix $W_0\in\mathbb R^{d_{in}\times d_{out}}$. We freeze $W_0$ and fit
@@ -104,6 +115,28 @@ assert torch.linalg.matrix_rank(low, atol=1e-4) <= rank
 
 The true update was deliberately chosen to have rank two. This favors the low-rank assumption and must be disclosed when interpreting results. To test robustness, replace it with a full-rank matrix, vary training size, and repeat the entire comparison. In transformers, low-rank updates may be attached to selected projection matrices; choosing their locations is another modeling decision.
 
+### Reconcile matrix conventions and initialization
+
+The diagram and the original [LoRA paper](https://arxiv.org/abs/2106.09685) use the common column-vector convention $W_0+sBA$. Our code multiplies row inputs by a weight matrix on the right. Transposing the column convention gives
+
+$$
+\begin{aligned}
+y_{\mathrm{col}}&=(W_{0,\mathrm{col}}+sB_{\mathrm{col}}A_{\mathrm{col}})x_{\mathrm{col}},\\
+y_{\mathrm{row}}&=x_{\mathrm{row}}(W_{0,\mathrm{row}}+sAB),
+\qquad W_{0,\mathrm{row}}=W_{0,\mathrm{col}}^\top.
+\end{aligned}
+$$
+
+with $A=A_{\mathrm{col}}^\top\in\mathbb R^{d_{\mathrm{in}}\times r}$ and $B=B_{\mathrm{col}}^\top\in\mathbb R^{r\times d_{\mathrm{out}}}$. The factor names differ between conventions; the linear map does not. The scale $s$ is fixed (one in this lab; often $\alpha/r$ in LoRA).
+
+For $\Delta=sAB$ and $G=\partial L/\partial\Delta$,
+
+$$
+\nabla_A L=sGB^\top,\qquad \nabla_B L=sA^\top G.
+$$
+
+At $B=0$ and random nonzero $A$, the initial update is zero, but $\nabla_B L$ can be nonzero. Once $B$ moves, $A$ can also receive a gradient. Initializing **both** factors at zero blocks both gradients. This explains the initialization choice without treating low rank as a different prediction objective.
+
 ## 9.3 · Inspect the fitted update, not only parameter counts
 
 ```{code-cell} python
@@ -132,6 +165,24 @@ $$
 Adding a constant to all utilities for a prompt leaves these probabilities unchanged. The model describes a population of preference observations, not an objective notion of truth. Annotator selection, ambiguous instructions, response length, presentation order, and disagreement all affect the labels.
 
 A common RLHF formulation fits a reward model from comparisons and then optimizes expected reward while penalizing KL divergence from a reference policy. For a fixed prompt and unrestricted policy, maximizing $\mathbb E_\pi r-\beta\operatorname{KL}(\pi\Vert\pi_{ref})$ yields $\pi^*(y)\propto\pi_{ref}(y)e^{r(y)/\beta}$, assuming the relevant support and normalizer conditions.
+
+### From a KL penalty to a policy ratio
+
+For fixed prompt $x$ and $\beta>0$, suppose $\pi_{\mathrm{ref}}$ has support on every allowed response and the following sum is finite:
+
+$$
+Z(x)=\sum_y\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta},\qquad
+\pi^*(y\mid x)=\frac{\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}}{Z(x)}.
+$$
+
+Rearranging yields
+
+$$
+r(x,y)=\beta\log\frac{\pi^*(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}
++\beta\log Z(x).
+$$
+
+The prompt-specific constant cancels when comparing two responses. Substituting a trainable $\pi_\theta$ for $\pi^*$ produces the paired logistic objective below, following [DPO](https://arxiv.org/abs/2305.18290). Here $\beta$ controls the reference penalty, not the sampling temperature. The closed-form optimum assumes unrestricted policies; a finite neural family and noisy optimization need not attain it.
 
 ## 9.5 · A tiny direct-preference objective
 

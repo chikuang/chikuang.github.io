@@ -66,6 +66,17 @@ print([vocab[i] for i in encode('probability models encounter novelty')])
 
 Build the vocabulary from training text and freeze it before evaluation. Mapping unseen words to `<unk>` avoids an indexing error but loses distinctions between them. Character or byte tokenizers reduce this problem at the cost of longer sequences. Subword tokenizers trade vocabulary size against sequence length. A token may be part of a word, punctuation, or a byte sequence; counting tokens is not counting words.
 
+### Tokenization defines the sample space
+
+Write a fitted tokenizer as $\tau:\mathcal S\to\mathcal V^*$, where $\mathcal S$ is the set of input strings, $\mathcal V=\{0,\ldots,V-1\}$ is the vocabulary, and $\mathcal V^*$ contains finite token sequences. For a string $s$,
+
+$$
+\tau(s)=(x_1,\ldots,x_{T(s)}),\qquad
+X_{t,:}=E_{x_t,:},\quad E\in\mathbb R^{V\times d}.
+$$
+
+$T(s)$ depends on the tokenizer. Our normalization makes $\tau$ many-to-one: two distinct strings can have identical IDs. A model operating only on those IDs cannot distinguish them. Changing $\tau$ changes the events being scored, which is why per-token losses from different tokenizers need not be directly comparable.
+
 ## 3.2 · A miniature byte-pair-style merge experiment
 
 Byte-pair encoding repeatedly merges frequent adjacent units. Real implementations include normalization, boundary conventions, special tokens, and efficient encoders. This word-internal character experiment isolates the merge idea; it is **not** a byte-level production tokenizer.
@@ -164,6 +175,25 @@ plt.show()
 
 Inspect the neighbors instead of assuming they are sensible. Eight sentences are too few to establish robust language structure. Words absent from similar contexts may appear dissimilar despite related meanings. The plot discards two coordinates and can further distort distances. Neither the plot nor cosine similarity establishes a causal relationship.
 
+### What the factorization and similarity measure optimize
+
+For the full SVD $M=U\Sigma V^\top$, retaining the $d$ largest singular values gives a solution to
+
+$$
+M_d\in\operatorname*{arg\min}_{\operatorname{rank}(A)\le d}
+\|M-A\|_F^2,\qquad M_d=U_d\Sigma_dV_d^\top.
+$$
+
+The Frobenius norm sums squared matrix entries. This is a low-rank approximation to **PPMI**, not maximum likelihood for a language model. The row embedding $E=U_d\Sigma_d^{1/2}$ and context embedding $F=V_d\Sigma_d^{1/2}$ satisfy $EF^\top=M_d$; in general $EE^\top\ne M_d$.
+
+For two nonzero row vectors $a,b\in\mathbb R^d$, the neighbor score is
+
+$$
+\operatorname{cos}(a,b)=\frac{ab^\top}{\sqrt{aa^\top}\sqrt{bb^\top}}\in[-1,1].
+$$
+
+Unit-normalizing vectors turns cosine into a dot product. A zero vector has no mathematically defined cosine; the code protects its normalization numerically, but the resulting zero row contains no directional information. Neighbors of such a row should not be interpreted as semantic evidence.
+
 ## 3.5 · Identifiability and the loss of order
 
 For an orthogonal matrix $R$, $(ER)(ER)^\top=EE^\top$. Rotating all vectors preserves dot products, norms, and cosine similarities. Individual axes therefore need not correspond to interpretable concepts.
@@ -193,6 +223,16 @@ P[:, 1::2] = np.cos(positions * frequencies)
 print(np.round(P, 3))
 assert not np.allclose(P[0], P[1])
 ```
+
+For even width $d$ and position $t=0,1,\ldots$, the fixed positional code used here is
+
+$$
+P_{t,2j}=\sin\left(\frac{t}{10000^{2j/d}}\right),\qquad
+P_{t,2j+1}=\cos\left(\frac{t}{10000^{2j/d}}\right),
+\quad j=0,\ldots,d/2-1.
+$$
+
+The input state is $X_{t,:}=E_{x_t,:}+P_{t,:}$. The sum preserves width $d$ while making position available; subsequent attention creates context dependence. Our later decoder uses learned position vectors instead of these fixed ones.
 
 Position features do not themselves create understanding. They allow a model to distinguish order when the prediction objective rewards doing so. Learned absolute positions and relative-position mechanisms are other options; each has implications for generalizing to lengths not seen in training. Padding positions also need an explicit mask so they do not become evidence.
 

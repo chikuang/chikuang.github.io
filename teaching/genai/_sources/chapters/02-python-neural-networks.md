@@ -75,6 +75,27 @@ Its gradient in $w$ is $X^\top(p-y)/n$. A hidden layer replaces the fixed featur
 
 We use `BCEWithLogitsLoss`, which accepts logits and implements a stable binary cross-entropy. Do **not** apply a sigmoid before passing predictions to this loss. Apply it when you need probabilities for interpretation.
 
+### Forward and backward passes with dimensions
+
+For a minibatch of $m$ rows, let $X\in\mathbb R^{m\times p}$, $W_1\in\mathbb R^{p\times h}$, $b_1,w_2\in\mathbb R^h$, and $b_2\in\mathbb R$. The column-vector formula above becomes
+
+$$
+A=XW_1+\mathbf1_m b_1^\top,\quad H=\tanh(A),\quad
+\eta=Hw_2+b_2\mathbf1_m,\quad \pi=\sigma(\eta).
+$$
+
+Here $\pi\in(0,1)^m$ is the vector of predicted probabilities and $p$ counts input features. With $\delta=(\pi-y)/m$, the chain rule gives the **unregularized minibatch-loss** gradients
+
+$$
+\begin{aligned}
+\nabla_{w_2}L&=H^\top\delta,&\quad \partial L/\partial b_2&=\mathbf1_m^\top\delta,\\
+G&=(\delta w_2^\top)\odot(1-H\odot H),& \nabla_{W_1}L&=X^\top G,\\
+\nabla_{b_1}L&=G^\top\mathbf1_m.&&
+\end{aligned}
+$$
+
+$\odot$ multiplies entries, and $G$ has shape $m\times h$. The derivative $1-\tanh^2(A)$ explains how a saturated hidden unit can transmit a small gradient. `nn.Linear(p, h)` stores the transpose of our $W_1$, with shape `(h, p)`; its forward calculation still implements this map. In the experiment $p=2$ and $h=16$.
+
 ## 2.3 · Check automatic differentiation on a known answer
 
 Autodiff applies the chain rule to a recorded computation graph. It is not numerical differentiation. A finite-difference check is nevertheless useful for catching mistakes in your formula or tensor indexing.
@@ -175,6 +196,28 @@ plt.show()
 ```
 
 The optimizer controls how parameters move, not what the statistical target is. Weight decay penalizes large parameters; hidden-layer width controls representational capacity; the epoch budget controls how long we optimize. These are different choices. A decreasing training loss with a rising validation loss is evidence that further optimization is harming validation performance, not evidence that gradient descent has stopped working.
+
+### Optimization and checkpoint selection are different operations
+
+For a minibatch index set $\mathcal B_k$, a plain stochastic-gradient step would be
+
+$$
+g_k=\frac1{|\mathcal B_k|}\sum_{i\in\mathcal B_k}
+\nabla_\theta\ell_i(\theta_k),\qquad
+\theta_{k+1}=\theta_k-\eta_k g_k.
+$$
+
+$\eta_k>0$ is a learning rate. Uniform sampling of a fresh minibatch gives an unbiased gradient of the empirical mean loss conditional on the current weights; successive batches sampled without replacement need not have that conditional property. The code uses Adam, which rescales gradients using running moments, and includes weight decay, so its `step()` is not exactly this plain update.
+
+For saved epoch checkpoints $\theta^{(1)},\ldots,\theta^{(E)}$, selection is
+
+$$
+e^*\in\operatorname*{arg\min}_{1\le e\le E}
+\frac1{n_{\mathrm{val}}}\sum_{i\in\mathcal I_{\mathrm{val}}}
+\ell_i(\theta^{(e)}),\qquad \widehat\theta=\theta^{(e^*)}.
+$$
+
+The index set $\mathcal I_{\mathrm{val}}$ is disjoint from training and test indices. This equation corresponds to `best_loss` and the copied `best_state`, not to `backward()`.
 
 ## 2.6 · Compare with a constant baseline on the test sample
 

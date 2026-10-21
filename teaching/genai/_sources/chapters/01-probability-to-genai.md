@@ -37,6 +37,20 @@ The distinction between *generative* and *discriminative* needs context. In clas
 
 **A useful separation:** the model specifies probabilities; a decoding algorithm decides how to turn them into outputs. Sampling, choosing the most probable outcome, and modifying probabilities before sampling are different procedures even when they use the same fitted model.
 
+### Define the random object before fitting it
+
+We use uppercase letters for random variables, lowercase letters for realizations, and a hat for an estimate. A density or mass function $p_\theta$ represents the distribution $P_\theta$ relative to the relevant reference measure. A discrete probability satisfies $p_\theta(x)\geq0$ and $\sum_x p_\theta(x)=1$; a continuous density integrates to one and its value at a point is not a point probability.
+
+For iid training observations $D=(X_1,\ldots,X_N)$, maximum likelihood and plug-in generation are
+
+$$
+\widehat\theta\in\operatorname*{arg\min}_{\theta\in\Theta}
+\left\{-\frac1N\sum_{i=1}^N\log p_\theta(X_i)\right\},
+\qquad \widetilde X\mid D\sim P_{\widehat\theta(D)}.
+$$
+
+Here $\widetilde X$ is a new **model-generated** draw; it is not automatically a new draw from $P_0$. With a prompt $c$, replace the sampling law by $p_{\widehat\theta}(y\mid c)$. A Bayesian posterior predictive instead averages $p_\theta(y\mid c)$ over $p(\theta\mid D)$. That integration represents parameter uncertainty; drawing many times at one fitted parameter does not.
+
 ### A small vocabulary
 
 | Term | Meaning in this course |
@@ -235,6 +249,15 @@ $$
 $$
 
 Thus the population expected loss is minimized at $q=p_0$. This statement concerns the probability target and the evaluation population. It does not imply that a low-loss language model answers factual questions accurately: the outcome being predicted is an observed token, not a truth label.
+
+In that identity, entropy and KL divergence mean
+
+$$
+H(p_0)=-\sum_j p_{0j}\log p_{0j},\qquad
+D_{\mathrm{KL}}(p_0\Vert q)=\sum_{j:p_{0j}>0}p_{0j}\log\frac{p_{0j}}{q_j}.
+$$
+
+Use $0\log0=0$ by continuity. If $p_{0j}>0$ but $q_j=0$, the KL divergence and expected log loss are infinite. KL is nonnegative but generally asymmetric; it is not a distance metric. These definitions recur in variational inference, adaptation, and evaluation.
 
 **Perplexity** is $\exp(\widehat R)$ when natural logs are used. A uniform distribution on $K$ outcomes has perplexity $K$. General perplexity is an effective uncertainty scale, not a literal count of equally likely words. Comparisons require compatible tokenization, vocabulary conventions, datasets, and averaging rules; a word-level score and a subword score are not directly interchangeable.
 
@@ -595,6 +618,21 @@ Do not fix `log(0)` by silently clipping probabilities and then reporting the sc
 ## 1.13 · Separate estimation error from Monte Carlo error
 
 Generating more observations from a fitted model estimates that model more precisely; it does not automatically move it closer to the data-generating distribution. We can separate these errors because the true categorical distribution is known in this experiment.
+
+For a numerical summary $g$, define $\mu_0=\mathbb E_{P_0}g(X)$, $\mu_{\widehat\theta}=\mathbb E_{P_{\widehat\theta}}g(X)$, and the average of $M$ conditionally independent generated draws, $\widehat\mu_M=M^{-1}\sum_{m=1}^M g(\widetilde X_m)$. Then
+
+$$
+\widehat\mu_M-\mu_0
+=\underbrace{\widehat\mu_M-\mu_{\widehat\theta}}_{\text{Monte Carlo error}}
++\underbrace{\mu_{\widehat\theta}-\mu_0}_{\text{fitting and model error}},
+$$
+
+$$
+\operatorname{Var}(\widehat\mu_M\mid D)
+=\frac{\operatorname{Var}_{P_{\widehat\theta}}\{g(X)\}}{M}.
+$$
+
+The variance identity assumes a finite second moment and independent draws conditional on the fitted model. For a category frequency, take $g(x)=\mathbf1\{x=j\}$. Increasing `size` in a sampling call reduces the first error term; collecting better training data or improving the model addresses the second. This is the mathematical reason for the separate simulation and evaluation lanes in the framework.
 
 For each training size, fit a smoothed probability vector and calculate its exact KL divergence from the true vector. The repeated fits represent sampling variation in estimation. A separate large generated sample then approximates one fitted vector, not the unknown truth.
 

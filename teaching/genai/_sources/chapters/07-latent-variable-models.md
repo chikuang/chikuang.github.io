@@ -113,6 +113,28 @@ assert torch.allclose(0.5*(zero**2 + zero.exp()-1-zero).sum(-1), torch.zeros(3))
 
 Clamping log variance limits extreme values in this small experiment and is part of the chosen encoder family. The first 1,200 observations are training data and the remaining 400 are validation data from the same simulated mixture. We use a fixed training budget; validation is a diagnostic rather than a source of repeated hyperparameter searches.
 
+### The loss actually estimated by a minibatch
+
+For $x_i\in\mathbb R^{d_x}$ and $z_i\in\mathbb R^{d_z}$, let $g_\phi(x_i,\epsilon_i)=\mu_\phi(x_i)+\exp(\ell_\phi(x_i)/2)\odot\epsilon_i$. With independent $\epsilon_i\sim N(0,I_{d_z})$, the code uses one latent draw per observation to estimate
+
+$$
+\widehat J=\frac1m\sum_{i=1}^m\left[
+\frac{\|x_i-f_\theta(g_\phi(x_i,\epsilon_i))\|_2^2}{2\sigma_x^2}
++\frac12\sum_{j=1}^{d_z}
+\{\mu_{ij}^2+e^{\ell_{ij}}-1-\ell_{ij}\}\right].
+$$
+
+The inner sums run over coordinates, and the outer mean runs over observations. Here $d_x=d_z=2$ and $\sigma_x=0.18$. The omitted negative-log-Gaussian constant is $d_x\log(2\pi\sigma_x^2)/2$ per observation; it is fixed only because the observation variance is fixed. Averaging coordinate errors instead of summing them would change the reconstruction/KL balance.
+
+Under conditions allowing differentiation through the expectation,
+
+$$
+\nabla_\phi\mathbb E_{\epsilon}[r_{\theta,\phi}(x,\epsilon)]
+=\mathbb E_{\epsilon}[\nabla_\phi r_{\theta,\phi}(x,\epsilon)],
+$$
+
+where $r$ is the reconstruction term. Autodiff follows $\epsilon\to z\to f_\theta(z)$ with the sampled $\epsilon$ held fixed; the KL term is differentiated analytically through its closed form. The stochastic estimate of negative ELBO need not itself bound the negative log likelihood for each individual noise draw; the bound concerns its expectation.
+
 ## 7.4 · Optimize and inspect both objective components
 
 ```{code-cell} python
@@ -178,6 +200,14 @@ $$
 
 For fixed distributions and an unrestricted optimal discriminator, $D^*(x)=p_0(x)/(p_0(x)+p_G(x))$ where the density expression is defined. This motivates a density-ratio interpretation, but practical networks and alternating optimization do not achieve that ideal automatically. Mode collapse means the generator can neglect portions of the target distribution. Unlike our VAE observation model, a general GAN does not supply a tractable density for an arbitrary observation.
 
+A commonly used generator update instead minimizes the **non-saturating** loss
+
+$$
+L_G^{\mathrm{NS}}(\theta)=-\mathbb E_{Z\sim p_Z}\log D_\psi(G_\theta(Z)),
+$$
+
+holding $\psi$ fixed during that update. It encourages generated samples to receive large discriminator scores, but it has a different gradient from the minimax generator loss $\mathbb E_Z\log(1-D_\psi(G_\theta(Z)))$. The discriminator output is a real-versus-generated classification score under its training mixture, not a calibrated probability that a sample is scientifically valid. This chapter explains the objectives; it does not execute GAN training.
+
 ## 7.7 · Flows: retain an invertible map and its Jacobian
 
 For an invertible differentiable map $x=f_\theta(z)$ of equal-dimensional spaces,
@@ -186,6 +216,15 @@ $$
 \log p_X(x)=\log p_Z(f_\theta^{-1}(x))
 -\log|\det J_{f_\theta}(f_\theta^{-1}(x))|.
 $$
+
+Writing $g_\theta=f_\theta^{-1}$ makes the equivalent inverse-map formula and fitting objective explicit:
+
+$$
+\log p_X(x)=\log p_Z(g_\theta(x))+\log|\det J_{g_\theta}(x)|,
+\qquad \widehat L_{\mathrm{flow}}=-\frac1N\sum_{i=1}^N\log p_X(x_i).
+$$
+
+The sign changes because the inverse Jacobian determinant is the reciprocal of the forward determinant. The identity assumes an invertible differentiable map with a nonzero Jacobian determinant at the evaluated points. Both maps act on the same dimension; the encoder of a general VAE has no such invertibility requirement.
 
 Consider the one-dimensional affine flow $X=aZ+b$, $a>0$. Its density is exactly a normal density with mean $b$ and standard deviation $a$.
 

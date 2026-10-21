@@ -348,6 +348,7 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-a-generative-model">1.1 · What is a generative model?</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-random-object-before-fitting-it">Define the random object before fitting it</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-small-vocabulary">A small vocabulary</a></li>
 </ul>
 </li>
@@ -463,6 +464,18 @@
 <p>For example, fitting a normal distribution and calling a random-number generator already gives a simple generative procedure. Modern generative AI uses richer representations and models to generate objects such as text, images, audio, or code. The distribution may be explicit, as in a next-token model, or defined through a sampling mechanism without an easily evaluated density.</p>
 <p>The distinction between <em>generative</em> and <em>discriminative</em> needs context. In classical classification, a generative classifier models <span class="math notranslate nohighlight">\(p(x,y)\)</span> while a discriminative classifier models <span class="math notranslate nohighlight">\(p(y\mid x)\)</span>. In GenAI, a system can generate an entire response <span class="math notranslate nohighlight">\(y\)</span> conditional on a prompt <span class="math notranslate nohighlight">\(c\)</span> using <span class="math notranslate nohighlight">\(p_\theta(y\mid c)\)</span>. Conditional modeling and generation are therefore compatible.</p>
 <p><strong>A useful separation:</strong> the model specifies probabilities; a decoding algorithm decides how to turn them into outputs. Sampling, choosing the most probable outcome, and modifying probabilities before sampling are different procedures even when they use the same fitted model.</p>
+<section id="define-the-random-object-before-fitting-it">
+<h3>Define the random object before fitting it<a class="headerlink" href="#define-the-random-object-before-fitting-it" title="Link to this heading">#</a></h3>
+<p>We use uppercase letters for random variables, lowercase letters for realizations, and a hat for an estimate. A density or mass function <span class="math notranslate nohighlight">\(p_\theta\)</span> represents the distribution <span class="math notranslate nohighlight">\(P_\theta\)</span> relative to the relevant reference measure. A discrete probability satisfies <span class="math notranslate nohighlight">\(p_\theta(x)\geq0\)</span> and <span class="math notranslate nohighlight">\(\sum_x p_\theta(x)=1\)</span>; a continuous density integrates to one and its value at a point is not a point probability.</p>
+<p>For iid training observations <span class="math notranslate nohighlight">\(D=(X_1,\ldots,X_N)\)</span>, maximum likelihood and plug-in generation are</p>
+<div class="math notranslate nohighlight">
+\[
+\widehat\theta\in\operatorname*{arg\min}_{\theta\in\Theta}
+\left\{-\frac1N\sum_{i=1}^N\log p_\theta(X_i)\right\},
+\qquad \widetilde X\mid D\sim P_{\widehat\theta(D)}.
+\]</div>
+<p>Here <span class="math notranslate nohighlight">\(\widetilde X\)</span> is a new <strong>model-generated</strong> draw; it is not automatically a new draw from <span class="math notranslate nohighlight">\(P_0\)</span>. With a prompt <span class="math notranslate nohighlight">\(c\)</span>, replace the sampling law by <span class="math notranslate nohighlight">\(p_{\widehat\theta}(y\mid c)\)</span>. A Bayesian posterior predictive instead averages <span class="math notranslate nohighlight">\(p_\theta(y\mid c)\)</span> over <span class="math notranslate nohighlight">\(p(\theta\mid D)\)</span>. That integration represents parameter uncertainty; drawing many times at one fitted parameter does not.</p>
+</section>
 <section id="a-small-vocabulary">
 <h3>A small vocabulary<a class="headerlink" href="#a-small-vocabulary" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -738,6 +751,13 @@ Uniform: loss = 1.099; perplexity = 3.000
 =H(p_0)+D_{\mathrm{KL}}(p_0\Vert q).
 \]</div>
 <p>Thus the population expected loss is minimized at <span class="math notranslate nohighlight">\(q=p_0\)</span>. This statement concerns the probability target and the evaluation population. It does not imply that a low-loss language model answers factual questions accurately: the outcome being predicted is an observed token, not a truth label.</p>
+<p>In that identity, entropy and KL divergence mean</p>
+<div class="math notranslate nohighlight">
+\[
+H(p_0)=-\sum_j p_{0j}\log p_{0j},\qquad
+D_{\mathrm{KL}}(p_0\Vert q)=\sum_{j:p_{0j}&gt;0}p_{0j}\log\frac{p_{0j}}{q_j}.
+\]</div>
+<p>Use <span class="math notranslate nohighlight">\(0\log0=0\)</span> by continuity. If <span class="math notranslate nohighlight">\(p_{0j}&gt;0\)</span> but <span class="math notranslate nohighlight">\(q_j=0\)</span>, the KL divergence and expected log loss are infinite. KL is nonnegative but generally asymmetric; it is not a distance metric. These definitions recur in variational inference, adaptation, and evaluation.</p>
 <p><strong>Perplexity</strong> is <span class="math notranslate nohighlight">\(\exp(\widehat R)\)</span> when natural logs are used. A uniform distribution on <span class="math notranslate nohighlight">\(K\)</span> outcomes has perplexity <span class="math notranslate nohighlight">\(K\)</span>. General perplexity is an effective uncertainty scale, not a literal count of equally likely words. Comparisons require compatible tokenization, vocabulary conventions, datasets, and averaging rules; a word-level score and a subword score are not directly interchangeable.</p>
 </section>
 </section>
@@ -1218,6 +1238,19 @@ Bigram: train=1.381, test=1.816, test perplexity=6.144
 <section id="separate-estimation-error-from-monte-carlo-error">
 <h2>1.13 · Separate estimation error from Monte Carlo error<a class="headerlink" href="#separate-estimation-error-from-monte-carlo-error" title="Link to this heading">#</a></h2>
 <p>Generating more observations from a fitted model estimates that model more precisely; it does not automatically move it closer to the data-generating distribution. We can separate these errors because the true categorical distribution is known in this experiment.</p>
+<p>For a numerical summary <span class="math notranslate nohighlight">\(g\)</span>, define <span class="math notranslate nohighlight">\(\mu_0=\mathbb E_{P_0}g(X)\)</span>, <span class="math notranslate nohighlight">\(\mu_{\widehat\theta}=\mathbb E_{P_{\widehat\theta}}g(X)\)</span>, and the average of <span class="math notranslate nohighlight">\(M\)</span> conditionally independent generated draws, <span class="math notranslate nohighlight">\(\widehat\mu_M=M^{-1}\sum_{m=1}^M g(\widetilde X_m)\)</span>. Then</p>
+<div class="math notranslate nohighlight">
+\[
+\widehat\mu_M-\mu_0
+=\underbrace{\widehat\mu_M-\mu_{\widehat\theta}}_{\text{Monte Carlo error}}
++\underbrace{\mu_{\widehat\theta}-\mu_0}_{\text{fitting and model error}},
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+\operatorname{Var}(\widehat\mu_M\mid D)
+=\frac{\operatorname{Var}_{P_{\widehat\theta}}\{g(X)\}}{M}.
+\]</div>
+<p>The variance identity assumes a finite second moment and independent draws conditional on the fitted model. For a category frequency, take <span class="math notranslate nohighlight">\(g(x)=\mathbf1\{x=j\}\)</span>. Increasing <code class="docutils literal notranslate"><span class="pre">size</span></code> in a sampling call reduces the first error term; collecting better training data or improving the model addresses the second. This is the mathematical reason for the separate simulation and evaluation lanes in the framework.</p>
 <p>For each training size, fit a smoothed probability vector and calculate its exact KL divergence from the true vector. The repeated fits represent sampling variation in estimation. A separate large generated sample then approximates one fitted vector, not the unknown truth.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -1476,6 +1509,7 @@ Sentence probability: 0.005954
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-a-generative-model">1.1 · What is a generative model?</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-random-object-before-fitting-it">Define the random object before fitting it</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-small-vocabulary">A small vocabulary</a></li>
 </ul>
 </li>

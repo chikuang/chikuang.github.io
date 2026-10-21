@@ -348,10 +348,19 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choose-the-intervention-to-match-the-problem">9.1 · Choose the intervention to match the problem</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#low-rank-adaptation-as-a-constrained-update">9.2 · Low-rank adaptation as a constrained update</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choose-the-intervention-to-match-the-problem">9.1 · Choose the intervention to match the problem</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-which-tokens-supervised-tuning-fits">Define which tokens supervised tuning fits</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#low-rank-adaptation-as-a-constrained-update">9.2 · Low-rank adaptation as a constrained update</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reconcile-matrix-conventions-and-initialization">Reconcile matrix conventions and initialization</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-the-fitted-update-not-only-parameter-counts">9.3 · Inspect the fitted update, not only parameter counts</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#preference-observations-and-bradleyterry-probabilities">9.4 · Preference observations and Bradley–Terry probabilities</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#preference-observations-and-bradleyterry-probabilities">9.4 · Preference observations and Bradley–Terry probabilities</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#from-a-kl-penalty-to-a-policy-ratio">From a KL penalty to a policy ratio</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-tiny-direct-preference-objective">9.5 · A tiny direct-preference objective</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-an-adaptation-evaluation">9.6 · Design an adaptation evaluation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">9.7 · Exercises and worked solutions</a></li>
@@ -440,6 +449,16 @@
 </table>
 </div>
 <p>Supervised fine-tuning minimizes a response-token negative log likelihood conditional on the instruction. Often the instruction tokens are excluded from that loss. Data provenance, duplicates, and separation by task or document matter: a large collection of nearly identical instructions is not equivalent to a large collection of independent tasks.</p>
+<section id="define-which-tokens-supervised-tuning-fits">
+<h3>Define which tokens supervised tuning fits<a class="headerlink" href="#define-which-tokens-supervised-tuning-fits" title="Link to this heading">#</a></h3>
+<p>For instruction/response pairs <span class="math notranslate nohighlight">\((x_i,y_i)\)</span>, write <span class="math notranslate nohighlight">\(y_i=(y_{i1},\ldots,y_{iT_i})\)</span>, including any end marker used as a target. A token-weighted response-only objective is</p>
+<div class="math notranslate nohighlight">
+\[
+L_{\mathrm{SFT}}(\theta)=-\frac1{\sum_iT_i}
+\sum_i\sum_{t=1}^{T_i}\log\pi_\theta(y_{it}\mid x_i,y_{i,&lt;t}).
+\]</div>
+<p>The instruction is conditioning information; its tokens do not contribute targets in this convention. Padding is excluded too. A per-example mean would first divide each response loss by <span class="math notranslate nohighlight">\(T_i\)</span> and then average examples, changing the weighting. State the convention before comparing runs. LoRA below restricts which parameters can change; it can use this same loss in a language model, whereas our runnable example uses regression MSE.</p>
+</section>
 </section>
 <section id="low-rank-adaptation-as-a-constrained-update">
 <h2>9.2 · Low-rank adaptation as a constrained update<a class="headerlink" href="#low-rank-adaptation-as-a-constrained-update" title="Link to this heading">#</a></h2>
@@ -508,6 +527,25 @@ Low-rank update train/test MSE: 0.0093 0.0117
 </div>
 </div>
 <p>The true update was deliberately chosen to have rank two. This favors the low-rank assumption and must be disclosed when interpreting results. To test robustness, replace it with a full-rank matrix, vary training size, and repeat the entire comparison. In transformers, low-rank updates may be attached to selected projection matrices; choosing their locations is another modeling decision.</p>
+<section id="reconcile-matrix-conventions-and-initialization">
+<h3>Reconcile matrix conventions and initialization<a class="headerlink" href="#reconcile-matrix-conventions-and-initialization" title="Link to this heading">#</a></h3>
+<p>The diagram and the original <a class="reference external" href="https://arxiv.org/abs/2106.09685">LoRA paper</a> use the common column-vector convention <span class="math notranslate nohighlight">\(W_0+sBA\)</span>. Our code multiplies row inputs by a weight matrix on the right. Transposing the column convention gives</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+y_{\mathrm{col}}&amp;=(W_{0,\mathrm{col}}+sB_{\mathrm{col}}A_{\mathrm{col}})x_{\mathrm{col}},\\
+y_{\mathrm{row}}&amp;=x_{\mathrm{row}}(W_{0,\mathrm{row}}+sAB),
+\qquad W_{0,\mathrm{row}}=W_{0,\mathrm{col}}^\top.
+\end{aligned}
+\end{split}\]</div>
+<p>with <span class="math notranslate nohighlight">\(A=A_{\mathrm{col}}^\top\in\mathbb R^{d_{\mathrm{in}}\times r}\)</span> and <span class="math notranslate nohighlight">\(B=B_{\mathrm{col}}^\top\in\mathbb R^{r\times d_{\mathrm{out}}}\)</span>. The factor names differ between conventions; the linear map does not. The scale <span class="math notranslate nohighlight">\(s\)</span> is fixed (one in this lab; often <span class="math notranslate nohighlight">\(\alpha/r\)</span> in LoRA).</p>
+<p>For <span class="math notranslate nohighlight">\(\Delta=sAB\)</span> and <span class="math notranslate nohighlight">\(G=\partial L/\partial\Delta\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[
+\nabla_A L=sGB^\top,\qquad \nabla_B L=sA^\top G.
+\]</div>
+<p>At <span class="math notranslate nohighlight">\(B=0\)</span> and random nonzero <span class="math notranslate nohighlight">\(A\)</span>, the initial update is zero, but <span class="math notranslate nohighlight">\(\nabla_B L\)</span> can be nonzero. Once <span class="math notranslate nohighlight">\(B\)</span> moves, <span class="math notranslate nohighlight">\(A\)</span> can also receive a gradient. Initializing <strong>both</strong> factors at zero blocks both gradients. This explains the initialization choice without treating low rank as a different prediction objective.</p>
+</section>
 </section>
 <section id="inspect-the-fitted-update-not-only-parameter-counts">
 <h2>9.3 · Inspect the fitted update, not only parameter counts<a class="headerlink" href="#inspect-the-fitted-update-not-only-parameter-counts" title="Link to this heading">#</a></h2>
@@ -541,6 +579,22 @@ P(y_a\succ y_b\mid x)=\sigma\{r(x,y_a)-r(x,y_b)\}.
 \]</div>
 <p>Adding a constant to all utilities for a prompt leaves these probabilities unchanged. The model describes a population of preference observations, not an objective notion of truth. Annotator selection, ambiguous instructions, response length, presentation order, and disagreement all affect the labels.</p>
 <p>A common RLHF formulation fits a reward model from comparisons and then optimizes expected reward while penalizing KL divergence from a reference policy. For a fixed prompt and unrestricted policy, maximizing <span class="math notranslate nohighlight">\(\mathbb E_\pi r-\beta\operatorname{KL}(\pi\Vert\pi_{ref})\)</span> yields <span class="math notranslate nohighlight">\(\pi^*(y)\propto\pi_{ref}(y)e^{r(y)/\beta}\)</span>, assuming the relevant support and normalizer conditions.</p>
+<section id="from-a-kl-penalty-to-a-policy-ratio">
+<h3>From a KL penalty to a policy ratio<a class="headerlink" href="#from-a-kl-penalty-to-a-policy-ratio" title="Link to this heading">#</a></h3>
+<p>For fixed prompt <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(\beta&gt;0\)</span>, suppose <span class="math notranslate nohighlight">\(\pi_{\mathrm{ref}}\)</span> has support on every allowed response and the following sum is finite:</p>
+<div class="math notranslate nohighlight">
+\[
+Z(x)=\sum_y\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta},\qquad
+\pi^*(y\mid x)=\frac{\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}}{Z(x)}.
+\]</div>
+<p>Rearranging yields</p>
+<div class="math notranslate nohighlight">
+\[
+r(x,y)=\beta\log\frac{\pi^*(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}
++\beta\log Z(x).
+\]</div>
+<p>The prompt-specific constant cancels when comparing two responses. Substituting a trainable <span class="math notranslate nohighlight">\(\pi_\theta\)</span> for <span class="math notranslate nohighlight">\(\pi^*\)</span> produces the paired logistic objective below, following <a class="reference external" href="https://arxiv.org/abs/2305.18290">DPO</a>. Here <span class="math notranslate nohighlight">\(\beta\)</span> controls the reference penalty, not the sampling temperature. The closed-form optimum assumes unrestricted policies; a finite neural family and noisy optimization need not attain it.</p>
+</section>
 </section>
 <section id="a-tiny-direct-preference-objective">
 <h2>9.5 · A tiny direct-preference objective<a class="headerlink" href="#a-tiny-direct-preference-objective" title="Link to this heading">#</a></h2>
@@ -665,10 +719,19 @@ Equal-preference log loss: 0.693
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choose-the-intervention-to-match-the-problem">9.1 · Choose the intervention to match the problem</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#low-rank-adaptation-as-a-constrained-update">9.2 · Low-rank adaptation as a constrained update</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choose-the-intervention-to-match-the-problem">9.1 · Choose the intervention to match the problem</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-which-tokens-supervised-tuning-fits">Define which tokens supervised tuning fits</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#low-rank-adaptation-as-a-constrained-update">9.2 · Low-rank adaptation as a constrained update</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reconcile-matrix-conventions-and-initialization">Reconcile matrix conventions and initialization</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-the-fitted-update-not-only-parameter-counts">9.3 · Inspect the fitted update, not only parameter counts</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#preference-observations-and-bradleyterry-probabilities">9.4 · Preference observations and Bradley–Terry probabilities</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#preference-observations-and-bradleyterry-probabilities">9.4 · Preference observations and Bradley–Terry probabilities</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#from-a-kl-penalty-to-a-policy-ratio">From a KL penalty to a policy ratio</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-tiny-direct-preference-objective">9.5 · A tiny direct-preference objective</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-an-adaptation-evaluation">9.6 · Design an adaptation evaluation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">9.7 · Exercises and worked solutions</a></li>

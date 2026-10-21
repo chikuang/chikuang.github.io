@@ -348,10 +348,16 @@
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-vocabulary-is-an-estimated-preprocessing-object">3.1 · A vocabulary is an estimated preprocessing object</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-vocabulary-is-an-estimated-preprocessing-object">3.1 · A vocabulary is an estimated preprocessing object</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tokenization-defines-the-sample-space">Tokenization defines the sample space</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-miniature-byte-pair-style-merge-experiment">3.2 · A miniature byte-pair-style merge experiment</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-hot-encoding-and-lookup-are-the-same-linear-operation">3.3 · One-hot encoding and lookup are the same linear operation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learn-a-small-representation-from-co-occurrence">3.4 · Learn a small representation from co-occurrence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learn-a-small-representation-from-co-occurrence">3.4 · Learn a small representation from co-occurrence</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-factorization-and-similarity-measure-optimize">What the factorization and similarity measure optimize</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#identifiability-and-the-loss-of-order">3.5 · Identifiability and the loss of order</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#positions-and-contextual-representations">3.6 · Positions and contextual representations</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">3.7 · Exercises and worked solutions</a></li>
@@ -449,6 +455,16 @@
 </div>
 </div>
 <p>Build the vocabulary from training text and freeze it before evaluation. Mapping unseen words to <code class="docutils literal notranslate"><span class="pre">&lt;unk&gt;</span></code> avoids an indexing error but loses distinctions between them. Character or byte tokenizers reduce this problem at the cost of longer sequences. Subword tokenizers trade vocabulary size against sequence length. A token may be part of a word, punctuation, or a byte sequence; counting tokens is not counting words.</p>
+<section id="tokenization-defines-the-sample-space">
+<h3>Tokenization defines the sample space<a class="headerlink" href="#tokenization-defines-the-sample-space" title="Link to this heading">#</a></h3>
+<p>Write a fitted tokenizer as <span class="math notranslate nohighlight">\(\tau:\mathcal S\to\mathcal V^*\)</span>, where <span class="math notranslate nohighlight">\(\mathcal S\)</span> is the set of input strings, <span class="math notranslate nohighlight">\(\mathcal V=\{0,\ldots,V-1\}\)</span> is the vocabulary, and <span class="math notranslate nohighlight">\(\mathcal V^*\)</span> contains finite token sequences. For a string <span class="math notranslate nohighlight">\(s\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[
+\tau(s)=(x_1,\ldots,x_{T(s)}),\qquad
+X_{t,:}=E_{x_t,:},\quad E\in\mathbb R^{V\times d}.
+\]</div>
+<p><span class="math notranslate nohighlight">\(T(s)\)</span> depends on the tokenizer. Our normalization makes <span class="math notranslate nohighlight">\(\tau\)</span> many-to-one: two distinct strings can have identical IDs. A model operating only on those IDs cannot distinguish them. Changing <span class="math notranslate nohighlight">\(\tau\)</span> changes the events being scored, which is why per-token losses from different tokenizers need not be directly comparable.</p>
+</section>
 </section>
 <section id="a-miniature-byte-pair-style-merge-experiment">
 <h2>3.2 · A miniature byte-pair-style merge experiment<a class="headerlink" href="#a-miniature-byte-pair-style-merge-experiment" title="Link to this heading">#</a></h2>
@@ -570,6 +586,22 @@ Neighbors of attention: [(&#39;use&#39;, 0.993), (&#39;to&#39;, 0.87), (&#39;mod
 </div>
 </div>
 <p>Inspect the neighbors instead of assuming they are sensible. Eight sentences are too few to establish robust language structure. Words absent from similar contexts may appear dissimilar despite related meanings. The plot discards two coordinates and can further distort distances. Neither the plot nor cosine similarity establishes a causal relationship.</p>
+<section id="what-the-factorization-and-similarity-measure-optimize">
+<h3>What the factorization and similarity measure optimize<a class="headerlink" href="#what-the-factorization-and-similarity-measure-optimize" title="Link to this heading">#</a></h3>
+<p>For the full SVD <span class="math notranslate nohighlight">\(M=U\Sigma V^\top\)</span>, retaining the <span class="math notranslate nohighlight">\(d\)</span> largest singular values gives a solution to</p>
+<div class="math notranslate nohighlight">
+\[
+M_d\in\operatorname*{arg\min}_{\operatorname{rank}(A)\le d}
+\|M-A\|_F^2,\qquad M_d=U_d\Sigma_dV_d^\top.
+\]</div>
+<p>The Frobenius norm sums squared matrix entries. This is a low-rank approximation to <strong>PPMI</strong>, not maximum likelihood for a language model. The row embedding <span class="math notranslate nohighlight">\(E=U_d\Sigma_d^{1/2}\)</span> and context embedding <span class="math notranslate nohighlight">\(F=V_d\Sigma_d^{1/2}\)</span> satisfy <span class="math notranslate nohighlight">\(EF^\top=M_d\)</span>; in general <span class="math notranslate nohighlight">\(EE^\top\ne M_d\)</span>.</p>
+<p>For two nonzero row vectors <span class="math notranslate nohighlight">\(a,b\in\mathbb R^d\)</span>, the neighbor score is</p>
+<div class="math notranslate nohighlight">
+\[
+\operatorname{cos}(a,b)=\frac{ab^\top}{\sqrt{aa^\top}\sqrt{bb^\top}}\in[-1,1].
+\]</div>
+<p>Unit-normalizing vectors turns cosine into a dot product. A zero vector has no mathematically defined cosine; the code protects its normalization numerically, but the resulting zero row contains no directional information. Neighbors of such a row should not be interpreted as semantic evidence.</p>
+</section>
 </section>
 <section id="identifiability-and-the-loss-of-order">
 <h2>3.5 · Identifiability and the loss of order<a class="headerlink" href="#identifiability-and-the-loss-of-order" title="Link to this heading">#</a></h2>
@@ -620,6 +652,14 @@ Same ordered sequence: False
 </div>
 </div>
 </div>
+<p>For even width <span class="math notranslate nohighlight">\(d\)</span> and position <span class="math notranslate nohighlight">\(t=0,1,\ldots\)</span>, the fixed positional code used here is</p>
+<div class="math notranslate nohighlight">
+\[
+P_{t,2j}=\sin\left(\frac{t}{10000^{2j/d}}\right),\qquad
+P_{t,2j+1}=\cos\left(\frac{t}{10000^{2j/d}}\right),
+\quad j=0,\ldots,d/2-1.
+\]</div>
+<p>The input state is <span class="math notranslate nohighlight">\(X_{t,:}=E_{x_t,:}+P_{t,:}\)</span>. The sum preserves width <span class="math notranslate nohighlight">\(d\)</span> while making position available; subsequent attention creates context dependence. Our later decoder uses learned position vectors instead of these fixed ones.</p>
 <p>Position features do not themselves create understanding. They allow a model to distinguish order when the prediction objective rewards doing so. Learned absolute positions and relative-position mechanisms are other options; each has implications for generalizing to lengths not seen in training. Padding positions also need an explicit mask so they do not become evidence.</p>
 </section>
 <section id="exercises-and-worked-solutions">
@@ -686,10 +726,16 @@ Same ordered sequence: False
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-vocabulary-is-an-estimated-preprocessing-object">3.1 · A vocabulary is an estimated preprocessing object</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-vocabulary-is-an-estimated-preprocessing-object">3.1 · A vocabulary is an estimated preprocessing object</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tokenization-defines-the-sample-space">Tokenization defines the sample space</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-miniature-byte-pair-style-merge-experiment">3.2 · A miniature byte-pair-style merge experiment</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-hot-encoding-and-lookup-are-the-same-linear-operation">3.3 · One-hot encoding and lookup are the same linear operation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learn-a-small-representation-from-co-occurrence">3.4 · Learn a small representation from co-occurrence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learn-a-small-representation-from-co-occurrence">3.4 · Learn a small representation from co-occurrence</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-factorization-and-similarity-measure-optimize">What the factorization and similarity measure optimize</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#identifiability-and-the-loss-of-order">3.5 · Identifiability and the loss of order</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#positions-and-contextual-representations">3.6 · Positions and contextual representations</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">3.7 · Exercises and worked solutions</a></li>

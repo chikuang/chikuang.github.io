@@ -349,9 +349,15 @@
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-estimand-and-the-unit">11.1 · Define the estimand and the unit</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#preserve-pairing-when-comparing-systems">11.2 · Preserve pairing when comparing systems</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#preserve-pairing-when-comparing-systems">11.2 · Preserve pairing when comparing systems</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-pairing-changes-uncertainty">Why pairing changes uncertainty</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#separate-factual-labels-from-judging-machinery">11.3 · Separate factual labels from judging machinery</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration-is-a-relationship-between-probabilities-and-outcomes">11.4 · Calibration is a relationship between probabilities and outcomes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration-is-a-relationship-between-probabilities-and-outcomes">11.4 · Calibration is a relationship between probabilities and outcomes</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration-and-temperature-scaling-in-symbols">Calibration and temperature scaling in symbols</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#abstention-produces-a-riskcoverage-tradeoff">11.5 · Abstention produces a risk–coverage tradeoff</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#split-conformal-prediction-for-a-finite-label-space">11.6 · Split conformal prediction for a finite label space</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">11.7 · Exercises and worked solutions</a></li>
@@ -447,6 +453,22 @@ Question-bootstrap percentile interval: [0.025 0.083]
 </div>
 <p>The shared random variable is a convenient simulation construction, not an assumption that real model errors are nested. Resampling the paired differences preserves the observed association between systems. Resampling A and B independently would estimate a different sampling variance.</p>
 <p>A percentile bootstrap interval is an approximation, not an exact finite-sample guarantee. Its interpretation depends on the sampled tasks representing the target population. It does not account for an unreported search over prompts or models using the same test set.</p>
+<section id="why-pairing-changes-uncertainty">
+<h3>Why pairing changes uncertainty<a class="headerlink" href="#why-pairing-changes-uncertainty" title="Link to this heading">#</a></h3>
+<p>For independent sampled questions, let <span class="math notranslate nohighlight">\(A_i,B_i\in\{0,1\}\)</span> indicate correctness and <span class="math notranslate nohighlight">\(D_i=B_i-A_i\)</span>. The accuracy estimand and estimator are</p>
+<div class="math notranslate nohighlight">
+\[
+\Delta=\mathbb E[D_i],\qquad \widehat\Delta=\frac1n\sum_iD_i,\qquad
+\widehat{\operatorname{SE}}(\widehat\Delta)=\frac{s_D}{\sqrt n},
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(s_D^2=(n-1)^{-1}\sum_i(D_i-\widehat\Delta)^2\)</span>. The population identity</p>
+<div class="math notranslate nohighlight">
+\[
+\operatorname{Var}(D_i)=\operatorname{Var}(B_i)+\operatorname{Var}(A_i)
+-2\operatorname{Cov}(A_i,B_i)
+\]</div>
+<p>explains why independently resampling the two systems loses information. The code resamples whole paired differences and uses bootstrap quantiles rather than this normal-approximation standard error. For zero-one loss, the risk difference <span class="math notranslate nohighlight">\(R_B-R_A=-\Delta\)</span>; report the direction so a positive improvement is not mistaken for a larger loss.</p>
+</section>
 </section>
 <section id="separate-factual-labels-from-judging-machinery">
 <h2>11.3 · Separate factual labels from judging machinery<a class="headerlink" href="#separate-factual-labels-from-judging-machinery" title="Link to this heading">#</a></h2>
@@ -456,6 +478,23 @@ Question-bootstrap percentile interval: [0.025 0.083]
 <section id="calibration-is-a-relationship-between-probabilities-and-outcomes">
 <h2>11.4 · Calibration is a relationship between probabilities and outcomes<a class="headerlink" href="#calibration-is-a-relationship-between-probabilities-and-outcomes" title="Link to this heading">#</a></h2>
 <p>For binary outcomes, calibration informally asks whether events assigned probability <span class="math notranslate nohighlight">\(p\)</span> occur at frequency <span class="math notranslate nohighlight">\(p\)</span>. A model can rank cases well while being overconfident. The Brier score averages <span class="math notranslate nohighlight">\((p-y)^2\)</span>; log loss strongly penalizes confidently wrong probabilities. A binned reliability plot is descriptive and depends on bin definitions and sample size.</p>
+<section id="calibration-and-temperature-scaling-in-symbols">
+<h3>Calibration and temperature scaling in symbols<a class="headerlink" href="#calibration-and-temperature-scaling-in-symbols" title="Link to this heading">#</a></h3>
+<p>For a binary probability prediction <span class="math notranslate nohighlight">\(P\in[0,1]\)</span>, population calibration means</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbb E[Y\mid P]=P\quad\text{almost surely}.
+\]</div>
+<p>It does not require a continuous predictor to take any exact prespecified value with positive probability. Bins estimate averages of this relationship. On <span class="math notranslate nohighlight">\(n\)</span> evaluation cases, the Brier score is <span class="math notranslate nohighlight">\(n^{-1}\sum_i(p_i-y_i)^2\)</span>; it measures overall probability error, not calibration alone.</p>
+<p>For fixed logits <span class="math notranslate nohighlight">\(z_i\)</span>, temperature fitting on the separate validation index set <span class="math notranslate nohighlight">\(\mathcal V\)</span> is</p>
+<div class="math notranslate nohighlight">
+\[
+\widehat\tau\in\operatorname*{arg\min}_{\tau\in\mathcal T}
+\frac1{|\mathcal V|}\sum_{i\in\mathcal V}
+\left[\log(1+e^{z_i/\tau})-y_i z_i/\tau\right],
+\qquad \widetilde p_i=\sigma(z_i/\widehat\tau).
+\]</div>
+<p><span class="math notranslate nohighlight">\(\mathcal T\subset(0,\infty)\)</span> is the finite grid used below. <code class="docutils literal notranslate"><span class="pre">logaddexp</span></code> evaluates the first term stably. Positive temperature preserves binary ranking and the zero-logit decision boundary; it can improve probabilities without changing 0.5-threshold accuracy. Fitting this restricted map does not guarantee exact population calibration.</p>
 <p>Below a fixed simulated predictor is deliberately overconfident. A temperature is selected using a validation sample. We then evaluate on a disjoint test sample; a separate calibration sample is reserved for conformal prediction.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -510,9 +549,17 @@ Temperature-scaled Brier: 0.207
 </div>
 <p>Temperature scaling preserves the ranking of binary logits when temperature is positive. It changes probability calibration, not the underlying evidence. Token probabilities from a language model are probabilities of token events under that model; they are not automatically probabilities that a whole answer is factually correct.</p>
 </section>
+</section>
 <section id="abstention-produces-a-riskcoverage-tradeoff">
 <h2>11.5 · Abstention produces a risk–coverage tradeoff<a class="headerlink" href="#abstention-produces-a-riskcoverage-tradeoff" title="Link to this heading">#</a></h2>
 <p>Let <span class="math notranslate nohighlight">\(c_i\)</span> be a confidence score and answer only if <span class="math notranslate nohighlight">\(c_i\ge\tau\)</span>. Coverage is the answered fraction. Selective risk is the average loss among answered cases. Both quantities matter.</p>
+<p>For <span class="math notranslate nohighlight">\(A_\tau=\mathbf1\{c(Q)\ge\tau\}\)</span> and a fixed system loss <span class="math notranslate nohighlight">\(L\)</span>, the population quantities are</p>
+<div class="math notranslate nohighlight">
+\[
+\operatorname{Coverage}(\tau)=\mathbb P(A_\tau=1),\qquad
+\operatorname{Risk}(\tau)=\frac{\mathbb E[L A_\tau]}{\mathbb E[A_\tau]}.
+\]</div>
+<p>Their empirical counterparts are <span class="math notranslate nohighlight">\(n^{-1}\sum_i A_{\tau i}\)</span> and <span class="math notranslate nohighlight">\(\sum_i\ell_i A_{\tau i}/\sum_i A_{\tau i}\)</span>. Selective risk is defined only at positive coverage. In this lab <span class="math notranslate nohighlight">\(c_i=\max(\widetilde p_i,1-\widetilde p_i)\)</span> and <span class="math notranslate nohighlight">\(\ell_i\)</span> is a binary classification error. These definitions also apply to answer/abstain decisions in RAG after defining a suitable answer-level loss and confidence score.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">confidence</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">calibrated_p</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">calibrated_p</span><span class="p">)</span>
@@ -548,6 +595,18 @@ Temperature-scaled Brier: 0.207
 C(x)=\{y:1-\widehat p_y(x)\le \widehat q\}.
 \]</div>
 <p>Under exchangeability of calibration and future examples, with the predictor fixed independently of these calibration outcomes, this construction gives marginal coverage at least <span class="math notranslate nohighlight">\(1-\alpha\)</span>. Ties make the nonrandomized version potentially conservative. The guarantee is over calibration and future examples jointly, not a guarantee of coverage conditional on every covariate value.</p>
+<p>In symbols, with <span class="math notranslate nohighlight">\(s_{(k)}\)</span> the kth ordered calibration score,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\widehat q=\begin{cases}s_{(k)},&amp;k\le n_c,\\+\infty,&amp;k=n_c+1,\end{cases}
+\quad k=\lceil(n_c+1)(1-\alpha)\rceil,\quad 0&lt;\alpha&lt;1,
+\end{split}\]</div>
+<div class="math notranslate nohighlight">
+\[
+\mathbb P_{\mathcal D_{\mathrm{cal}},(X_{\mathrm{new}},Y_{\mathrm{new}})}
+\{Y_{\mathrm{new}}\in C(X_{\mathrm{new}})\}\ge 1-\alpha.
+\]</div>
+<p>For distinct exchangeable scores, the new score’s rank among <span class="math notranslate nohighlight">\(n_c+1\)</span> scores is uniform; choosing this rank gives the finite-sample correction. Ties with the displayed non-strict inclusion preserve the lower bound. The probability averages over both a new calibration sample and a future case, conditional on the independently fitted predictor; it is not a statement that every realized calibration sample or every covariate subgroup has coverage <span class="math notranslate nohighlight">\(1-\alpha\)</span>. See the <a class="reference external" href="https://arxiv.org/abs/2107.07511">split-conformal construction</a>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.1</span>
@@ -644,9 +703,15 @@ Empty / singleton / doubleton counts: [  0 290 310]
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-and-framework">Pipeline and framework</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-estimand-and-the-unit">11.1 · Define the estimand and the unit</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#preserve-pairing-when-comparing-systems">11.2 · Preserve pairing when comparing systems</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#preserve-pairing-when-comparing-systems">11.2 · Preserve pairing when comparing systems</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-pairing-changes-uncertainty">Why pairing changes uncertainty</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#separate-factual-labels-from-judging-machinery">11.3 · Separate factual labels from judging machinery</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration-is-a-relationship-between-probabilities-and-outcomes">11.4 · Calibration is a relationship between probabilities and outcomes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration-is-a-relationship-between-probabilities-and-outcomes">11.4 · Calibration is a relationship between probabilities and outcomes</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration-and-temperature-scaling-in-symbols">Calibration and temperature scaling in symbols</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#abstention-produces-a-riskcoverage-tradeoff">11.5 · Abstention produces a risk–coverage tradeoff</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#split-conformal-prediction-for-a-finite-label-space">11.6 · Split conformal prediction for a finite label space</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">11.7 · Exercises and worked solutions</a></li>

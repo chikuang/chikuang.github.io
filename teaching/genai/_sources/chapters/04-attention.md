@@ -45,6 +45,22 @@ The score matrix $S=QK^\top/\sqrt{d_k}$ has shape $n_q\times n_k$. A row-wise so
 
 In self-attention, $Q=XW_Q$, $K=XW_K$, and $V=XW_V$ come from the same sequence. In cross-attention, queries come from one sequence and keys and values from another. The query and key counts need not agree.
 
+### Write the weights entry by entry
+
+Let $\mathcal J_i$ be the nonempty set of key positions available to query $i$. With $q_i,k_j$ as rows of $Q,K$ and $v_j$ a row of $V$,
+
+$$
+A_{ij}=\begin{cases}
+\displaystyle\frac{\exp(q_i k_j^\top/\sqrt{d_k})}
+{\sum_{\ell\in\mathcal J_i}\exp(q_i k_\ell^\top/\sqrt{d_k})},
+&j\in\mathcal J_i,\\
+0,&j\notin\mathcal J_i,
+\end{cases}
+\qquad o_i=\sum_{j\in\mathcal J_i}A_{ij}v_j.
+$$
+
+Thus $A\in\mathbb R^{n_q\times n_k}$ and $O\in\mathbb R^{n_q\times d_v}$. Each row sums to one **over keys for that query**, not over feature coordinates. Causal self-attention sets $\mathcal J_i=\{1,\ldots,i\}$, with padding exclusions if needed. In matrix form this is $A=\operatorname{softmax}_{\mathrm{rows}}(QK^\top/\sqrt{d_k}+M)$, where allowed entries of $M$ are zero and forbidden entries are $-\infty$. An all-masked row has no valid probability distribution.
+
 ## 4.2 · Work through three keys
 
 Take a one-dimensional query $q=1$, keys $0,1,2$, and values $10,20,40$. The unnormalized weights are $1,e,e^2$. After division by their sum, the weights are approximately $(0.090,0.245,0.665)$ and the weighted value is approximately $32.405$. The largest score receives the most weight, but the other values still contribute.
@@ -157,6 +173,21 @@ print('Cross-attention:', cross_weights.shape, '->', cross_output.shape)
 ```
 
 Without positions or a mask, self-attention is permutation equivariant: permuting the input rows permutes the output rows in the same way. That is appropriate for sets, but sequence modeling requires information about order. Chapter 3's positional features and this chapter's causal constraint provide different forms of such information.
+
+### Multiple heads: concatenate, then project
+
+For $h$ self-attention heads on $X\in\mathbb R^{n\times d}$, define
+
+$$
+O^{(r)}=\operatorname{Attention}(XW_Q^{(r)},XW_K^{(r)},XW_V^{(r)}),
+\quad r=1,\ldots,h,
+$$
+
+$$
+\operatorname{MHA}(X)=\operatorname{Concat}(O^{(1)},\ldots,O^{(h)})W_O.
+$$
+
+Here $W_Q^{(r)},W_K^{(r)}\in\mathbb R^{d\times d_k}$, $W_V^{(r)}\in\mathbb R^{d\times d_v}$, and $W_O\in\mathbb R^{hd_v\times d}$. Concatenation joins feature columns, not token rows. The examples set $d_k=d_v=d/h$; the final projection restores width $d$. Biases are omitted in this notation but included in the next chapter's linear layers. Cross-attention replaces the key/value input by a separate observed sequence and can have $n_q\ne n_k$.
 
 ## 4.7 · What attention weights do not establish
 
