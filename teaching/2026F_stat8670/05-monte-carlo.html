@@ -428,7 +428,7 @@ window.Quarto = {
 <p><strong>The question.</strong> A shop prepares 12 muffins each morning. What is the probability that demand exceeds the stock, so at least one customer cannot buy a muffin?</p>
 <p>For this teaching example, <strong>assume</strong> 20 potential customers per day. Each independently wants one muffin with probability 0.6, whether or not stock is available. Days are independent, and these assumptions stay the same across runs. These numbers are illustrative, not estimates from shop data.</p>
 <p>The average demand is <span class="math inline">\(20\times0.6=12\)</span>, but <strong>an average of 12 does not mean demand is always 12</strong>. Simulation lets us try many artificial days and count how often the stock is insufficient.</p>
-<p><strong>Step 1: Simulate one day.</strong> For each of the 20 customers, generate a uniform number between 0 and 1. A number below 0.6 means the customer wants to buy. Count the buyers.</p>
+<p><strong>Step 1: Simulate one day.</strong> For each of the 20 customers, generate a uniform number between 0 and 1. A number below 0.6 means the customer wants to buy. Count the buyers. Set the seed once here; the later steps continue the same random-number stream.</p>
 <div class="cell" data-layout-align="center">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>wants_one <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="dv">20</span>) <span class="sc">&lt;</span> <span class="fl">0.6</span></span>
@@ -440,32 +440,30 @@ window.Quarto = {
 <p>This artificial day has demand 10, so the stock is sufficient. A day with demand 15 would leave 3 customers unserved. <strong>Demand 12 is still fully served</strong>: our event is <code>demand &gt; 12</code>, not <code>demand &gt;= 12</code>.</p>
 <p><strong>Step 2: Repeat for many days and record 0 or 1.</strong> Use 1 when stock is insufficient and 0 otherwise. In R, <code>rbinom(N, size = 20, prob = 0.6)</code> is a shortcut that generates the number of buyers for each of <span class="math inline">\(N\)</span> independent days using exactly the same model.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8671</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>demand <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(N, <span class="at">size =</span> <span class="dv">20</span>, <span class="at">prob =</span> <span class="fl">0.6</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>insufficient <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(demand <span class="sc">&gt;</span> <span class="dv">12</span>)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">days_short =</span> <span class="fu">sum</span>(insufficient),</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimated_probability =</span> <span class="fu">mean</span>(insufficient))</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            days_short estimated_probability </span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;               426.000                 0.426</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>demand <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(N, <span class="at">size =</span> <span class="dv">20</span>, <span class="at">prob =</span> <span class="fl">0.6</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>insufficient <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(demand <span class="sc">&gt;</span> <span class="dv">12</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">days_short =</span> <span class="fu">sum</span>(insufficient),</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimated_probability =</span> <span class="fu">mean</span>(insufficient))</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            days_short estimated_probability </span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;               423.000                 0.423</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p><strong>Step 3: Interpret the average.</strong> Stock was insufficient on 426 of the 1,000 simulated days, giving 42.6%. That is roughly <strong>4 days out of 10 under this model</strong>. It is an estimate of the chance for a day, not a prediction of exactly which future days will have a shortage.</p>
-<p><strong>Step 4: Rerun the whole experiment.</strong> Each run below simulates another 1,000 days and produces one estimated probability. We set the seed once before all the runs.</p>
+<p><strong>Step 3: Interpret the average.</strong> Stock was insufficient on 423 of the 1,000 simulated days, giving 42.3%. That is roughly <strong>4 days out of 10 under this model</strong>. It is an estimate of the chance for a day, not a prediction of exactly which future days will have a shortage.</p>
+<p><strong>Step 4: Rerun the whole experiment.</strong> Each run below simulates another 1,000 days and produces one estimated probability. Continue the random-number stream from Step 1; do not reset the seed between runs.</p>
 <div class="cell" data-layout-align="center">
 <details class="code-fold">
 <summary>Repeat the 1,000-day experiment with fresh random draws</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8672</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>shop_large_runs <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">30</span>, {</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  new_demand <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(<span class="dv">1000</span>, <span class="at">size =</span> <span class="dv">20</span>, <span class="at">prob =</span> <span class="fl">0.6</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mean</span>(new_demand <span class="sc">&gt;</span> <span class="dv">12</span>)</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Run =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Simulated days</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">1000</span>, <span class="dv">3</span>),</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Days with insufficient stock</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="dv">1000</span> <span class="sc">*</span> shop_large_runs[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]),</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Estimated chance</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%.1f%%"</span>, <span class="dv">100</span> <span class="sc">*</span> shop_large_runs[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]),</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>), <span class="at">booktabs =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>shop_large_runs <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">30</span>, {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  new_demand <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(<span class="dv">1000</span>, <span class="at">size =</span> <span class="dv">20</span>, <span class="at">prob =</span> <span class="fl">0.6</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mean</span>(new_demand <span class="sc">&gt;</span> <span class="dv">12</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Run =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Simulated days</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">1000</span>, <span class="dv">3</span>),</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Days with insufficient stock</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="dv">1000</span> <span class="sc">*</span> shop_large_runs[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]),</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Estimated chance</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%.1f%%"</span>, <span class="dv">100</span> <span class="sc">*</span> shop_large_runs[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]),</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>), <span class="at">booktabs =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -481,20 +479,20 @@ window.Quarto = {
 <tr class="odd">
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1000</td>
-<td style="text-align: right;">403</td>
-<td style="text-align: left;">40.3%</td>
+<td style="text-align: right;">408</td>
+<td style="text-align: left;">40.8%</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">1000</td>
-<td style="text-align: right;">417</td>
-<td style="text-align: left;">41.7%</td>
+<td style="text-align: right;">410</td>
+<td style="text-align: left;">41.0%</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">1000</td>
-<td style="text-align: right;">418</td>
-<td style="text-align: left;">41.8%</td>
+<td style="text-align: right;">399</td>
+<td style="text-align: left;">39.9%</td>
 </tr>
 </tbody>
 </table>
@@ -504,31 +502,30 @@ window.Quarto = {
 <div class="cell" data-layout-align="center">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8673</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>shop_small_runs <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">30</span>, <span class="fu">mean</span>(<span class="fu">rbinom</span>(<span class="dv">50</span>, <span class="dv">20</span>, <span class="fl">0.6</span>) <span class="sc">&gt;</span> <span class="dv">12</span>))</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>shop_true_probability <span class="ot">&lt;-</span> <span class="fu">pbinom</span>(<span class="dv">12</span>, <span class="dv">20</span>, <span class="fl">0.6</span>, <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>shop_plot <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Run =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">30</span>, <span class="dv">2</span>),</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimate =</span> <span class="fu">c</span>(shop_small_runs, shop_large_runs),</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Budget =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"50 days per run"</span>, <span class="st">"1,000 days per run"</span>), <span class="at">each =</span> <span class="dv">30</span>),</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"50 days per run"</span>, <span class="st">"1,000 days per run"</span>))</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(shop_plot, <span class="fu">aes</span>(Run, Estimate, <span class="at">color =</span> Budget)) <span class="sc">+</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> shop_true_probability, <span class="at">linetype =</span> <span class="st">"dashed"</span>,</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"grey35"</span>) <span class="sc">+</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> .<span class="dv">5</span>, <span class="at">alpha =</span> .<span class="dv">7</span>) <span class="sc">+</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">1.8</span>) <span class="sc">+</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Budget) <span class="sc">+</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"#0072B2"</span>, <span class="st">"#D55E00"</span>)) <span class="sc">+</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">30</span>)) <span class="sc">+</span></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, .<span class="dv">25</span>),</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>                    <span class="at">labels =</span> <span class="cf">function</span>(x) <span class="fu">paste0</span>(<span class="dv">100</span> <span class="sc">*</span> x, <span class="st">"%"</span>)) <span class="sc">+</span></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Run number (fresh days in every run)"</span>,</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Estimated chance of insufficient stock"</span>) <span class="sc">+</span></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>, <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>shop_small_runs <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">30</span>, <span class="fu">mean</span>(<span class="fu">rbinom</span>(<span class="dv">50</span>, <span class="dv">20</span>, <span class="fl">0.6</span>) <span class="sc">&gt;</span> <span class="dv">12</span>))</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>shop_true_probability <span class="ot">&lt;-</span> <span class="fu">pbinom</span>(<span class="dv">12</span>, <span class="dv">20</span>, <span class="fl">0.6</span>, <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>shop_plot <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Run =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">30</span>, <span class="dv">2</span>),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimate =</span> <span class="fu">c</span>(shop_small_runs, shop_large_runs),</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Budget =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"50 days per run"</span>, <span class="st">"1,000 days per run"</span>), <span class="at">each =</span> <span class="dv">30</span>),</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"50 days per run"</span>, <span class="st">"1,000 days per run"</span>))</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(shop_plot, <span class="fu">aes</span>(Run, Estimate, <span class="at">color =</span> Budget)) <span class="sc">+</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> shop_true_probability, <span class="at">linetype =</span> <span class="st">"dashed"</span>,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"grey35"</span>) <span class="sc">+</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> .<span class="dv">5</span>, <span class="at">alpha =</span> .<span class="dv">7</span>) <span class="sc">+</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">1.8</span>) <span class="sc">+</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Budget) <span class="sc">+</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"#0072B2"</span>, <span class="st">"#D55E00"</span>)) <span class="sc">+</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">30</span>)) <span class="sc">+</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, .<span class="dv">25</span>),</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>                    <span class="at">labels =</span> <span class="cf">function</span>(x) <span class="fu">paste0</span>(<span class="dv">100</span> <span class="sc">*</span> x, <span class="st">"%"</span>)) <span class="sc">+</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Run number (fresh days in every run)"</span>,</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Estimated chance of insufficient stock"</span>) <span class="sc">+</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>, <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-mc-shop-reruns" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Two panels show estimated shortage probabilities across 30 runs. Estimates based on 50 days fluctuate more than estimates based on 1,000 days. Both are near the same dashed target line at 41.6 percent.">
+<div id="fig-mc-shop-reruns" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two panels show estimated shortage probabilities across 30 runs. Estimates based on 50 days fluctuate more than estimates based on 1,000 days. Both are near the same dashed target line at 41.6 percent." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-shop-reruns-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05-monte-carlo_files/figure-html/fig-mc-shop-reruns-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Two panels show estimated shortage probabilities across 30 runs. Estimates based on 50 days fluctuate more than estimates based on 1,000 days. Both are near the same dashed target line at 41.6 percent." width="1296">
@@ -581,7 +578,7 @@ Figure&nbsp;5.1: Each point is one complete simulation run, not one day. Both pa
 </div>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
-<div id="fig-mc-workflow" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Four boxes: choose the target, draw inputs, calculate values, and average with MCSE.">
+<div id="fig-mc-workflow" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Four boxes: choose the target, draw inputs, calculate values, and average with MCSE." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-workflow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05-monte-carlo_files/figure-html/fig-mc-workflow-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Four boxes: choose the target, draw inputs, calculate values, and average with MCSE." width="1296">
@@ -644,7 +641,7 @@ Figure&nbsp;5.2: Choose the answer you want, simulate inputs, calculate one valu
 <span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-mc-pi" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="A quarter circle inside the unit square, with blue points inside and orange points outside.">
+<div id="fig-mc-pi" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A quarter circle inside the unit square, with blue points inside and orange points outside." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-pi-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05-monte-carlo_files/figure-html/fig-mc-pi-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="A quarter circle inside the unit square, with blue points inside and orange points outside." width="1152">
@@ -695,7 +692,7 @@ Figure&nbsp;5.3: Uniform points turn the area ratio into a success probability. 
 <span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"x"</span>, <span class="at">y =</span> <span class="st">"Integrand exp(-x)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-mc-average-height" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="The curve exp(-x) on 2 to 4, vertical segments at sampled x values, and a dashed horizontal line at the sampled average height.">
+<div id="fig-mc-average-height" class="quarto-float quarto-figure quarto-figure-center anchored" alt="The curve exp(-x) on 2 to 4, vertical segments at sampled x values, and a dashed horizontal line at the sampled average height." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-average-height-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05-monte-carlo_files/figure-html/fig-mc-average-height-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="The curve exp(-x) on 2 to 4, vertical segments at sampled x values, and a dashed horizontal line at the sampled average height." width="1152">
@@ -750,7 +747,7 @@ Figure&nbsp;5.4: The orange dashed line is the sampled average height. Multiply 
 <div class="cell" data-layout-align="center">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8671</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>variation_draws <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">runif</span>(<span class="dv">400</span>))</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>variation_means <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">400</span>, <span class="fu">mean</span>(<span class="fu">exp</span>(<span class="fu">runif</span>(<span class="dv">100</span>))))</span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>variation_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
@@ -770,7 +767,7 @@ Figure&nbsp;5.4: The orange dashed line is the sampled average height. Multiply 
 <span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>, <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-mc-variation" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Side-by-side histograms distinguish the broad spread of individual exp(U) values from the much smaller spread of averages of 100 such values. A dashed vertical line marks the same target in both panels.">
+<div id="fig-mc-variation" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Side-by-side histograms distinguish the broad spread of individual exp(U) values from the much smaller spread of averages of 100 such values. A dashed vertical line marks the same target in both panels." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-variation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05-monte-carlo_files/figure-html/fig-mc-variation-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Side-by-side histograms distinguish the broad spread of individual exp(U) values from the much smaller spread of averages of 100 such values. A dashed vertical line marks the same target in both panels." width="1296">
@@ -950,7 +947,7 @@ A_k=\frac{e^{U_k}+e^{1-U_k}}{2}.
 <span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-mc-antithetic" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="The curves exp(U) and exp(1-U) move in opposite directions. Their pair average is flatter and stays close to the target.">
+<div id="fig-mc-antithetic" class="quarto-float quarto-figure quarto-figure-center anchored" alt="The curves exp(U) and exp(1-U) move in opposite directions. Their pair average is flatter and stays close to the target." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-antithetic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05-monte-carlo_files/figure-html/fig-mc-antithetic-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="The curves exp(U) and exp(1-U) move in opposite directions. Their pair average is flatter and stays close to the target." width="1152">
@@ -1015,7 +1012,7 @@ Y_{\mathrm{adj}}=e^U+c(U-0.5).
 <span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-mc-control" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="The original contribution exp(U) increases steeply; the adjusted contribution stays close to the expectation. Both are plotted on the same vertical scale.">
+<div id="fig-mc-control" class="quarto-float quarto-figure quarto-figure-center anchored" alt="The original contribution exp(U) increases steeply; the adjusted contribution stays close to the expectation. Both are plotted on the same vertical scale." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-control-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05-monte-carlo_files/figure-html/fig-mc-control-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="The original contribution exp(U) increases steeply; the adjusted contribution stays close to the expectation. Both are plotted on the same vertical scale." width="1152">
@@ -1139,7 +1136,7 @@ Figure&nbsp;5.7: The adjusted curve is flatter. Both curves have mean e - 1 unde
 <span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-mc-method-comparison" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Boxplots for ordinary, antithetic, and controlled estimates, all centered near e minus one; the latter two have visibly smaller spread.">
+<div id="fig-mc-method-comparison" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Boxplots for ordinary, antithetic, and controlled estimates, all centered near e minus one; the latter two have visibly smaller spread." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-method-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05-monte-carlo_files/figure-html/fig-mc-method-comparison-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Boxplots for ordinary, antithetic, and controlled estimates, all centered near e minus one; the latter two have visibly smaller spread." width="1152">
@@ -1304,7 +1301,7 @@ N\geq\frac{1.96^2\sigma_Y^2}{h^2}.
 <span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-mc-precision" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Empirical standard deviations at increasing sample sizes track a decreasing theoretical curve on logarithmic axes.">
+<div id="fig-mc-precision" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Empirical standard deviations at increasing sample sizes track a decreasing theoretical curve on logarithmic axes." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-precision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05-monte-carlo_files/figure-html/fig-mc-precision-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Empirical standard deviations at increasing sample sizes track a decreasing theoretical curve on logarithmic axes." width="1152">
@@ -1458,7 +1455,7 @@ c^*=-\frac{\operatorname{Cov}(Y,C)}{\operatorname{Var}(C)},
 <span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-mc-cdf-variance" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Contribution variance versus x, comparing indicator and uniform-integral methods; the curves cross as x increases.">
+<div id="fig-mc-cdf-variance" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Contribution variance versus x, comparing indicator and uniform-integral methods; the curves cross as x increases." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-cdf-variance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05-monte-carlo_files/figure-html/fig-mc-cdf-variance-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Contribution variance versus x, comparing indicator and uniform-integral methods; the curves cross as x increases." width="1152">
