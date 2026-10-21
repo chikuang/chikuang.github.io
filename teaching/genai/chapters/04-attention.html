@@ -32,10 +32,10 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=6add5bf0" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -474,6 +474,12 @@ Weighted value: [[32.405]]
 </div>
 </div>
 <p>Subtracting the row maximum leaves softmax unchanged but avoids exponentiating unnecessarily large positive numbers. <code class="docutils literal notranslate"><span class="pre">axis=-1</span></code> means normalize across keys for each query. Normalizing over all entries at once would couple unrelated query rows and implement a different operation.</p>
+<div class="course-example admonition" id="ex-attention-weighted-values">
+<p class="admonition-title">Example 4.1 · Scores choose how to mix values</p>
+<p><strong>Setup.</strong> After scaling, one query has scores <span class="math notranslate nohighlight">\((0,\log2)\)</span> against two keys. The corresponding scalar values are <span class="math notranslate nohighlight">\((3,9)\)</span>.</p>
+<p><strong>Work it through.</strong> Exponentiating the scores gives <span class="math notranslate nohighlight">\((1,2)\)</span>; normalizing gives attention weights <span class="math notranslate nohighlight">\((1/3,2/3)\)</span>. Equation <a class="reference internal" href="#equation-eq-attention">(4.1)</a> therefore returns <span class="math notranslate nohighlight">\((1/3)3+(2/3)9=7\)</span>. If the values change to <span class="math notranslate nohighlight">\((30,90)\)</span> while the query and keys stay fixed, the weights stay the same and the output becomes 70.</p>
+<p><strong>What this shows.</strong> Queries and keys determine the weights; values determine the information being mixed. A weight of <span class="math notranslate nohighlight">\(2/3\)</span> means that the second value receives that share of this weighted average. It does not establish a two-thirds probability that the second token is factually correct.</p>
+</div>
 </section>
 <section id="why-divide-by-the-square-root-of-width">
 <h2>4.3 · Why divide by the square root of width?<a class="headerlink" href="#why-divide-by-the-square-root-of-width" title="Link to this heading">#</a></h2>
@@ -542,6 +548,12 @@ Weighted value: [[32.405]]
 </div>
 </div>
 <p>Padding masks solve a different problem: they exclude padded positions. A batch with both causal and padding constraints must combine the allowed-position conditions. Mask conventions differ between software functions, so check whether a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> means “allow” or “block” before reusing a mask.</p>
+<div class="course-example admonition" id="ex-attention-mask-denominator">
+<p class="admonition-title">Example 4.2 · Removing a future key changes the denominator</p>
+<p><strong>Setup.</strong> A query has scores <span class="math notranslate nohighlight">\((0,\log2,\log7)\)</span> and values <span class="math notranslate nohighlight">\((3,9,100)\)</span>. The third key belongs to a future position and must be excluded.</p>
+<p><strong>Work it through.</strong> Before masking, the weights are <span class="math notranslate nohighlight">\((0.1,0.2,0.7)\)</span>. Replacing the third score by <span class="math notranslate nohighlight">\(-\infty\)</span> before softmax gives <span class="math notranslate nohighlight">\((1/3,2/3,0)\)</span> and output 7. Merely zeroing its weight after softmax gives <span class="math notranslate nohighlight">\((0.1,0.2,0)\)</span> and output <span class="math notranslate nohighlight">\(0.1(3)+0.2(9)=2.1\)</span>; the weights now sum to <span class="math notranslate nohighlight">\(0.3\)</span>.</p>
+<p><strong>What this shows.</strong> The allowed positions must be normalized together. Masking scores implements this directly and avoids a denominator that depends on future keys. A row with no allowed positions needs explicit handling; softmax of an all-<span class="math notranslate nohighlight">\(-\infty\)</span> row is undefined.</p>
+</div>
 </section>
 <section id="test-causality-by-intervention">
 <h2>4.5 · Test causality by intervention<a class="headerlink" href="#test-causality-by-intervention" title="Link to this heading">#</a></h2>

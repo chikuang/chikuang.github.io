@@ -294,6 +294,17 @@ Adding a scalar to an array adds it to every count. The denominator adds the sam
 
 Smoothing prevents a particular failure but does not solve model misspecification. If the scientific vocabulary omitted an entire class of outcomes, adding pseudo-counts to the remaining categories cannot recover it.
 
+:::{admonition} Example 1.1 · An unseen category is not impossible
+:class: course-example
+:name: ex-smoothing-unseen
+
+**Setup.** A three-token vocabulary has training counts $(8,2,0)$. The next observed token is the third category, which did not occur in training.
+
+**Work it through.** The MLE assigns probabilities $(0.8,0.2,0)$, so this observation has log loss $-\log 0=+\infty$. With $\alpha=1$, Equation {eq}`eq-smoothing` instead gives $(9/13,3/13,1/13)$. The same observation now has finite loss $-\log(1/13)=\log 13\approx2.565$ nats. The denominator is $10+3$, because each of the three categories receives one pseudo-count.
+
+**What this shows.** Zero observations are not evidence of impossibility. Smoothing trades some probability from common categories for protection against unseen ones; it changes the fitted distribution before any sampling takes place.
+:::
+
 ## 1.7 · Generation is a sampling operation
 
 Once probabilities are fitted, we can generate observations. This is conceptually separate from fitting them.
@@ -662,6 +673,17 @@ print('Large generated sample frequencies:', large_generated.round(3))
 ```
 
 The simulation ranges summarize variation across 300 independently generated training datasets; they are not confidence intervals for one fitted model. The large generated sample should be close to `small_fit`, even when that fit differs from the truth. This is why a convincing-looking collection of model samples cannot replace evaluation on independent real observations.
+
+:::{admonition} Example 1.2 · More generated data do not repair the fit
+:class: course-example
+:name: ex-sampling-versus-fitting
+
+**Setup.** A fitted Bernoulli generator uses $\widehat p=0.6$. For this illustration, suppose the true data probability is $p_0=0.7$.
+
+**Work it through.** Among $M=100$ independent generated draws, the generated proportion has conditional standard deviation $\sqrt{0.6(0.4)/100}\approx0.049$. With $M=10{,}000$, it is about $0.0049$, using Equation {eq}`eq-mc-variance`. Both proportions are centered at $0.6$, leaving the same discrepancy $\widehat p-p_0=-0.1$.
+
+**What this shows.** More simulation makes our description of the fitted model more precise. It does not move that model toward the data-generating law. Here the fit is held fixed; uncertainty from collecting and fitting a new training sample is a separate source of variation.
+:::
 
 ## 1.14 · Exercises
 

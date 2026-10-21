@@ -83,6 +83,17 @@ print('Final cumulative signal coefficient:', round(float(alpha_bar[-1]), 4))
 
 Python uses index zero for mathematical time one. Keeping this distinction explicit avoids off-by-one errors in the reverse variance and the final denoising step.
 
+:::{admonition} Example 8.1 · One noisy observation has many possible origins
+:class: course-example
+:name: ex-diffusion-forward-draw
+
+**Setup.** At one time, let $\bar\alpha_t=0.64$, so the signal multiplier is $0.8$ and the noise multiplier is $0.6$.
+
+**Work it through.** With clean value $x_0=2$ and sampled noise $\epsilon=-1$, Equation {eq}`eq-forward-noise` gives $x_t=0.8(2)+0.6(-1)=1$. But $x_0=0.5$ and $\epsilon=1$ also give $x_t=1$. During training we know which pair generated an observation; at prediction time the network sees only $x_t$ and $t$.
+
+**What this shows.** The denoiser cannot generally recover the particular injected noise from its input alone. Under squared error it estimates the conditional average across possible origins, weighted by their conditional distribution. The time input specifies which signal/noise mixture needs to be interpreted.
+:::
+
 ## 8.2 · Noise prediction is a regression problem
 
 We train $\epsilon_\theta(x_t,t)$ by squared error against the injected noise. Its population minimizer at each time is $\mathbb E[\epsilon\mid x_t,t]$. The network must receive time because the optimal function changes as the noise level changes. Our simplified objective weights times uniformly; it is not the full variational likelihood objective with all of its time-dependent coefficients.
@@ -246,6 +257,17 @@ $$ (eq-clean-estimate)
 from Equation {eq}`eq-clean-estimate` into the posterior mean in Equation {eq}`eq-posterior-mean` and simplify to obtain Equation {eq}`eq-reverse-mean`. Then sample $x_{t-1}=\mu_\theta(x_t,t)+\sqrt{\widetilde\beta_t}\,\xi_t$ with fresh independent $\xi_t\sim N(0,I)$; at $t=1$, use the mean without extra noise. These are the Gaussian identities behind the [DDPM update](https://arxiv.org/abs/2006.11239).
 
 Conditioning on both $x_t$ and $x_0$ is crucial: $q(x_{t-1}\mid x_t)$ integrates over unknown clean data and need not be Gaussian. Replacing $x_0$ by a learned estimate and fixing the variance does not make the finite-step reverse transition exact, even if noise prediction reaches its population optimum.
+
+:::{admonition} Example 8.2 · Read a denoiser output in two ways
+:class: course-example
+:name: ex-diffusion-score-clean
+
+**Setup.** Keep $\bar\alpha_t=0.64$ and observe $x_t=1$. Suppose the trained noise predictor returns $\epsilon_\theta(x_t,t)=0.3$.
+
+**Work it through.** Equation {eq}`eq-noise-score` converts this into estimated score $-0.3/0.6=-0.5$. Equation {eq}`eq-clean-estimate` converts the same output into estimated clean value $(1-0.6(0.3))/0.8=1.025$. The score is a local derivative of log density at the noisy observation; the clean estimate is a location on the original data scale.
+
+**What this shows.** These quantities describe different objects even though they come from the same prediction. Neither says the original clean draw is known. A reverse sampler still needs its schedule, transition mean, and variance; replacing the whole reverse chain by this single clean estimate implements a different procedure.
+:::
 
 ## 8.5 · Conditioning and the limits of the example
 

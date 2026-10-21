@@ -88,6 +88,17 @@ $$ (eq-vocabulary-head)
 
 $W_{\mathrm{vocab}}\in\mathbb R^{d\times V}$ and $Z\in\mathbb R^{n\times V}$ for one sequence. The batch axis adds a leading dimension to every expression. `final_norm` and `head` implement Equation {eq}`eq-vocabulary-head`; using the final-position row during generation is a selection of logits, not another learned layer.
 
+:::{admonition} Example 5.1 · Normalization and the residual have different jobs
+:class: course-example
+:name: ex-layernorm-residual
+
+**Setup.** Two token representations are $(1,3)$ and $(100,102)$. To simplify arithmetic, take layer-normalization scale $\gamma=(1,1)$, offset $\beta=(0,0)$, and $\epsilon=0$; actual implementations retain positive $\epsilon$.
+
+**Work it through.** In Equation {eq}`eq-layernorm`, the first token has feature mean 2 and variance 1; the second has mean 101 and variance 1. Each normalizes to $(-1,1)$, independently of the other token. If the attention sublayer returns update $(0.5,-0.5)$ for the first token, the pre-LN residual in Equation {eq}`eq-decoder-block` produces $(1,3)+(0.5,-0.5)=(1.5,2.5)$.
+
+**What this shows.** Layer normalization controls the sublayer's input scale within each token. The residual adds the update to the original representation, not to the normalized vector. Mixing these operations changes the architecture.
+:::
+
 ## 5.3 · Implement a small decoder block
 
 ```{code-cell} python
@@ -203,6 +214,26 @@ plt.show()
 ```
 
 This experiment intentionally overfits four short sequences. It establishes that gradients and targets are connected well enough to reduce this training objective. It does **not** establish language understanding or held-out performance. Chapter 6 introduces a separate validation and test protocol.
+
+:::{admonition} Example 5.2 · Parallel training still uses causal information
+:class: course-example
+:name: ex-shifted-token-targets
+
+**Setup.** A training sentence is `data support models`, followed by an end marker. Add a beginning marker to form the input.
+
+**Work it through.** The aligned prediction tasks are:
+
+| Input position | Allowed prefix | Target |
+|:--|:--|:--|
+| 1 | `<bos>` | `data` |
+| 2 | `<bos> data` | `support` |
+| 3 | `<bos> data support` | `models` |
+| 4 | `<bos> data support models` | `<eos>` |
+
+All four losses can be computed in one masked forward pass. At position 2, however, attention must not read the input token `support` at position 3, even though it is already present elsewhere in the training tensor.
+
+**What this shows.** Target shifting defines what to predict; the causal mask defines what information is available. Parallel computation does not permit access to the future. Generation must subsequently create those future tokens one at a time.
+:::
 
 ## 5.6 · Encoder, decoder, and encoder–decoder
 

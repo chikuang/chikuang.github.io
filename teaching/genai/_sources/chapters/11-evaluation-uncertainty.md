@@ -83,6 +83,17 @@ $$
 
 explains why independently resampling the two systems loses information. The code resamples whole paired differences to estimate uncertainty in Equation {eq}`eq-paired-difference`, using bootstrap quantiles rather than its normal-approximation standard error. For zero-one loss, the risk difference $R_B-R_A=-\Delta$; report the direction so a positive improvement is not mistaken for a larger loss.
 
+:::{admonition} Example 11.1 · Paired outcomes reveal which questions changed
+:class: course-example
+:name: ex-paired-accuracy
+
+**Setup.** On five shared questions, system A has correctness indicators $(1,1,0,0,1)$ and B has $(1,0,1,0,1)$.
+
+**Work it through.** Both accuracies are $3/5$, so the estimated improvement is zero. The paired differences are $(0,-1,1,0,0)$: B loses one question and gains another. Their sample variance is $(1+1)/(5-1)=0.5$, giving estimated standard error $\sqrt{0.5/5}\approx0.3162$ in Equation {eq}`eq-paired-difference`. A bootstrap draw must resample these whole question-level differences, retaining each A/B pair.
+
+**What this shows.** Equal aggregate accuracy does not mean identical behavior or a precisely known population difference. The paired record preserves where outcomes changed. Five questions are too few for a persuasive performance claim; they make the accounting easy to inspect.
+:::
+
 ## 11.3 · Separate factual labels from judging machinery
 
 For open-ended answers, define a rubric before viewing system identities: factual support, completeness, relevance, and required abstention may need separate labels. Use blinded ordering and audit disagreements. An LLM judge is another measurement instrument, with potential style preferences, positional effects, and shared errors with the evaluated system.
@@ -192,6 +203,17 @@ plt.show()
 
 This curve is descriptive. If you use it to choose the operating threshold, this test sample has become development data. For a final evaluation, choose the threshold on a separate development set and report uncertainty on a new test set. Risk can also worsen within an important subgroup even when overall selective risk improves.
 
+:::{admonition} Example 11.2 · A lower error rate can hide fewer answers
+:class: course-example
+:name: ex-selective-risk-coverage
+
+**Setup.** On 100 held-out questions, a system answers all questions and gets 20 wrong. A threshold fixed on separate development data keeps 60 answers, of which 3 are wrong.
+
+**Work it through.** Before filtering, coverage is 1 and risk is $20/100=0.20$. After filtering, Equation {eq}`eq-risk-coverage` gives coverage $60/100=0.60$ and selective risk $3/60=0.05$. The retained correct answers number 57, while the original system had 80 correct answers overall.
+
+**What this shows.** “95% correct when answering” describes a different service level from “answers every question.” Report both quantities, plus subgroup behavior where relevant. If the threshold retained no answers, coverage would be zero and selective risk would be undefined, rather than evidence of a perfect system.
+:::
+
 ## 11.6 · Split conformal prediction for a finite label space
 
 We now construct sets of labels in $\{0,1\}$ using a predictor fixed before the conformal calibration sample is examined. For calibration case $i$, use nonconformity score $s_i=1-\widehat p_{y_i}(x_i)$. With $n_c$ calibration cases, let $k=\lceil(n_c+1)(1-\alpha)\rceil$ and take the kth smallest score. If $k>n_c$, use an infinite threshold. The set is
@@ -235,6 +257,17 @@ print('Empty / singleton / doubleton counts:', np.bincount(sets.sum(1), minlengt
 The observed test fraction can lie below the nominal level in one finite sample. Equation {eq}`eq-conformal-coverage` does not assert that every test batch achieves the target exactly. Larger prediction sets may deliver coverage while being less informative. Evaluate both coverage and set size.
 
 A set of finite class labels is not a set of all semantically correct free-text answers. Applying conformal ideas to generated text requires specifying an assessable target, a score, and assumptions appropriate to that target. Distribution shift, adaptive reuse of calibration data, and dependence can invalidate a naive guarantee.
+
+:::{admonition} Example 11.3 · A conformal threshold produces a set
+:class: course-example
+:name: ex-conformal-set-by-hand
+
+**Setup.** With a fixed predictor, suppose nine calibration scores are $0.05,0.10,0.15,0.20,0.25,0.30,0.40,0.60,0.80$. Choose $\alpha=0.2$.
+
+**Work it through.** Equation {eq}`eq-conformal-quantile` uses rank $\lceil(9+1)(0.8)\rceil=8$, so $\widehat q=0.60$. A new binary prediction $(p_0,p_1)=(0.7,0.3)$ has label scores $(0.3,0.7)$; Equation {eq}`eq-conformal-set` retains only label 0. Prediction $(0.5,0.5)$ has scores $(0.5,0.5)$, so it retains both labels.
+
+**What this shows.** The threshold is shared, but the prediction-set size depends on the case. Under the stated exchangeability and fixed-predictor assumptions, the guarantee concerns marginal coverage across calibration samples and future cases. It does not assign an 80% correctness probability to either of these particular sets.
+:::
 
 ## 11.7 · Exercises and worked solutions
 

@@ -137,6 +137,17 @@ $$ (eq-lora-gradients)
 
 Equation {eq}`eq-lora-gradients` shows why, at $B=0$ and random nonzero $A$, the initial update is zero, but $\nabla_B L$ can be nonzero. Once $B$ moves, $A$ can also receive a gradient. Initializing **both** factors at zero blocks both gradients. This explains the initialization choice without treating low rank as a different prediction objective.
 
+:::{admonition} Example 9.1 · A rank-one adapter cannot fit every update
+:class: course-example
+:name: ex-lora-rank-one
+
+**Setup.** In the row-vector convention of Equation {eq}`eq-lora`, take $d_{in}=3$, $d_{out}=2$, $r=1$, and $s=1$. Let $A=(1,2,0)^\top$ and $B=(3,-1)$.
+
+**Work it through.** The three rows of $AB$ are $(3,-1)$, $(6,-2)$, and $(0,0)$. Every nonzero row is a multiple of the first, so the update has rank one. It trains $3+2=5$ entries instead of 6 for a full update. A desired update with rows $(1,0)$, $(0,1)$, and $(0,0)$ has rank two and cannot be represented exactly by these rank-one factors.
+
+**What this shows.** LoRA imposes a geometric restriction, not just a smaller file. Better optimization cannot remove that restriction. The tiny dimensions make the saving modest here; parameter savings and approximation quality are separate questions.
+:::
+
 ## 9.3 · Inspect the fitted update, not only parameter counts
 
 ```{code-cell} python
@@ -228,6 +239,17 @@ print('Equal-preference log loss:', round(np.log(2), 3))
 ```
 
 This test holds out comparison draws, not new prompts. It evaluates the same three-response preference problem under additional label noise. It cannot establish generalization to new tasks or factual correctness. The reference policy has positive probability on every response, so its log ratios are defined.
+
+:::{admonition} Example 9.2 · DPO compares changes relative to a reference
+:class: course-example
+:name: ex-dpo-reference-margin
+
+**Setup.** There are two possible responses, preferred $y_w$ and rejected $y_l$. Let the reference probabilities be $(0.8,0.2)$, the current policy be $(0.6,0.4)$, and $\beta=1$.
+
+**Work it through.** The margin in Equation {eq}`eq-dpo` is $\log(0.6/0.8)-\log(0.4/0.2)=\log(0.375)\approx-0.9808$. Its logistic probability is $0.375/(1+0.375)=3/11\approx0.2727$, giving loss $-\log(3/11)\approx1.2993$. If policy and reference agreed, the margin would be zero and the loss would be $\log2\approx0.6931$.
+
+**What this shows.** The current policy still assigns more absolute probability to the preferred response, yet it favors that response less strongly than the reference did. DPO evaluates this relative shift. Its pairwise probability is part of a preference model, not a factual-correctness probability for either response.
+:::
 
 ## 9.6 · Design an adaptation evaluation
 

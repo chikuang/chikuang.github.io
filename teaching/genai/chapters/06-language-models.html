@@ -32,10 +32,10 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=6add5bf0" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -481,6 +481,12 @@ Training input and target shape: (42, 34) (42, 34)
 \sum_{s,t}m_{st}\left[\log\sum_{j=1}^{V}e^{z_{stj}}-z_{st,y_{st}}\right].
 \]</div>
 <p>Equation <a class="reference internal" href="#equation-eq-masked-token-loss">(6.2)</a> is what cross-entropy with ignored padding computes; it makes the valid-token denominator in Equation <a class="reference internal" href="#equation-eq-lm-objective">(6.1)</a> explicit. In this corpus, the beginning marker is input context and the end marker is a genuine prediction target. Ignoring a padding target removes that <strong>position’s loss</strong>; it does not automatically remove the padding class from the softmax denominator at other positions. The sampler below separately forbids generating padding and a new beginning marker.</p>
+<div class="course-example admonition" id="ex-token-loss-weighting">
+<p class="admonition-title">Example 6.1 · The loss denominator defines the weighting</p>
+<p><strong>Setup.</strong> Response A has two valid target-token losses, <span class="math notranslate nohighlight">\(0.2\)</span> and <span class="math notranslate nohighlight">\(0.4\)</span>. Response B has four valid losses, all <span class="math notranslate nohighlight">\(1.0\)</span>. Pad A with two ignored positions to batch the responses.</p>
+<p><strong>Work it through.</strong> Equation <a class="reference internal" href="#equation-eq-masked-token-loss">(6.2)</a> gives the token-weighted mean <span class="math notranslate nohighlight">\((0.2+0.4+4)/6\approx0.7667\)</span> nats. Averaging response means instead gives <span class="math notranslate nohighlight">\([(0.2+0.4)/2+1]/2=0.65\)</span>. Setting padded losses to zero but dividing by all eight array positions incorrectly gives <span class="math notranslate nohighlight">\(4.6/8=0.575\)</span>.</p>
+<p><strong>What this shows.</strong> A mask must affect both the summed loss and its denominator. Token weighting gives the longer response more influence; equal response weighting is a different declared objective. Perplexity inherits whichever averaging convention was used, so these three numbers are not interchangeable evaluations.</p>
+</div>
 </section>
 </section>
 <section id="fit-a-small-conditional-model">
@@ -648,6 +654,12 @@ q_j=\frac{r_j\mathbf1\{j\in S\}}{\sum_{v\in S}r_v}.
 </div>
 </div>
 <p>Read the generated strings, including malformed ones. Higher sampling entropy does not imply more useful diversity. Greedy decoding optimizes a local choice and need not find the globally most probable sequence. Sampling settings should be selected for a specified use case on development prompts, then evaluated on new prompts and repeated seeds.</p>
+<div class="course-example admonition" id="ex-decoding-filter-order">
+<p class="admonition-title">Example 6.2 · Filtering order can change what gets sampled</p>
+<p><strong>Setup.</strong> Four tokens have probabilities <span class="math notranslate nohighlight">\((0.50,0.30,0.15,0.05)\)</span>. Use top-<span class="math notranslate nohighlight">\(k\)</span> with <span class="math notranslate nohighlight">\(k=2\)</span> and nucleus threshold <span class="math notranslate nohighlight">\(p=0.60\)</span>, with no temperature change.</p>
+<p><strong>Work it through.</strong> Applying top-<span class="math notranslate nohighlight">\(k\)</span> first retains the first two tokens and renormalizes to <span class="math notranslate nohighlight">\((0.625,0.375)\)</span>. The first token alone now crosses the nucleus threshold, so top-<span class="math notranslate nohighlight">\(p\)</span> leaves probability one on that token. Reversing the order gives a different result: the original first token has mass <span class="math notranslate nohighlight">\(0.50&lt;0.60\)</span>, so nucleus selection retains the first two tokens, producing <span class="math notranslate nohighlight">\((0.625,0.375)\)</span>. Top-<span class="math notranslate nohighlight">\(k\)</span> then removes nothing further.</p>
+<p><strong>What this shows.</strong> Equations <a class="reference internal" href="#equation-eq-top-k">(6.3)</a> and <a class="reference internal" href="#equation-eq-nucleus">(6.4)</a> define successive distributions. Record the order and include the token that first reaches or crosses the cumulative threshold. Identical numerical settings can otherwise describe different samplers.</p>
+</div>
 </section>
 </section>
 <section id="prompting-versus-parameter-estimation">

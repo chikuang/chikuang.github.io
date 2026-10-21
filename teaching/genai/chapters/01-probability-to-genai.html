@@ -32,10 +32,10 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=6add5bf0" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -818,6 +818,12 @@ Loss of unseen category, smoothed: 2.5649493574615367
 </div>
 <p>Adding a scalar to an array adds it to every count. The denominator adds the same total pseudo-count mass, preserving a sum of one. The value <span class="math notranslate nohighlight">\(\alpha=0.5\)</span> is fixed in advance for this lesson. In an empirical study, select it using training/validation data or a justified prior; do not choose it after examining final test performance.</p>
 <p>Smoothing prevents a particular failure but does not solve model misspecification. If the scientific vocabulary omitted an entire class of outcomes, adding pseudo-counts to the remaining categories cannot recover it.</p>
+<div class="course-example admonition" id="ex-smoothing-unseen">
+<p class="admonition-title">Example 1.1 · An unseen category is not impossible</p>
+<p><strong>Setup.</strong> A three-token vocabulary has training counts <span class="math notranslate nohighlight">\((8,2,0)\)</span>. The next observed token is the third category, which did not occur in training.</p>
+<p><strong>Work it through.</strong> The MLE assigns probabilities <span class="math notranslate nohighlight">\((0.8,0.2,0)\)</span>, so this observation has log loss <span class="math notranslate nohighlight">\(-\log 0=+\infty\)</span>. With <span class="math notranslate nohighlight">\(\alpha=1\)</span>, Equation <a class="reference internal" href="#equation-eq-smoothing">(1.6)</a> instead gives <span class="math notranslate nohighlight">\((9/13,3/13,1/13)\)</span>. The same observation now has finite loss <span class="math notranslate nohighlight">\(-\log(1/13)=\log 13\approx2.565\)</span> nats. The denominator is <span class="math notranslate nohighlight">\(10+3\)</span>, because each of the three categories receives one pseudo-count.</p>
+<p><strong>What this shows.</strong> Zero observations are not evidence of impossibility. Smoothing trades some probability from common categories for protection against unseen ones; it changes the fitted distribution before any sampling takes place.</p>
+</div>
 </section>
 <section id="generation-is-a-sampling-operation">
 <h2>1.7 · Generation is a sampling operation<a class="headerlink" href="#generation-is-a-sampling-operation" title="Link to this heading">#</a></h2>
@@ -1348,6 +1354,12 @@ Large generated sample frequencies: [0.478 0.349 0.173]
 </div>
 </div>
 <p>The simulation ranges summarize variation across 300 independently generated training datasets; they are not confidence intervals for one fitted model. The large generated sample should be close to <code class="docutils literal notranslate"><span class="pre">small_fit</span></code>, even when that fit differs from the truth. This is why a convincing-looking collection of model samples cannot replace evaluation on independent real observations.</p>
+<div class="course-example admonition" id="ex-sampling-versus-fitting">
+<p class="admonition-title">Example 1.2 · More generated data do not repair the fit</p>
+<p><strong>Setup.</strong> A fitted Bernoulli generator uses <span class="math notranslate nohighlight">\(\widehat p=0.6\)</span>. For this illustration, suppose the true data probability is <span class="math notranslate nohighlight">\(p_0=0.7\)</span>.</p>
+<p><strong>Work it through.</strong> Among <span class="math notranslate nohighlight">\(M=100\)</span> independent generated draws, the generated proportion has conditional standard deviation <span class="math notranslate nohighlight">\(\sqrt{0.6(0.4)/100}\approx0.049\)</span>. With <span class="math notranslate nohighlight">\(M=10{,}000\)</span>, it is about <span class="math notranslate nohighlight">\(0.0049\)</span>, using Equation <a class="reference internal" href="#equation-eq-mc-variance">(1.10)</a>. Both proportions are centered at <span class="math notranslate nohighlight">\(0.6\)</span>, leaving the same discrepancy <span class="math notranslate nohighlight">\(\widehat p-p_0=-0.1\)</span>.</p>
+<p><strong>What this shows.</strong> More simulation makes our description of the fitted model more precise. It does not move that model toward the data-generating law. Here the fit is held fixed; uncertainty from collecting and fitting a new training sample is a separate source of variation.</p>
+</div>
 </section>
 <section id="exercises">
 <h2>1.14 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>

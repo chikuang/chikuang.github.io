@@ -32,10 +32,10 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=6add5bf0" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -536,6 +536,12 @@ Final segments: {&#39;learn&#39;: [&#39;learn&#39;, &#39;&lt;/w&gt;&#39;], &#39;
 </div>
 </div>
 <p>These randomly initialized vectors have no learned semantic interpretation. In a neural language model, the prediction loss supplies gradients for the rows used in training. Similar contexts can encourage similar predictive representations, but the learned geometry also reflects corpus composition and the training objective.</p>
+<div class="course-example admonition" id="ex-embedding-lookup">
+<p class="admonition-title">Example 3.1 · A token ID selects a row</p>
+<p><strong>Setup.</strong> Let IDs 0, 1, and 2 mean <code class="docutils literal notranslate"><span class="pre">data</span></code>, <code class="docutils literal notranslate"><span class="pre">model</span></code>, and <code class="docutils literal notranslate"><span class="pre">learn</span></code>. Their embedding rows are <span class="math notranslate nohighlight">\((1,0)\)</span>, <span class="math notranslate nohighlight">\((0,2)\)</span>, and <span class="math notranslate nohighlight">\((1,1)\)</span>, so <span class="math notranslate nohighlight">\(E\)</span> has shape <span class="math notranslate nohighlight">\(3\times2\)</span>.</p>
+<p><strong>Work it through.</strong> The sequence <code class="docutils literal notranslate"><span class="pre">learn</span> <span class="pre">data</span></code> becomes IDs <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">0]</span></code>. Lookup returns rows <span class="math notranslate nohighlight">\((1,1)\)</span> and <span class="math notranslate nohighlight">\((1,0)\)</span>, with shape <span class="math notranslate nohighlight">\(2\times2\)</span>. Multiplying the corresponding one-hot rows <span class="math notranslate nohighlight">\((0,0,1)\)</span> and <span class="math notranslate nohighlight">\((1,0,0)\)</span> by <span class="math notranslate nohighlight">\(E\)</span> produces exactly the same result. ID 2 does not mean twice as much as ID 1; the integers are row addresses.</p>
+<p><strong>What this shows.</strong> The vocabulary mapping and embedding matrix form one fitted object. If a rebuilt vocabulary swaps the IDs of <code class="docutils literal notranslate"><span class="pre">data</span></code> and <code class="docutils literal notranslate"><span class="pre">learn</span></code> without reordering <span class="math notranslate nohighlight">\(E\)</span>, the code still runs but silently assigns the wrong vectors to the words.</p>
+</div>
 </section>
 <section id="learn-a-small-representation-from-co-occurrence">
 <h2>3.4 · Learn a small representation from co-occurrence<a class="headerlink" href="#learn-a-small-representation-from-co-occurrence" title="Link to this heading">#</a></h2>
@@ -640,6 +646,12 @@ Same ordered sequence: False
 </div>
 </div>
 <p>A mean of static word embeddings also ignores order: permuting the tokens does not change the mean. The two example sentences have the same word counts but reverse the grammatical roles. Negation can cause an even more serious mismatch between lexical similarity and a task’s answer.</p>
+<div class="course-example admonition" id="ex-embedding-geometry">
+<p class="admonition-title">Example 3.2 · Similarity can survive a change of coordinates</p>
+<p><strong>Setup.</strong> Three word vectors are <span class="math notranslate nohighlight">\(a=(1,0)\)</span>, <span class="math notranslate nohighlight">\(b=(2,0)\)</span>, and <span class="math notranslate nohighlight">\(c=(0,1)\)</span>.</p>
+<p><strong>Work it through.</strong> Equation <a class="reference internal" href="#equation-eq-cosine">(3.3)</a> gives <span class="math notranslate nohighlight">\(\cos(a,b)=1\)</span> and <span class="math notranslate nohighlight">\(\cos(a,c)=0\)</span>, although <span class="math notranslate nohighlight">\(b\)</span> is twice as long as <span class="math notranslate nohighlight">\(a\)</span>. Rotate every vector by 90 degrees: they become <span class="math notranslate nohighlight">\((0,1)\)</span>, <span class="math notranslate nohighlight">\((0,2)\)</span>, and <span class="math notranslate nohighlight">\((-1,0)\)</span>. The two cosine values remain 1 and 0. Also, averaging the vectors for <code class="docutils literal notranslate"><span class="pre">data</span> <span class="pre">model</span></code> gives the same result as averaging <code class="docutils literal notranslate"><span class="pre">model</span> <span class="pre">data</span></code>.</p>
+<p><strong>What this shows.</strong> Relative geometry can carry information even when individual coordinate meanings are not identifiable. Cosine is directional similarity, not a probability of equivalence. Averaging also erases order, which motivates positional and contextual representations in the next section.</p>
+</div>
 </section>
 <section id="positions-and-contextual-representations">
 <h2>3.6 · Positions and contextual representations<a class="headerlink" href="#positions-and-contextual-representations" title="Link to this heading">#</a></h2>

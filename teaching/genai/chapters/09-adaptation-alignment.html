@@ -32,10 +32,10 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=6add5bf0" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -548,6 +548,12 @@ y_{\mathrm{row}}&amp;=x_{\mathrm{row}}(W_{0,\mathrm{row}}+sAB),
 \nabla_A L=sGB^\top,\qquad \nabla_B L=sA^\top G.
 \]</div>
 <p>Equation <a class="reference internal" href="#equation-eq-lora-gradients">(9.3)</a> shows why, at <span class="math notranslate nohighlight">\(B=0\)</span> and random nonzero <span class="math notranslate nohighlight">\(A\)</span>, the initial update is zero, but <span class="math notranslate nohighlight">\(\nabla_B L\)</span> can be nonzero. Once <span class="math notranslate nohighlight">\(B\)</span> moves, <span class="math notranslate nohighlight">\(A\)</span> can also receive a gradient. Initializing <strong>both</strong> factors at zero blocks both gradients. This explains the initialization choice without treating low rank as a different prediction objective.</p>
+<div class="course-example admonition" id="ex-lora-rank-one">
+<p class="admonition-title">Example 9.1 · A rank-one adapter cannot fit every update</p>
+<p><strong>Setup.</strong> In the row-vector convention of Equation <a class="reference internal" href="#equation-eq-lora">(9.2)</a>, take <span class="math notranslate nohighlight">\(d_{in}=3\)</span>, <span class="math notranslate nohighlight">\(d_{out}=2\)</span>, <span class="math notranslate nohighlight">\(r=1\)</span>, and <span class="math notranslate nohighlight">\(s=1\)</span>. Let <span class="math notranslate nohighlight">\(A=(1,2,0)^\top\)</span> and <span class="math notranslate nohighlight">\(B=(3,-1)\)</span>.</p>
+<p><strong>Work it through.</strong> The three rows of <span class="math notranslate nohighlight">\(AB\)</span> are <span class="math notranslate nohighlight">\((3,-1)\)</span>, <span class="math notranslate nohighlight">\((6,-2)\)</span>, and <span class="math notranslate nohighlight">\((0,0)\)</span>. Every nonzero row is a multiple of the first, so the update has rank one. It trains <span class="math notranslate nohighlight">\(3+2=5\)</span> entries instead of 6 for a full update. A desired update with rows <span class="math notranslate nohighlight">\((1,0)\)</span>, <span class="math notranslate nohighlight">\((0,1)\)</span>, and <span class="math notranslate nohighlight">\((0,0)\)</span> has rank two and cannot be represented exactly by these rank-one factors.</p>
+<p><strong>What this shows.</strong> LoRA imposes a geometric restriction, not just a smaller file. Better optimization cannot remove that restriction. The tiny dimensions make the saving modest here; parameter savings and approximation quality are separate questions.</p>
+</div>
 </section>
 </section>
 <section id="inspect-the-fitted-update-not-only-parameter-counts">
@@ -658,6 +664,12 @@ Equal-preference log loss: 0.693
 </div>
 </div>
 <p>This test holds out comparison draws, not new prompts. It evaluates the same three-response preference problem under additional label noise. It cannot establish generalization to new tasks or factual correctness. The reference policy has positive probability on every response, so its log ratios are defined.</p>
+<div class="course-example admonition" id="ex-dpo-reference-margin">
+<p class="admonition-title">Example 9.2 · DPO compares changes relative to a reference</p>
+<p><strong>Setup.</strong> There are two possible responses, preferred <span class="math notranslate nohighlight">\(y_w\)</span> and rejected <span class="math notranslate nohighlight">\(y_l\)</span>. Let the reference probabilities be <span class="math notranslate nohighlight">\((0.8,0.2)\)</span>, the current policy be <span class="math notranslate nohighlight">\((0.6,0.4)\)</span>, and <span class="math notranslate nohighlight">\(\beta=1\)</span>.</p>
+<p><strong>Work it through.</strong> The margin in Equation <a class="reference internal" href="#equation-eq-dpo">(9.7)</a> is <span class="math notranslate nohighlight">\(\log(0.6/0.8)-\log(0.4/0.2)=\log(0.375)\approx-0.9808\)</span>. Its logistic probability is <span class="math notranslate nohighlight">\(0.375/(1+0.375)=3/11\approx0.2727\)</span>, giving loss <span class="math notranslate nohighlight">\(-\log(3/11)\approx1.2993\)</span>. If policy and reference agreed, the margin would be zero and the loss would be <span class="math notranslate nohighlight">\(\log2\approx0.6931\)</span>.</p>
+<p><strong>What this shows.</strong> The current policy still assigns more absolute probability to the preferred response, yet it favors that response less strongly than the reference did. DPO evaluates this relative shift. Its pairwise probability is part of a preference model, not a factual-correctness probability for either response.</p>
+</div>
 </section>
 <section id="design-an-adaptation-evaluation">
 <h2>9.6 · Design an adaptation evaluation<a class="headerlink" href="#design-an-adaptation-evaluation" title="Link to this heading">#</a></h2>

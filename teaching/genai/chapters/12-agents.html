@@ -32,10 +32,10 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=6add5bf0" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -431,6 +431,12 @@ p_\pi(a_{1:T},o_{1:T}\mid q)=\prod_{t=1}^{T}
 \]</div>
 <p>For continuous observations, interpret the factors as conditional densities or kernels. No Markov assumption about the latest observation is needed. The kernel in Equation <a class="reference internal" href="#equation-eq-trajectory-law">(12.2)</a> includes validation errors and tool failures, not just successful numeric results. A deterministic policy is the special case assigning probability one to its chosen action.</p>
 <p>Include <code class="docutils literal notranslate"><span class="pre">finish</span></code> among the decisions and make a finished history absorbing. A bounded stop rule <span class="math notranslate nohighlight">\(\tau\le T_{\max}\)</span> must depend only on information available by the stopping decision: <span class="math notranslate nohighlight">\(\{\tau\le t\}\)</span> is determined by the observed history. This prevents a policy from claiming it stopped because of a future outcome. In the lab, <code class="docutils literal notranslate"><span class="pre">max_steps</span></code> counts decisions, including the final <code class="docutils literal notranslate"><span class="pre">finish</span></code>; tool calls are only a subset of those decisions. Set the tool-call cost of <code class="docutils literal notranslate"><span class="pre">finish</span></code> to zero when comparing call budgets.</p>
+<div class="course-example admonition" id="ex-agent-value-of-information">
+<p class="admonition-title">Example 12.1 · When is another tool call worthwhile?</p>
+<p><strong>Setup.</strong> Suppose an agent can answer now with estimated correctness probability <span class="math notranslate nohighlight">\(0.80\)</span>, or use one lookup that raises expected correctness to <span class="math notranslate nohighlight">\(0.95\)</span>. Let correct utility be 1, incorrect utility 0, and the lookup cost be <span class="math notranslate nohighlight">\(0.05\)</span> with <span class="math notranslate nohighlight">\(\lambda=1\)</span>. These probabilities are stipulated for illustration, not measured agent performance.</p>
+<p><strong>Work it through.</strong> Equation <a class="reference internal" href="#equation-eq-agent-utility">(12.1)</a> gives expected utility <span class="math notranslate nohighlight">\(0.80\)</span> for answering now and <span class="math notranslate nohighlight">\(0.95-0.05=0.90\)</span> for lookup followed by an answer. Lookup is preferable. If the corresponding probabilities were <span class="math notranslate nohighlight">\(0.98\)</span> and <span class="math notranslate nohighlight">\(0.99\)</span>, however, the call would give only <span class="math notranslate nohighlight">\(0.94\)</span> after cost, below <span class="math notranslate nohighlight">\(0.98\)</span>.</p>
+<p><strong>What this shows.</strong> Tool use has value when it improves the decision enough to justify its cost. Always calling a tool is not automatically optimal; the policy needs a stopping rule tied to the task and its remaining uncertainty.</p>
+</div>
 </section>
 </section>
 <section id="define-narrow-tool-contracts">
@@ -520,6 +526,12 @@ p_\pi(a_{1:T},o_{1:T}\mid q)=\prod_{t=1}^{T}
 \end{cases}
 \end{split}\]</div>
 <p>The gate in Equation <a class="reference internal" href="#equation-eq-execution-gate">(12.3)</a> is checked by the dispatcher and loop, not inferred from how confidently the policy proposes <span class="math notranslate nohighlight">\(a\)</span>. Its error branch is also an observation under Equation <a class="reference internal" href="#equation-eq-trajectory-law">(12.2)</a>. Error results also enter the trace and can change the next decision. In this lab, <code class="docutils literal notranslate"><span class="pre">dispatch</span></code> validates schemas and numeric domains while <code class="docutils literal notranslate"><span class="pre">run_agent</span></code> enforces the decision budget. A memory compression <span class="math notranslate nohighlight">\(M_t=m(H_t)\)</span> can replace full history only at a possible information cost; a sufficient summary would preserve the relevant conditional laws of future observations and utility for every allowed action.</p>
+<div class="course-example admonition" id="ex-agent-tool-contract">
+<p class="admonition-title">Example 12.2 · The dispatcher decides what actually executes</p>
+<p><strong>Setup.</strong> The policy proposes <code class="docutils literal notranslate"><span class="pre">summarize</span></code> with statistic <code class="docutils literal notranslate"><span class="pre">mean</span></code> and values <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">4,</span> <span class="pre">6,</span> <span class="pre">8]</span></code>. The same policy could instead propose values <code class="docutils literal notranslate"><span class="pre">[True,</span> <span class="pre">4]</span></code> or an unsupported tool name <code class="docutils literal notranslate"><span class="pre">shell</span></code>.</p>
+<p><strong>Work it through.</strong> The valid proposal returns mean <span class="math notranslate nohighlight">\(20/4=5\)</span>. The Boolean payload fails the numeric-domain check even though Python ordinarily treats <code class="docutils literal notranslate"><span class="pre">True</span></code> as a number. The unsupported name fails the allowlist. In the loop below, each rejected proposal becomes a recorded error observation; it does not produce a numeric result or execute the requested unsupported operation.</p>
+<p><strong>What this shows.</strong> Equation <a class="reference internal" href="#equation-eq-execution-gate">(12.3)</a> separates a proposed action from an allowed execution. Correct JSON shape alone is insufficient: names, argument types, value domains, and the remaining budget all matter. The next policy decision must use the observed success or error, rather than assume that its proposal succeeded.</p>
+</div>
 </section>
 </section>
 <section id="keep-policy-proposals-separate-from-execution">
@@ -627,6 +639,36 @@ p_\pi(a_{1:T},o_{1:T}\mid q)=\prod_{t=1}^{T}
 </div>
 </div>
 <p>The trace records observable actions and returned data. It does not require a generated chain of thought or claim that natural-language reasoning faithfully exposes internal computation. In this implementation, one iteration is reserved for the final decision, so a budget of two iterations allows the two tool calls but not the finish proposal.</p>
+<div class="course-example admonition" id="ex-agent-trace-budget">
+<p class="admonition-title">Example 12.3 · Two tool calls require three policy decisions</p>
+<p><strong>Setup.</strong> Request the mean of <code class="docutils literal notranslate"><span class="pre">pilot_a</span></code>, whose values are <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">4,</span> <span class="pre">6,</span> <span class="pre">8]</span></code>, using the exact <code class="docutils literal notranslate"><span class="pre">policy</span></code> and <code class="docutils literal notranslate"><span class="pre">run_agent</span></code> functions above.</p>
+<p><strong>Work it through.</strong> The history grows as follows:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Decision</p></th>
+<th class="head text-left"><p>Information available</p></th>
+<th class="head text-left"><p>Proposal and result</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>1</p></td>
+<td class="text-left"><p>Request; empty history</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">lookup</span></code> returns the four values and source.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>2</p></td>
+<td class="text-left"><p>Successful lookup</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">summarize</span></code> returns mean 5.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>3</p></td>
+<td class="text-left"><p>Successful summary</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">finish</span></code> returns answer 5 with <code class="docutils literal notranslate"><span class="pre">pilot_a</span></code> as source.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>There are two executed tools, hence two trace entries. With <code class="docutils literal notranslate"><span class="pre">max_steps=2</span></code>, both tools run, but there is no third decision to emit the answer: the returned status is <code class="docutils literal notranslate"><span class="pre">budget_exhausted</span></code> and the answer is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<p><strong>What this shows.</strong> A result present in history is not yet a completed response. Define whether a budget counts tool calls, policy decisions, or both, and reserve capacity for the finish action. A failed lookup instead makes decision 2 finish with failure; it must not summarize invented data.</p>
+</div>
 </section>
 <section id="test-failures-as-part-of-the-lesson">
 <h2>12.4 · Test failures as part of the lesson<a class="headerlink" href="#test-failures-as-part-of-the-lesson" title="Link to this heading">#</a></h2>
@@ -700,6 +742,12 @@ Rejected: Values must be finite numbers, not booleans
 <h2>12.6 · Memory and a model-policy extension<a class="headerlink" href="#memory-and-a-model-policy-extension" title="Link to this heading">#</a></h2>
 <p>Working memory stores the current task’s observations. Persistent memory stores information across tasks and introduces questions about staleness, relevance, and privacy. More memory can supply useful evidence or repeat an old mistake. A memory ablation should compare the same tasks and budget with and without the memory feature.</p>
 <p>To replace the rule policy, provide a language model with the user request, the tool schemas, and the observable history. Require a proposal in the same action/finish structure. Parse it, validate it, and pass only valid actions to the dispatcher. Count malformed outputs and repair attempts as part of the evaluation rather than discarding them. Keep the deterministic policy as a baseline for tasks with a known workflow.</p>
+<div class="course-example admonition" id="ex-agent-memory-state">
+<p class="admonition-title">Example 12.4 · A memory summary can lose the task state</p>
+<p><strong>Setup.</strong> After the successful trace above, one memory summary stores only “result: 5.” Another stores dataset <code class="docutils literal notranslate"><span class="pre">pilot_a</span></code>, statistic <code class="docutils literal notranslate"><span class="pre">mean</span></code>, source identity, result 5, successful status, and the completed actions.</p>
+<p><strong>Work it through.</strong> For a follow-up asking for the median of <code class="docutils literal notranslate"><span class="pre">pilot_a</span></code>, the first summary cannot establish what 5 measured. The fuller summary shows that only the mean was computed, so the agent should obtain the values and calculate the requested median. In this particular dataset the median is also 5, but that coincidence is not a valid reason to reuse the mean without checking. A median request for <code class="docutils literal notranslate"><span class="pre">pilot_b</span></code> has answer <span class="math notranslate nohighlight">\(1.5\)</span>, not 5.</p>
+<p><strong>What this shows.</strong> Memory should preserve the information needed to distinguish future decisions: request, evidence, provenance, operation, and status. Shorter text is not automatically a sufficient state. Reusing a plausible number can answer the wrong question while appearing successful.</p>
+</div>
 </section>
 <section id="exercises-and-worked-solutions">
 <h2>12.7 · Exercises and worked solutions<a class="headerlink" href="#exercises-and-worked-solutions" title="Link to this heading">#</a></h2>

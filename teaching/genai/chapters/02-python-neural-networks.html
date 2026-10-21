@@ -32,10 +32,10 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=6add5bf0" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -452,6 +452,12 @@ Keep a column dimension: (3, 1)
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">X_demo[:,</span> <span class="pre">0]</span></code> has shape <code class="docutils literal notranslate"><span class="pre">(3,)</span></code>, whereas <code class="docutils literal notranslate"><span class="pre">X_demo[:,</span> <span class="pre">:1]</span></code> has shape <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">1)</span></code>. This difference matters: subtracting <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">1)</span></code> from <code class="docutils literal notranslate"><span class="pre">(n,)</span></code> produces an <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">n)</span></code> array, not the vector of residuals you intended. Before fitting anything, print the shapes of predictors, labels, and predictions. Use assertions when a silent broadcast could change the estimand.</p>
 <p>A function packages a calculation with named inputs and a returned result. A class packages state and behavior. PyTorch’s <code class="docutils literal notranslate"><span class="pre">nn.Module</span></code> is the base class for models; its registered parameters are the quantities an optimizer can update. A tensor resembles an array but can also participate in automatic differentiation.</p>
+<div class="course-example admonition" id="ex-broadcast-residuals">
+<p class="admonition-title">Example 2.1 · A shape error can produce a plausible number</p>
+<p><strong>Setup.</strong> Two predicted probabilities are stored as <code class="docutils literal notranslate"><span class="pre">[[0.2],</span> <span class="pre">[0.8]]</span></code>, with shape <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">1)</span></code>. Their labels are <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>, with shape <code class="docutils literal notranslate"><span class="pre">(2,)</span></code>.</p>
+<p><strong>Work it through.</strong> Subtraction broadcasts the labels across both rows and returns <code class="docutils literal notranslate"><span class="pre">[[0.2,</span> <span class="pre">-0.8],</span> <span class="pre">[0.8,</span> <span class="pre">-0.2]]</span></code>, a <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">2)</span></code> array. Averaging its squared entries gives <span class="math notranslate nohighlight">\(0.34\)</span>. Reshaping the labels to <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">1)</span></code> instead gives the intended residuals <code class="docutils literal notranslate"><span class="pre">[[0.2],</span> <span class="pre">[-0.2]]</span></code> and mean square <span class="math notranslate nohighlight">\(0.04\)</span>.</p>
+<p><strong>What this shows.</strong> The incorrect operation runs successfully and returns a finite loss. It compares each prediction with both labels instead of its own label. Check dimensions and observation alignment before trusting a training curve; a falling loss cannot certify that the intended problem was implemented.</p>
+</div>
 </section>
 <section id="from-logistic-regression-to-learned-features">
 <h2>2.2 · From logistic regression to learned features<a class="headerlink" href="#from-logistic-regression-to-learned-features" title="Link to this heading">#</a></h2>
@@ -486,6 +492,12 @@ G&amp;=(\delta w_2^\top)\odot(1-H\odot H),&amp; \nabla_{W_1}L&amp;=X^\top G,\\
 \end{aligned}
 \end{split}\]</div>
 <p><span class="math notranslate nohighlight">\(\odot\)</span> multiplies entries, and <span class="math notranslate nohighlight">\(G\)</span> has shape <span class="math notranslate nohighlight">\(m\times h\)</span>. The derivative <span class="math notranslate nohighlight">\(1-\tanh^2(A)\)</span> in Equation <a class="reference internal" href="#equation-eq-backprop">(2.3)</a> explains how a saturated hidden unit can transmit a small gradient. <code class="docutils literal notranslate"><span class="pre">nn.Linear(p,</span> <span class="pre">h)</span></code> stores the transpose of our <span class="math notranslate nohighlight">\(W_1\)</span>, with shape <code class="docutils literal notranslate"><span class="pre">(h,</span> <span class="pre">p)</span></code>; its forward calculation still implements this map. In the experiment <span class="math notranslate nohighlight">\(p=2\)</span> and <span class="math notranslate nohighlight">\(h=16\)</span>.</p>
+<div class="course-example admonition" id="ex-logistic-gradient-step">
+<p class="admonition-title">Example 2.2 · One gradient step by hand</p>
+<p><strong>Setup.</strong> Use one observation <span class="math notranslate nohighlight">\(x=2\)</span>, <span class="math notranslate nohighlight">\(y=1\)</span>, a scalar weight <span class="math notranslate nohighlight">\(w\)</span>, and no intercept. Start at <span class="math notranslate nohighlight">\(w=0\)</span>, with learning rate <span class="math notranslate nohighlight">\(0.1\)</span>.</p>
+<p><strong>Work it through.</strong> The logit is <span class="math notranslate nohighlight">\(xw=0\)</span> and the probability is <span class="math notranslate nohighlight">\(p=0.5\)</span>. Equation <a class="reference internal" href="#equation-eq-logistic-loss">(2.1)</a> gives loss <span class="math notranslate nohighlight">\(\log 2\approx0.6931\)</span> and derivative <span class="math notranslate nohighlight">\(x(p-y)=2(-0.5)=-1\)</span>. Gradient descent sets <span class="math notranslate nohighlight">\(w_{\mathrm{new}}=0-0.1(-1)=0.1\)</span>. The new probability is <span class="math notranslate nohighlight">\(\sigma(0.2)\approx0.5498\)</span>, with loss <span class="math notranslate nohighlight">\(\log(1+e^{-0.2})\approx0.5981\)</span>.</p>
+<p><strong>What this shows.</strong> The negative derivative increases the weight, making the observed positive outcome more probable. This tiny calculation provides a known answer for checking automatic differentiation, update signs, and loss reduction before training a larger network.</p>
+</div>
 </section>
 </section>
 <section id="check-automatic-differentiation-on-a-known-answer">

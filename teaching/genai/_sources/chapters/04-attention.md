@@ -85,6 +85,17 @@ assert np.allclose(weights.sum(axis=-1), 1)
 
 Subtracting the row maximum leaves softmax unchanged but avoids exponentiating unnecessarily large positive numbers. `axis=-1` means normalize across keys for each query. Normalizing over all entries at once would couple unrelated query rows and implement a different operation.
 
+:::{admonition} Example 4.1 · Scores choose how to mix values
+:class: course-example
+:name: ex-attention-weighted-values
+
+**Setup.** After scaling, one query has scores $(0,\log2)$ against two keys. The corresponding scalar values are $(3,9)$.
+
+**Work it through.** Exponentiating the scores gives $(1,2)$; normalizing gives attention weights $(1/3,2/3)$. Equation {eq}`eq-attention` therefore returns $(1/3)3+(2/3)9=7$. If the values change to $(30,90)$ while the query and keys stay fixed, the weights stay the same and the output becomes 70.
+
+**What this shows.** Queries and keys determine the weights; values determine the information being mixed. A weight of $2/3$ means that the second value receives that share of this weighted average. It does not establish a two-thirds probability that the second token is factually correct.
+:::
+
 ## 4.3 · Why divide by the square root of width?
 
 Suppose the components of a query and a key are independent, mean zero, variance one, and independent across the two vectors. Their dot product has variance $d_k$. Dividing by $\sqrt{d_k}$ gives variance one under these assumptions. Without scaling, increasing width can make initial scores more extreme and softmax more concentrated. Learned features need not satisfy these assumptions exactly; this is an initialization argument, not a universal distributional theorem.
@@ -132,6 +143,17 @@ plt.show()
 ```
 
 Padding masks solve a different problem: they exclude padded positions. A batch with both causal and padding constraints must combine the allowed-position conditions. Mask conventions differ between software functions, so check whether a boolean `True` means “allow” or “block” before reusing a mask.
+
+:::{admonition} Example 4.2 · Removing a future key changes the denominator
+:class: course-example
+:name: ex-attention-mask-denominator
+
+**Setup.** A query has scores $(0,\log2,\log7)$ and values $(3,9,100)$. The third key belongs to a future position and must be excluded.
+
+**Work it through.** Before masking, the weights are $(0.1,0.2,0.7)$. Replacing the third score by $-\infty$ before softmax gives $(1/3,2/3,0)$ and output 7. Merely zeroing its weight after softmax gives $(0.1,0.2,0)$ and output $0.1(3)+0.2(9)=2.1$; the weights now sum to $0.3$.
+
+**What this shows.** The allowed positions must be normalized together. Masking scores implements this directly and avoids a denominator that depends on future keys. A row with no allowed positions needs explicit handling; softmax of an all-$-\infty$ row is undefined.
+:::
 
 ## 4.5 · Test causality by intervention
 

@@ -116,6 +116,17 @@ for c in chunk_document('conformal', notes['conformal'], size=9, overlap=3):
 
 The phrase describing marginal coverage can become separated from the exchangeability condition. Overlap helps only if it preserves the required relationship. Larger chunks, section-aware splitting, or adding neighboring passages are possible interventions; each also changes noise, duplication, and context use. On an index update, replace stale chunks and representations together. Merely appending new versions can make old and new policies compete in retrieval.
 
+:::{admonition} Example 10.1 · A relevant chunk can lose its assumption
+:class: course-example
+:name: ex-rag-chunk-boundary
+
+**Setup.** A teaching note says: “Split conformal prediction has a marginal coverage guarantee when calibration and future examples are exchangeable.” A question asks whether that guarantee survives arbitrary distribution shift.
+
+**Work it through.** Suppose chunk A contains the method and guarantee, while chunk B contains the exchangeability condition. Retrieving A alone matches the question's vocabulary but omits the condition needed to answer it. Keeping A and B together, or expanding A to its source paragraph, allows the answer: the stated guarantee requires exchangeability and does not cover arbitrary shift.
+
+**What this shows.** Retrieval relevance is not evidence sufficiency. Chunk boundaries should preserve a claim together with its assumptions. Keep source/version information so neighboring text can be recovered from the same document snapshot, rather than combining passages from incompatible revisions.
+:::
+
 ## 10.3 · Build a lexical baseline
 
 For term $w$ and passage $d$, define
@@ -276,6 +287,17 @@ assert len(pack_context([hits[0], hits[0]])[0]) == 1
 
 If a relevant passage is too large, this policy skips it and may return no usable context. Address that visible limitation with better chunking or a documented expansion/compression policy. Compression must preserve assumptions and provenance. The threshold is a demonstration constant, not calibrated confidence; choose deployable thresholds on separate development questions.
 
+:::{admonition} Example 10.2 · Retrieved evidence may never reach the model
+:class: course-example
+:name: ex-rag-context-budget
+
+**Setup.** A hypothetical model has a 1,000-token context limit. Instructions, question, and fixed formatting use 180 tokens, and the response needs a 200-token reserve. Two retrieved passages cost 400 and 300 additional tokens, including their metadata; assume these are measured with the target tokenizer.
+
+**Work it through.** Equation {eq}`eq-context-budget` leaves $1000-180-200=620$ tokens for evidence. Both passages need 700 and cannot fit. A rank-ordered whole-passage policy keeps the first and skips the second, even if the second contains a necessary condition. The final serialized prompt must still be recounted because tokenization can depend on boundaries.
+
+**What this shows.** Retrieval success does not imply context retention. Log both the retrieved IDs and the packed IDs. Better chunking, ordering, or a larger permitted budget can repair this failure; changing only the generator cannot recover evidence it never received.
+:::
+
 ## 10.6 · Augmentation: build the actual generator input
 
 Augmentation converts search results into model-visible evidence. The prompt contract specifies a task, evidence, citation IDs, an output schema, and an abstention condition. Retrieved text is **data to examine**, not authority to change instructions or call tools. Serialization preserves structure; it does not make a model immune to malicious document text.
@@ -346,6 +368,17 @@ print('Structurally valid but substantively wrong:', validate_response(unsupport
 ```
 
 The second example passes structural validation while contradicting the evidence. Thus a valid-citation-ID rate of 100% is compatible with bad answers. Support assessment must check each claim, its scope and assumptions, and whether its cited text justifies it. A model-based judge can assist, but its errors need auditing against a rubric and human-reviewed examples.
+
+:::{admonition} Example 10.3 · A valid citation can support the wrong claim
+:class: course-example
+:name: ex-rag-citation-support
+
+**Setup.** The packed context contains `coverage:0`, which states that a confidence procedure has repeated-sampling coverage, and `ridge:0`, which describes a squared coefficient penalty. An answer says: “Ridge regression guarantees 95% coverage [ridge:0].”
+
+**Work it through.** The citation passes Equation {eq}`eq-citation-membership` because `ridge:0` was supplied to the generator. It fails a semantic support check: that passage says nothing establishing the claimed coverage guarantee. Citing `coverage:0` instead would also fail, because a general definition of coverage does not establish this claim about ridge regression.
+
+**What this shows.** ID validation checks where a citation points. Support evaluation checks whether that evidence justifies the particular claim. The response should remove or qualify the unsupported assertion, or abstain when the available passages cannot answer the question.
+:::
 
 ## 10.8 · Connect the components into an observable pipeline
 
@@ -467,6 +500,17 @@ The invented-bootstrap question shares vocabulary with a plausible-looking note,
 | Service | Latency, calls, cost, timeout rate | Is the whole procedure feasible at the intended scale? |
 
 Create development and final evaluation questions before tuning chunk size, candidate count, reranking, prompts, or thresholds. Split by document/topic/user when questions share those sources of dependence. The source corpus can be available while evaluation questions remain held out; answer keys and oracle passages must not leak into production retrieval.
+
+:::{admonition} Example 10.4 · A retrieval hit is not complete evidence
+:class: course-example
+:name: ex-rag-metric-denominators
+
+**Setup.** At document level, a question needs both documents A and B. The top three retrieved documents, in order, are C, A, and D. Assume all IDs are distinct.
+
+**Work it through.** The relevant set is $\{A,B\}$ and the returned set is $\{C,A,D\}$. Equation {eq}`eq-retrieval-precision-recall` gives precision $1/3$ and recall $1/2$. The hit indicator in Equation {eq}`eq-retrieval-hit-mrr` is 1, and this question's reciprocal-rank contribution is $1/2$, because A is the first relevant result at rank 2. Yet B is missing; a two-source answer may still be impossible.
+
+**What this shows.** Each metric has a different denominator and answers a different question. A benchmark can report perfect hit rate while repeatedly missing part of the required evidence. Check evidence completeness and the final answer in addition to ranking metrics.
+:::
 
 ## 10.10 · A framework for diagnosing and improving RAG
 

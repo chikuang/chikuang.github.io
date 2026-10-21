@@ -32,10 +32,10 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=6add5bf0" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -536,6 +536,12 @@ p_\theta\{y\mid q,C_k(q),\text{instructions}\}.
 </div>
 </div>
 <p>The phrase describing marginal coverage can become separated from the exchangeability condition. Overlap helps only if it preserves the required relationship. Larger chunks, section-aware splitting, or adding neighboring passages are possible interventions; each also changes noise, duplication, and context use. On an index update, replace stale chunks and representations together. Merely appending new versions can make old and new policies compete in retrieval.</p>
+<div class="course-example admonition" id="ex-rag-chunk-boundary">
+<p class="admonition-title">Example 10.1 · A relevant chunk can lose its assumption</p>
+<p><strong>Setup.</strong> A teaching note says: “Split conformal prediction has a marginal coverage guarantee when calibration and future examples are exchangeable.” A question asks whether that guarantee survives arbitrary distribution shift.</p>
+<p><strong>Work it through.</strong> Suppose chunk A contains the method and guarantee, while chunk B contains the exchangeability condition. Retrieving A alone matches the question’s vocabulary but omits the condition needed to answer it. Keeping A and B together, or expanding A to its source paragraph, allows the answer: the stated guarantee requires exchangeability and does not cover arbitrary shift.</p>
+<p><strong>What this shows.</strong> Retrieval relevance is not evidence sufficiency. Chunk boundaries should preserve a claim together with its assumptions. Keep source/version information so neighboring text can be recovered from the same document snapshot, rather than combining passages from incompatible revisions.</p>
+</div>
 </section>
 <section id="build-a-lexical-baseline">
 <h2>10.3 · Build a lexical baseline<a class="headerlink" href="#build-a-lexical-baseline" title="Link to this heading">#</a></h2>
@@ -743,6 +749,12 @@ Evidence words: 14
 </div>
 </div>
 <p>If a relevant passage is too large, this policy skips it and may return no usable context. Address that visible limitation with better chunking or a documented expansion/compression policy. Compression must preserve assumptions and provenance. The threshold is a demonstration constant, not calibrated confidence; choose deployable thresholds on separate development questions.</p>
+<div class="course-example admonition" id="ex-rag-context-budget">
+<p class="admonition-title">Example 10.2 · Retrieved evidence may never reach the model</p>
+<p><strong>Setup.</strong> A hypothetical model has a 1,000-token context limit. Instructions, question, and fixed formatting use 180 tokens, and the response needs a 200-token reserve. Two retrieved passages cost 400 and 300 additional tokens, including their metadata; assume these are measured with the target tokenizer.</p>
+<p><strong>Work it through.</strong> Equation <a class="reference internal" href="#equation-eq-context-budget">(10.8)</a> leaves <span class="math notranslate nohighlight">\(1000-180-200=620\)</span> tokens for evidence. Both passages need 700 and cannot fit. A rank-ordered whole-passage policy keeps the first and skips the second, even if the second contains a necessary condition. The final serialized prompt must still be recounted because tokenization can depend on boundaries.</p>
+<p><strong>What this shows.</strong> Retrieval success does not imply context retention. Log both the retrieved IDs and the packed IDs. Better chunking, ordering, or a larger permitted budget can repair this failure; changing only the generator cannot recover evidence it never received.</p>
+</div>
 </section>
 </section>
 <section id="augmentation-build-the-actual-generator-input">
@@ -848,6 +860,12 @@ Structurally valid but substantively wrong: {&#39;answer&#39;: &#39;Independent 
 </div>
 </div>
 <p>The second example passes structural validation while contradicting the evidence. Thus a valid-citation-ID rate of 100% is compatible with bad answers. Support assessment must check each claim, its scope and assumptions, and whether its cited text justifies it. A model-based judge can assist, but its errors need auditing against a rubric and human-reviewed examples.</p>
+<div class="course-example admonition" id="ex-rag-citation-support">
+<p class="admonition-title">Example 10.3 · A valid citation can support the wrong claim</p>
+<p><strong>Setup.</strong> The packed context contains <code class="docutils literal notranslate"><span class="pre">coverage:0</span></code>, which states that a confidence procedure has repeated-sampling coverage, and <code class="docutils literal notranslate"><span class="pre">ridge:0</span></code>, which describes a squared coefficient penalty. An answer says: “Ridge regression guarantees 95% coverage [ridge:0].”</p>
+<p><strong>Work it through.</strong> The citation passes Equation <a class="reference internal" href="#equation-eq-citation-membership">(10.7)</a> because <code class="docutils literal notranslate"><span class="pre">ridge:0</span></code> was supplied to the generator. It fails a semantic support check: that passage says nothing establishing the claimed coverage guarantee. Citing <code class="docutils literal notranslate"><span class="pre">coverage:0</span></code> instead would also fail, because a general definition of coverage does not establish this claim about ridge regression.</p>
+<p><strong>What this shows.</strong> ID validation checks where a citation points. Support evaluation checks whether that evidence justifies the particular claim. The response should remove or qualify the unsupported assertion, or abstain when the available passages cannot answer the question.</p>
+</div>
 </section>
 <section id="connect-the-components-into-an-observable-pipeline">
 <h2>10.8 · Connect the components into an observable pipeline<a class="headerlink" href="#connect-the-components-into-an-observable-pipeline" title="Link to this heading">#</a></h2>
@@ -1024,6 +1042,12 @@ Answer rate on unanswerable questions: 0.3333333333333333
 </table>
 </div>
 <p>Create development and final evaluation questions before tuning chunk size, candidate count, reranking, prompts, or thresholds. Split by document/topic/user when questions share those sources of dependence. The source corpus can be available while evaluation questions remain held out; answer keys and oracle passages must not leak into production retrieval.</p>
+<div class="course-example admonition" id="ex-rag-metric-denominators">
+<p class="admonition-title">Example 10.4 · A retrieval hit is not complete evidence</p>
+<p><strong>Setup.</strong> At document level, a question needs both documents A and B. The top three retrieved documents, in order, are C, A, and D. Assume all IDs are distinct.</p>
+<p><strong>Work it through.</strong> The relevant set is <span class="math notranslate nohighlight">\(\{A,B\}\)</span> and the returned set is <span class="math notranslate nohighlight">\(\{C,A,D\}\)</span>. Equation <a class="reference internal" href="#equation-eq-retrieval-precision-recall">(10.9)</a> gives precision <span class="math notranslate nohighlight">\(1/3\)</span> and recall <span class="math notranslate nohighlight">\(1/2\)</span>. The hit indicator in Equation <a class="reference internal" href="#equation-eq-retrieval-hit-mrr">(10.10)</a> is 1, and this question’s reciprocal-rank contribution is <span class="math notranslate nohighlight">\(1/2\)</span>, because A is the first relevant result at rank 2. Yet B is missing; a two-source answer may still be impossible.</p>
+<p><strong>What this shows.</strong> Each metric has a different denominator and answers a different question. A benchmark can report perfect hit rate while repeatedly missing part of the required evidence. Check evidence completeness and the final answer in addition to ranking metrics.</p>
+</div>
 </section>
 </section>
 <section id="a-framework-for-diagnosing-and-improving-rag">

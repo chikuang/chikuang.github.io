@@ -32,10 +32,10 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=6add5bf0" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -471,6 +471,12 @@ Question-bootstrap percentile interval: [0.025 0.083]
 -2\operatorname{Cov}(A_i,B_i)
 \]</div>
 <p>explains why independently resampling the two systems loses information. The code resamples whole paired differences to estimate uncertainty in Equation <a class="reference internal" href="#equation-eq-paired-difference">(11.1)</a>, using bootstrap quantiles rather than its normal-approximation standard error. For zero-one loss, the risk difference <span class="math notranslate nohighlight">\(R_B-R_A=-\Delta\)</span>; report the direction so a positive improvement is not mistaken for a larger loss.</p>
+<div class="course-example admonition" id="ex-paired-accuracy">
+<p class="admonition-title">Example 11.1 · Paired outcomes reveal which questions changed</p>
+<p><strong>Setup.</strong> On five shared questions, system A has correctness indicators <span class="math notranslate nohighlight">\((1,1,0,0,1)\)</span> and B has <span class="math notranslate nohighlight">\((1,0,1,0,1)\)</span>.</p>
+<p><strong>Work it through.</strong> Both accuracies are <span class="math notranslate nohighlight">\(3/5\)</span>, so the estimated improvement is zero. The paired differences are <span class="math notranslate nohighlight">\((0,-1,1,0,0)\)</span>: B loses one question and gains another. Their sample variance is <span class="math notranslate nohighlight">\((1+1)/(5-1)=0.5\)</span>, giving estimated standard error <span class="math notranslate nohighlight">\(\sqrt{0.5/5}\approx0.3162\)</span> in Equation <a class="reference internal" href="#equation-eq-paired-difference">(11.1)</a>. A bootstrap draw must resample these whole question-level differences, retaining each A/B pair.</p>
+<p><strong>What this shows.</strong> Equal aggregate accuracy does not mean identical behavior or a precisely known population difference. The paired record preserves where outcomes changed. Five questions are too few for a persuasive performance claim; they make the accounting easy to inspect.</p>
+</div>
 </section>
 </section>
 <section id="separate-factual-labels-from-judging-machinery">
@@ -595,6 +601,12 @@ Temperature-scaled Brier: 0.207
 </div>
 </div>
 <p>This curve is descriptive. If you use it to choose the operating threshold, this test sample has become development data. For a final evaluation, choose the threshold on a separate development set and report uncertainty on a new test set. Risk can also worsen within an important subgroup even when overall selective risk improves.</p>
+<div class="course-example admonition" id="ex-selective-risk-coverage">
+<p class="admonition-title">Example 11.2 · A lower error rate can hide fewer answers</p>
+<p><strong>Setup.</strong> On 100 held-out questions, a system answers all questions and gets 20 wrong. A threshold fixed on separate development data keeps 60 answers, of which 3 are wrong.</p>
+<p><strong>Work it through.</strong> Before filtering, coverage is 1 and risk is <span class="math notranslate nohighlight">\(20/100=0.20\)</span>. After filtering, Equation <a class="reference internal" href="#equation-eq-risk-coverage">(11.4)</a> gives coverage <span class="math notranslate nohighlight">\(60/100=0.60\)</span> and selective risk <span class="math notranslate nohighlight">\(3/60=0.05\)</span>. The retained correct answers number 57, while the original system had 80 correct answers overall.</p>
+<p><strong>What this shows.</strong> “95% correct when answering” describes a different service level from “answers every question.” Report both quantities, plus subgroup behavior where relevant. If the threshold retained no answers, coverage would be zero and selective risk would be undefined, rather than evidence of a perfect system.</p>
+</div>
 </section>
 <section id="split-conformal-prediction-for-a-finite-label-space">
 <h2>11.6 · Split conformal prediction for a finite label space<a class="headerlink" href="#split-conformal-prediction-for-a-finite-label-space" title="Link to this heading">#</a></h2>
@@ -648,6 +660,12 @@ Empty / singleton / doubleton counts: [  0 290 310]
 </div>
 <p>The observed test fraction can lie below the nominal level in one finite sample. Equation <a class="reference internal" href="#equation-eq-conformal-coverage">(11.7)</a> does not assert that every test batch achieves the target exactly. Larger prediction sets may deliver coverage while being less informative. Evaluate both coverage and set size.</p>
 <p>A set of finite class labels is not a set of all semantically correct free-text answers. Applying conformal ideas to generated text requires specifying an assessable target, a score, and assumptions appropriate to that target. Distribution shift, adaptive reuse of calibration data, and dependence can invalidate a naive guarantee.</p>
+<div class="course-example admonition" id="ex-conformal-set-by-hand">
+<p class="admonition-title">Example 11.3 · A conformal threshold produces a set</p>
+<p><strong>Setup.</strong> With a fixed predictor, suppose nine calibration scores are <span class="math notranslate nohighlight">\(0.05,0.10,0.15,0.20,0.25,0.30,0.40,0.60,0.80\)</span>. Choose <span class="math notranslate nohighlight">\(\alpha=0.2\)</span>.</p>
+<p><strong>Work it through.</strong> Equation <a class="reference internal" href="#equation-eq-conformal-quantile">(11.6)</a> uses rank <span class="math notranslate nohighlight">\(\lceil(9+1)(0.8)\rceil=8\)</span>, so <span class="math notranslate nohighlight">\(\widehat q=0.60\)</span>. A new binary prediction <span class="math notranslate nohighlight">\((p_0,p_1)=(0.7,0.3)\)</span> has label scores <span class="math notranslate nohighlight">\((0.3,0.7)\)</span>; Equation <a class="reference internal" href="#equation-eq-conformal-set">(11.5)</a> retains only label 0. Prediction <span class="math notranslate nohighlight">\((0.5,0.5)\)</span> has scores <span class="math notranslate nohighlight">\((0.5,0.5)\)</span>, so it retains both labels.</p>
+<p><strong>What this shows.</strong> The threshold is shared, but the prediction-set size depends on the case. Under the stated exchangeability and fixed-predictor assumptions, the guarantee concerns marginal coverage across calibration samples and future cases. It does not assign an 80% correctness probability to either of these particular sets.</p>
+</div>
 </section>
 <section id="exercises-and-worked-solutions">
 <h2>11.7 · Exercises and worked solutions<a class="headerlink" href="#exercises-and-worked-solutions" title="Link to this heading">#</a></h2>

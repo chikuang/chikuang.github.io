@@ -32,10 +32,10 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=6add5bf0" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -531,6 +531,12 @@ Retry plus cache success 0.952 calls 1.39 outcomes {&#39;answered&#39;: 372, &#3
 </div>
 </div>
 <p>This comparison does not show that a language model is needed. The adaptive behavior is a short programmed policy. It tests the benefit of retries and the risk of stale fallback under specified failure mechanisms. An actual LLM comparison would replace the policy while retaining the task set, dispatcher, scoring rule, and trace accounting.</p>
+<div class="course-example admonition" id="ex-retry-cost">
+<p class="admonition-title">Example 13.1 · Retries trade additional calls for recovery</p>
+<p><strong>Setup.</strong> Suppose every attempt independently fails with probability <span class="math notranslate nohighlight">\(0.2\)</span>, all failures are transient, and a policy allows at most three attempts, stopping immediately on success.</p>
+<p><strong>Work it through.</strong> Success probability is <span class="math notranslate nohighlight">\(1-0.2^3=0.992\)</span>, versus <span class="math notranslate nohighlight">\(0.8\)</span> with one attempt. Expected calls are <span class="math notranslate nohighlight">\(1+0.2+0.2^2=1.24\)</span>, because attempts 2 and 3 occur only after preceding failures. With <span class="math notranslate nohighlight">\(\lambda=0.1\)</span>, Equation <a class="reference internal" href="#equation-eq-policy-value">(13.1)</a> gives retry utility <span class="math notranslate nohighlight">\(0.992-0.1(1.24)=0.868\)</span>, versus <span class="math notranslate nohighlight">\(0.8-0.1=0.7\)</span> for one attempt.</p>
+<p><strong>What this shows.</strong> Report realized expected cost, not just the three-call ceiling. The calculation depends on independent transient failures. If an invalid dataset name makes every attempt fail, retrying the same request adds cost without recovery; classifying the error changes the appropriate policy.</p>
+</div>
 </section>
 <section id="resample-tasks-keeping-repetitions-together">
 <h2>13.4 · Resample tasks, keeping repetitions together<a class="headerlink" href="#resample-tasks-keeping-repetitions-together" title="Link to this heading">#</a></h2>
@@ -589,6 +595,12 @@ Task-cluster bootstrap interval: [0.195 0.28 ]
 \widehat\Delta^{*(b)}=\frac1n\sum_{j=1}^n\overline D_{I_j^{(b)}}.
 \]</div>
 <p>Taking the 0.025 and 0.975 empirical quantiles of these values gives the displayed approximate interval. Equation <a class="reference internal" href="#equation-eq-cluster-bootstrap">(13.4)</a> is implemented by <code class="docutils literal notranslate"><span class="pre">paired_by_task</span></code>, which contains the task means from Equation <a class="reference internal" href="#equation-eq-task-contrast">(13.2)</a>, and <code class="docutils literal notranslate"><span class="pre">ids</span></code>, which selects whole task contributions. Resampling individual calls would change the experimental unit and does not implement this procedure.</p>
+<div class="course-example admonition" id="ex-task-weighting">
+<p class="admonition-title">Example 13.2 · Averaging trajectories can change the target</p>
+<p><strong>Setup.</strong> Two sampled tasks have observed average paired improvements <span class="math notranslate nohighlight">\(0.4\)</span> and <span class="math notranslate nohighlight">\(0.0\)</span>. The first task was repeated ten times and the second only twice.</p>
+<p><strong>Work it through.</strong> Equal task weighting in Equation <a class="reference internal" href="#equation-eq-task-contrast">(13.2)</a> gives <span class="math notranslate nohighlight">\((0.4+0)/2=0.2\)</span>. Pooling all twelve trajectories instead gives <span class="math notranslate nohighlight">\([10(0.4)+2(0)]/12\approx0.3333\)</span>. For the task-level bootstrap in Equation <a class="reference internal" href="#equation-eq-cluster-bootstrap">(13.4)</a>, the resampling units are the two complete task contributions, not the twelve individual outcomes.</p>
+<p><strong>What this shows.</strong> A task can receive more influence merely because it was run more often. Choose the population target and weighting before inspecting results. Extra repetitions refine behavior on an existing task; they do not create more independent tasks. Two task clusters illustrate the bookkeeping but provide little information about performance across a broader task population.</p>
+</div>
 </section>
 </section>
 <section id="inspect-cost-and-failure-examples">

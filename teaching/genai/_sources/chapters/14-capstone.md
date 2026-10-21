@@ -168,6 +168,17 @@ print(json.dumps(example, indent=2))
 
 The report only inserts numerical results returned by the tool. It does not convert an approximate simulation finding into a universal coverage theorem. A language-model report should be checked against these same numeric fields and should preserve the distribution, sample size, repetition count, and method.
 
+:::{admonition} Example 14.1 · Two confidence intervals target different quantities
+:class: course-example
+:name: ex-capstone-two-intervals
+
+**Setup.** For one simulated dataset, let $n=25$, $\bar x=1.1$, and $s=0.5$, with known simulation truth $\mu_P=1$. Across $R=500$ independently simulated datasets, suppose 460 intervals contain the truth.
+
+**Work it through.** Equation {eq}`eq-normal-interval` gives the single-dataset mean interval $1.1\pm1.96(0.5/5)=[0.904,1.296]$, which contains 1. Across all replicates, estimated coverage is $460/500=0.92$, with Monte Carlo standard error $\sqrt{0.92(0.08)/500}\approx0.0121$. Equation {eq}`eq-wilson` gives an approximate 95% Monte Carlo interval of $[0.893,0.941]$.
+
+**What this shows.** The first interval targets the population mean; the second targets the coverage probability of the interval-producing procedure. Increasing repetitions narrows Monte Carlo uncertainty but does not change the procedure's actual coverage at this fixed distribution and sample size. The counts here are hypothetical, not the executable lab's output.
+:::
+
 ## 14.4 · Establish implementation checks
 
 ```{code-cell} python
@@ -255,6 +266,17 @@ A bounded LLM extension can translate a natural-language question into `Request`
 5. **Abstention:** does the system identify unsupported distributions or requests?
 
 Compare the deterministic report with an LLM report from identical evidence, and compare direct LLM answers with tool-assisted answers on the same questions. Record the model identifier and date, prompt, generation settings, raw response, parsed request, tool result, and scoring rubric. Do not give the LLM reference answers in its prompt or allow it to choose the scoring rule after seeing outcomes.
+
+:::{admonition} Example 14.2 · A correct calculation can answer the wrong request
+:class: course-example
+:name: ex-capstone-translation
+
+**Setup.** A user asks about samples of size 12 from an exponential distribution. A proposed structured request instead sets `family` to `normal` and `n` to 12, with an otherwise valid seed and simulation budget.
+
+**Work it through.** Schema validation accepts the supported family and sample size. The simulation can execute perfectly and return reproducible normal-family coverage. A report that faithfully copies those numeric fields still fails the original task because the distribution was mistranslated. Comparing the natural-language request with the structured proposal catches this error before execution; checking only the returned arithmetic does not.
+
+**What this shows.** Evaluate interpretation, execution, and reporting separately, then require all three for end-to-end success. An LLM translation layer should preserve the requested statistical scenario, and its contribution should be compared with the deterministic baseline under the same validated tool and evaluation protocol.
+:::
 
 ## 14.7 · Produce a reproducibility manifest and report
 

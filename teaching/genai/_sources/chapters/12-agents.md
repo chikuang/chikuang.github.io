@@ -56,6 +56,17 @@ For continuous observations, interpret the factors as conditional densities or k
 
 Include `finish` among the decisions and make a finished history absorbing. A bounded stop rule $\tau\le T_{\max}$ must depend only on information available by the stopping decision: $\{\tau\le t\}$ is determined by the observed history. This prevents a policy from claiming it stopped because of a future outcome. In the lab, `max_steps` counts decisions, including the final `finish`; tool calls are only a subset of those decisions. Set the tool-call cost of `finish` to zero when comparing call budgets.
 
+:::{admonition} Example 12.1 · When is another tool call worthwhile?
+:class: course-example
+:name: ex-agent-value-of-information
+
+**Setup.** Suppose an agent can answer now with estimated correctness probability $0.80$, or use one lookup that raises expected correctness to $0.95$. Let correct utility be 1, incorrect utility 0, and the lookup cost be $0.05$ with $\lambda=1$. These probabilities are stipulated for illustration, not measured agent performance.
+
+**Work it through.** Equation {eq}`eq-agent-utility` gives expected utility $0.80$ for answering now and $0.95-0.05=0.90$ for lookup followed by an answer. Lookup is preferable. If the corresponding probabilities were $0.98$ and $0.99$, however, the call would give only $0.94$ after cost, below $0.98$.
+
+**What this shows.** Tool use has value when it improves the decision enough to justify its cost. Always calling a tool is not automatically optimal; the policy needs a stopping rule tied to the task and its remaining uncertainty.
+:::
+
 ## 12.2 · Define narrow tool contracts
 
 A tool schema specifies required keys and permitted values. Runtime validation remains necessary even if a model is asked to emit structured JSON. Our dispatcher rejects unknown tools, extra keys, booleans masquerading as numbers, and nonfinite values.
@@ -121,6 +132,17 @@ $$ (eq-execution-gate)
 
 The gate in Equation {eq}`eq-execution-gate` is checked by the dispatcher and loop, not inferred from how confidently the policy proposes $a$. Its error branch is also an observation under Equation {eq}`eq-trajectory-law`. Error results also enter the trace and can change the next decision. In this lab, `dispatch` validates schemas and numeric domains while `run_agent` enforces the decision budget. A memory compression $M_t=m(H_t)$ can replace full history only at a possible information cost; a sufficient summary would preserve the relevant conditional laws of future observations and utility for every allowed action.
 
+:::{admonition} Example 12.2 · The dispatcher decides what actually executes
+:class: course-example
+:name: ex-agent-tool-contract
+
+**Setup.** The policy proposes `summarize` with statistic `mean` and values `[2, 4, 6, 8]`. The same policy could instead propose values `[True, 4]` or an unsupported tool name `shell`.
+
+**Work it through.** The valid proposal returns mean $20/4=5$. The Boolean payload fails the numeric-domain check even though Python ordinarily treats `True` as a number. The unsupported name fails the allowlist. In the loop below, each rejected proposal becomes a recorded error observation; it does not produce a numeric result or execute the requested unsupported operation.
+
+**What this shows.** Equation {eq}`eq-execution-gate` separates a proposed action from an allowed execution. Correct JSON shape alone is insufficient: names, argument types, value domains, and the remaining budget all matter. The next policy decision must use the observed success or error, rather than assume that its proposal succeeded.
+:::
+
 ## 12.3 · Keep policy proposals separate from execution
 
 Our policy first requests a dataset, then summarizes the observed values, and finally returns the result with the dataset identifier. It stops on an error rather than inventing missing data. Different error classes could justify different recovery policies, but such a policy should be explicit and bounded.
@@ -170,6 +192,25 @@ assert len(result['trace']) == 2
 
 The trace records observable actions and returned data. It does not require a generated chain of thought or claim that natural-language reasoning faithfully exposes internal computation. In this implementation, one iteration is reserved for the final decision, so a budget of two iterations allows the two tool calls but not the finish proposal.
 
+:::{admonition} Example 12.3 · Two tool calls require three policy decisions
+:class: course-example
+:name: ex-agent-trace-budget
+
+**Setup.** Request the mean of `pilot_a`, whose values are `[2, 4, 6, 8]`, using the exact `policy` and `run_agent` functions above.
+
+**Work it through.** The history grows as follows:
+
+| Decision | Information available | Proposal and result |
+|:--|:--|:--|
+| 1 | Request; empty history | `lookup` returns the four values and source. |
+| 2 | Successful lookup | `summarize` returns mean 5. |
+| 3 | Successful summary | `finish` returns answer 5 with `pilot_a` as source. |
+
+There are two executed tools, hence two trace entries. With `max_steps=2`, both tools run, but there is no third decision to emit the answer: the returned status is `budget_exhausted` and the answer is `None`.
+
+**What this shows.** A result present in history is not yet a completed response. Define whether a budget counts tool calls, policy decisions, or both, and reserve capacity for the finish action. A failed lookup instead makes decision 2 finish with failure; it must not summarize invented data.
+:::
+
 ## 12.4 · Test failures as part of the lesson
 
 ```{code-cell} python
@@ -218,6 +259,17 @@ This test succeeds because the policy is programmed to ignore the note for actio
 Working memory stores the current task's observations. Persistent memory stores information across tasks and introduces questions about staleness, relevance, and privacy. More memory can supply useful evidence or repeat an old mistake. A memory ablation should compare the same tasks and budget with and without the memory feature.
 
 To replace the rule policy, provide a language model with the user request, the tool schemas, and the observable history. Require a proposal in the same action/finish structure. Parse it, validate it, and pass only valid actions to the dispatcher. Count malformed outputs and repair attempts as part of the evaluation rather than discarding them. Keep the deterministic policy as a baseline for tasks with a known workflow.
+
+:::{admonition} Example 12.4 · A memory summary can lose the task state
+:class: course-example
+:name: ex-agent-memory-state
+
+**Setup.** After the successful trace above, one memory summary stores only “result: 5.” Another stores dataset `pilot_a`, statistic `mean`, source identity, result 5, successful status, and the completed actions.
+
+**Work it through.** For a follow-up asking for the median of `pilot_a`, the first summary cannot establish what 5 measured. The fuller summary shows that only the mean was computed, so the agent should obtain the values and calculate the requested median. In this particular dataset the median is also 5, but that coincidence is not a valid reason to reuse the mean without checking. A median request for `pilot_b` has answer $1.5$, not 5.
+
+**What this shows.** Memory should preserve the information needed to distinguish future decisions: request, evidence, provenance, operation, and status. Shorter text is not automatically a sufficient state. Reusing a plausible number can answer the wrong question while appearing successful.
+:::
 
 ## 12.7 · Exercises and worked solutions
 

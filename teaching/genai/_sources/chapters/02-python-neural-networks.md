@@ -56,6 +56,17 @@ print('Keep a column dimension:', X_demo[:, :1].shape)
 
 A function packages a calculation with named inputs and a returned result. A class packages state and behavior. PyTorch's `nn.Module` is the base class for models; its registered parameters are the quantities an optimizer can update. A tensor resembles an array but can also participate in automatic differentiation.
 
+:::{admonition} Example 2.1 · A shape error can produce a plausible number
+:class: course-example
+:name: ex-broadcast-residuals
+
+**Setup.** Two predicted probabilities are stored as `[[0.2], [0.8]]`, with shape `(2, 1)`. Their labels are `[0, 1]`, with shape `(2,)`.
+
+**Work it through.** Subtraction broadcasts the labels across both rows and returns `[[0.2, -0.8], [0.8, -0.2]]`, a `(2, 2)` array. Averaging its squared entries gives $0.34$. Reshaping the labels to `(2, 1)` instead gives the intended residuals `[[0.2], [-0.2]]` and mean square $0.04$.
+
+**What this shows.** The incorrect operation runs successfully and returns a finite loss. It compares each prediction with both labels instead of its own label. Check dimensions and observation alignment before trusting a training curve; a falling loss cannot certify that the intended problem was implemented.
+:::
+
 ## 2.2 · From logistic regression to learned features
 
 For binary $Y$, write
@@ -95,6 +106,17 @@ G&=(\delta w_2^\top)\odot(1-H\odot H),& \nabla_{W_1}L&=X^\top G,\\
 $$ (eq-backprop)
 
 $\odot$ multiplies entries, and $G$ has shape $m\times h$. The derivative $1-\tanh^2(A)$ in Equation {eq}`eq-backprop` explains how a saturated hidden unit can transmit a small gradient. `nn.Linear(p, h)` stores the transpose of our $W_1$, with shape `(h, p)`; its forward calculation still implements this map. In the experiment $p=2$ and $h=16$.
+
+:::{admonition} Example 2.2 · One gradient step by hand
+:class: course-example
+:name: ex-logistic-gradient-step
+
+**Setup.** Use one observation $x=2$, $y=1$, a scalar weight $w$, and no intercept. Start at $w=0$, with learning rate $0.1$.
+
+**Work it through.** The logit is $xw=0$ and the probability is $p=0.5$. Equation {eq}`eq-logistic-loss` gives loss $\log 2\approx0.6931$ and derivative $x(p-y)=2(-0.5)=-1$. Gradient descent sets $w_{\mathrm{new}}=0-0.1(-1)=0.1$. The new probability is $\sigma(0.2)\approx0.5498$, with loss $\log(1+e^{-0.2})\approx0.5981$.
+
+**What this shows.** The negative derivative increases the weight, making the observed positive outcome more probable. This tiny calculation provides a known answer for checking automatic differentiation, update signs, and loss reduction before training a larger network.
+:::
 
 ## 2.3 · Check automatic differentiation on a known answer
 

@@ -129,6 +129,17 @@ for name, (budget, fallback) in configurations.items():
 
 This comparison does not show that a language model is needed. The adaptive behavior is a short programmed policy. It tests the benefit of retries and the risk of stale fallback under specified failure mechanisms. An actual LLM comparison would replace the policy while retaining the task set, dispatcher, scoring rule, and trace accounting.
 
+:::{admonition} Example 13.1 · Retries trade additional calls for recovery
+:class: course-example
+:name: ex-retry-cost
+
+**Setup.** Suppose every attempt independently fails with probability $0.2$, all failures are transient, and a policy allows at most three attempts, stopping immediately on success.
+
+**Work it through.** Success probability is $1-0.2^3=0.992$, versus $0.8$ with one attempt. Expected calls are $1+0.2+0.2^2=1.24$, because attempts 2 and 3 occur only after preceding failures. With $\lambda=0.1$, Equation {eq}`eq-policy-value` gives retry utility $0.992-0.1(1.24)=0.868$, versus $0.8-0.1=0.7$ for one attempt.
+
+**What this shows.** Report realized expected cost, not just the three-call ceiling. The calculation depends on independent transient failures. If an invalid dataset name makes every attempt fail, retrying the same request adds cost without recovery; classifying the error changes the appropriate policy.
+:::
+
 ## 13.4 · Resample tasks, keeping repetitions together
 
 Five repetitions of one task share its data, truth, and failure rate. Resampling all 400 trajectories independently would ignore that clustering. We first average the paired success difference within each task and then bootstrap task means.
@@ -178,6 +189,17 @@ $$
 $$ (eq-cluster-bootstrap)
 
 Taking the 0.025 and 0.975 empirical quantiles of these values gives the displayed approximate interval. Equation {eq}`eq-cluster-bootstrap` is implemented by `paired_by_task`, which contains the task means from Equation {eq}`eq-task-contrast`, and `ids`, which selects whole task contributions. Resampling individual calls would change the experimental unit and does not implement this procedure.
+
+:::{admonition} Example 13.2 · Averaging trajectories can change the target
+:class: course-example
+:name: ex-task-weighting
+
+**Setup.** Two sampled tasks have observed average paired improvements $0.4$ and $0.0$. The first task was repeated ten times and the second only twice.
+
+**Work it through.** Equal task weighting in Equation {eq}`eq-task-contrast` gives $(0.4+0)/2=0.2$. Pooling all twelve trajectories instead gives $[10(0.4)+2(0)]/12\approx0.3333$. For the task-level bootstrap in Equation {eq}`eq-cluster-bootstrap`, the resampling units are the two complete task contributions, not the twelve individual outcomes.
+
+**What this shows.** A task can receive more influence merely because it was run more often. Choose the population target and weighting before inspecting results. Extra repetitions refine behavior on an existing task; they do not create more independent tasks. Two task clusters illustrate the bookkeeping but provide little information about performance across a broader task population.
+:::
 
 ## 13.5 · Inspect cost and failure examples
 

@@ -135,6 +135,17 @@ $$
 
 where $r$ is the reconstruction term. Autodiff follows $\epsilon\to z\to f_\theta(z)$ with the sampled $\epsilon$ held fixed; the KL term is differentiated analytically through its closed form. The stochastic estimate of negative ELBO need not itself bound the negative log likelihood for each individual noise draw; the bound concerns its expectation.
 
+:::{admonition} Example 7.1 · A Gaussian encoder produces a distribution
+:class: course-example
+:name: ex-vae-latent-draw
+
+**Setup.** For one observed $x$, suppose the encoder gives $q(z\mid x)=N(1,4)$, while the prior is $N(0,1)$. The encoder's log variance is $\log4$.
+
+**Work it through.** With noise draw $\epsilon=-0.5$, reparameterization gives $z=1+2(-0.5)=0$. Equation {eq}`eq-gaussian-kl` gives $\mathrm{KL}(q\Vert p)=\tfrac12(1^2+4-1-\log4)\approx1.3069$. Thus this particular draw lands at the prior mean, even though the encoder distribution differs substantially from the prior. A reconstruction decodes this encoder draw; generating a new observation instead starts with a fresh draw from the prior.
+
+**What this shows.** The KL penalty compares distributions, not the location of one sampled latent value. Reparameterization uses the standard deviation 2, not the variance 4 or the log variance, and preserves a differentiable path through the encoder's parameters.
+:::
+
 ## 7.4 · Optimize and inspect both objective components
 
 ```{code-cell} python
@@ -239,6 +250,17 @@ print('Change-of-variables identity verified.')
 ```
 
 Expressive flows use transformations whose inverse and determinant remain computationally manageable. Invertibility constrains the architecture; it buys exact density evaluation for the specified model, not a guarantee that the model fits the data.
+
+:::{admonition} Example 7.2 · A flow must account for stretched volume
+:class: course-example
+:name: ex-flow-jacobian
+
+**Setup.** Let $Z\sim N(0,1)$ and define the invertible map $X=2Z+1$.
+
+**Work it through.** The inverse is $z=(x-1)/2$, with absolute derivative $1/2$. Equation {eq}`eq-flow-density` therefore gives $p_X(x)=\phi((x-1)/2)/2$, where $\phi$ is the standard normal density. At $x=1$, this is approximately $0.1995$, half of $\phi(0)\approx0.3989$. Dropping the factor $1/2$ would produce a function whose integral is 2 rather than 1.
+
+**What this shows.** The transformation doubles lengths, so the density must halve to preserve probability mass. A flow needs both an inverse and its volume correction. Evaluating the base density at the inverse point alone is not a normalized density for the transformed observation.
+:::
 
 ## 7.8 · Exercises and worked solutions
 

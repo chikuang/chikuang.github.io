@@ -124,6 +124,17 @@ print('IDs:', ids.shape, 'one-hot:', one_hot.shape, 'lookup:', E[ids].shape)
 
 These randomly initialized vectors have no learned semantic interpretation. In a neural language model, the prediction loss supplies gradients for the rows used in training. Similar contexts can encourage similar predictive representations, but the learned geometry also reflects corpus composition and the training objective.
 
+:::{admonition} Example 3.1 · A token ID selects a row
+:class: course-example
+:name: ex-embedding-lookup
+
+**Setup.** Let IDs 0, 1, and 2 mean `data`, `model`, and `learn`. Their embedding rows are $(1,0)$, $(0,2)$, and $(1,1)$, so $E$ has shape $3\times2$.
+
+**Work it through.** The sequence `learn data` becomes IDs `[2, 0]`. Lookup returns rows $(1,1)$ and $(1,0)$, with shape $2\times2$. Multiplying the corresponding one-hot rows $(0,0,1)$ and $(1,0,0)$ by $E$ produces exactly the same result. ID 2 does not mean twice as much as ID 1; the integers are row addresses.
+
+**What this shows.** The vocabulary mapping and embedding matrix form one fitted object. If a rebuilt vocabulary swaps the IDs of `data` and `learn` without reordering $E$, the code still runs but silently assigns the wrong vectors to the words.
+:::
+
 ## 3.4 · Learn a small representation from co-occurrence
 
 Let $C_{ij}$ count how often token $j$ occurs within a window of token $i$. Positive pointwise mutual information compares joint occurrence with independence:
@@ -208,6 +219,17 @@ print('Same ordered sequence:', a == b)
 ```
 
 A mean of static word embeddings also ignores order: permuting the tokens does not change the mean. The two example sentences have the same word counts but reverse the grammatical roles. Negation can cause an even more serious mismatch between lexical similarity and a task's answer.
+
+:::{admonition} Example 3.2 · Similarity can survive a change of coordinates
+:class: course-example
+:name: ex-embedding-geometry
+
+**Setup.** Three word vectors are $a=(1,0)$, $b=(2,0)$, and $c=(0,1)$.
+
+**Work it through.** Equation {eq}`eq-cosine` gives $\cos(a,b)=1$ and $\cos(a,c)=0$, although $b$ is twice as long as $a$. Rotate every vector by 90 degrees: they become $(0,1)$, $(0,2)$, and $(-1,0)$. The two cosine values remain 1 and 0. Also, averaging the vectors for `data model` gives the same result as averaging `model data`.
+
+**What this shows.** Relative geometry can carry information even when individual coordinate meanings are not identifiable. Cosine is directional similarity, not a probability of equivalence. Averaging also erases order, which motivates positional and contextual representations in the next section.
+:::
 
 ## 3.6 · Positions and contextual representations
 

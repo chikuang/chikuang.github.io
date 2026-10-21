@@ -95,6 +95,17 @@ $$ (eq-masked-token-loss)
 
 Equation {eq}`eq-masked-token-loss` is what cross-entropy with ignored padding computes; it makes the valid-token denominator in Equation {eq}`eq-lm-objective` explicit. In this corpus, the beginning marker is input context and the end marker is a genuine prediction target. Ignoring a padding target removes that **position's loss**; it does not automatically remove the padding class from the softmax denominator at other positions. The sampler below separately forbids generating padding and a new beginning marker.
 
+:::{admonition} Example 6.1 · The loss denominator defines the weighting
+:class: course-example
+:name: ex-token-loss-weighting
+
+**Setup.** Response A has two valid target-token losses, $0.2$ and $0.4$. Response B has four valid losses, all $1.0$. Pad A with two ignored positions to batch the responses.
+
+**Work it through.** Equation {eq}`eq-masked-token-loss` gives the token-weighted mean $(0.2+0.4+4)/6\approx0.7667$ nats. Averaging response means instead gives $[(0.2+0.4)/2+1]/2=0.65$. Setting padded losses to zero but dividing by all eight array positions incorrectly gives $4.6/8=0.575$.
+
+**What this shows.** A mask must affect both the summed loss and its denominator. Token weighting gives the longer response more influence; equal response weighting is a different declared objective. Perplexity inherits whichever averaging convention was used, so these three numbers are not interchangeable evaluations.
+:::
+
 ## 6.2 · Fit a small conditional model
 
 A gated recurrent unit (GRU) summarizes the prefix in a hidden state. The embedding width is 16 and hidden-state width is 32. This is a compact way to demonstrate the training and sampling distinction without requiring downloaded parameters.
@@ -223,6 +234,17 @@ for temperature in [0.6, 1.0, 1.4]:
 ```
 
 Read the generated strings, including malformed ones. Higher sampling entropy does not imply more useful diversity. Greedy decoding optimizes a local choice and need not find the globally most probable sequence. Sampling settings should be selected for a specified use case on development prompts, then evaluated on new prompts and repeated seeds.
+
+:::{admonition} Example 6.2 · Filtering order can change what gets sampled
+:class: course-example
+:name: ex-decoding-filter-order
+
+**Setup.** Four tokens have probabilities $(0.50,0.30,0.15,0.05)$. Use top-$k$ with $k=2$ and nucleus threshold $p=0.60$, with no temperature change.
+
+**Work it through.** Applying top-$k$ first retains the first two tokens and renormalizes to $(0.625,0.375)$. The first token alone now crosses the nucleus threshold, so top-$p$ leaves probability one on that token. Reversing the order gives a different result: the original first token has mass $0.50<0.60$, so nucleus selection retains the first two tokens, producing $(0.625,0.375)$. Top-$k$ then removes nothing further.
+
+**What this shows.** Equations {eq}`eq-top-k` and {eq}`eq-nucleus` define successive distributions. Record the order and include the token that first reaches or crosses the cumulative threshold. Identical numerical settings can otherwise describe different samplers.
+:::
 
 ## 6.5 · Prompting versus parameter estimation
 

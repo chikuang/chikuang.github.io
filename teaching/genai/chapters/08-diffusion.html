@@ -32,10 +32,10 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css?v=8cd3d715" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=6add5bf0" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d5d89b5" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -471,6 +471,12 @@ x_t=\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar\alpha_t}\,\epsilon,
 </div>
 </div>
 <p>Python uses index zero for mathematical time one. Keeping this distinction explicit avoids off-by-one errors in the reverse variance and the final denoising step.</p>
+<div class="course-example admonition" id="ex-diffusion-forward-draw">
+<p class="admonition-title">Example 8.1 · One noisy observation has many possible origins</p>
+<p><strong>Setup.</strong> At one time, let <span class="math notranslate nohighlight">\(\bar\alpha_t=0.64\)</span>, so the signal multiplier is <span class="math notranslate nohighlight">\(0.8\)</span> and the noise multiplier is <span class="math notranslate nohighlight">\(0.6\)</span>.</p>
+<p><strong>Work it through.</strong> With clean value <span class="math notranslate nohighlight">\(x_0=2\)</span> and sampled noise <span class="math notranslate nohighlight">\(\epsilon=-1\)</span>, Equation <a class="reference internal" href="#equation-eq-forward-noise">(8.1)</a> gives <span class="math notranslate nohighlight">\(x_t=0.8(2)+0.6(-1)=1\)</span>. But <span class="math notranslate nohighlight">\(x_0=0.5\)</span> and <span class="math notranslate nohighlight">\(\epsilon=1\)</span> also give <span class="math notranslate nohighlight">\(x_t=1\)</span>. During training we know which pair generated an observation; at prediction time the network sees only <span class="math notranslate nohighlight">\(x_t\)</span> and <span class="math notranslate nohighlight">\(t\)</span>.</p>
+<p><strong>What this shows.</strong> The denoiser cannot generally recover the particular injected noise from its input alone. Under squared error it estimates the conditional average across possible origins, weighted by their conditional distribution. The time input specifies which signal/noise mixture needs to be interpreted.</p>
+</div>
 </section>
 <section id="noise-prediction-is-a-regression-problem">
 <h2>8.2 · Noise prediction is a regression problem<a class="headerlink" href="#noise-prediction-is-a-regression-problem" title="Link to this heading">#</a></h2>
@@ -658,6 +664,12 @@ q(x_{t-1}\mid x_t,x_0)=N(\widetilde\mu_t(x_t,x_0),\widetilde\beta_t I),
 \]</div>
 <p>from Equation <a class="reference internal" href="#equation-eq-clean-estimate">(8.6)</a> into the posterior mean in Equation <a class="reference internal" href="#equation-eq-posterior-mean">(8.5)</a> and simplify to obtain Equation <a class="reference internal" href="#equation-eq-reverse-mean">(8.4)</a>. Then sample <span class="math notranslate nohighlight">\(x_{t-1}=\mu_\theta(x_t,t)+\sqrt{\widetilde\beta_t}\,\xi_t\)</span> with fresh independent <span class="math notranslate nohighlight">\(\xi_t\sim N(0,I)\)</span>; at <span class="math notranslate nohighlight">\(t=1\)</span>, use the mean without extra noise. These are the Gaussian identities behind the <a class="reference external" href="https://arxiv.org/abs/2006.11239">DDPM update</a>.</p>
 <p>Conditioning on both <span class="math notranslate nohighlight">\(x_t\)</span> and <span class="math notranslate nohighlight">\(x_0\)</span> is crucial: <span class="math notranslate nohighlight">\(q(x_{t-1}\mid x_t)\)</span> integrates over unknown clean data and need not be Gaussian. Replacing <span class="math notranslate nohighlight">\(x_0\)</span> by a learned estimate and fixing the variance does not make the finite-step reverse transition exact, even if noise prediction reaches its population optimum.</p>
+<div class="course-example admonition" id="ex-diffusion-score-clean">
+<p class="admonition-title">Example 8.2 · Read a denoiser output in two ways</p>
+<p><strong>Setup.</strong> Keep <span class="math notranslate nohighlight">\(\bar\alpha_t=0.64\)</span> and observe <span class="math notranslate nohighlight">\(x_t=1\)</span>. Suppose the trained noise predictor returns <span class="math notranslate nohighlight">\(\epsilon_\theta(x_t,t)=0.3\)</span>.</p>
+<p><strong>Work it through.</strong> Equation <a class="reference internal" href="#equation-eq-noise-score">(8.3)</a> converts this into estimated score <span class="math notranslate nohighlight">\(-0.3/0.6=-0.5\)</span>. Equation <a class="reference internal" href="#equation-eq-clean-estimate">(8.6)</a> converts the same output into estimated clean value <span class="math notranslate nohighlight">\((1-0.6(0.3))/0.8=1.025\)</span>. The score is a local derivative of log density at the noisy observation; the clean estimate is a location on the original data scale.</p>
+<p><strong>What this shows.</strong> These quantities describe different objects even though they come from the same prediction. Neither says the original clean draw is known. A reverse sampler still needs its schedule, transition mean, and variance; replacing the whole reverse chain by this single clean estimate implements a different procedure.</p>
+</div>
 </section>
 </section>
 <section id="conditioning-and-the-limits-of-the-example">
