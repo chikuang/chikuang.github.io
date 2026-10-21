@@ -1,13 +1,183 @@
-# 5 · Assembling the transformer
+---
+file_format: mystnb
+kernelspec:
+  name: python3
+  display_name: Python 3
+  language: python
+---
 
-```{admonition} Chapter status: outline
-:class: note
-This is the planned scope of Chapter 5. The complete lesson, executable examples, and solutions will be developed later. [Chapter 1](01-probability-to-genai.md) is available now.
-```
+# 5 · Assembling the transformer
 
 **Question.** How does one attention calculation become a sequence model?
 
-- **Learn:** residual connections, normalization, feed-forward layers, positional encodings, encoder/decoder distinctions, and a decoder-only forward pass.
-- **Statistical lens:** a composition of fitted feature transformations with shared parameters and a conditional prediction head.
-- **Python practice:** implement a tiny decoder block in PyTorch; track every tensor's dimensions and use a causal-mask check to show future tokens cannot influence earlier outputs.
-- **Self-check:** draw the route from token IDs to next-token probabilities, and distinguish the original encoder-decoder transformer from a decoder-only language model.
+[Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/05-transformers.ipynb)
+
+Attention mixes information between positions. A transformer also transforms features within each position, preserves information through residual paths, and maps the resulting features to a prediction. We will build a small decoder-only model explicitly. The goal is to follow every tensor and verify the information boundary, not to reproduce the scale of a modern language model.
+
+**Prerequisites:** Chapters 2–4. **Outcomes:** trace IDs to logits; distinguish normalization across features from normalization across a batch; implement a decoder block; test causality end to end. The entire example uses a CPU and randomly initialized parameters.
+
+## 5.1 · The route from IDs to probabilities
+
+For a batch of $B$ sequences with $T$ input tokens, an embedding lookup produces $B\times T\times d$ features. We add position embeddings of the same width. A decoder block transforms those features without changing their shape. Finally, a linear head produces $B\times T\times V$ logits, one vector over the vocabulary at every position.
+
+| Object | Shape | Interpretation |
+|:--|:--|:--|
+| Token IDs | $B\times T$ | Integer category labels |
+| Hidden features | $B\times T\times d$ | Contextual vectors |
+| Per-head scores | $B\times h\times T\times T$ | Query/key compatibility |
+| Logits | $B\times T\times V$ | Unnormalized next-token scores |
+
+The vocabulary axis is normalized only when probabilities are needed. Cross-entropy routines usually accept logits and perform the stable normalization internally.
+
+## 5.2 · Residual paths and layer normalization
+
+We use a pre-normalization block:
+
+$$
+U=X+\operatorname{Attention}(\operatorname{LN}(X)),\qquad
+H=U+\operatorname{FFN}(\operatorname{LN}(U)).
+$$
+
+A residual connection adds an update to an existing representation. It also creates a direct path for gradients. Layer normalization standardizes each position's feature vector, then applies learned scale and shift parameters. It does not estimate a mean across the observations in the batch. In particular, it does not mix future positions into earlier ones.
+
+The feed-forward network applies the **same** nonlinear function to each position independently, typically expanding the width and then projecting back. It introduces nonlinear feature interactions; attention is the component that communicates across positions. Pre-normalization is a teaching architecture choice and differs in detail from the post-normalization arrangement in the original transformer paper.
+
+## 5.3 · Implement a small decoder block
+
+```{code-cell} python
+import math
+import torch
+from torch import nn
+import matplotlib.pyplot as plt
+
+torch.set_num_threads(1)
+torch.manual_seed(5)
+
+class DecoderBlock(nn.Module):
+    def __init__(self, width=24, heads=3):
+        super().__init__()
+        assert width % heads == 0
+        self.heads = heads
+        self.head_width = width // heads
+        self.norm1 = nn.LayerNorm(width)
+        self.norm2 = nn.LayerNorm(width)
+        self.qkv = nn.Linear(width, 3 * width)
+        self.project = nn.Linear(width, width)
+        self.ffn = nn.Sequential(nn.Linear(width, 4 * width), nn.GELU(),
+                                 nn.Linear(4 * width, width))
+
+    def forward(self, x):
+        B, T, D = x.shape
+        normalized = self.norm1(x)
+        # Split feature coordinates, then expose a separate head axis.
+        q, k, v = self.qkv(normalized).chunk(3, dim=-1)
+        q, k, v = [a.reshape(B, T, self.heads, self.head_width)
+                    .transpose(1, 2) for a in (q, k, v)]
+        scores = q @ k.transpose(-2, -1) / math.sqrt(self.head_width)
+        allowed = torch.ones(T, T, dtype=torch.bool, device=x.device).tril()
+        weights = torch.softmax(scores.masked_fill(~allowed, -torch.inf), dim=-1)
+        mixed = (weights @ v).transpose(1, 2).contiguous().reshape(B, T, D)
+        x = x + self.project(mixed)
+        return x + self.ffn(self.norm2(x))
+
+class TinyDecoder(nn.Module):
+    def __init__(self, vocab_size=12, width=24, max_length=32):
+        super().__init__()
+        self.max_length = max_length
+        self.token = nn.Embedding(vocab_size, width)
+        self.position = nn.Embedding(max_length, width)
+        self.block = DecoderBlock(width=width, heads=3)
+        self.final_norm = nn.LayerNorm(width)
+        self.head = nn.Linear(width, vocab_size)
+
+    def forward(self, ids):
+        T = ids.shape[1]
+        if T > self.max_length:
+            raise ValueError('Sequence exceeds the position table')
+        positions = torch.arange(T, device=ids.device)
+        x = self.token(ids) + self.position(positions)
+        return self.head(self.final_norm(self.block(x)))
+
+model = TinyDecoder()
+ids = torch.tensor([[1, 2, 3, 4, 5], [4, 3, 2, 1, 0]])
+logits = model(ids)
+print('Input:', tuple(ids.shape), 'logits:', tuple(logits.shape))
+print('Parameter count:', sum(p.numel() for p in model.parameters()))
+assert logits.shape == (2, 5, 12)
+```
+
+`transpose` changes the view of tensor axes. Calling `contiguous()` before the final reshape makes the memory layout compatible with the requested merged head dimension. This is an implementation detail worth checking because reshaping the wrong axes can silently mix positions and heads.
+
+There is no dropout in this teaching model. Production architectures often include additional regularization, more layers, different positional mechanisms, and optimized attention kernels. None of those additions changes the need to understand the basic information flow.
+
+## 5.4 · Test the complete model for future leakage
+
+```{code-cell} python
+model.eval()
+changed = ids.clone()
+changed[:, 3:] = torch.tensor([[8, 9], [10, 11]])
+with torch.no_grad():
+    original = model(ids)
+    altered = model(changed)
+    earlier_change = (original[:, :3] - altered[:, :3]).abs().max().item()
+print('Maximum change at unchanged earlier positions:', earlier_change)
+assert earlier_change < 1e-6
+```
+
+The test covers embeddings, attention, normalization, the residual paths, and the output head together. It would fail if a layer pooled across all time positions and fed that pooled value back into earlier predictions. Always test the actual composed system, not only an isolated attention function.
+
+## 5.5 · Shift the targets, not the information boundary
+
+If a sequence is $(x_0,x_1,\ldots,x_T)$, the inputs are $(x_0,\ldots,x_{T-1})$ and targets are $(x_1,\ldots,x_T)$. The output at input position $t$ predicts the following token. Training can evaluate all these predictions in parallel because the causal mask prevents each one from seeing its target.
+
+```{code-cell} python
+sequences = torch.tensor([[1, 2, 3, 4, 5, 6],
+                          [2, 3, 4, 5, 6, 7],
+                          [3, 4, 5, 6, 7, 8],
+                          [4, 5, 6, 7, 8, 9]])
+inputs, targets = sequences[:, :-1], sequences[:, 1:]
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+losses = []
+model.train()
+for step in range(120):
+    optimizer.zero_grad()
+    prediction = model(inputs)
+    loss = nn.functional.cross_entropy(prediction.reshape(-1, 12), targets.reshape(-1))
+    loss.backward()
+    optimizer.step()
+    losses.append(loss.item())
+print('Initial and final training loss:', round(losses[0], 3), round(losses[-1], 3))
+assert losses[-1] < losses[0]
+fig, ax = plt.subplots(figsize=(5, 3))
+ax.plot(losses, color='#a2006e')
+ax.set(xlabel='Optimization step', ylabel='Training cross-entropy',
+       title='A tiny-batch implementation check')
+plt.tight_layout()
+plt.show()
+```
+
+This experiment intentionally overfits four short sequences. It establishes that gradients and targets are connected well enough to reduce this training objective. It does **not** establish language understanding or held-out performance. Chapter 6 introduces a separate validation and test protocol.
+
+## 5.6 · Encoder, decoder, and encoder–decoder
+
+An encoder can use bidirectional self-attention over the observed input; it is useful when the full input is available for representation or prediction. A decoder uses causal self-attention to support autoregressive generation. An encoder–decoder system first represents an input sequence, then generates an output sequence using causal self-attention and cross-attention to the encoder's representations.
+
+A decoder-only language model can also condition on a prompt by placing the prompt before the generated continuation. The architectural label does not determine whether the system is helpful, truthful, or calibrated. Those are properties to investigate with task-specific evaluation.
+
+## 5.7 · Scaling and computational constraints
+
+The dense attention score matrix stores $B h T^2$ numbers. Doubling sequence length quadruples that matrix's size, before considering the other activations. The feed-forward layers also incur substantial computation, proportional to sequence length and the squared hidden width in this implementation.
+
+During autoregressive inference, earlier keys and values can be cached rather than recomputed. Our model does not implement that optimization. Truncating a long prompt to fit a context window changes the conditioning information, and learned absolute position tables do not automatically support unseen positions. Computational shortcuts must be evaluated for their effect on the task.
+
+## 5.8 · Exercises and worked solutions
+
+1. **Target alignment:** for input `[2, 5, 1]` from sequence `[2, 5, 1, 7]`, what are the targets? **Solution:** `[5, 1, 7]`. Predicting `[2, 5, 1]` would train reconstruction of visible tokens rather than next-token prediction.
+2. **Layer normalization:** can normalizing jointly across all time positions break causality? **Solution:** yes. A statistic computed from future positions can influence earlier representations even when attention itself is masked. Our `LayerNorm(width)` uses only the final feature axis.
+3. **Head width:** what happens if width 25 is divided into 3 equal heads? **Solution:** the split is undefined; the constructor rejects it. Choose a compatible width or a projection design with explicitly different head dimensions.
+4. **Memory:** how many score entries are needed for $B=2,h=4,T=128$? **Solution:** $2\cdot4\cdot128^2=131,072$. At four bytes each this array alone occupies 512 KiB. Training needs additional activations and gradients.
+5. **Ablation:** remove position embeddings and fit the same tiny dataset. What can be concluded? **Solution:** only how that change affects this specific task and training budget. The causal mask already supplies an asymmetry, and the simple arithmetic sequences may not require rich position representations. Use a task designed to test order dependence before claiming positions are unnecessary.
+
+## 5.9 · Reading and next step
+
+Compare the components with the original [transformer paper](https://arxiv.org/abs/1706.03762), paying attention to encoder–decoder structure rather than assuming every transformer is decoder-only. Next, [Chapter 6](06-language-models.md) separates fitting a language distribution from choosing how to sample its outputs.

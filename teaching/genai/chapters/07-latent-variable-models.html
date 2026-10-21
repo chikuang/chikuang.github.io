@@ -50,6 +50,8 @@
     <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/07-latent-variable-models';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="canonical" href="https://chikuang.github.io/teaching/genai/chapters/07-latent-variable-models.html" />
@@ -163,7 +165,7 @@
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Course guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course outline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python-workflow.html">Learn, teach, and build with Python</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../statistical-lens.html">The statistical lens</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
@@ -309,7 +311,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -325,6 +329,22 @@
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#three-distributions-with-different-jobs">7.1 · Three distributions with different jobs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#derive-the-evidence-lower-bound">7.2 · Derive the evidence lower bound</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reparameterize-the-random-draw">7.3 · Reparameterize the random draw</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimize-and-inspect-both-objective-components">7.4 · Optimize and inspect both objective components</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generate-from-the-prior-not-the-encoder">7.5 · Generate from the prior, not the encoder</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gans-learn-through-a-discrimination-problem">7.6 · GANs: learn through a discrimination problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#flows-retain-an-invertible-map-and-its-jacobian">7.7 · Flows: retain an invertible map and its Jacobian</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">7.8 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">7.9 · Reading and next step</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -336,18 +356,213 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="latent-variables-vaes-gans-and-flows">
 <h1>7 · Latent variables, VAEs, GANs, and flows<a class="headerlink" href="#latent-variables-vaes-gans-and-flows" title="Link to this heading">#</a></h1>
-<div class="note admonition">
-<p class="admonition-title">Chapter status: outline</p>
-<p>This is the planned scope of Chapter 7. The complete lesson, executable examples, and solutions will be developed later. <a class="reference internal" href="01-probability-to-genai.html"><span class="std std-doc">Chapter 1</span></a> is available now.</p>
-</div>
 <p><strong>Question.</strong> What alternatives to sequential factorization can represent a complex distribution?</p>
-<ul class="simple">
-<li><p><strong>Learn:</strong> the encoder/decoder view of a VAE, the evidence lower bound (ELBO), reparameterization, and a conceptual comparison with adversarial learning and invertible flows.</p></li>
-<li><p><strong>Statistical lens:</strong> latent-variable models, variational inference, density-ratio ideas, and change of variables. Compare objectives, sampling, and access to likelihoods.</p></li>
-<li><p><strong>Python practice:</strong> derive the ELBO and implement a small VAE on synthetic two-dimensional data. Treat GANs and flows as comparison topics on the first pass.</p></li>
-<li><p><strong>Self-check:</strong> separate the latent prior, approximate posterior, and observation model; explain why matching a few summary statistics cannot establish distributional equivalence.</p></li>
-<li><p><strong>Reading:</strong> <a class="reference external" href="https://arxiv.org/abs/1312.6114">Auto-Encoding Variational Bayes</a>.</p></li>
-</ul>
+<p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/07-latent-variable-models.ipynb">Download the executed notebook</a></p>
+<p>A latent-variable model generates an unobserved <span class="math notranslate nohighlight">\(Z\)</span> and then generates <span class="math notranslate nohighlight">\(X\)</span> conditional on it. This connects directly to mixture models and random-effects models. The difficulty is often integrating over <span class="math notranslate nohighlight">\(Z\)</span>. We will derive a variational objective, train a small variational autoencoder (VAE) on two-dimensional observations, and contrast its objective with adversarial learning and invertible transformations.</p>
+<p><strong>Prerequisites:</strong> Chapters 1–2, conditional densities, Jensen’s inequality, and KL divergence. <strong>Outcomes:</strong> distinguish prior, posterior approximation, and observation model; derive the ELBO; implement reparameterization; compare what a VAE, GAN, and flow can evaluate. The VAE is a small CPU experiment; GANs and flows are comparison topics with an exact change-of-variables calculation.</p>
+<section id="three-distributions-with-different-jobs">
+<h2>7.1 · Three distributions with different jobs<a class="headerlink" href="#three-distributions-with-different-jobs" title="Link to this heading">#</a></h2>
+<p>Specify a prior <span class="math notranslate nohighlight">\(p(z)\)</span> and an observation model <span class="math notranslate nohighlight">\(p_\theta(x\mid z)\)</span>. The marginal density is <span class="math notranslate nohighlight">\(p_\theta(x)=\int p_\theta(x\mid z)p(z)\,dz\)</span>. An encoder <span class="math notranslate nohighlight">\(q_\phi(z\mid x)\)</span> approximates the posterior. It is not the generative prior.</p>
+<p>At training time the encoder uses observed <span class="math notranslate nohighlight">\(x\)</span>. At unconditional generation time, draw <span class="math notranslate nohighlight">\(z\sim p(z)\)</span> and then <span class="math notranslate nohighlight">\(x\sim p_\theta(x\mid z)\)</span>. Feeding observed data through the encoder and decoder produces a reconstruction, which answers a different question from generating new observations.</p>
+</section>
+<section id="derive-the-evidence-lower-bound">
+<h2>7.2 · Derive the evidence lower bound<a class="headerlink" href="#derive-the-evidence-lower-bound" title="Link to this heading">#</a></h2>
+<p>For any suitable density <span class="math notranslate nohighlight">\(q_\phi(z\mid x)\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\log p_\theta(x)
+&amp;=\log\mathbb E_{q_\phi}\left[\frac{p_\theta(x,z)}{q_\phi(z\mid x)}\right]\\
+&amp;\ge \mathbb E_{q_\phi}\log p_\theta(x\mid z)
+ -\operatorname{KL}\{q_\phi(z\mid x)\Vert p(z)\}
+ =\mathcal L(\theta,\phi;x).
+\end{aligned}
+\end{split}\]</div>
+<p>The gap is <span class="math notranslate nohighlight">\(\operatorname{KL}\{q_\phi(z\mid x)\Vert p_\theta(z\mid x)\}\ge0\)</span>. Thus improving the bound can involve both improving the marginal model and making the approximate posterior closer to the exact posterior. An expressive decoder does not automatically make the bound tight.</p>
+<p>For a diagonal Gaussian encoder and a standard normal prior,</p>
+<div class="math notranslate nohighlight">
+\[
+\operatorname{KL}\{N(\mu,\operatorname{diag}(e^\ell))\Vert N(0,I)\}
+=\frac12\sum_j(\mu_j^2+e^{\ell_j}-1-\ell_j).
+\]</div>
+<p>Here <span class="math notranslate nohighlight">\(\ell\)</span> is log variance, not log standard deviation. With <span class="math notranslate nohighlight">\(p_\theta(x\mid z)=N(f_\theta(z),\sigma_x^2I)\)</span>, the reconstruction contribution to negative ELBO, up to a fixed constant, is <span class="math notranslate nohighlight">\(\|x-f_\theta(z)\|^2/(2\sigma_x^2)\)</span>. Changing this scale changes the observation model and the balance with KL; it is not a harmless numerical adjustment.</p>
+</section>
+<section id="reparameterize-the-random-draw">
+<h2>7.3 · Reparameterize the random draw<a class="headerlink" href="#reparameterize-the-random-draw" title="Link to this heading">#</a></h2>
+<p>Write <span class="math notranslate nohighlight">\(z=\mu_\phi(x)+\exp(\ell_\phi(x)/2)\odot\epsilon\)</span> with <span class="math notranslate nohighlight">\(\epsilon\sim N(0,I)\)</span>. The random variable now has a parameter-free distribution, while the transformation is differentiable in the encoder parameters. This gives a pathwise gradient estimator under the usual interchange conditions.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">torch</span><span class="o">.</span><span class="n">set_num_threads</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
+<span class="n">labels</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1600</span><span class="p">)</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">centers</span><span class="p">[</span><span class="n">labels</span><span class="p">]</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">0.18</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">1600</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">train</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">X</span><span class="p">[:</span><span class="mi">1200</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="n">valid</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="mi">1200</span><span class="p">:],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">VAE</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="o">-</span><span class="mi">8</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">mu</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">logvar</span><span class="p">)</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">mu</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">z</span><span class="p">),</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">VAE</span><span class="p">()</span>
+<span class="n">observation_sd</span> <span class="o">=</span> <span class="mf">0.18</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">loss_parts</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="n">mean</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">reconstruction</span> <span class="o">=</span> <span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">mean</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">observation_sd</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">kl</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">mu</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">logvar</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">logvar</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">reconstruction</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">kl</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+<span class="n">zero</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">zero</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">zero</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">zero</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Clamping log variance limits extreme values in this small experiment and is part of the chosen encoder family. The first 1,200 observations are training data and the remaining 400 are validation data from the same simulated mixture. We use a fixed training budget; validation is a diagnostic rather than a source of repeated hyperparameter searches.</p>
+</section>
+<section id="optimize-and-inspect-both-objective-components">
+<h2>7.4 · Optimize and inspect both objective components<a class="headerlink" href="#optimize-and-inspect-both-objective-components" title="Link to this heading">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.005</span><span class="p">)</span>
+<span class="n">history</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">700</span><span class="p">):</span>
+    <span class="n">ids</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">train</span><span class="p">),</span> <span class="p">(</span><span class="mi">128</span><span class="p">,))</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+    <span class="n">reconstruction</span><span class="p">,</span> <span class="n">kl</span> <span class="o">=</span> <span class="n">loss_parts</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="n">ids</span><span class="p">])</span>
+    <span class="p">(</span><span class="n">reconstruction</span> <span class="o">+</span> <span class="n">kl</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="mi">20</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">step</span><span class="p">,</span> <span class="n">reconstruction</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">kl</span><span class="o">.</span><span class="n">item</span><span class="p">()))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">validation_terms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">a</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">b</span><span class="o">.</span><span class="n">item</span><span class="p">()]</span>
+                                <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="p">[</span><span class="n">loss_parts</span><span class="p">(</span><span class="n">valid</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">)]])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Validation reconstruction / KL:&#39;</span><span class="p">,</span> <span class="n">validation_terms</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">history</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">history</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">5.5</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">history</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">history</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Reconstruction term&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#705600&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">history</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">history</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;KL term&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#a2006e&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Optimization step&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Negative-ELBO component&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Validation reconstruction / KL: [1.144 2.398]
+</pre></div>
+</div>
+<img alt="../_images/cd400a5e9b2f6fe373335e824fa31eeea32cec139186a67d08f07c708efaf8f6.png" src="../_images/cd400a5e9b2f6fe373335e824fa31eeea32cec139186a67d08f07c708efaf8f6.png" />
+</div>
+</div>
+<p>The reported objective omits the fixed Gaussian normalization constant. It is therefore not an exact negative log likelihood. Repeated validation draws reduce Monte Carlo noise conditional on the fitted model; they do not measure uncertainty from sampling a new training dataset.</p>
+<p>A small KL term can mean that the encoder stays close to the prior. If the decoder also ignores <span class="math notranslate nohighlight">\(z\)</span>, this is posterior collapse. A good reconstruction score alone is insufficient: the prior samples could still occupy regions the decoder handles poorly.</p>
+</section>
+<section id="generate-from-the-prior-not-the-encoder">
+<h2>7.5 · Generate from the prior, not the encoder<a class="headerlink" href="#generate-from-the-prior-not-the-encoder" title="Link to this heading">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">latent_mean</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">valid</span><span class="p">)</span>
+    <span class="n">decoder_mean</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">generated</span> <span class="o">=</span> <span class="n">decoder_mean</span> <span class="o">+</span> <span class="n">observation_sd</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">decoder_mean</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">valid</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">valid</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#705600&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">latent_mean</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">latent_mean</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#a2006e&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">generated</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">generated</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#a2006e&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">title</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Validation observations&#39;</span><span class="p">,</span> <span class="s1">&#39;Encoder means&#39;</span><span class="p">,</span> <span class="s1">&#39;Prior-generated observations&#39;</span><span class="p">]):</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Coordinate 1&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Coordinate 2&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Observed mean:&#39;</span><span class="p">,</span> <span class="n">valid</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Generated mean:&#39;</span><span class="p">,</span> <span class="n">generated</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/d703a4858af97cc871d926a6cd0cf7a33c997956f3deb95befc9b4357c2d4bd7.png" src="../_images/d703a4858af97cc871d926a6cd0cf7a33c997956f3deb95befc9b4357c2d4bd7.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Observed mean: [-0.025  0.067]
+Generated mean: [-0.003  0.069]
+</pre></div>
+</div>
+</div>
+</div>
+<p>Inspect whether all four clusters appear, whether their spread is appropriate, and whether too much probability lies between clusters. Matching the mean is weak evidence: a single central Gaussian can have the same mean as a separated mixture. A stronger assessment compares several predefined features on held-out observations and generated samples, while recognizing that a finite set of summaries cannot establish equality of distributions.</p>
+</section>
+<section id="gans-learn-through-a-discrimination-problem">
+<h2>7.6 · GANs: learn through a discrimination problem<a class="headerlink" href="#gans-learn-through-a-discrimination-problem" title="Link to this heading">#</a></h2>
+<p>A generative adversarial network maps a simple random input through <span class="math notranslate nohighlight">\(G_\theta\)</span> and trains a discriminator <span class="math notranslate nohighlight">\(D_\psi\)</span> to separate observed from generated samples. The original minimax objective is</p>
+<div class="math notranslate nohighlight">
+\[
+\min_\theta\max_\psi\left[
+\mathbb E_{P_0}\log D_\psi(X)
++\mathbb E_Z\log\{1-D_\psi(G_\theta(Z))\}\right].
+\]</div>
+<p>For fixed distributions and an unrestricted optimal discriminator, <span class="math notranslate nohighlight">\(D^*(x)=p_0(x)/(p_0(x)+p_G(x))\)</span> where the density expression is defined. This motivates a density-ratio interpretation, but practical networks and alternating optimization do not achieve that ideal automatically. Mode collapse means the generator can neglect portions of the target distribution. Unlike our VAE observation model, a general GAN does not supply a tractable density for an arbitrary observation.</p>
+</section>
+<section id="flows-retain-an-invertible-map-and-its-jacobian">
+<h2>7.7 · Flows: retain an invertible map and its Jacobian<a class="headerlink" href="#flows-retain-an-invertible-map-and-its-jacobian" title="Link to this heading">#</a></h2>
+<p>For an invertible differentiable map <span class="math notranslate nohighlight">\(x=f_\theta(z)\)</span> of equal-dimensional spaces,</p>
+<div class="math notranslate nohighlight">
+\[
+\log p_X(x)=\log p_Z(f_\theta^{-1}(x))
+-\log|\det J_{f_\theta}(f_\theta^{-1}(x))|.
+\]</div>
+<p>Consider the one-dimensional affine flow <span class="math notranslate nohighlight">\(X=aZ+b\)</span>, <span class="math notranslate nohighlight">\(a&gt;0\)</span>. Its density is exactly a normal density with mean <span class="math notranslate nohighlight">\(b\)</span> and standard deviation <span class="math notranslate nohighlight">\(a\)</span>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="mf">1.7</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.4</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span> <span class="o">/</span> <span class="n">a</span>
+<span class="n">flow_log_density</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">z</span><span class="o">*</span><span class="n">z</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">direct_log_density</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">((</span><span class="n">x</span><span class="o">-</span><span class="n">b</span><span class="p">)</span><span class="o">/</span><span class="n">a</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">a</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">flow_log_density</span><span class="p">,</span> <span class="n">direct_log_density</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Change-of-variables identity verified.&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Change-of-variables identity verified.
+</pre></div>
+</div>
+</div>
+</div>
+<p>Expressive flows use transformations whose inverse and determinant remain computationally manageable. Invertibility constrains the architecture; it buys exact density evaluation for the specified model, not a guarantee that the model fits the data.</p>
+</section>
+<section id="exercises-and-worked-solutions">
+<h2>7.8 · Exercises and worked solutions<a class="headerlink" href="#exercises-and-worked-solutions" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p><strong>ELBO equality:</strong> when is the bound exact? <strong>Solution:</strong> when <span class="math notranslate nohighlight">\(q_\phi(z\mid x)\)</span> equals the model posterior almost everywhere. This does not imply that the fitted marginal equals the true data distribution.</p></li>
+<li><p><strong>Log variance:</strong> if <code class="docutils literal notranslate"><span class="pre">logvar</span> <span class="pre">=</span> <span class="pre">log(4)</span></code>, what multiplier belongs on the standard normal noise? <strong>Solution:</strong> <span class="math notranslate nohighlight">\(\exp(\log(4)/2)=2\)</span>. Multiplying by four would produce variance 16.</p></li>
+<li><p><strong>Generation:</strong> why must observation noise be added to the decoder mean in our VAE? <strong>Solution:</strong> the decoder parameterizes the mean of a Gaussian observation distribution. Omitting noise samples a different distribution, namely the distribution of conditional means.</p></li>
+<li><p><strong>Model comparison:</strong> which method directly provides exact likelihood, a variational bound, or only a sampling mechanism? <strong>Solution:</strong> a tractable flow provides exact model likelihood; a VAE provides a computable ELBO and generative model; a standard implicit GAN primarily provides samples. These labels describe objectives and access, not universal quality rankings.</p></li>
+<li><p><strong>Failure probe:</strong> fit a single Gaussian to the four-cluster data and compare its mean with the VAE. <strong>Solution:</strong> means may be close for both, while cluster occupancy and density between clusters differ. This demonstrates why evaluation needs more than first moments.</p></li>
+</ol>
+</section>
+<section id="reading-and-next-step">
+<h2>7.9 · Reading and next step<a class="headerlink" href="#reading-and-next-step" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://arxiv.org/abs/1312.6114">Auto-Encoding Variational Bayes</a> develops amortized variational inference and reparameterized optimization. Compare its statistical objects with <a class="reference external" href="https://arxiv.org/abs/1406.2661">Generative Adversarial Nets</a> and the change-of-variables identity above. <a class="reference internal" href="08-diffusion.html"><span class="std std-doc">Chapter 8</span></a> turns a sequence of noising and denoising operations into another generative model.</p>
+</section>
 </section>
 
 
@@ -385,6 +600,31 @@
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#three-distributions-with-different-jobs">7.1 · Three distributions with different jobs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#derive-the-evidence-lower-bound">7.2 · Derive the evidence lower bound</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reparameterize-the-random-draw">7.3 · Reparameterize the random draw</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimize-and-inspect-both-objective-components">7.4 · Optimize and inspect both objective components</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generate-from-the-prior-not-the-encoder">7.5 · Generate from the prior, not the encoder</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gans-learn-through-a-discrimination-problem">7.6 · GANs: learn through a discrimination problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#flows-retain-an-invertible-map-and-its-jacobian">7.7 · Flows: retain an invertible map and its Jacobian</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">7.8 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">7.9 · Reading and next step</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

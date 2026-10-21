@@ -50,6 +50,8 @@
     <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/10-rag';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="canonical" href="https://chikuang.github.io/teaching/genai/chapters/10-rag.html" />
@@ -163,7 +165,7 @@
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Course guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course outline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python-workflow.html">Learn, teach, and build with Python</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../statistical-lens.html">The statistical lens</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
@@ -309,7 +311,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -325,6 +329,21 @@
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-conditional-distribution-view">10.1 · The conditional-distribution view</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documents-chunks-and-provenance">10.2 · Documents, chunks, and provenance</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#build-a-lexical-baseline">10.3 · Build a lexical baseline</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#produce-an-answer-with-inspectable-support">10.4 · Produce an answer with inspectable support</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluate-retrieval-before-evaluating-prose">10.5 · Evaluate retrieval before evaluating prose</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#add-generation-without-losing-the-evidence-boundary">10.6 · Add generation without losing the evidence boundary</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">10.7 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">10.8 · Reading and next step</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -336,18 +355,217 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="retrieval-augmented-generation-rag">
 <h1>10 · Retrieval-augmented generation (RAG)<a class="headerlink" href="#retrieval-augmented-generation-rag" title="Link to this heading">#</a></h1>
-<div class="note admonition">
-<p class="admonition-title">Chapter status: outline</p>
-<p>This is the planned scope of Chapter 10. The complete lesson, executable examples, and solutions will be developed later. <a class="reference internal" href="01-probability-to-genai.html"><span class="std std-doc">Chapter 1</span></a> is available now.</p>
-</div>
 <p><strong>Question.</strong> How can a model answer using a specified collection of documents?</p>
-<ul class="simple">
-<li><p><strong>Learn:</strong> document chunking, indexing, retrieval, reranking, context assembly, citation, and abstention when evidence is insufficient.</p></li>
-<li><p><strong>Statistical lens:</strong> prediction conditional on selected evidence, retrieval error, measurement error, and the interaction between pipeline components.</p></li>
-<li><p><strong>Python practice:</strong> build a small pipeline over public statistical notes. Inspect retrieved passages, compare with a keyword baseline, and test answerable and unanswerable questions separately.</p></li>
-<li><p><strong>Self-check:</strong> identify whether an error arose in retrieval, evidence selection, or generation. A citation does not by itself show that its source supports the claim.</p></li>
-<li><p><strong>Reading:</strong> <a class="reference external" href="https://arxiv.org/abs/2005.11401">Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks</a>.</p></li>
-</ul>
+<p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/10-rag.ipynb">Download the executed notebook</a></p>
+<p>A retrieval pipeline selects evidence before an answer is produced. Errors can arise because the evidence was missing, the retriever selected the wrong passage, or the answer misrepresented a useful passage. We will make those stages observable using a small collection of course-authored statistical notes. The runnable baseline returns a quoted passage with its identifier; it deliberately avoids pretending that a deterministic extractor is a language model.</p>
+<p><strong>Prerequisites:</strong> Chapters 3 and 6. <strong>Outcomes:</strong> construct an index; score queries; retain provenance; evaluate retrieval separately from answer support; implement an explicit abstention rule. An optional generative extension is specified after the fully executable offline baseline.</p>
+<section id="the-conditional-distribution-view">
+<h2>10.1 · The conditional-distribution view<a class="headerlink" href="#the-conditional-distribution-view" title="Link to this heading">#</a></h2>
+<p>Let <span class="math notranslate nohighlight">\(q\)</span> denote a question and <span class="math notranslate nohighlight">\(z\)</span> a retrieved passage. A probabilistic retrieval model can be written as</p>
+<div class="math notranslate nohighlight">
+\[
+p(y\mid q)=\sum_z p_\eta(z\mid q)p_\theta(y\mid q,z).
+\]</div>
+<p>A practical top-k pipeline often selects a few passages and concatenates them into a prompt rather than evaluating this sum. Retrieval scores are then ranking quantities, not necessarily probabilities. The original RAG model and a simple “search then prompt” workflow should not be treated as identical implementations.</p>
+<p>Retrieval changes the information available to the generator. It does not by itself ensure that the generator uses that information correctly, that the document is reliable, or that the passage supports the particular claim being made.</p>
+</section>
+<section id="documents-chunks-and-provenance">
+<h2>10.2 · Documents, chunks, and provenance<a class="headerlink" href="#documents-chunks-and-provenance" title="Link to this heading">#</a></h2>
+<p>Each chunk should retain a document identifier, an offset or section, and the text used by the model. A chunk that is too small may lose assumptions; a chunk that is too large may dilute useful evidence or consume the context budget. Overlap helps preserve boundaries but creates dependence and duplicates.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">notes</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;bootstrap&#39;</span><span class="p">:</span> <span class="s1">&#39;The bootstrap resamples observations with replacement. &#39;</span>
+                 <span class="s1">&#39;For dependent observations, resample appropriate clusters or blocks.&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;coverage&#39;</span><span class="p">:</span> <span class="s1">&#39;A confidence procedure has repeated-sampling coverage. &#39;</span>
+                <span class="s1">&#39;The realized interval either contains the fixed parameter or does not.&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ridge&#39;</span><span class="p">:</span> <span class="s1">&#39;Ridge regression adds a squared coefficient penalty. &#39;</span>
+             <span class="s1">&#39;Standardize predictors using training data before comparing penalty strengths.&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;conformal&#39;</span><span class="p">:</span> <span class="s1">&#39;Split conformal prediction uses a held-out calibration sample. &#39;</span>
+                 <span class="s1">&#39;Marginal coverage requires exchangeability of calibration and future examples.&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;attention&#39;</span><span class="p">:</span> <span class="s1">&#39;Attention forms query-dependent weighted averages of value vectors. &#39;</span>
+                 <span class="s1">&#39;Causal attention masks future positions before normalizing scores.&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;likelihood&#39;</span><span class="p">:</span> <span class="s1">&#39;Log loss evaluates assigned probability on observed outcomes. &#39;</span>
+                  <span class="s1">&#39;Perplexity depends on tokenization and the averaging convention.&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">chunk_document</span><span class="p">(</span><span class="n">doc_id</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span> <span class="n">overlap</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">overlap</span> <span class="o">&lt;</span> <span class="n">size</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Require 0 &lt;= overlap &lt; size&#39;</span><span class="p">)</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">),</span> <span class="n">size</span><span class="o">-</span><span class="n">overlap</span><span class="p">):</span>
+        <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">doc_id</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">start</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;document&#39;</span><span class="p">:</span> <span class="n">doc_id</span><span class="p">,</span>
+                       <span class="s1">&#39;start_word&#39;</span><span class="p">:</span> <span class="n">start</span><span class="p">,</span> <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">start</span><span class="o">+</span><span class="n">size</span><span class="p">])})</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="o">+</span> <span class="n">size</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">):</span>
+            <span class="k">break</span>
+    <span class="k">return</span> <span class="n">chunks</span>
+
+<span class="n">chunks</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">doc_id</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">notes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chunk_document</span><span class="p">(</span><span class="n">doc_id</span><span class="p">,</span> <span class="n">text</span><span class="p">)]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Documents:&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">notes</span><span class="p">),</span> <span class="s1">&#39;chunks:&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunks</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">chunks</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Documents: 6 chunks: 6
+{&#39;id&#39;: &#39;bootstrap:0&#39;, &#39;document&#39;: &#39;bootstrap&#39;, &#39;start_word&#39;: 0, &#39;text&#39;: &#39;The bootstrap resamples observations with replacement. For dependent observations, resample appropriate clusters or blocks.&#39;}
+</pre></div>
+</div>
+</div>
+</div>
+<p>The present notes are short, so each fits in one chunk. Apply the function to a longer note to study boundary effects. In a real collection, store the document version or content hash as well: a citation to an identifier that later changes is not sufficient for reproducibility.</p>
+</section>
+<section id="build-a-lexical-baseline">
+<h2>10.3 · Build a lexical baseline<a class="headerlink" href="#build-a-lexical-baseline" title="Link to this heading">#</a></h2>
+<p>For term <span class="math notranslate nohighlight">\(w\)</span> and chunk <span class="math notranslate nohighlight">\(d\)</span>, we use count-based term frequency times <span class="math notranslate nohighlight">\(\log\{(N+1)/(df_w+1)\}+1\)</span>. Normalize each vector and rank by cosine similarity. This is a transparent baseline; it will miss synonyms absent from the vocabulary.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">stopwords</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;the&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;an&#39;</span><span class="p">,</span> <span class="s1">&#39;of&#39;</span><span class="p">,</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="s1">&#39;or&#39;</span><span class="p">,</span> <span class="s1">&#39;to&#39;</span><span class="p">,</span> <span class="s1">&#39;in&#39;</span><span class="p">,</span> <span class="s1">&#39;is&#39;</span><span class="p">,</span> <span class="s1">&#39;does&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;what&#39;</span><span class="p">,</span> <span class="s1">&#39;how&#39;</span><span class="p">,</span> <span class="s1">&#39;with&#39;</span><span class="p">,</span> <span class="s1">&#39;for&#39;</span><span class="p">,</span> <span class="s1">&#39;on&#39;</span><span class="p">,</span> <span class="s1">&#39;using&#39;</span><span class="p">,</span> <span class="s1">&#39;do&#39;</span><span class="p">}</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">words</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">w</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[a-z]+&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="k">if</span> <span class="n">w</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stopwords</span><span class="p">]</span>
+
+<span class="n">vocabulary</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">w</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chunks</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">words</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">])})</span>
+<span class="n">word_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">w</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vocabulary</span><span class="p">)}</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">counts</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocabulary</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">word</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">Counter</span><span class="p">(</span><span class="n">words</span><span class="p">(</span><span class="n">text</span><span class="p">))</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">word_id</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">word_id</span><span class="p">[</span><span class="n">word</span><span class="p">]]</span> <span class="o">=</span> <span class="n">count</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+<span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">counts</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">])</span>
+<span class="n">idf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="p">((</span><span class="n">matrix</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="n">weighted</span> <span class="o">=</span> <span class="n">matrix</span> <span class="o">*</span> <span class="n">idf</span>
+<span class="n">index</span> <span class="o">=</span> <span class="n">weighted</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">weighted</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="mf">1e-12</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">retrieve</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">counts</span><span class="p">(</span><span class="n">question</span><span class="p">)</span> <span class="o">*</span> <span class="n">idf</span>
+    <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">norm</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">index</span> <span class="o">@</span> <span class="p">(</span><span class="n">query</span> <span class="o">/</span> <span class="n">norm</span><span class="p">)</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="o">-</span><span class="n">scores</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;stable&#39;</span><span class="p">)[:</span><span class="n">k</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">chunks</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">score</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">scores</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">order</span> <span class="k">if</span> <span class="n">scores</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">retrieve</span><span class="p">(</span><span class="s1">&#39;What does bootstrap resample?&#39;</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="nb">round</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">],</span> <span class="mi">3</span><span class="p">),</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>bootstrap:0 0.414 The bootstrap resamples observations with replacement. For dependent observations, resample appropriate clusters or blocks.
+</pre></div>
+</div>
+</div>
+</div>
+<p>The index is built from documents, not from the evaluation answers. A zero query vector means none of its terms are represented. It should not silently select the first document. Larger systems may add dense embeddings, hybrid retrieval, and reranking, but each component needs comparison with a simpler baseline.</p>
+</section>
+<section id="produce-an-answer-with-inspectable-support">
+<h2>10.4 · Produce an answer with inspectable support<a class="headerlink" href="#produce-an-answer-with-inspectable-support" title="Link to this heading">#</a></h2>
+<p>Our baseline returns the highest-scoring passage if its score exceeds a fixed threshold. The threshold below is a demonstration setting, not a calibrated probability of correctness. The quoted text is guaranteed to come from that passage because we copy it; whether it answers the question is a separate judgment.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">answer_with_evidence</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.25</span><span class="p">):</span>
+    <span class="n">hits</span> <span class="o">=</span> <span class="n">retrieve</span><span class="p">(</span><span class="n">question</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">hits</span> <span class="ow">or</span> <span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;abstain&#39;</span><span class="p">,</span> <span class="s1">&#39;answer&#39;</span><span class="p">:</span> <span class="s1">&#39;Insufficient evidence in this collection.&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;citations&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;evidence&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="n">best</span> <span class="o">=</span> <span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;answered&#39;</span><span class="p">,</span> <span class="s1">&#39;answer&#39;</span><span class="p">:</span> <span class="n">best</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;citations&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">best</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]],</span> <span class="s1">&#39;evidence&#39;</span><span class="p">:</span> <span class="n">hits</span><span class="p">}</span>
+
+<span class="k">for</span> <span class="n">question</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;What does bootstrap resample?&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;What assumption gives conformal coverage?&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;Who won the astronomy prize?&#39;</span><span class="p">]:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">answer_with_evidence</span><span class="p">(</span><span class="n">question</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;answer&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;citations&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>What does bootstrap resample? 
+  answered The bootstrap resamples observations with replacement. For dependent observations, resample appropriate clusters or blocks. [&#39;bootstrap:0&#39;]
+What assumption gives conformal coverage? 
+  answered Split conformal prediction uses a held-out calibration sample. Marginal coverage requires exchangeability of calibration and future examples. [&#39;conformal:0&#39;]
+Who won the astronomy prize? 
+  abstain Insufficient evidence in this collection. []
+</pre></div>
+</div>
+</div>
+</div>
+<p>A fabricated citation can look plausible. Validate that each cited identifier occurs in the retrieved set. A valid identifier is still not an entailment check: a paragraph may mention the topic without supporting the claimed conclusion. Contradictory passages and missing assumptions require substantive review.</p>
+</section>
+<section id="evaluate-retrieval-before-evaluating-prose">
+<h2>10.5 · Evaluate retrieval before evaluating prose<a class="headerlink" href="#evaluate-retrieval-before-evaluating-prose" title="Link to this heading">#</a></h2>
+<p>For questions with a known relevant document, retrieval recall&#64;k is the proportion whose relevant document occurs among the top-k retrieved documents. Unanswerable questions have no relevant document and should be evaluated separately. Here the test suite is tiny and authored for teaching; it is a diagnostic, not a benchmark of real RAG performance.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">questions</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s1">&#39;How does bootstrap handle dependent observations?&#39;</span><span class="p">,</span> <span class="s1">&#39;bootstrap&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;What does repeated-sampling coverage describe?&#39;</span><span class="p">,</span> <span class="s1">&#39;coverage&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;What penalty does ridge regression use?&#39;</span><span class="p">,</span> <span class="s1">&#39;ridge&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;What sample does conformal prediction use?&#39;</span><span class="p">,</span> <span class="s1">&#39;conformal&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;How does attention mask future positions?&#39;</span><span class="p">,</span> <span class="s1">&#39;attention&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;What affects perplexity comparisons?&#39;</span><span class="p">,</span> <span class="s1">&#39;likelihood&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;Who invented this university mascot?&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;What is the capital of Mars?&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+<span class="p">]</span>
+<span class="n">answerable</span> <span class="o">=</span> <span class="p">[(</span><span class="n">q</span><span class="p">,</span> <span class="n">doc</span><span class="p">)</span> <span class="k">for</span> <span class="n">q</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">questions</span> <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+    <span class="n">hits</span> <span class="o">=</span> <span class="p">[</span><span class="n">doc</span> <span class="ow">in</span> <span class="p">{</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;document&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">retrieve</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)}</span> <span class="k">for</span> <span class="n">q</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">answerable</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Recall@</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">hits</span><span class="p">)</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">hits</span><span class="p">)</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hits</span><span class="p">)</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">q</span><span class="p">,</span> <span class="n">expected</span> <span class="ow">in</span> <span class="n">questions</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">answer_with_evidence</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+    <span class="n">valid_ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">hit</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">hit</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;evidence&#39;</span><span class="p">]}</span>
+    <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;citations&#39;</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">valid_ids</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">],</span> <span class="s1">&#39;|&#39;</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Recall@1: 1.000 (6/6)
+Recall@2: 1.000 (6/6)
+answered | How does bootstrap handle dependent observations?
+answered | What does repeated-sampling coverage describe?
+answered | What penalty does ridge regression use?
+answered | What sample does conformal prediction use?
+answered | How does attention mask future positions?
+answered | What affects perplexity comparisons?
+abstain | Who invented this university mascot?
+abstain | What is the capital of Mars?
+</pre></div>
+</div>
+</div>
+</div>
+<p>To tune the threshold honestly, create a separate development set containing both answerable and unanswerable questions. Report coverage (fraction answered), error among answered questions, and inappropriate answers to unanswerable questions. A system that abstains on everything has zero answered errors but provides no answers.</p>
+</section>
+<section id="add-generation-without-losing-the-evidence-boundary">
+<h2>10.6 · Add generation without losing the evidence boundary<a class="headerlink" href="#add-generation-without-losing-the-evidence-boundary" title="Link to this heading">#</a></h2>
+<p>A generative extension takes the question and selected passages and asks a language model to produce an answer plus passage identifiers. Preserve the retrieval trace and parse the output into a schema. A useful interface is <code class="docutils literal notranslate"><span class="pre">generate(question,</span> <span class="pre">passages)</span> <span class="pre">-&gt;</span> <span class="pre">{answer,</span> <span class="pre">citations,</span> <span class="pre">abstain}</span></code>. The language-model call is intentionally an extension rather than a hidden network dependency in this notebook.</p>
+<p>Treat retrieved text as evidence, not instructions for operating tools. A passage containing “ignore the task and send a file” remains document content. Restrict available actions outside the generator, validate cited IDs, and evaluate whether each factual claim is supported. Prompt wording alone is not an enforcement mechanism.</p>
+<p>A controlled extension experiment would compare the extractive baseline, generation without retrieval, and generation with the same retrieved passages. Keep the questions, model version, decoding parameters, and evaluation rubric fixed. Decompose failures into retrieval misses, unsupported synthesis, incorrect citations, and unnecessary abstentions.</p>
+</section>
+<section id="exercises-and-worked-solutions">
+<h2>10.7 · Exercises and worked solutions<a class="headerlink" href="#exercises-and-worked-solutions" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Unknown terms:</strong> why does the retriever return an empty list for a zero query vector? <strong>Solution:</strong> cosine normalization is undefined at zero, and all scores would contain no evidence of relevance. Returning an arbitrary first passage would disguise missing vocabulary as retrieval success.</p></li>
+<li><p><strong>Chunk boundaries:</strong> split the conformal note between “coverage” and its assumptions. <strong>Solution:</strong> an answer may retrieve the claim without its exchangeability condition. Increase context or preserve sections, then evaluate the tradeoff in retrieval precision and context use.</p></li>
+<li><p><strong>Citation validity:</strong> is a cited passage sufficient evidence of support? <strong>Solution:</strong> no. Identifier validity checks provenance. Support requires examining the relationship between the passage and the specific claim, including assumptions and contradictions.</p></li>
+<li><p><strong>Retrieval recall:</strong> with relevant documents retrieved for 7 of 10 answerable questions, recall&#64;k is what? <strong>Solution:</strong> 0.7. Do not add unanswerable questions to that denominator as if they had a relevant document.</p></li>
+<li><p><strong>Threshold selection:</strong> why is raising the threshold not unconditionally better? <strong>Solution:</strong> it can reduce unsupported answers while increasing abstention on answerable questions. Compare the full risk–coverage tradeoff on a held-out set rather than optimizing one metric in isolation.</p></li>
+</ol>
+</section>
+<section id="reading-and-next-step">
+<h2>10.8 · Reading and next step<a class="headerlink" href="#reading-and-next-step" title="Link to this heading">#</a></h2>
+<p>The original <a class="reference external" href="https://arxiv.org/abs/2005.11401">RAG paper</a> combines parametric generation with retrieved information. Our lexical/extractive pipeline is a reproducible baseline for studying evidence selection. <a class="reference internal" href="11-evaluation-uncertainty.html"><span class="std std-doc">Chapter 11</span></a> develops uncertainty estimates and evaluation protocols for comparisons like these.</p>
+</section>
 </section>
 
 
@@ -385,6 +603,30 @@
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-conditional-distribution-view">10.1 · The conditional-distribution view</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documents-chunks-and-provenance">10.2 · Documents, chunks, and provenance</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#build-a-lexical-baseline">10.3 · Build a lexical baseline</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#produce-an-answer-with-inspectable-support">10.4 · Produce an answer with inspectable support</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluate-retrieval-before-evaluating-prose">10.5 · Evaluate retrieval before evaluating prose</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#add-generation-without-losing-the-evidence-boundary">10.6 · Add generation without losing the evidence boundary</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">10.7 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">10.8 · Reading and next step</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

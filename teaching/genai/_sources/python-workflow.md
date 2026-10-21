@@ -5,7 +5,7 @@ The whole website is built by a **Python toolchain: Sphinx + MyST-NB + sphinx-bo
 ## 1 · Choose how to study
 
 - **Read first:** all examples and their outputs are visible on the website.
-- **Experiment:** download the [Chapter 1 notebook](https://chikuang.github.io/teaching/genai/notebooks/01-probability-to-genai.ipynb), open it in JupyterLab, and change the code.
+- **Experiment:** use the **Download the executed notebook** link at the top of any chapter, open the file in JupyterLab, and change the code. Every chapter is self-contained; run its cells from top to bottom.
 - **Write lessons:** edit the Markdown files under `docs/` and rebuild the website.
 
 A *terminal* accepts commands that manage files and run programs. A *notebook* contains text and Python code cells. Enter the commands below in a terminal; enter the Python examples from the lessons in notebook code cells. The shell prompt is not part of a command.
@@ -126,7 +126,7 @@ print(probabilities)
 
 The first block identifies a notebook and its kernel. The Markdown becomes prose; the `code-cell` block is executed by Python during the build. Add a new chapter to the `toctree` in `docs/index.md` so that it appears in the navigation. The build script discovers executable MyST chapters automatically and exports their notebooks.
 
-Use [MyST-NB's authoring documentation](https://myst-nb.readthedocs.io/en/latest/authoring/text-notebooks.html) for notebook syntax and [Sphinx's documentation](https://www.sphinx-doc.org/en/master/) for site configuration. Chapter 1's notebook uses standard Markdown and LaTeX so its prose can also be read directly in JupyterLab.
+Use [MyST-NB's authoring documentation](https://myst-nb.readthedocs.io/en/latest/authoring/text-notebooks.html) for notebook syntax and [Sphinx's documentation](https://www.sphinx-doc.org/en/master/) for site configuration. The chapter notebooks use standard Markdown and LaTeX so their prose can also be read directly in JupyterLab.
 
 ## 6 · Publish a reviewed build
 
@@ -135,3 +135,11 @@ The public course lives at [chikuang.github.io/teaching/genai/](https://chikuang
 After building and previewing, copy the **contents** of `_build/html/` into that course directory, then commit and push the reviewed source and rendered pages to their respective repositories. Keep the course directory separate from the rest of the personal website. GitHub Pages serves the published HTML.
 
 The course's GitHub Actions workflow independently executes and builds the lessons and saves an artifact containing both HTML and the course PDF. It validates the source; publication to the personal website remains a separate step.
+
+## 7 · Run the complete lab sequence
+
+Chapters 1, 3, 4, and 10–14 use NumPy or the Python standard library. Chapters 2 and 5–9 also use PyTorch. All core examples use local synthetic or course-authored data. No cell sends data to an external model service.
+
+The full build executes 14 chapter notebooks plus the warm-up, validates that all code cells completed without errors, and exports the executed notebooks alongside the website and PDF. Numerical results can differ slightly across package versions and processors; retain seeds and version information when making comparisons.
+
+The RAG, agent, and capstone notebooks clearly identify their deterministic or simulated components. To add an actual language-model provider, keep credentials outside the notebook, preserve the validated tool interfaces, and evaluate the new component against the included baseline.

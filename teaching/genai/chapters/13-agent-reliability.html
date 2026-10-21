@@ -50,6 +50,8 @@
     <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/13-agent-reliability';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="canonical" href="https://chikuang.github.io/teaching/genai/chapters/13-agent-reliability.html" />
@@ -163,7 +165,7 @@
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Course guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course outline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python-workflow.html">Learn, teach, and build with Python</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../statistical-lens.html">The statistical lens</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
@@ -309,7 +311,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -325,6 +329,21 @@
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-success-and-record-the-whole-trajectory">13.1 · Define success and record the whole trajectory</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#construct-tasks-and-repeatable-tool-failures">13.2 · Construct tasks and repeatable tool failures</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compare-policy-interventions">13.3 · Compare policy interventions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resample-tasks-keeping-repetitions-together">13.4 · Resample tasks, keeping repetitions together</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-cost-and-failure-examples">13.5 · Inspect cost and failure examples</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#factorial-comparisons-and-adaptive-evaluation">13.6 · Factorial comparisons and adaptive evaluation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">13.7 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transition-to-a-complete-project">13.8 · Transition to a complete project</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -336,17 +355,197 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="agent-reliability-and-experimental-design">
 <h1>13 · Agent reliability and experimental design<a class="headerlink" href="#agent-reliability-and-experimental-design" title="Link to this heading">#</a></h1>
-<div class="note admonition">
-<p class="admonition-title">Chapter status: outline</p>
-<p>This is the planned scope of Chapter 13. The complete lesson, executable examples, and solutions will be developed later. <a class="reference internal" href="01-probability-to-genai.html"><span class="std std-doc">Chapter 1</span></a> is available now.</p>
+<p><strong>Question.</strong> Does adaptive tool use improve outcomes enough to justify its additional complexity?</p>
+<p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/13-agent-reliability.ipynb">Download the executed notebook</a></p>
+<p>A successful demonstration does not measure reliability. We need repeated tasks, failures with known causes, and a comparison that accounts for additional calls. This chapter constructs a controlled simulator: a cached answer, a one-pass tool workflow, and a bounded retry policy solve the same mean-estimation requests. These are programmed policies, not measured LLM agents. Their role is to teach experimental design before introducing an expensive or opaque policy.</p>
+<p><strong>Prerequisites:</strong> Chapters 11–12. <strong>Outcomes:</strong> distinguish trajectories from tasks; classify failure modes; inject reproducible failures; compare paired outcomes with clustered uncertainty; measure the cost of recovery.</p>
+<section id="define-success-and-record-the-whole-trajectory">
+<h2>13.1 · Define success and record the whole trajectory<a class="headerlink" href="#define-success-and-record-the-whole-trajectory" title="Link to this heading">#</a></h2>
+<p>A task requests the mean of a current dataset. Success requires a numeric answer within a fixed tolerance of the true current mean. A cached answer may be stale. A tool can time out or return malformed data. Abstention, incorrect answers, invalid tool payloads, and exhaustion of the call budget are different outcomes and remain separate in the log.</p>
+<p>For task <span class="math notranslate nohighlight">\(i\)</span> and replicate <span class="math notranslate nohighlight">\(r\)</span>, let <span class="math notranslate nohighlight">\(S_{ir}\)</span> be success and <span class="math notranslate nohighlight">\(C_{ir}\)</span> the number of tool calls. We report mean success, mean calls, and a declared utility <span class="math notranslate nohighlight">\(S_{ir}-\lambda C_{ir}\)</span>. The value of <span class="math notranslate nohighlight">\(\lambda\)</span> is a decision preference, not a quantity the experiment magically identifies.</p>
+</section>
+<section id="construct-tasks-and-repeatable-tool-failures">
+<h2>13.2 · Construct tasks and repeatable tool failures<a class="headerlink" href="#construct-tasks-and-repeatable-tool-failures" title="Link to this heading">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">13</span><span class="p">)</span>
+<span class="n">n_tasks</span><span class="p">,</span> <span class="n">repeats</span> <span class="o">=</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">5</span>
+<span class="n">old_data</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">n_tasks</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>
+<span class="n">changed</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">n_tasks</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.4</span>
+<span class="n">current_data</span> <span class="o">=</span> <span class="n">old_data</span> <span class="o">+</span> <span class="n">changed</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="mf">0.5</span>
+<span class="n">cached_means</span> <span class="o">=</span> <span class="n">old_data</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">truth</span> <span class="o">=</span> <span class="n">current_data</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">failure_probability</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.45</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n_tasks</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">lookup</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">replicate</span><span class="p">,</span> <span class="n">attempt</span><span class="p">):</span>
+    <span class="c1"># Same task/replicate/attempt produces the same observation for every policy.</span>
+    <span class="n">local</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">130000</span> <span class="o">+</span> <span class="mi">1000</span><span class="o">*</span><span class="n">task</span> <span class="o">+</span> <span class="mi">10</span><span class="o">*</span><span class="n">replicate</span> <span class="o">+</span> <span class="n">attempt</span><span class="p">)</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">local</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="mf">0.03</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;malformed&#39;</span><span class="p">,</span> <span class="s1">&#39;values&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;not a number&#39;</span><span class="p">]}</span>
+    <span class="k">if</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="mf">0.03</span> <span class="o">+</span> <span class="n">failure_probability</span><span class="p">[</span><span class="n">task</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;timeout&#39;</span><span class="p">}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;ok&#39;</span><span class="p">,</span> <span class="s1">&#39;values&#39;</span><span class="p">:</span> <span class="n">current_data</span><span class="p">[</span><span class="n">task</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()}</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Tasks with stale cached answers:&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">changed</span><span class="o">.</span><span class="n">sum</span><span class="p">()))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Range of timeout probabilities:&#39;</span><span class="p">,</span> <span class="n">failure_probability</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+      <span class="n">failure_probability</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+</pre></div>
 </div>
-<p><strong>Question.</strong> Does an agent improve outcomes enough to justify its additional complexity?</p>
-<ul class="simple">
-<li><p><strong>Learn:</strong> trajectory-level evaluation, failure taxonomies, repeated trials, cost/latency tradeoffs, memory ablations, prompt injection through retrieved text, and human approval for consequential actions.</p></li>
-<li><p><strong>Statistical lens:</strong> dependence within a task trajectory, factorial comparisons, uncertainty in success rates, and adaptive selection bias.</p></li>
-<li><p><strong>Python practice:</strong> compare a direct model call, a fixed workflow, and the agent on the same task set and budget. Inject harmless tool failures; log recovery, loop counts, and stopping behavior. Treat external documents as data rather than tool instructions.</p></li>
-<li><p><strong>Self-check:</strong> separate task failure, tool failure, unsupported answers, and budget exhaustion. Add multiple agents only as an optional ablation after establishing a single-agent baseline.</p></li>
-</ul>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Tasks with stale cached answers: 31
+Range of timeout probabilities: 0.11 0.45
+</pre></div>
+</div>
+</div>
+</div>
+<p>Common random streams make a policy’s first call encounter the same failure as another policy’s first call. Later attempts have their own observations. This creates a paired experiment rather than confounding the comparison with unrelated random failures. All failure rates and stale-data shifts are chosen for illustration.</p>
+</section>
+<section id="compare-policy-interventions">
+<h2>13.3 · Compare policy interventions<a class="headerlink" href="#compare-policy-interventions" title="Link to this heading">#</a></h2>
+<p>The retry policy retries timeouts up to a call budget. It stops on a malformed payload because a data-contract violation is not assumed transient. The optional cache fallback is an explicit ablation: it may answer more often while using stale information.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">run_policy</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">replicate</span><span class="p">,</span> <span class="n">budget</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">trace</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">budget</span><span class="p">):</span>
+        <span class="n">observation</span> <span class="o">=</span> <span class="n">lookup</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">replicate</span><span class="p">,</span> <span class="n">attempt</span><span class="p">)</span>
+        <span class="n">trace</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">observation</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">observation</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ok&#39;</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">observation</span><span class="p">[</span><span class="s1">&#39;values&#39;</span><span class="p">]))</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">value</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;answered&#39;</span><span class="p">,</span> <span class="s1">&#39;calls&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">),</span> <span class="s1">&#39;trace&#39;</span><span class="p">:</span> <span class="n">trace</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">observation</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;malformed&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;invalid_payload&#39;</span><span class="p">,</span> <span class="s1">&#39;calls&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">),</span> <span class="s1">&#39;trace&#39;</span><span class="p">:</span> <span class="n">trace</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">use_cache</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">cached_means</span><span class="p">[</span><span class="n">task</span><span class="p">]),</span> <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;cached&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;calls&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">),</span> <span class="s1">&#39;trace&#39;</span><span class="p">:</span> <span class="n">trace</span><span class="p">}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;budget_exhausted&#39;</span><span class="p">,</span> <span class="s1">&#39;calls&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">),</span> <span class="s1">&#39;trace&#39;</span><span class="p">:</span> <span class="n">trace</span><span class="p">}</span>
+
+<span class="n">configurations</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Cache only&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="s1">&#39;One pass&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+                  <span class="s1">&#39;Retry up to 3&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span> <span class="s1">&#39;Retry plus cache&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="kc">True</span><span class="p">)}</span>
+<span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">budget</span><span class="p">,</span> <span class="n">fallback</span><span class="p">)</span> <span class="ow">in</span> <span class="n">configurations</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_tasks</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">replicate</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">repeats</span><span class="p">):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">run_policy</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">replicate</span><span class="p">,</span> <span class="n">budget</span><span class="p">,</span> <span class="n">fallback</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="n">task</span><span class="p">,</span> <span class="n">replicate</span><span class="o">=</span><span class="n">replicate</span><span class="p">)</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;success&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                                 <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">truth</span><span class="p">[</span><span class="n">task</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">1e-8</span><span class="p">)</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">rows</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;success&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;success&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">]),</span> <span class="mi">3</span><span class="p">),</span>
+          <span class="s1">&#39;calls&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;calls&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">]),</span> <span class="mi">3</span><span class="p">),</span>
+          <span class="s1">&#39;outcomes&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Counter</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Cache only success 0.612 calls 0.0 outcomes {&#39;cached&#39;: 400}
+One pass success 0.692 calls 1.0 outcomes {&#39;answered&#39;: 277, &#39;budget_exhausted&#39;: 111, &#39;invalid_payload&#39;: 12}
+Retry up to 3 success 0.93 calls 1.39 outcomes {&#39;answered&#39;: 372, &#39;budget_exhausted&#39;: 14, &#39;invalid_payload&#39;: 14}
+Retry plus cache success 0.952 calls 1.39 outcomes {&#39;answered&#39;: 372, &#39;cached&#39;: 14, &#39;invalid_payload&#39;: 14}
+</pre></div>
+</div>
+</div>
+</div>
+<p>This comparison does not show that a language model is needed. The adaptive behavior is a short programmed policy. It tests the benefit of retries and the risk of stale fallback under specified failure mechanisms. An actual LLM comparison would replace the policy while retaining the task set, dispatcher, scoring rule, and trace accounting.</p>
+</section>
+<section id="resample-tasks-keeping-repetitions-together">
+<h2>13.4 · Resample tasks, keeping repetitions together<a class="headerlink" href="#resample-tasks-keeping-repetitions-together" title="Link to this heading">#</a></h2>
+<p>Five repetitions of one task share its data, truth, and failure rate. Resampling all 400 trajectories independently would ignore that clustering. We first average the paired success difference within each task and then bootstrap task means.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">success_matrix</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;success&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="n">name</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_tasks</span><span class="p">,</span> <span class="n">repeats</span><span class="p">)</span>
+
+<span class="n">paired_by_task</span> <span class="o">=</span> <span class="p">(</span><span class="n">success_matrix</span><span class="p">(</span><span class="s1">&#39;Retry up to 3&#39;</span><span class="p">)</span><span class="o">-</span><span class="n">success_matrix</span><span class="p">(</span><span class="s1">&#39;One pass&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ids</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="n">n_tasks</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">3000</span><span class="p">,</span> <span class="n">n_tasks</span><span class="p">))</span>
+<span class="n">bootstrap</span> <span class="o">=</span> <span class="n">paired_by_task</span><span class="p">[</span><span class="n">ids</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Retry minus one-pass success:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">paired_by_task</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Task-cluster bootstrap interval:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">bootstrap</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.025</span><span class="p">,</span> <span class="mf">0.975</span><span class="p">])</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+
+<span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">configurations</span><span class="p">)</span>
+<span class="n">success</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;success&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="n">name</span><span class="p">]])</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
+<span class="n">calls</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;calls&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="n">name</span><span class="p">]])</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">))</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#a2006e&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">calls</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#fed34c&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;#705600&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Success fraction&#39;</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Mean tool calls&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Retry minus one-pass success: 0.238
+Task-cluster bootstrap interval: [0.195 0.28 ]
+</pre></div>
+</div>
+<img alt="../_images/813a3dbe2c2f068fb3bf38c916173c50e9518cec78304c45b82d96b0374197c5.png" src="../_images/813a3dbe2c2f068fb3bf38c916173c50e9518cec78304c45b82d96b0374197c5.png" />
+</div>
+</div>
+<p>The interval describes the chosen simulator and sampled task distribution. It does not include uncertainty about whether that simulator resembles production. When tasks are sampled by document or user, move the resampling unit to that higher level.</p>
+</section>
+<section id="inspect-cost-and-failure-examples">
+<h2>13.5 · Inspect cost and failure examples<a class="headerlink" href="#inspect-cost-and-failure-examples" title="Link to this heading">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cost_per_call</span> <span class="o">=</span> <span class="mf">0.03</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">rows</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">utility</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;success&#39;</span><span class="p">])</span><span class="o">-</span><span class="n">cost_per_call</span><span class="o">*</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;calls&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">])</span>
+    <span class="n">answered</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">wrong_answer_rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="ow">not</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;success&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">answered</span><span class="p">])</span> <span class="k">if</span> <span class="n">answered</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;utility&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">utility</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+          <span class="s1">&#39;error among answered&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">wrong_answer_rate</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+<span class="n">example</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Retry up to 3&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;trace&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Recovery trace:&#39;</span><span class="p">,</span> <span class="n">example</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Cache only utility 0.612 error among answered 0.388
+One pass utility 0.662 error among answered 0.0
+Retry up to 3 utility 0.888 error among answered 0.0
+Retry plus cache utility 0.911 error among answered 0.013
+Recovery trace: {&#39;value&#39;: 0.8543511034891461, &#39;status&#39;: &#39;answered&#39;, &#39;calls&#39;: 2, &#39;trace&#39;: [&#39;timeout&#39;, &#39;ok&#39;], &#39;task&#39;: 1, &#39;replicate&#39;: 2, &#39;success&#39;: np.True_}
+</pre></div>
+</div>
+</div>
+</div>
+<p>These costs are illustrative units per call, not measured currency or wall-clock latency. A deployed experiment should log actual tokens, service charges, elapsed time, retries, and model/tool versions. Do not erase failed trajectories before calculating cost.</p>
+<p>A useful failure taxonomy distinguishes task interpretation, invalid action proposals, tool availability, invalid returned data, incorrect calculation, unsupported final answer, and budget exhaustion. A timeout followed by successful recovery is a successful trajectory with an observed intermediate failure, not a run that “never failed.”</p>
+</section>
+<section id="factorial-comparisons-and-adaptive-evaluation">
+<h2>13.6 · Factorial comparisons and adaptive evaluation<a class="headerlink" href="#factorial-comparisons-and-adaptive-evaluation" title="Link to this heading">#</a></h2>
+<p>To test memory, vary only the memory feature while holding the other components fixed. To test retries, hold the policy and tool contracts fixed while changing the retry rule. For two factors, evaluate all four combinations and inspect interactions: memory could help after a retrieval failure while harmfully overriding fresh evidence when retrieval succeeds.</p>
+<p>Do not repeatedly inspect test outcomes, change the policy, and continue calling the same set “held out.” Use a development suite for repairs and a locked evaluation suite for final reporting. Record the number of policy variants considered, since selection among many noisy estimates creates optimism.</p>
+<p>Prompt injection tests should include untrusted documents and tool messages that request unauthorized behavior. Score whether the execution boundary rejects invalid actions, not merely whether the final response sounds cautious. The harmless adversarial-note experiment in Chapter 12 is one deterministic unit test, not a comprehensive security evaluation.</p>
+</section>
+<section id="exercises-and-worked-solutions">
+<h2>13.7 · Exercises and worked solutions<a class="headerlink" href="#exercises-and-worked-solutions" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Retry probability:</strong> if independent attempts fail with a fixed probability <span class="math notranslate nohighlight">\(p\)</span>, what is success by three attempts? <strong>Solution:</strong> <span class="math notranslate nohighlight">\(1-p^3\)</span>. With task-specific failure rates, average <span class="math notranslate nohighlight">\(1-p_i^3\)</span> across tasks; substituting the average failure rate generally gives a different result.</p></li>
+<li><p><strong>Persistent failure:</strong> why can retries fail to help? <strong>Solution:</strong> an invalid credential, missing dataset, or malformed contract can persist across attempts. The independent transient-failure model then does not apply.</p></li>
+<li><p><strong>Experimental unit:</strong> why bootstrap 80 tasks rather than 400 trajectories? <strong>Solution:</strong> repeated trajectories share task characteristics. Task resampling retains that dependence and targets variation across the sampled task population.</p></li>
+<li><p><strong>Cache fallback:</strong> can answering more questions reduce reliability? <strong>Solution:</strong> yes. A stale cache may convert honest abstentions into incorrect answers. Report coverage and error among answered cases together.</p></li>
+<li><p><strong>Budget fairness:</strong> are two policies equivalent because both have a three-call ceiling? <strong>Solution:</strong> no. Their actual call distributions can differ. Report both the permitted budget and realized costs, and compare utility under a declared cost model.</p></li>
+<li><p><strong>Multiple agents:</strong> what baseline should precede adding more agents? <strong>Solution:</strong> a strong single-policy workflow with the same evidence and comparable total budget. Multiple samples, added tools, or extra tokens can explain gains without any benefit from agent-to-agent communication.</p></li>
+</ol>
+</section>
+<section id="transition-to-a-complete-project">
+<h2>13.8 · Transition to a complete project<a class="headerlink" href="#transition-to-a-complete-project" title="Link to this heading">#</a></h2>
+<p>Use the evaluation principles from <a class="reference internal" href="11-evaluation-uncertainty.html"><span class="std std-doc">Chapter 11</span></a> with the execution boundary from <a class="reference internal" href="12-agents.html"><span class="std std-doc">Chapter 12</span></a>. <a class="reference internal" href="14-capstone.html"><span class="std std-doc">Chapter 14</span></a> combines these ideas into a fully runnable statistical simulation assistant and a reproducible project report.</p>
+</section>
 </section>
 
 
@@ -384,6 +583,30 @@
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-success-and-record-the-whole-trajectory">13.1 · Define success and record the whole trajectory</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#construct-tasks-and-repeatable-tool-failures">13.2 · Construct tasks and repeatable tool failures</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compare-policy-interventions">13.3 · Compare policy interventions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resample-tasks-keeping-repetitions-together">13.4 · Resample tasks, keeping repetitions together</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-cost-and-failure-examples">13.5 · Inspect cost and failure examples</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#factorial-comparisons-and-adaptive-evaluation">13.6 · Factorial comparisons and adaptive evaluation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">13.7 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transition-to-a-complete-project">13.8 · Transition to a complete project</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

@@ -579,7 +579,40 @@ Our model learns which tokens follow others in the corpus. It has no variable re
 
 Do not fix `log(0)` by silently clipping probabilities and then reporting the score as if it came from the original model. If you change the probabilities, document the changed model and normalization. Likewise, rounding is for display; premature rounding can destroy a probability sum or a numerical comparison.
 
-## 1.13 · Exercises
+## 1.13 · Separate estimation error from Monte Carlo error
+
+Generating more observations from a fitted model estimates that model more precisely; it does not automatically move it closer to the data-generating distribution. We can separate these errors because the true categorical distribution is known in this experiment.
+
+For each training size, fit a smoothed probability vector and calculate its exact KL divergence from the true vector. The repeated fits represent sampling variation in estimation. A separate large generated sample then approximates one fitted vector, not the unknown truth.
+
+```{code-cell} python
+curve_rng = np.random.default_rng(20261)
+true_vector = np.array([0.6, 0.3, 0.1])
+training_sizes = [20, 100, 500]
+kl_by_size = []
+for size in training_sizes:
+    repeated_counts = curve_rng.multinomial(size, true_vector, size=300)
+    estimates = (repeated_counts + 1) / (size + len(true_vector))
+    divergence = np.sum(true_vector * np.log(true_vector / estimates), axis=1)
+    kl_by_size.append(divergence)
+    print(size, 'mean KL:', round(divergence.mean(), 4),
+          '90% simulation range:', np.quantile(divergence, [0.05, 0.95]).round(4))
+fig, ax = plt.subplots(figsize=(5, 3.2))
+ax.boxplot(kl_by_size, tick_labels=training_sizes, showfliers=False)
+ax.set(xlabel='Training sample size', ylabel='KL(true distribution || fitted distribution)')
+plt.tight_layout()
+plt.show()
+
+small_fit = (curve_rng.multinomial(20, true_vector) + 1) / 23
+large_generated = curve_rng.multinomial(100000, small_fit) / 100000
+print('True distribution:', true_vector)
+print('One small-data fit:', small_fit.round(3))
+print('Large generated sample frequencies:', large_generated.round(3))
+```
+
+The simulation ranges summarize variation across 300 independently generated training datasets; they are not confidence intervals for one fitted model. The large generated sample should be close to `small_fit`, even when that fit differs from the truth. This is why a convincing-looking collection of model samples cannot replace evaluation on independent real observations.
+
+## 1.14 · Exercises
 
 Attempt the questions before reading the worked solutions. You can use the same notebook; keep experimental changes in separate cells so the main example remains reproducible.
 
@@ -621,7 +654,7 @@ You try twenty smoothing parameters and report the one with the lowest score on 
 
 Create twelve new, original sentences using a small vocabulary. Reserve complete sentences for validation and testing before fitting. Compare unigram and bigram models with the same tokenizer, support, and scoring convention. Report a failure example and one limitation. Do not interpret the small exercise as a reliable estimate of general language performance.
 
-## 1.14 · Worked solutions
+## 1.15 · Worked solutions
 
 ### Solution 1
 
@@ -692,7 +725,7 @@ The test set has become a tuning set. Split at the independent unit first; fit t
 
 Record the corpus, tokenizer, split, vocabulary/unknown-token rule, smoothing choices, and score definition. Show both models' losses on the same test events and several generated outputs, including failures and stop reasons. State whether the apparent gain could be due to chance, repeated tuning, or an unusually favorable split. A negative or inconclusive result is a valid result.
 
-## 1.15 · What this chapter gives us
+## 1.16 · What this chapter gives us
 
 We have built a complete small modeling workflow: encode outcomes, fit probabilities, score held-out observations, sample new outcomes, and inspect the assumptions. The bigram table makes context-dependent prediction explicit. It also exposes the cost of a restricted context and sparse counts.
 

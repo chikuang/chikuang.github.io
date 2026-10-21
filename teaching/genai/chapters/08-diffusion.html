@@ -165,7 +165,7 @@
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Course guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course outline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python-workflow.html">Learn, teach, and build with Python</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../statistical-lens.html">The statistical lens</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
@@ -311,7 +311,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -327,6 +329,20 @@
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-known-forward-process">8.1 · A known forward process</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-prediction-is-a-regression-problem">8.2 · Noise prediction is a regression problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-score-is-a-derivative-with-respect-to-the-observation">8.3 · The score is a derivative with respect to the observation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-learned-reverse-chain">8.4 · A learned reverse chain</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditioning-and-the-limits-of-the-example">8.5 · Conditioning and the limits of the example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">8.6 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">8.7 · Reading and next step</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -338,18 +354,226 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="diffusion-and-score-based-generation">
 <h1>8 · Diffusion and score-based generation<a class="headerlink" href="#diffusion-and-score-based-generation" title="Link to this heading">#</a></h1>
-<div class="note admonition">
-<p class="admonition-title">Chapter status: outline</p>
-<p>This is the planned scope of Chapter 8. The complete lesson, executable examples, and solutions will be developed later. <a class="reference internal" href="01-probability-to-genai.html"><span class="std std-doc">Chapter 1</span></a> is available now.</p>
-</div>
 <p><strong>Question.</strong> How can learning to remove noise support generation from noise?</p>
-<ul class="simple">
-<li><p><strong>Learn:</strong> a forward noising process, learned reverse transitions, denoising objectives, score functions, and conditional generation; preview image and multimodal applications.</p></li>
-<li><p><strong>Statistical lens:</strong> stochastic processes, denoising estimation, and the score <span class="math notranslate nohighlight">\(\nabla_x\log p(x)\)</span>, which differs from a likelihood score with respect to model parameters.</p></li>
-<li><p><strong>Python practice:</strong> simulate progressive Gaussian noising on a mixture distribution, then study a small learned denoiser and the effect of the noise schedule.</p></li>
-<li><p><strong>Self-check:</strong> distinguish the known forward process from the fitted reverse process and separate training from sampling.</p></li>
-<li><p><strong>Reading:</strong> <a class="reference external" href="https://arxiv.org/abs/2006.11239">Denoising Diffusion Probabilistic Models</a>. Continuous-time formulations are an optional extension.</p></li>
-</ul>
+<p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/08-diffusion.ipynb">Download the executed notebook</a></p>
+<p>Diffusion models train a reverse process for a known noising mechanism. We will fit a one-dimensional denoiser to a two-component Gaussian mixture, then run an explicit reverse chain. The example is small enough that we can also calculate the true noisy density’s score and compare it with the learned function.</p>
+<p><strong>Prerequisites:</strong> Chapters 2 and 7, Gaussian conditioning, and gradients. <strong>Outcomes:</strong> simulate the forward marginal; distinguish noise prediction from direct observation reconstruction; derive the score relation; inspect a learned reverse sampler. No images, pretrained weights, or external datasets are required.</p>
+<section id="a-known-forward-process">
+<h2>8.1 · A known forward process<a class="headerlink" href="#a-known-forward-process" title="Link to this heading">#</a></h2>
+<p>Index transitions by <span class="math notranslate nohighlight">\(t=1,\ldots,T\)</span>. Define <span class="math notranslate nohighlight">\(\alpha_t=1-\beta_t\)</span> and <span class="math notranslate nohighlight">\(\bar\alpha_t=\prod_{s=1}^t\alpha_s\)</span>. The forward Markov transition is</p>
+<div class="math notranslate nohighlight">
+\[
+q(x_t\mid x_{t-1})=N(\sqrt{\alpha_t}x_{t-1},\beta_t I).
+\]</div>
+<p>Gaussian composition gives a direct marginal draw:</p>
+<div class="math notranslate nohighlight">
+\[
+x_t=\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar\alpha_t}\,\epsilon,
+\qquad \epsilon\sim N(0,I).
+\]</div>
+<p>Thus training can sample a random time and generate its noisy observation without running every earlier transition. The schedule below leaves little signal at its final time. Starting the reverse chain at a standard normal is still an approximation unless the terminal forward marginal is exactly that normal distribution.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">torch</span><span class="o">.</span><span class="n">set_num_threads</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">T</span> <span class="o">=</span> <span class="mi">80</span>
+<span class="n">beta</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="mf">0.10</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+<span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">beta</span>
+<span class="n">alpha_bar</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cumprod</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">data_sample</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">sign</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">float</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sign</span> <span class="o">+</span> <span class="mf">0.35</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">noisy_sample</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="n">noise</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">alpha_bar</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">a</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span> <span class="o">*</span> <span class="n">x0</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span> <span class="o">*</span> <span class="n">noise</span><span class="p">,</span> <span class="n">noise</span>
+
+<span class="n">x0</span> <span class="o">=</span> <span class="n">data_sample</span><span class="p">(</span><span class="mi">3000</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="n">T</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="n">xt</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">noisy_sample</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x0</span><span class="p">),),</span> <span class="n">index</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">xt</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">bins</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#fed34c&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Time </span><span class="si">{</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Noisy observation&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Density&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Final cumulative signal coefficient:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">alpha_bar</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">4</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/bbf97ed8ba935867ab2e205768d565ad451a9b8e95f85ee269520b137d88f89d.png" src="../_images/bbf97ed8ba935867ab2e205768d565ad451a9b8e95f85ee269520b137d88f89d.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Final cumulative signal coefficient: 0.0153
+</pre></div>
+</div>
+</div>
+</div>
+<p>Python uses index zero for mathematical time one. Keeping this distinction explicit avoids off-by-one errors in the reverse variance and the final denoising step.</p>
+</section>
+<section id="noise-prediction-is-a-regression-problem">
+<h2>8.2 · Noise prediction is a regression problem<a class="headerlink" href="#noise-prediction-is-a-regression-problem" title="Link to this heading">#</a></h2>
+<p>We train <span class="math notranslate nohighlight">\(\epsilon_\theta(x_t,t)\)</span> by squared error against the injected noise. Its population minimizer at each time is <span class="math notranslate nohighlight">\(\mathbb E[\epsilon\mid x_t,t]\)</span>. The network must receive time because the optimal function changes as the noise level changes. Our simplified objective weights times uniformly; it is not the full variational likelihood objective with all of its time-dependent coefficients.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Denoiser</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">network</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">48</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">SiLU</span><span class="p">(),</span>
+                                     <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">48</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">SiLU</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">float</span><span class="p">()[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">T</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">u</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">u</span><span class="p">)],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">Denoiser</span><span class="p">()</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.003</span><span class="p">)</span>
+<span class="n">losses</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+    <span class="n">clean</span> <span class="o">=</span> <span class="n">data_sample</span><span class="p">(</span><span class="mi">256</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">clean</span><span class="p">),))</span>
+    <span class="n">noisy</span><span class="p">,</span> <span class="n">noise</span> <span class="o">=</span> <span class="n">noisy_sample</span><span class="p">(</span><span class="n">clean</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="p">((</span><span class="n">model</span><span class="p">(</span><span class="n">noisy</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="o">-</span> <span class="n">noise</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="mi">25</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">clean</span> <span class="o">=</span> <span class="n">data_sample</span><span class="p">(</span><span class="mi">4000</span><span class="p">)</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">clean</span><span class="p">),))</span>
+    <span class="n">noisy</span><span class="p">,</span> <span class="n">noise</span> <span class="o">=</span> <span class="n">noisy_sample</span><span class="p">(</span><span class="n">clean</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span>
+    <span class="n">mse</span> <span class="o">=</span> <span class="p">((</span><span class="n">model</span><span class="p">(</span><span class="n">noisy</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span><span class="o">-</span><span class="n">noise</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="n">zero_mse</span> <span class="o">=</span> <span class="p">(</span><span class="n">noise</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Fresh-sample noise MSE:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">mse</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Zero-prediction baseline:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">zero_mse</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">mse</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Fresh-sample noise MSE: 0.415
+Zero-prediction baseline: 1.029
+</pre></div>
+</div>
+</div>
+</div>
+<p>Fresh samples here come from a simulator, so training need not reuse a fixed finite dataset. The reported error measures generalization to new draws from that simulator. A fixed empirical image dataset would raise additional questions about memorization, coverage, and distribution shift.</p>
+</section>
+<section id="the-score-is-a-derivative-with-respect-to-the-observation">
+<h2>8.3 · The score is a derivative with respect to the observation<a class="headerlink" href="#the-score-is-a-derivative-with-respect-to-the-observation" title="Link to this heading">#</a></h2>
+<p>For the noisy marginal density <span class="math notranslate nohighlight">\(p_t(x)\)</span>, the score is <span class="math notranslate nohighlight">\(s_t(x)=\nabla_x\log p_t(x)\)</span>. This differs from the parametric likelihood score <span class="math notranslate nohighlight">\(\nabla_\theta\log p_\theta(x)\)</span>. Differentiating the Gaussian noising density and averaging over the conditional distribution of <span class="math notranslate nohighlight">\(X_0\)</span> gives</p>
+<div class="math notranslate nohighlight">
+\[
+s_t(x)=-\frac{\mathbb E[\epsilon\mid X_t=x]}{\sqrt{1-\bar\alpha_t}}.
+\]</div>
+<p>For our mixture, each noised component is Gaussian with means <span class="math notranslate nohighlight">\(\pm2\sqrt{\bar\alpha_t}\)</span> and variance <span class="math notranslate nohighlight">\(0.35^2\bar\alpha_t+1-\bar\alpha_t\)</span>. Its exact score is the posterior-component-weighted average of the component scores. This gives an unusually informative diagnostic that would be unavailable for a general dataset.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">index</span> <span class="o">=</span> <span class="mi">25</span>
+<span class="n">grid</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">240</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+<span class="n">a</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">alpha_bar</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+<span class="n">means</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">])</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">variance</span> <span class="o">=</span> <span class="mf">0.35</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="o">-</span><span class="n">a</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">log_components</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">g</span><span class="o">-</span><span class="n">means</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">variance</span>
+<span class="n">responsibilities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">log_components</span><span class="o">-</span><span class="n">log_components</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="n">responsibilities</span> <span class="o">/=</span> <span class="n">responsibilities</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">exact_score</span> <span class="o">=</span> <span class="p">(</span><span class="n">responsibilities</span> <span class="o">*</span> <span class="p">(</span><span class="n">means</span><span class="o">-</span><span class="n">g</span><span class="p">)</span><span class="o">/</span><span class="n">variance</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">predicted_score</span> <span class="o">=</span> <span class="o">-</span><span class="n">model</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">),),</span> <span class="n">index</span><span class="p">))</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">5.5</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">exact_score</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Exact mixture score&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#705600&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">predicted_score</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Learned score&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#a2006e&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Noisy observation&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Score&#39;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Time </span><span class="si">{</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/14b40ca4667927824fe8754e7c78ceb8f9f995244f97868e1b0c120221f542ac.png" src="../_images/14b40ca4667927824fe8754e7c78ceb8f9f995244f97868e1b0c120221f542ac.png" />
+</div>
+</div>
+<p>Agreement near high-density regions does not guarantee accuracy in the tails. A global average training loss can conceal local failures important to the reverse trajectory.</p>
+</section>
+<section id="a-learned-reverse-chain">
+<h2>8.4 · A learned reverse chain<a class="headerlink" href="#a-learned-reverse-chain" title="Link to this heading">#</a></h2>
+<p>We use the standard noise-prediction mean parameterization</p>
+<div class="math notranslate nohighlight">
+\[
+\mu_\theta(x_t,t)=\frac1{\sqrt{\alpha_t}}
+\left(x_t-\frac{\beta_t}{\sqrt{1-\bar\alpha_t}}\epsilon_\theta(x_t,t)\right).
+\]</div>
+<p>The chosen reverse variance is <span class="math notranslate nohighlight">\(\tilde\beta_t=\beta_t(1-\bar\alpha_{t-1})/(1-\bar\alpha_t)\)</span>, with <span class="math notranslate nohighlight">\(\bar\alpha_0=1\)</span>. At the last reverse step, no extra noise is added. Even with this parameterization, finite steps and an imperfect denoiser introduce approximation error.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sample_reverse</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">n</span><span class="p">,),</span> <span class="n">index</span><span class="p">)</span>
+        <span class="n">predicted_noise</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">beta</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">/</span><span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">alpha_bar</span><span class="p">[</span><span class="n">index</span><span class="p">])</span><span class="o">*</span><span class="n">predicted_noise</span><span class="p">)</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">mean</span> <span class="o">/</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">alpha</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+        <span class="n">previous</span> <span class="o">=</span> <span class="n">alpha_bar</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
+        <span class="n">variance</span> <span class="o">=</span> <span class="n">beta</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">previous</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">alpha_bar</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">mean</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">variance</span><span class="p">)</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">mean</span>
+    <span class="k">return</span> <span class="n">x</span>
+
+<span class="n">generated</span> <span class="o">=</span> <span class="n">sample_reverse</span><span class="p">(</span><span class="mi">3000</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+<span class="n">fresh</span> <span class="o">=</span> <span class="n">data_sample</span><span class="p">(</span><span class="mi">3000</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mf">3.4</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">fresh</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">65</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Target samples&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#fed34c&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">generated</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">65</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.8</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Reverse-chain samples&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#a2006e&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Observation&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Density&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Target / generated positive mass:&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">fresh</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="p">(</span><span class="n">generated</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Target / generated standard deviation:&#39;</span><span class="p">,</span> <span class="n">fresh</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">generated</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">generated</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/c12c45ea067fcf48938f3cc36ae9a59e9e061b77a068eede095b8d3e324c96c1.png" src="../_images/c12c45ea067fcf48938f3cc36ae9a59e9e061b77a068eede095b8d3e324c96c1.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Target / generated positive mass: 0.49966666666666665 0.5023333333333333
+Target / generated standard deviation: 2.027 2.001
+</pre></div>
+</div>
+</div>
+</div>
+<p>Check both modes, central low-density regions, and tail spread. Sampling success is a property of the entire learned reverse chain, not just one denoising MSE. To compare schedules, retrain under each schedule and use the same evaluation function and sample budget.</p>
+</section>
+<section id="conditioning-and-the-limits-of-the-example">
+<h2>8.5 · Conditioning and the limits of the example<a class="headerlink" href="#conditioning-and-the-limits-of-the-example" title="Link to this heading">#</a></h2>
+<p>A conditional denoiser receives additional information <span class="math notranslate nohighlight">\(c\)</span>, such as a class label or text representation, and estimates <span class="math notranslate nohighlight">\(\epsilon_\theta(x_t,t,c)\)</span>. Guidance methods modify the reverse direction to favor a condition, which can change the diversity–fidelity tradeoff. They do not establish that a requested scientific or factual property is true.</p>
+<p>Our one-dimensional example explains noising, denoising, and sampling. It does not reproduce the architecture, latent compression, data scale, or perceptual evaluation of an image-generation system. The statistical questions remain: what distribution is modeled, what is conditioned on, and how is the generated distribution evaluated?</p>
+</section>
+<section id="exercises-and-worked-solutions">
+<h2>8.6 · Exercises and worked solutions<a class="headerlink" href="#exercises-and-worked-solutions" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Forward mean and variance:</strong> condition on <span class="math notranslate nohighlight">\(x_0\)</span>. <strong>Solution:</strong> the mean is <span class="math notranslate nohighlight">\(\sqrt{\bar\alpha_t}x_0\)</span> and covariance is <span class="math notranslate nohighlight">\((1-\bar\alpha_t)I\)</span>. Unconditionally, the covariance also includes <span class="math notranslate nohighlight">\(\bar\alpha_t\operatorname{Cov}(X_0)\)</span>.</p></li>
+<li><p><strong>Score distinction:</strong> which derivative appears in diffusion? <strong>Solution:</strong> the derivative with respect to the noisy observation, not with respect to model parameters. Parameter derivatives are still used when fitting the denoiser by gradient descent.</p></li>
+<li><p><strong>Regression target:</strong> why is the learned noise not the exact injected noise for each input? <strong>Solution:</strong> several clean/noise pairs can produce the same noisy observation. Squared-error regression estimates their conditional mean, leaving irreducible conditional variance.</p></li>
+<li><p><strong>Final step:</strong> why is the reverse variance zero at mathematical time one with our choice? <strong>Solution:</strong> <span class="math notranslate nohighlight">\(1-\bar\alpha_0=0\)</span>. Adding a fresh nonzero noise draw afterward would blur the final samples and implement a different sampler.</p></li>
+<li><p><strong>Schedule:</strong> if terminal <span class="math notranslate nohighlight">\(\bar\alpha_T\)</span> is large, why is starting from <span class="math notranslate nohighlight">\(N(0,I)\)</span> questionable? <strong>Solution:</strong> the terminal forward distribution retains substantial structure from the data. The sampler then starts from a distribution different from the one used to train its final-time denoiser.</p></li>
+</ol>
+</section>
+<section id="reading-and-next-step">
+<h2>8.7 · Reading and next step<a class="headerlink" href="#reading-and-next-step" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://arxiv.org/abs/2006.11239">Denoising Diffusion Probabilistic Models</a> gives the discrete-time formulation and training/sampling algorithms behind this miniature experiment. Next, <a class="reference internal" href="09-adaptation-alignment.html"><span class="std std-doc">Chapter 9</span></a> asks how an existing model can be adapted with limited parameters or preference observations.</p>
+</section>
 </section>
 
 
@@ -387,6 +611,29 @@
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-known-forward-process">8.1 · A known forward process</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-prediction-is-a-regression-problem">8.2 · Noise prediction is a regression problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-score-is-a-derivative-with-respect-to-the-observation">8.3 · The score is a derivative with respect to the observation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-learned-reverse-chain">8.4 · A learned reverse chain</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditioning-and-the-limits-of-the-example">8.5 · Conditioning and the limits of the example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">8.6 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">8.7 · Reading and next step</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

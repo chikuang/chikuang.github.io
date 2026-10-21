@@ -165,7 +165,7 @@
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Course guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course outline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python-workflow.html">Learn, teach, and build with Python</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../statistical-lens.html">The statistical lens</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
@@ -311,7 +311,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -327,6 +329,22 @@
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#queries-keys-and-values">4.1 · Queries, keys, and values</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#work-through-three-keys">4.2 · Work through three keys</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-divide-by-the-square-root-of-width">4.3 · Why divide by the square root of width?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mask-before-normalizing">4.4 · Mask before normalizing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#test-causality-by-intervention">4.5 · Test causality by intervention</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#multiple-heads-and-cross-attention">4.6 · Multiple heads and cross-attention</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-attention-weights-do-not-establish">4.7 · What attention weights do not establish</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">4.8 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">4.9 · Reading and next step</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -338,18 +356,194 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="attention-from-first-principles">
 <h1>4 · Attention from first principles<a class="headerlink" href="#attention-from-first-principles" title="Link to this heading">#</a></h1>
-<div class="note admonition">
-<p class="admonition-title">Chapter status: outline</p>
-<p>This is the planned scope of Chapter 4. The complete lesson, executable examples, and solutions will be developed later. <a class="reference internal" href="01-probability-to-genai.html"><span class="std std-doc">Chapter 1</span></a> is available now.</p>
-</div>
 <p><strong>Question.</strong> How can a representation select and combine information relevant to a query?</p>
-<ul class="simple">
-<li><p><strong>Learn:</strong> queries, keys, values, scaled dot products, row-wise softmax, self-attention, cross-attention, causal masks, and multiple heads.</p></li>
-<li><p><strong>Statistical lens:</strong> a query-dependent normalized weighted average; compare with kernel smoothing without claiming exact equivalence.</p></li>
-<li><p><strong>Python practice:</strong> calculate a three-token attention example by hand, implement it in NumPy, verify dimensions and row sums, and plot how weights change when keys change.</p></li>
-<li><p><strong>Self-check:</strong> explain the role of the mask and the <span class="math notranslate nohighlight">\(\sqrt{d_k}\)</span> scaling; describe why attention weights alone are not a faithful explanation of a prediction.</p></li>
-<li><p><strong>Reading:</strong> <a class="reference external" href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a>, especially the architecture and attention equations.</p></li>
-</ul>
+<p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/04-attention.ipynb">Download the executed notebook</a></p>
+<p>Attention constructs a weighted average whose weights depend on the current query. For a statistician, normalized kernel weighting is a useful starting analogy. The important differences are that the representations are learned, keys and values can differ, and several attention operations are composed inside a prediction model. This chapter calculates the weights, tests the causal information boundary, and implements multiple heads without hiding the dimensions.</p>
+<p><strong>Prerequisites:</strong> Chapters 2–3, matrix products, and softmax. <strong>Outcomes:</strong> calculate attention by hand; implement stable masked attention; distinguish self-attention from cross-attention; explain what an attention plot can and cannot show.</p>
+<section id="queries-keys-and-values">
+<h2>4.1 · Queries, keys, and values<a class="headerlink" href="#queries-keys-and-values" title="Link to this heading">#</a></h2>
+<p>For <span class="math notranslate nohighlight">\(n_q\)</span> queries, <span class="math notranslate nohighlight">\(n_k\)</span> keys, key width <span class="math notranslate nohighlight">\(d_k\)</span>, and value width <span class="math notranslate nohighlight">\(d_v\)</span>, define</p>
+<div class="math notranslate nohighlight">
+\[
+Q\in\mathbb R^{n_q\times d_k},\quad
+K\in\mathbb R^{n_k\times d_k},\quad
+V\in\mathbb R^{n_k\times d_v}.
+\]</div>
+<p>The score matrix <span class="math notranslate nohighlight">\(S=QK^\top/\sqrt{d_k}\)</span> has shape <span class="math notranslate nohighlight">\(n_q\times n_k\)</span>. A row-wise softmax produces <span class="math notranslate nohighlight">\(A\)</span>, and the result is <span class="math notranslate nohighlight">\(O=AV\)</span> with shape <span class="math notranslate nohighlight">\(n_q\times d_v\)</span>. Each output row is a convex combination of value rows. It need not be a convex combination of the original token embeddings because the values are themselves projected features.</p>
+<p>In self-attention, <span class="math notranslate nohighlight">\(Q=XW_Q\)</span>, <span class="math notranslate nohighlight">\(K=XW_K\)</span>, and <span class="math notranslate nohighlight">\(V=XW_V\)</span> come from the same sequence. In cross-attention, queries come from one sequence and keys and values from another. The query and key counts need not agree.</p>
+</section>
+<section id="work-through-three-keys">
+<h2>4.2 · Work through three keys<a class="headerlink" href="#work-through-three-keys" title="Link to this heading">#</a></h2>
+<p>Take a one-dimensional query <span class="math notranslate nohighlight">\(q=1\)</span>, keys <span class="math notranslate nohighlight">\(0,1,2\)</span>, and values <span class="math notranslate nohighlight">\(10,20,40\)</span>. The unnormalized weights are <span class="math notranslate nohighlight">\(1,e,e^2\)</span>. After division by their sum, the weights are approximately <span class="math notranslate nohighlight">\((0.090,0.245,0.665)\)</span> and the weighted value is approximately <span class="math notranslate nohighlight">\(32.405\)</span>. The largest score receives the most weight, but the other values still contribute.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">softmax</span><span class="p">(</span><span class="n">scores</span><span class="p">):</span>
+    <span class="n">shifted</span> <span class="o">=</span> <span class="n">scores</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">shifted</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">weights</span> <span class="o">/</span> <span class="n">weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.</span><span class="p">]])</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.</span><span class="p">],</span> <span class="p">[</span><span class="mf">2.</span><span class="p">]])</span>
+<span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">10.</span><span class="p">],</span> <span class="p">[</span><span class="mf">20.</span><span class="p">],</span> <span class="p">[</span><span class="mf">40.</span><span class="p">]])</span>
+<span class="n">weights</span> <span class="o">=</span> <span class="n">softmax</span><span class="p">(</span><span class="n">q</span> <span class="o">@</span> <span class="n">k</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Weights:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Weighted value:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">weights</span> <span class="o">@</span> <span class="n">v</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Weights: [[0.09  0.245 0.665]]
+Weighted value: [[32.405]]
+</pre></div>
+</div>
+</div>
+</div>
+<p>Subtracting the row maximum leaves softmax unchanged but avoids exponentiating unnecessarily large positive numbers. <code class="docutils literal notranslate"><span class="pre">axis=-1</span></code> means normalize across keys for each query. Normalizing over all entries at once would couple unrelated query rows and implement a different operation.</p>
+</section>
+<section id="why-divide-by-the-square-root-of-width">
+<h2>4.3 · Why divide by the square root of width?<a class="headerlink" href="#why-divide-by-the-square-root-of-width" title="Link to this heading">#</a></h2>
+<p>Suppose the components of a query and a key are independent, mean zero, variance one, and independent across the two vectors. Their dot product has variance <span class="math notranslate nohighlight">\(d_k\)</span>. Dividing by <span class="math notranslate nohighlight">\(\sqrt{d_k}\)</span> gives variance one under these assumptions. Without scaling, increasing width can make initial scores more extreme and softmax more concentrated. Learned features need not satisfy these assumptions exactly; this is an initialization argument, not a universal distributional theorem.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">width</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">256</span><span class="p">]:</span>
+    <span class="n">queries</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">3000</span><span class="p">,</span> <span class="n">width</span><span class="p">))</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">3000</span><span class="p">,</span> <span class="n">width</span><span class="p">))</span>
+    <span class="n">dot</span> <span class="o">=</span> <span class="p">(</span><span class="n">queries</span> <span class="o">*</span> <span class="n">keys</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="s1">&#39;raw variance&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">dot</span><span class="o">.</span><span class="n">var</span><span class="p">(),</span> <span class="mi">2</span><span class="p">),</span>
+          <span class="s1">&#39;scaled variance&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">((</span><span class="n">dot</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">width</span><span class="p">))</span><span class="o">.</span><span class="n">var</span><span class="p">(),</span> <span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>4 raw variance 4.15 scaled variance 1.04
+32 raw variance 31.33 scaled variance 0.98
+256 raw variance 251.26 scaled variance 0.98
+</pre></div>
+</div>
+</div>
+</div>
+<p>A temperature also rescales logits, but its purpose in decoding is distinct from this architectural width correction. The same mathematical operation can play different roles in different parts of a system.</p>
+</section>
+<section id="mask-before-normalizing">
+<h2>4.4 · Mask before normalizing<a class="headerlink" href="#mask-before-normalizing" title="Link to this heading">#</a></h2>
+<p>A causal language model must not use future tokens when predicting the next token. For query position <span class="math notranslate nohighlight">\(i\)</span>, allow keys <span class="math notranslate nohighlight">\(j\le i\)</span>. Put negative infinity in forbidden score entries before softmax; their exponentials become zero. Every row must have at least one allowed key, or normalization is undefined.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">attention</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">allowed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">Q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">K</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">K</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="n">V</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">Q</span> <span class="o">@</span> <span class="n">K</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">allowed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">allowed</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">scores</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">allowed</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)),</span> <span class="s1">&#39;An attention row has no valid keys&#39;</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">allowed</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">softmax</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">A</span> <span class="o">@</span> <span class="n">V</span><span class="p">,</span> <span class="n">A</span>
+
+<span class="n">X</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">Wq</span><span class="p">,</span> <span class="n">Wk</span><span class="p">,</span> <span class="n">Wv</span> <span class="o">=</span> <span class="p">[</span><span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span>
+<span class="n">causal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tril</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">))</span>
+<span class="n">output</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">attention</span><span class="p">(</span><span class="n">X</span> <span class="o">@</span> <span class="n">Wq</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">Wk</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">Wv</span><span class="p">,</span> <span class="n">causal</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">triu_indices</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">4.5</span><span class="p">,</span> <span class="mf">3.6</span><span class="p">))</span>
+<span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;YlOrBr&#39;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Key position&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Query position&#39;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Causal attention weights&#39;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Weight&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/5853eed168d51ba4c0af121ef4e476c46bde4e597365eae8c950702fc35d50a0.png" src="../_images/5853eed168d51ba4c0af121ef4e476c46bde4e597365eae8c950702fc35d50a0.png" />
+</div>
+</div>
+<p>Padding masks solve a different problem: they exclude padded positions. A batch with both causal and padding constraints must combine the allowed-position conditions. Mask conventions differ between software functions, so check whether a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> means “allow” or “block” before reusing a mask.</p>
+</section>
+<section id="test-causality-by-intervention">
+<h2>4.5 · Test causality by intervention<a class="headerlink" href="#test-causality-by-intervention" title="Link to this heading">#</a></h2>
+<p>A triangular-looking plot is not a sufficient test of the entire computation. Change a future input and verify that earlier outputs do not change. This probes the information path, not just the mask’s appearance.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">changed</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">changed</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">20</span>
+<span class="n">changed_output</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">attention</span><span class="p">(</span><span class="n">changed</span> <span class="o">@</span> <span class="n">Wq</span><span class="p">,</span> <span class="n">changed</span> <span class="o">@</span> <span class="n">Wk</span><span class="p">,</span> <span class="n">changed</span> <span class="o">@</span> <span class="n">Wv</span><span class="p">,</span> <span class="n">causal</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Largest change before final position:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">changed_output</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span><span class="o">-</span><span class="n">output</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">changed_output</span><span class="p">[:</span><span class="mi">4</span><span class="p">],</span> <span class="n">output</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+<span class="n">unmasked</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">attention</span><span class="p">(</span><span class="n">X</span> <span class="o">@</span> <span class="n">Wq</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">Wk</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">Wv</span><span class="p">)</span>
+<span class="n">unmasked_changed</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">attention</span><span class="p">(</span><span class="n">changed</span> <span class="o">@</span> <span class="n">Wq</span><span class="p">,</span> <span class="n">changed</span> <span class="o">@</span> <span class="n">Wk</span><span class="p">,</span> <span class="n">changed</span> <span class="o">@</span> <span class="n">Wv</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Change without mask:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">unmasked_changed</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span><span class="o">-</span><span class="n">unmasked</span><span class="p">[:</span><span class="mi">4</span><span class="p">]))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Largest change before final position: 0.0
+Change without mask: 49.02098972693644
+</pre></div>
+</div>
+</div>
+</div>
+<p>This test holds the model parameters fixed. It checks dependence within a forward pass. It does not rule out leakage through duplicated documents, preprocessing, or training on evaluation answers.</p>
+</section>
+<section id="multiple-heads-and-cross-attention">
+<h2>4.6 · Multiple heads and cross-attention<a class="headerlink" href="#multiple-heads-and-cross-attention" title="Link to this heading">#</a></h2>
+<p>Different heads use different projections and can form different averages. Their outputs are concatenated and passed through another learned linear map. Heads are not guaranteed to acquire distinct human-interpretable roles.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">head_outputs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">head</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+    <span class="n">Qh</span><span class="p">,</span> <span class="n">Kh</span><span class="p">,</span> <span class="n">Vh</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span> <span class="o">@</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span>
+    <span class="n">Oh</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">attention</span><span class="p">(</span><span class="n">Qh</span><span class="p">,</span> <span class="n">Kh</span><span class="p">,</span> <span class="n">Vh</span><span class="p">,</span> <span class="n">causal</span><span class="p">)</span>
+    <span class="n">head_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Oh</span><span class="p">)</span>
+<span class="n">concatenated</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">head_outputs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">Wo</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Concatenated heads:&#39;</span><span class="p">,</span> <span class="n">concatenated</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Projected result:&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">concatenated</span> <span class="o">@</span> <span class="n">Wo</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+<span class="n">queries</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="n">keys</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="n">values</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">cross_output</span><span class="p">,</span> <span class="n">cross_weights</span> <span class="o">=</span> <span class="n">attention</span><span class="p">(</span><span class="n">queries</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Cross-attention:&#39;</span><span class="p">,</span> <span class="n">cross_weights</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s1">&#39;-&gt;&#39;</span><span class="p">,</span> <span class="n">cross_output</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Concatenated heads: (5, 4)
+Projected result: (5, 4)
+Cross-attention: (2, 7) -&gt; (2, 4)
+</pre></div>
+</div>
+</div>
+</div>
+<p>Without positions or a mask, self-attention is permutation equivariant: permuting the input rows permutes the output rows in the same way. That is appropriate for sets, but sequence modeling requires information about order. Chapter 3’s positional features and this chapter’s causal constraint provide different forms of such information.</p>
+</section>
+<section id="what-attention-weights-do-not-establish">
+<h2>4.7 · What attention weights do not establish<a class="headerlink" href="#what-attention-weights-do-not-establish" title="Link to this heading">#</a></h2>
+<p>A weight describes one intermediate calculation. The contribution of a value depends on its magnitude and direction, other heads, residual connections, and later nonlinear layers. A large weight is therefore not automatically a faithful explanation of the final prediction. Correlated or interchangeable values can also make weights nonunique explanations of an output.</p>
+<p>For a useful diagnostic, compare predictions after controlled changes to inputs, inspect performance on a specified task, and consider the full computation. Even an intervention on model inputs establishes behavior of that model, not a causal effect in the external world.</p>
+</section>
+<section id="exercises-and-worked-solutions">
+<h2>4.8 · Exercises and worked solutions<a class="headerlink" href="#exercises-and-worked-solutions" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Equal scores:</strong> if all scores in a row equal <span class="math notranslate nohighlight">\(c\)</span>, what is the result? <strong>Solution:</strong> each weight is <span class="math notranslate nohighlight">\(1/n_k\)</span>, so the output is the mean of the values. Adding the same constant to every score never changes a softmax row.</p></li>
+<li><p><strong>Dimensions:</strong> let <span class="math notranslate nohighlight">\(Q\)</span> be <span class="math notranslate nohighlight">\(6\times8\)</span>, <span class="math notranslate nohighlight">\(K\)</span> be <span class="math notranslate nohighlight">\(10\times8\)</span>, and <span class="math notranslate nohighlight">\(V\)</span> be <span class="math notranslate nohighlight">\(10\times3\)</span>. <strong>Solution:</strong> scores and weights are <span class="math notranslate nohighlight">\(6\times10\)</span>; output is <span class="math notranslate nohighlight">\(6\times3\)</span>. A <span class="math notranslate nohighlight">\(10\times8\)</span> value matrix is not required.</p></li>
+<li><p><strong>First causal position:</strong> what can position zero attend to? <strong>Solution:</strong> only itself in our convention. Its attention weight is exactly one. It predicts the next token using the current prefix, not by looking at the next token’s representation.</p></li>
+<li><p><strong>Wrong normalization:</strong> why is applying a mask after softmax generally incorrect? <strong>Solution:</strong> setting forbidden weights to zero afterward makes the allowed weights sum to less than one. Renormalizing could recover the intended result, but masking logits is the direct and stable implementation.</p></li>
+<li><p><strong>Convexity:</strong> can one output coordinate exceed the largest corresponding value coordinate? <strong>Solution:</strong> not for a single row of <span class="math notranslate nohighlight">\(AV\)</span> with nonnegative weights summing to one. The later output projection or residual addition can exceed that range.</p></li>
+<li><p><strong>Permutation check:</strong> implement a row permutation for unmasked attention and compare outputs. <strong>Solution:</strong> compute both the permuted input result and the original output permuted in the same way; they should agree up to floating-point error. Fixed position features or a causal mask change the symmetry.</p></li>
+</ol>
+</section>
+<section id="reading-and-next-step">
+<h2>4.9 · Reading and next step<a class="headerlink" href="#reading-and-next-step" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a> introduces the transformer architecture and scaled dot-product multi-head attention. Our numerical examples expose the weighting and masking operations. <a class="reference internal" href="05-transformers.html"><span class="std std-doc">Chapter 5</span></a> assembles them with residual connections, normalization, and a prediction head.</p>
+</section>
 </section>
 
 
@@ -387,6 +581,31 @@
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#queries-keys-and-values">4.1 · Queries, keys, and values</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#work-through-three-keys">4.2 · Work through three keys</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-divide-by-the-square-root-of-width">4.3 · Why divide by the square root of width?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mask-before-normalizing">4.4 · Mask before normalizing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#test-causality-by-intervention">4.5 · Test causality by intervention</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#multiple-heads-and-cross-attention">4.6 · Multiple heads and cross-attention</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-attention-weights-do-not-establish">4.7 · What attention weights do not establish</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">4.8 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">4.9 · Reading and next step</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

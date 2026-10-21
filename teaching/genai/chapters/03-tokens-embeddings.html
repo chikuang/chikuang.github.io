@@ -50,6 +50,8 @@
     <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/03-tokens-embeddings';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="canonical" href="https://chikuang.github.io/teaching/genai/chapters/03-tokens-embeddings.html" />
@@ -163,7 +165,7 @@
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Course guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course outline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python-workflow.html">Learn, teach, and build with Python</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../statistical-lens.html">The statistical lens</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
@@ -309,7 +311,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -325,6 +329,21 @@
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-vocabulary-is-an-estimated-preprocessing-object">3.1 · A vocabulary is an estimated preprocessing object</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-miniature-byte-pair-style-merge-experiment">3.2 · A miniature byte-pair-style merge experiment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-hot-encoding-and-lookup-are-the-same-linear-operation">3.3 · One-hot encoding and lookup are the same linear operation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learn-a-small-representation-from-co-occurrence">3.4 · Learn a small representation from co-occurrence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#identifiability-and-the-loss-of-order">3.5 · Identifiability and the loss of order</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#positions-and-contextual-representations">3.6 · Positions and contextual representations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">3.7 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">3.8 · Reading and next step</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -336,17 +355,240 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="tokens-embeddings-and-representations">
 <h1>3 · Tokens, embeddings, and representations<a class="headerlink" href="#tokens-embeddings-and-representations" title="Link to this heading">#</a></h1>
-<div class="note admonition">
-<p class="admonition-title">Chapter status: outline</p>
-<p>This is the planned scope of Chapter 3. The complete lesson, executable examples, and solutions will be developed later. <a class="reference internal" href="01-probability-to-genai.html"><span class="std std-doc">Chapter 1</span></a> is available now.</p>
-</div>
 <p><strong>Question.</strong> How does text become something a numerical model can use?</p>
-<ul class="simple">
-<li><p><strong>Learn:</strong> tokenization, vocabulary, one-hot representations, embedding lookup, positional information, cosine similarity, and contextual representations.</p></li>
-<li><p><strong>Statistical lens:</strong> design matrices, learned feature maps, matrix factorization, and identifiability.</p></li>
-<li><p><strong>Python practice:</strong> tokenize a small public text collection and compare bag-of-words with embedding-based similarity. Inspect examples where similarity is misleading.</p></li>
-<li><p><strong>Self-check:</strong> explain why a token is not necessarily a word and why a two-dimensional embedding plot is not evidence of causal structure.</p></li>
-</ul>
+<p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/03-tokens-embeddings.ipynb">Download the executed notebook</a></p>
+<p>A model receives numbers, not the meaning of a sentence. Tokenization defines the discrete observations; an embedding maps those observations into vectors. We will construct both operations explicitly, fit a small distributional representation, and test what it fails to preserve. The statistical analogues are the construction of a design matrix and the estimation of a feature map.</p>
+<p><strong>Prerequisites:</strong> Chapters 1–2 and singular value decomposition (SVD). <strong>Outcomes:</strong> distinguish words from tokens; handle unknown inputs; interpret an embedding lookup; explain why proximity is task-dependent. The corpus below consists of short, course-authored sentences, so no download is necessary.</p>
+<section id="a-vocabulary-is-an-estimated-preprocessing-object">
+<h2>3.1 · A vocabulary is an estimated preprocessing object<a class="headerlink" href="#a-vocabulary-is-an-estimated-preprocessing-object" title="Link to this heading">#</a></h2>
+<p>We first use a word tokenizer that lowercases text and keeps alphabetic runs. This is a teaching choice, not a general text-processing standard: it discards punctuation, numbers, capitalization, and much non-English text.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">corpus</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;probability models describe uncertainty&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;statistical models estimate probability&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;data support statistical inference&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;inference quantifies uncertainty from data&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;neural networks learn representations&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;language models learn token representations&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;attention combines token representations&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;networks use attention to model language&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">tokenize</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[a-z]+&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+<span class="n">vocab</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&lt;unk&gt;&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">w</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">corpus</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">s</span><span class="p">)})</span>
+<span class="n">to_id</span> <span class="o">=</span> <span class="p">{</span><span class="n">word</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">word</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vocab</span><span class="p">)}</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">encode</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">to_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">text</span><span class="p">)]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">tokenize</span><span class="p">(</span><span class="s1">&#39;Models: 2 estimates, NOT certainty!&#39;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;probability models encounter novelty&#39;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">vocab</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">encode</span><span class="p">(</span><span class="s1">&#39;probability models encounter novelty&#39;</span><span class="p">)])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[&#39;models&#39;, &#39;estimates&#39;, &#39;not&#39;, &#39;certainty&#39;]
+[14, 11, 0, 0]
+[&#39;probability&#39;, &#39;models&#39;, &#39;&lt;unk&gt;&#39;, &#39;&lt;unk&gt;&#39;]
+</pre></div>
+</div>
+</div>
+</div>
+<p>Build the vocabulary from training text and freeze it before evaluation. Mapping unseen words to <code class="docutils literal notranslate"><span class="pre">&lt;unk&gt;</span></code> avoids an indexing error but loses distinctions between them. Character or byte tokenizers reduce this problem at the cost of longer sequences. Subword tokenizers trade vocabulary size against sequence length. A token may be part of a word, punctuation, or a byte sequence; counting tokens is not counting words.</p>
+</section>
+<section id="a-miniature-byte-pair-style-merge-experiment">
+<h2>3.2 · A miniature byte-pair-style merge experiment<a class="headerlink" href="#a-miniature-byte-pair-style-merge-experiment" title="Link to this heading">#</a></h2>
+<p>Byte-pair encoding repeatedly merges frequent adjacent units. Real implementations include normalization, boundary conventions, special tokens, and efficient encoders. This word-internal character experiment isolates the merge idea; it is <strong>not</strong> a byte-level production tokenizer.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">word_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">({</span><span class="s1">&#39;learn&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;learning&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;learned&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                       <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;models&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">})</span>
+<span class="n">segments</span> <span class="o">=</span> <span class="p">{</span><span class="n">word</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">word</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;&lt;/w&gt;&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">word_counts</span><span class="p">}</span>
+<span class="n">merges</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">):</span>
+    <span class="n">pair_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">word</span><span class="p">,</span> <span class="n">parts</span> <span class="ow">in</span> <span class="n">segments</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+            <span class="n">pair_counts</span><span class="p">[</span><span class="n">pair</span><span class="p">]</span> <span class="o">+=</span> <span class="n">word_counts</span><span class="p">[</span><span class="n">word</span><span class="p">]</span>
+    <span class="n">pair</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">pair_counts</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="n">pair_counts</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+    <span class="n">merges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pair</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">word</span><span class="p">,</span> <span class="n">parts</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">segments</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">result</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="p">[],</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">])</span> <span class="o">==</span> <span class="n">pair</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">parts</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">segments</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Merge order:&#39;</span><span class="p">,</span> <span class="n">merges</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Final segments:&#39;</span><span class="p">,</span> <span class="n">segments</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Merge order: [(&#39;a&#39;, &#39;r&#39;), (&#39;ar&#39;, &#39;n&#39;), (&#39;e&#39;, &#39;arn&#39;), (&#39;l&#39;, &#39;earn&#39;), (&#39;d&#39;, &#39;e&#39;), (&#39;de&#39;, &#39;l&#39;)]
+Final segments: {&#39;learn&#39;: [&#39;learn&#39;, &#39;&lt;/w&gt;&#39;], &#39;learning&#39;: [&#39;learn&#39;, &#39;i&#39;, &#39;n&#39;, &#39;g&#39;, &#39;&lt;/w&gt;&#39;], &#39;learned&#39;: [&#39;learn&#39;, &#39;e&#39;, &#39;d&#39;, &#39;&lt;/w&gt;&#39;], &#39;model&#39;: [&#39;m&#39;, &#39;o&#39;, &#39;del&#39;, &#39;&lt;/w&gt;&#39;], &#39;models&#39;: [&#39;m&#39;, &#39;o&#39;, &#39;del&#39;, &#39;s&#39;, &#39;&lt;/w&gt;&#39;]}
+</pre></div>
+</div>
+</div>
+</div>
+<p>The frequencies weight the merge decisions. A tokenizer trained on one domain can segment another domain inefficiently. Once learned, the merge order is part of the model artifact and must be saved. Do not fit a fresh tokenizer independently for each evaluation sample: token probabilities would then refer to different events.</p>
+</section>
+<section id="one-hot-encoding-and-lookup-are-the-same-linear-operation">
+<h2>3.3 · One-hot encoding and lookup are the same linear operation<a class="headerlink" href="#one-hot-encoding-and-lookup-are-the-same-linear-operation" title="Link to this heading">#</a></h2>
+<p>For vocabulary size <span class="math notranslate nohighlight">\(V\)</span>, token <span class="math notranslate nohighlight">\(j\)</span> has one-hot row vector <span class="math notranslate nohighlight">\(e_j^\top\)</span>. An embedding matrix <span class="math notranslate nohighlight">\(E\in\mathbb R^{V\times d}\)</span> maps it to <span class="math notranslate nohighlight">\(e_j^\top E=E_{j,:}\)</span>. Lookup avoids allocating a mostly zero vector. A sequence of length <span class="math notranslate nohighlight">\(T\)</span> becomes a <span class="math notranslate nohighlight">\(T\times d\)</span> matrix; a batch adds a leading dimension.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">E</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">),</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;statistical models estimate probability&#39;</span><span class="p">))</span>
+<span class="n">one_hot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">))[</span><span class="n">ids</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">one_hot</span> <span class="o">@</span> <span class="n">E</span><span class="p">,</span> <span class="n">E</span><span class="p">[</span><span class="n">ids</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;IDs:&#39;</span><span class="p">,</span> <span class="n">ids</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s1">&#39;one-hot:&#39;</span><span class="p">,</span> <span class="n">one_hot</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s1">&#39;lookup:&#39;</span><span class="p">,</span> <span class="n">E</span><span class="p">[</span><span class="n">ids</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>IDs: (4,) one-hot: (4, 23) lookup: (4, 4)
+</pre></div>
+</div>
+</div>
+</div>
+<p>These randomly initialized vectors have no learned semantic interpretation. In a neural language model, the prediction loss supplies gradients for the rows used in training. Similar contexts can encourage similar predictive representations, but the learned geometry also reflects corpus composition and the training objective.</p>
+</section>
+<section id="learn-a-small-representation-from-co-occurrence">
+<h2>3.4 · Learn a small representation from co-occurrence<a class="headerlink" href="#learn-a-small-representation-from-co-occurrence" title="Link to this heading">#</a></h2>
+<p>Let <span class="math notranslate nohighlight">\(C_{ij}\)</span> count how often token <span class="math notranslate nohighlight">\(j\)</span> occurs within a window of token <span class="math notranslate nohighlight">\(i\)</span>. Positive pointwise mutual information compares joint occurrence with independence:</p>
+<div class="math notranslate nohighlight">
+\[
+M_{ij}=\max\left\{0,\log\frac{C_{ij}N}{C_{i+}C_{+j}}\right\},
+\qquad N=\sum_{ij}C_{ij}.
+\]</div>
+<p>Zero-count cells receive zero in this illustrative PPMI matrix. Rare co-occurrences can have large values, so smoothing and frequency thresholds matter in larger applications. We factor <span class="math notranslate nohighlight">\(M\approx U_dS_dV_d^\top\)</span> and use <span class="math notranslate nohighlight">\(U_dS_d^{1/2}\)</span> as an embedding. This is a distributional matrix-factorization example, not a pretrained language model.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">)))</span>
+<span class="k">for</span> <span class="n">sentence</span> <span class="ow">in</span> <span class="n">corpus</span><span class="p">:</span>
+    <span class="n">ids</span> <span class="o">=</span> <span class="n">encode</span><span class="p">(</span><span class="n">sentence</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">token</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ids</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">),</span> <span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span><span class="p">:</span>
+                <span class="n">C</span><span class="p">[</span><span class="n">token</span><span class="p">,</span> <span class="n">ids</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">expected</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">@</span> <span class="n">C</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">C</span> <span class="o">*</span> <span class="n">C</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">expected</span><span class="p">,</span>
+                  <span class="n">out</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">C</span><span class="p">),</span> <span class="n">where</span><span class="o">=</span><span class="p">(</span><span class="n">C</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">expected</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span>
+<span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ratio</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">U</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">Vt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">full_matrices</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">emb</span> <span class="o">=</span> <span class="n">U</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">s</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+<span class="n">unit</span> <span class="o">=</span> <span class="n">emb</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">emb</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="mf">1e-12</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">neighbors</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">unit</span> <span class="o">@</span> <span class="n">unit</span><span class="p">[</span><span class="n">to_id</span><span class="p">[</span><span class="n">word</span><span class="p">]]</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="o">-</span><span class="n">scores</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">vocab</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">scores</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">order</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">to_id</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">][:</span><span class="n">k</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Neighbors of probability:&#39;</span><span class="p">,</span> <span class="n">neighbors</span><span class="p">(</span><span class="s1">&#39;probability&#39;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Neighbors of attention:&#39;</span><span class="p">,</span> <span class="n">neighbors</span><span class="p">(</span><span class="s1">&#39;attention&#39;</span><span class="p">))</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;probability&#39;</span><span class="p">,</span> <span class="s1">&#39;models&#39;</span><span class="p">,</span> <span class="s1">&#39;inference&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;attention&#39;</span><span class="p">,</span> <span class="s1">&#39;token&#39;</span><span class="p">,</span> <span class="s1">&#39;language&#39;</span><span class="p">,</span> <span class="s1">&#39;networks&#39;</span><span class="p">]:</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="n">to_id</span><span class="p">[</span><span class="n">word</span><span class="p">]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">*</span><span class="n">emb</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#a2006e&#39;</span><span class="p">)</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="o">-</span><span class="mi">15</span><span class="p">),</span> <span class="s1">&#39;inference&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">)}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">emb</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="n">xytext</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span> <span class="n">textcoords</span><span class="o">=</span><span class="s1">&#39;offset points&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">margins</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;SVD coordinate 1&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;SVD coordinate 2&#39;</span><span class="p">,</span>
+       <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Two coordinates of a four-dimensional toy embedding&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Neighbors of probability: [(&#39;estimate&#39;, 0.991), (&#39;models&#39;, 0.983), (&#39;describe&#39;, 0.976), (&#39;statistical&#39;, 0.546)]
+Neighbors of attention: [(&#39;use&#39;, 0.993), (&#39;to&#39;, 0.87), (&#39;model&#39;, 0.841), (&#39;language&#39;, 0.832)]
+</pre></div>
+</div>
+<img alt="../_images/f6ba3a1ef586fbc1001c10c7297dc42139a722bb8e9e202f48f4951c78ca28fa.png" src="../_images/f6ba3a1ef586fbc1001c10c7297dc42139a722bb8e9e202f48f4951c78ca28fa.png" />
+</div>
+</div>
+<p>Inspect the neighbors instead of assuming they are sensible. Eight sentences are too few to establish robust language structure. Words absent from similar contexts may appear dissimilar despite related meanings. The plot discards two coordinates and can further distort distances. Neither the plot nor cosine similarity establishes a causal relationship.</p>
+</section>
+<section id="identifiability-and-the-loss-of-order">
+<h2>3.5 · Identifiability and the loss of order<a class="headerlink" href="#identifiability-and-the-loss-of-order" title="Link to this heading">#</a></h2>
+<p>For an orthogonal matrix <span class="math notranslate nohighlight">\(R\)</span>, <span class="math notranslate nohighlight">\((ER)(ER)^\top=EE^\top\)</span>. Rotating all vectors preserves dot products, norms, and cosine similarities. Individual axes therefore need not correspond to interpretable concepts.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">R</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">qr</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">)))</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">emb</span> <span class="o">@</span> <span class="n">emb</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="p">(</span><span class="n">emb</span> <span class="o">@</span> <span class="n">R</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">emb</span> <span class="o">@</span> <span class="n">R</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="s1">&#39;data support models&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="s1">&#39;models support data&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Same bag of words:&#39;</span><span class="p">,</span> <span class="n">Counter</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="n">Counter</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Same ordered sequence:&#39;</span><span class="p">,</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Same bag of words: True
+Same ordered sequence: False
+</pre></div>
+</div>
+</div>
+</div>
+<p>A mean of static word embeddings also ignores order: permuting the tokens does not change the mean. The two example sentences have the same word counts but reverse the grammatical roles. Negation can cause an even more serious mismatch between lexical similarity and a task’s answer.</p>
+</section>
+<section id="positions-and-contextual-representations">
+<h2>3.6 · Positions and contextual representations<a class="headerlink" href="#positions-and-contextual-representations" title="Link to this heading">#</a></h2>
+<p>A static lookup gives the same vector to every occurrence of a token. A contextual representation is a function of its surrounding sequence, for example <span class="math notranslate nohighlight">\(h_t=f_\theta(x_{1:T},t)\)</span>. Adding a positional vector supplies order information before attention. One possible fixed encoding uses sine and cosine functions at different frequencies.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">T</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span>
+<span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">T</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+<span class="n">frequencies</span> <span class="o">=</span> <span class="mi">10000</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">d</span><span class="p">)</span>
+<span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">T</span><span class="p">,</span> <span class="n">d</span><span class="p">))</span>
+<span class="n">P</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">positions</span> <span class="o">*</span> <span class="n">frequencies</span><span class="p">)</span>
+<span class="n">P</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">positions</span> <span class="o">*</span> <span class="n">frequencies</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">P</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">P</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[[ 0.     1.     0.     1.   ]
+ [ 0.841  0.54   0.01   1.   ]
+ [ 0.909 -0.416  0.02   1.   ]
+ [ 0.141 -0.99   0.03   1.   ]
+ [-0.757 -0.654  0.04   0.999]]
+</pre></div>
+</div>
+</div>
+</div>
+<p>Position features do not themselves create understanding. They allow a model to distinguish order when the prediction objective rewards doing so. Learned absolute positions and relative-position mechanisms are other options; each has implications for generalizing to lengths not seen in training. Padding positions also need an explicit mask so they do not become evidence.</p>
+</section>
+<section id="exercises-and-worked-solutions">
+<h2>3.7 · Exercises and worked solutions<a class="headerlink" href="#exercises-and-worked-solutions" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Lookup size.</strong> A vocabulary has 10,000 tokens and embedding width 64. How many parameters are in its embedding matrix? <strong>Solution:</strong> <span class="math notranslate nohighlight">\(640,000\)</span>. A batch of 8 sequences of length 20 produces a tensor of shape <code class="docutils literal notranslate"><span class="pre">(8,</span> <span class="pre">20,</span> <span class="pre">64)</span></code>; batch size does not change the parameter count.</p></li>
+<li><p><strong>Unknowns.</strong> What information is lost when both “variance” and “entropy” map to <code class="docutils literal notranslate"><span class="pre">&lt;unk&gt;</span></code>? <strong>Solution:</strong> the model receives the same token ID for distinct words. No downstream function of those IDs can recover which word was present without additional information.</p></li>
+<li><p><strong>Rotation.</strong> Prove cosine similarity is unchanged by an orthogonal transformation. <strong>Solution:</strong> <span class="math notranslate nohighlight">\(aRR^\top b^\top=ab^\top\)</span>, and the same identity preserves both squared norms. General invertible transformations do not preserve cosine similarity.</p></li>
+<li><p><strong>Order.</strong> Construct two sentences with the same bag of words but different meanings. <strong>Solution:</strong> “models explain data” and “data explain models” suffice. A mean-pooling baseline cannot distinguish them; an order-aware model can represent a distinction but must still learn it.</p></li>
+<li><p><strong>Sampling variation.</strong> Repeat the SVD after removing one corpus sentence. What should be compared? <strong>Solution:</strong> compare neighbor rankings or pairwise similarities on a common vocabulary. Comparing raw coordinates is misleading because rotations and sign changes are arbitrary. Large changes reveal instability in this tiny corpus.</p></li>
+</ol>
+</section>
+<section id="reading-and-next-step">
+<h2>3.8 · Reading and next step<a class="headerlink" href="#reading-and-next-step" title="Link to this heading">#</a></h2>
+<p>The <a class="reference external" href="https://huggingface.co/learn/llm-course/en/chapter6/5">Hugging Face explanation of BPE</a> describes practical tokenizer construction. Our merge experiment and SVD example isolate two separate preprocessing choices. <a class="reference internal" href="04-attention.html"><span class="std std-doc">Chapter 4</span></a> now makes representations depend on a query and its context.</p>
+</section>
 </section>
 
 
@@ -384,6 +626,30 @@
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-vocabulary-is-an-estimated-preprocessing-object">3.1 · A vocabulary is an estimated preprocessing object</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-miniature-byte-pair-style-merge-experiment">3.2 · A miniature byte-pair-style merge experiment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-hot-encoding-and-lookup-are-the-same-linear-operation">3.3 · One-hot encoding and lookup are the same linear operation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learn-a-small-representation-from-co-occurrence">3.4 · Learn a small representation from co-occurrence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#identifiability-and-the-loss-of-order">3.5 · Identifiability and the loss of order</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#positions-and-contextual-representations">3.6 · Positions and contextual representations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises-and-worked-solutions">3.7 · Exercises and worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">3.8 · Reading and next step</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

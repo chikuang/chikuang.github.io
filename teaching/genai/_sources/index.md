@@ -35,9 +35,11 @@ Every chapter starts with a concrete question, develops a statistical formulatio
 1. [Set up Python and JupyterLab](python-workflow.md). You can also read the rendered lessons without installing anything.
 2. Work through [Chapter 1](chapters/01-probability-to-genai.md), running cells from top to bottom.
 3. Use the [statistical translation guide](statistical-lens.md) and [selected readings](readings.md) when terminology is unfamiliar.
-4. Follow the [14-chapter course outline](syllabus.md) as the remaining lessons develop.
+4. Follow the [14-chapter course guide](syllabus.md), then complete the worked simulation-assistant project.
 
-**Current materials:** Chapter 1 is a complete lesson. Chapters 2–14 have individual pages with questions, learning objectives, statistical connections, and planned Python practice; they are explicitly marked as outlines. The [short Python warm-up](01-python-lab.md) remains available as a supplement.
+**Complete core course:** All 14 chapters contain developed lessons, mathematical explanations, executable Python experiments, exercises, worked solutions, and downloadable notebooks. The examples run on a laptop CPU without API keys or pretrained-model downloads. The [short Python warm-up](01-python-lab.md) remains available as a supplement.
+
+The progression includes neural-network training, embeddings, masked attention, a tiny transformer, character generation, a VAE, diffusion, low-rank adaptation, preference learning, retrieval, uncertainty, tool-use policies, reliability experiments, and a worked statistical simulation assistant. Retrieval and agent labs use transparent offline baselines; language-model integrations are identified as extensions rather than presented as measured results.
 
 ```{toctree}
 :caption: Course guide

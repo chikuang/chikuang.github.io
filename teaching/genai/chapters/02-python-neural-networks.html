@@ -50,6 +50,8 @@
     <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/02-python-neural-networks';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="canonical" href="https://chikuang.github.io/teaching/genai/chapters/02-python-neural-networks.html" />
@@ -163,7 +165,7 @@
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Course guide</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course outline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python-workflow.html">Learn, teach, and build with Python</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../statistical-lens.html">The statistical lens</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
@@ -309,7 +311,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -325,6 +329,23 @@
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#arrays-shapes-and-broadcasting">2.1 · Arrays, shapes, and broadcasting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-logistic-regression-to-learned-features">2.2 · From logistic regression to learned features</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#check-automatic-differentiation-on-a-known-answer">2.3 · Check automatic differentiation on a known answer</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulate-a-nonlinear-problem-and-split-first">2.4 · Simulate a nonlinear problem and split first</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-training-loop-you-can-inspect">2.5 · A training loop you can inspect</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compare-with-a-constant-baseline-on-the-test-sample">2.6 · Compare with a constant baseline on the test sample</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#debug-the-experiment-before-enlarging-the-model">2.7 · Debug the experiment before enlarging the model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">2.8 · Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#worked-solutions">2.9 · Worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">2.10 · Reading and next step</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -336,17 +357,264 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="python-and-neural-network-foundations">
 <h1>2 · Python and neural network foundations<a class="headerlink" href="#python-and-neural-network-foundations" title="Link to this heading">#</a></h1>
-<div class="note admonition">
-<p class="admonition-title">Chapter status: outline</p>
-<p>This is the planned scope of Chapter 2. The complete lesson, executable examples, and solutions will be developed later. <a class="reference internal" href="01-probability-to-genai.html"><span class="std std-doc">Chapter 1</span></a> is available now.</p>
-</div>
 <p><strong>Question.</strong> What changes when a regression model learns its own nonlinear features?</p>
-<ul class="simple">
-<li><p><strong>Learn:</strong> arrays, shapes, indexing, broadcasting, functions, and reproducible random generators; then tensors, automatic differentiation, minibatches, and a PyTorch training loop.</p></li>
-<li><p><strong>Statistical lens:</strong> linear/logistic regression, basis expansions, regularization, optimization, overfitting, and validation.</p></li>
-<li><p><strong>Python practice:</strong> fit logistic regression and a small multilayer perceptron to the same simulated problem; record train/validation curves and compare against a simple baseline.</p></li>
-<li><p><strong>Self-check:</strong> distinguish the model, loss, optimizer, and data split; check a derivative numerically before trusting autodiff.</p></li>
-</ul>
+<p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/02-python-neural-networks.ipynb">Download the executed notebook</a> · <a class="reference internal" href="../python-workflow.html"><span class="std std-doc">Python setup</span></a></p>
+<p>A neural network is a parameterized function fitted by an optimization procedure. Its hidden layers are learned basis expansions. This chapter starts with array operations, connects logistic regression to a small network, and makes the training loop visible. We will compare both models on the same simulated classification problem, using a validation set to select a checkpoint and a separate test set for final evaluation.</p>
+<p><strong>Prerequisites:</strong> Chapter 1, matrix multiplication, likelihood, and differentiation. <strong>Outcomes:</strong> read tensor shapes; check a gradient; implement minibatch training; distinguish optimization error from generalization error. All cells run on a CPU using NumPy, Matplotlib, and PyTorch. Run them in order.</p>
+<section id="arrays-shapes-and-broadcasting">
+<h2>2.1 · Arrays, shapes, and broadcasting<a class="headerlink" href="#arrays-shapes-and-broadcasting" title="Link to this heading">#</a></h2>
+<p>A NumPy array has a shape and a data type. A matrix of <span class="math notranslate nohighlight">\(n\)</span> observations with <span class="math notranslate nohighlight">\(p\)</span> features has shape <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">p)</span></code>. In Python, <code class="docutils literal notranslate"><span class="pre">*</span></code> multiplies entries; <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> performs matrix multiplication. Broadcasting permits operations between compatible shapes by aligning dimensions from the right. A singleton dimension can be repeated without explicitly making copies.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
+
+<span class="n">torch</span><span class="o">.</span><span class="n">set_num_threads</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">2026</span><span class="p">)</span>
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">2026</span><span class="p">)</span>
+<span class="n">X_demo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">],</span> <span class="p">[</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">4.</span><span class="p">],</span> <span class="p">[</span><span class="mf">5.</span><span class="p">,</span> <span class="mf">6.</span><span class="p">]])</span>
+<span class="n">w_demo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.25</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;X:&#39;</span><span class="p">,</span> <span class="n">X_demo</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s1">&#39;w:&#39;</span><span class="p">,</span> <span class="n">w_demo</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Linear predictions:&#39;</span><span class="p">,</span> <span class="n">X_demo</span> <span class="o">@</span> <span class="n">w_demo</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Column centering:&#39;</span><span class="p">,</span> <span class="n">X_demo</span> <span class="o">-</span> <span class="n">X_demo</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Keep a column dimension:&#39;</span><span class="p">,</span> <span class="n">X_demo</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>X: (3, 2) w: (2,)
+Linear predictions: [0.  0.5 1. ]
+Column centering: [[-2. -2.]
+ [ 0.  0.]
+ [ 2.  2.]]
+Keep a column dimension: (3, 1)
+</pre></div>
+</div>
+</div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">X_demo[:,</span> <span class="pre">0]</span></code> has shape <code class="docutils literal notranslate"><span class="pre">(3,)</span></code>, whereas <code class="docutils literal notranslate"><span class="pre">X_demo[:,</span> <span class="pre">:1]</span></code> has shape <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">1)</span></code>. This difference matters: subtracting <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">1)</span></code> from <code class="docutils literal notranslate"><span class="pre">(n,)</span></code> produces an <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">n)</span></code> array, not the vector of residuals you intended. Before fitting anything, print the shapes of predictors, labels, and predictions. Use assertions when a silent broadcast could change the estimand.</p>
+<p>A function packages a calculation with named inputs and a returned result. A class packages state and behavior. PyTorch’s <code class="docutils literal notranslate"><span class="pre">nn.Module</span></code> is the base class for models; its registered parameters are the quantities an optimizer can update. A tensor resembles an array but can also participate in automatic differentiation.</p>
+</section>
+<section id="from-logistic-regression-to-learned-features">
+<h2>2.2 · From logistic regression to learned features<a class="headerlink" href="#from-logistic-regression-to-learned-features" title="Link to this heading">#</a></h2>
+<p>For binary <span class="math notranslate nohighlight">\(Y\)</span>, write</p>
+<div class="math notranslate nohighlight">
+\[
+\eta_i=x_i^\top w+b,\qquad p_i=\sigma(\eta_i),\qquad
+\sigma(u)=\frac{1}{1+e^{-u}}.
+\]</div>
+<p>The mean negative log likelihood is</p>
+<div class="math notranslate nohighlight">
+\[
+L(w,b)=\frac1n\sum_i\{\log(1+e^{\eta_i})-y_i\eta_i\}.
+\]</div>
+<p>Its gradient in <span class="math notranslate nohighlight">\(w\)</span> is <span class="math notranslate nohighlight">\(X^\top(p-y)/n\)</span>. A hidden layer replaces the fixed features with <span class="math notranslate nohighlight">\(h(x)=\tanh(W_1x+b_1)\)</span> and uses <span class="math notranslate nohighlight">\(\eta=w_2^\top h(x)+b_2\)</span>. Both layers are estimated jointly. The resulting likelihood is familiar; the feature map and nonconvex optimization are the new parts. A deeper model does not remove the need for a sampling model, a baseline, or independent evaluation.</p>
+<p>We use <code class="docutils literal notranslate"><span class="pre">BCEWithLogitsLoss</span></code>, which accepts logits and implements a stable binary cross-entropy. Do <strong>not</strong> apply a sigmoid before passing predictions to this loss. Apply it when you need probabilities for interpretation.</p>
+</section>
+<section id="check-automatic-differentiation-on-a-known-answer">
+<h2>2.3 · Check automatic differentiation on a known answer<a class="headerlink" href="#check-automatic-differentiation-on-a-known-answer" title="Link to this heading">#</a></h2>
+<p>Autodiff applies the chain rule to a recorded computation graph. It is not numerical differentiation. A finite-difference check is nevertheless useful for catching mistakes in your formula or tensor indexing.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">x_check</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">X_demo</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="n">y_check</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span><span class="n">x_check</span> <span class="o">@</span> <span class="n">w</span><span class="p">,</span> <span class="n">y_check</span><span class="p">)</span>
+<span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">autodiff</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">manual</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_check</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">x_check</span> <span class="o">@</span> <span class="n">w</span><span class="p">)</span> <span class="o">-</span> <span class="n">y_check</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">objective</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">X_demo</span> <span class="o">@</span> <span class="n">v</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logaddexp</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span> <span class="o">-</span> <span class="n">y_check</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span> <span class="o">*</span> <span class="n">z</span><span class="p">)</span>
+
+<span class="n">h</span> <span class="o">=</span> <span class="mf">1e-5</span>
+<span class="n">base</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">finite_difference</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+    <span class="p">(</span><span class="n">objective</span><span class="p">(</span><span class="n">base</span> <span class="o">+</span> <span class="n">h</span> <span class="o">*</span> <span class="n">e</span><span class="p">)</span> <span class="o">-</span> <span class="n">objective</span><span class="p">(</span><span class="n">base</span> <span class="o">-</span> <span class="n">h</span> <span class="o">*</span> <span class="n">e</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">h</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Autodiff:&#39;</span><span class="p">,</span> <span class="n">autodiff</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Analytic:&#39;</span><span class="p">,</span> <span class="n">manual</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Finite difference:&#39;</span><span class="p">,</span> <span class="n">finite_difference</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">autodiff</span><span class="p">,</span> <span class="n">manual</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">autodiff</span><span class="p">,</span> <span class="n">finite_difference</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Autodiff: [-0.95235324 -1.06951268]
+Analytic: [-0.95235324 -1.06951268]
+Finite difference: [-0.95235324 -1.06951268]
+</pre></div>
+</div>
+</div>
+</div>
+<p>Gradients accumulate in <code class="docutils literal notranslate"><span class="pre">.grad</span></code>. An optimizer therefore needs <code class="docutils literal notranslate"><span class="pre">zero_grad()</span></code> before a new backward pass. <code class="docutils literal notranslate"><span class="pre">detach()</span></code> stops tracking a tensor for differentiation; it does not change its numerical value. Use <code class="docutils literal notranslate"><span class="pre">torch.no_grad()</span></code> for evaluation to avoid building an unnecessary graph.</p>
+</section>
+<section id="simulate-a-nonlinear-problem-and-split-first">
+<h2>2.4 · Simulate a nonlinear problem and split first<a class="headerlink" href="#simulate-a-nonlinear-problem-and-split-first" title="Link to this heading">#</a></h2>
+<p>The true log odds below depend on squared radius. A linear decision boundary is misspecified. This is deliberate: we want an example in which nonlinear features have a reason to help, rather than a contest in which model complexity is rewarded without explanation.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">X</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">1200</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>
+<span class="n">true_logits</span> <span class="o">=</span> <span class="mf">2.5</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.5</span> <span class="o">-</span> <span class="p">(</span><span class="n">X</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">true_p</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">true_logits</span><span class="p">))</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">binomial</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">true_p</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>
+<span class="n">order</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+<span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="n">order</span><span class="p">[:</span><span class="mi">700</span><span class="p">],</span> <span class="n">order</span><span class="p">[</span><span class="mi">700</span><span class="p">:</span><span class="mi">950</span><span class="p">],</span> <span class="n">order</span><span class="p">[</span><span class="mi">950</span><span class="p">:]</span>
+<span class="n">mean</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">train</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">scale</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">train</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">Z</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">((</span><span class="n">X</span> <span class="o">-</span> <span class="n">mean</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span><span class="p">)</span>
+<span class="n">y_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Train / validation / test:&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">train</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">test</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Training class proportion:&#39;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">train</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span> <span class="mi">3</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Train / validation / test: 700 250 250
+Training class proportion: 0.491
+</pre></div>
+</div>
+</div>
+</div>
+<p>Estimate preprocessing parameters on training observations only. Validation observations influence model selection, so they are not a final test sample. The simulation’s true probabilities are available for understanding the example; we do not feed them into the optimizer.</p>
+</section>
+<section id="a-training-loop-you-can-inspect">
+<h2>2.5 · A training loop you can inspect<a class="headerlink" href="#a-training-loop-you-can-inspect" title="Link to this heading">#</a></h2>
+<p>One epoch visits all training observations. A minibatch supplies a noisy gradient estimate. We shuffle the training indices each epoch, evaluate validation loss without gradients, and save the parameters with the lowest validation loss. <code class="docutils literal notranslate"><span class="pre">state_dict()</span></code> contains model parameters; copying its tensors prevents later training from changing the saved checkpoint.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">180</span><span class="p">):</span>
+    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
+    <span class="n">loss_fn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span><span class="p">()</span>
+    <span class="n">history</span><span class="p">,</span> <span class="n">best_loss</span><span class="p">,</span> <span class="n">best_state</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),</span> <span class="kc">None</span>
+    <span class="n">local_rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">90</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">array_split</span><span class="p">(</span><span class="n">local_rng</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">train</span><span class="p">),</span> <span class="mi">7</span><span class="p">):</span>
+            <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+            <span class="n">logits</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">Z</span><span class="p">[</span><span class="n">batch</span><span class="p">])</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">y_tensor</span><span class="p">[</span><span class="n">batch</span><span class="p">])</span>
+            <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+            <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">train_loss</span> <span class="o">=</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="n">Z</span><span class="p">[</span><span class="n">train</span><span class="p">])</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">y_tensor</span><span class="p">[</span><span class="n">train</span><span class="p">])</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="n">valid_loss</span> <span class="o">=</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="n">Z</span><span class="p">[</span><span class="n">valid</span><span class="p">])</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">y_tensor</span><span class="p">[</span><span class="n">valid</span><span class="p">])</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">train_loss</span><span class="p">,</span> <span class="n">valid_loss</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">valid_loss</span> <span class="o">&lt;</span> <span class="n">best_loss</span><span class="p">:</span>
+            <span class="n">best_loss</span> <span class="o">=</span> <span class="n">valid_loss</span>
+            <span class="n">best_state</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">())</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">best_state</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">history</span><span class="p">)</span>
+
+<span class="n">linear</span><span class="p">,</span> <span class="n">linear_curve</span> <span class="o">=</span> <span class="n">fit</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">network</span><span class="p">,</span> <span class="n">network_curve</span> <span class="o">=</span> <span class="n">fit</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">))</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">curve</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">&#39;Linear&#39;</span><span class="p">,</span> <span class="n">linear_curve</span><span class="p">,</span> <span class="s1">&#39;#705600&#39;</span><span class="p">),</span>
+                            <span class="p">(</span><span class="s1">&#39;Network&#39;</span><span class="p">,</span> <span class="n">network_curve</span><span class="p">,</span> <span class="s1">&#39;#a2006e&#39;</span><span class="p">)]:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">curve</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span> <span class="o">+</span> <span class="s1">&#39; train&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">curve</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span> <span class="o">+</span> <span class="s1">&#39; validation&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Epoch&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Mean binary log loss&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/cef47dcfd28bf1e87694e835089ef53a9f888bc686c545f4ad439dade14610e8.png" src="../_images/cef47dcfd28bf1e87694e835089ef53a9f888bc686c545f4ad439dade14610e8.png" />
+</div>
+</div>
+<p>The optimizer controls how parameters move, not what the statistical target is. Weight decay penalizes large parameters; hidden-layer width controls representational capacity; the epoch budget controls how long we optimize. These are different choices. A decreasing training loss with a rising validation loss is evidence that further optimization is harming validation performance, not evidence that gradient descent has stopped working.</p>
+</section>
+<section id="compare-with-a-constant-baseline-on-the-test-sample">
+<h2>2.6 · Compare with a constant baseline on the test sample<a class="headerlink" href="#compare-with-a-constant-baseline-on-the-test-sample" title="Link to this heading">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">baseline</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">train</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+    <span class="n">baseline_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">test</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">baseline</span><span class="p">)</span>
+                            <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">y</span><span class="p">[</span><span class="n">test</span><span class="p">])</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">baseline</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Constant baseline test log loss: </span><span class="si">{</span><span class="n">baseline_loss</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">&#39;Linear&#39;</span><span class="p">,</span> <span class="n">linear</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;Network&#39;</span><span class="p">,</span> <span class="n">network</span><span class="p">)]:</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">Z</span><span class="p">[</span><span class="n">test</span><span class="p">])</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">test_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">y_tensor</span><span class="p">[</span><span class="n">test</span><span class="p">])</span>
+        <span class="n">accuracy</span> <span class="o">=</span> <span class="p">((</span><span class="n">logits</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">y_tensor</span><span class="p">[</span><span class="n">test</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">: test log loss=</span><span class="si">{</span><span class="n">test_loss</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">, accuracy=</span><span class="si">{</span><span class="n">accuracy</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Constant baseline test log loss: 0.693
+Linear: test log loss=0.695, accuracy=0.580
+Network: test log loss=0.266, accuracy=0.872
+</pre></div>
+</div>
+</div>
+</div>
+<p>These numbers describe one simulated dataset and one training seed. They are not a general ranking of architectures. To study stability, repeat the entire data-generation and fitting procedure with several independent seeds, preserving the paired comparison within each replicate. Do not search over seeds and report only the favorable run.</p>
+</section>
+<section id="debug-the-experiment-before-enlarging-the-model">
+<h2>2.7 · Debug the experiment before enlarging the model<a class="headerlink" href="#debug-the-experiment-before-enlarging-the-model" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Symptom</p></th>
+<th class="head text-left"><p>First diagnostic</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>Loss is <code class="docutils literal notranslate"><span class="pre">nan</span></code></p></td>
+<td class="text-left"><p>Check finite inputs, learning rate, and stable loss functions.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Loss is unchanged</p></td>
+<td class="text-left"><p>Check registered parameters, gradients, and <code class="docutils literal notranslate"><span class="pre">optimizer.step()</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Suspiciously perfect validation</p></td>
+<td class="text-left"><p>Check duplicate observations and preprocessing leakage.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Accuracy is high but log loss is poor</p></td>
+<td class="text-left"><p>Inspect overconfident mistakes and class imbalance.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Shapes look plausible but loss is strange</p></td>
+<td class="text-left"><p>Check for unintended <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">n)</span></code> broadcasting.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A useful development test is to overfit a tiny training subset deliberately. If a flexible network cannot fit a handful of examples, investigate the implementation before collecting more data. This is a debugging experiment, not evidence of generalization.</p>
+</section>
+<section id="exercises">
+<h2>2.8 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>For <code class="docutils literal notranslate"><span class="pre">n=20,</span> <span class="pre">p=3,</span> <span class="pre">h=8</span></code>, list the shapes after both linear layers of a binary network and count its parameters.</p></li>
+<li><p>Derive the logistic-regression gradient and identify the term that corresponds to residuals.</p></li>
+<li><p>Add the squared radius as a fixed feature to logistic regression. Explain why this is an especially strong baseline here.</p></li>
+<li><p>Set the learning rate to <code class="docutils literal notranslate"><span class="pre">0.5</span></code> and then <code class="docutils literal notranslate"><span class="pre">0.001</span></code>. Compare optimization behavior using validation curves, without selecting a model using test loss.</p></li>
+<li><p>Explain why fitting the standardization parameters to all observations changes the evaluation procedure even when labels are not used.</p></li>
+</ol>
+</section>
+<section id="worked-solutions">
+<h2>2.9 · Worked solutions<a class="headerlink" href="#worked-solutions" title="Link to this heading">#</a></h2>
+<p><strong>1.</strong> For a batch of 20, the hidden representation has shape <code class="docutils literal notranslate"><span class="pre">(20,</span> <span class="pre">8)</span></code> and the logits have shape <code class="docutils literal notranslate"><span class="pre">(20,</span> <span class="pre">1)</span></code>. The first layer has <span class="math notranslate nohighlight">\(3\cdot8+8=32\)</span> parameters; the second has <span class="math notranslate nohighlight">\(8+1=9\)</span>; total 41. Squeezing only the final dimension leaves one logit per observation.</p>
+<p><strong>2.</strong> Differentiating each loss term with respect to its logit gives <span class="math notranslate nohighlight">\(\sigma(\eta_i)-y_i\)</span>. Multiplication by <span class="math notranslate nohighlight">\(x_i\)</span> and averaging gives <span class="math notranslate nohighlight">\(X^\top(p-y)/n\)</span>. The feature map’s Jacobian replaces <span class="math notranslate nohighlight">\(x_i\)</span> when differentiating through a hidden layer.</p>
+<p><strong>3.</strong> The data were generated from a linear function of squared radius. A logistic model with features <span class="math notranslate nohighlight">\((x_1,x_2,x_1^2+x_2^2)\)</span> contains the correct conditional model. It may be more data-efficient than learning the same feature from scratch. Fit it with the same split and compare test performance only after validation decisions are fixed.</p>
+<p><strong>4.</strong> A large learning rate can oscillate or diverge; a small one can make the fixed epoch budget inadequate. Neither outcome alone identifies the best function class. Record the full curve and selected epoch rather than only the last iterate.</p>
+<p><strong>5.</strong> The fitted transformation would then depend on the evaluation sample. In deployment, future covariates may not be available jointly. A training-only transformation reproduces that intended information boundary. In this simulation the numerical effect may be small, but the experimental definition is still different.</p>
+</section>
+<section id="reading-and-next-step">
+<h2>2.10 · Reading and next step<a class="headerlink" href="#reading-and-next-step" title="Link to this heading">#</a></h2>
+<p>The official <a class="reference external" href="https://docs.pytorch.org/tutorials/beginner/basics/intro.html">PyTorch basics</a> provide a complementary guide to tensors, modules, autodiff, and optimization. Our simulated comparison is a separate experiment. Next, <a class="reference internal" href="03-tokens-embeddings.html"><span class="std std-doc">Chapter 3</span></a> replaces numerical covariates with token IDs and learned vector representations.</p>
+</section>
 </section>
 
 
@@ -384,6 +652,32 @@
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#arrays-shapes-and-broadcasting">2.1 · Arrays, shapes, and broadcasting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-logistic-regression-to-learned-features">2.2 · From logistic regression to learned features</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#check-automatic-differentiation-on-a-known-answer">2.3 · Check automatic differentiation on a known answer</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulate-a-nonlinear-problem-and-split-first">2.4 · Simulate a nonlinear problem and split first</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-training-loop-you-can-inspect">2.5 · A training loop you can inspect</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compare-with-a-constant-baseline-on-the-test-sample">2.6 · Compare with a constant baseline on the test sample</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#debug-the-experiment-before-enlarging-the-model">2.7 · Debug the experiment before enlarging the model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">2.8 · Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#worked-solutions">2.9 · Worked solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">2.10 · Reading and next step</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

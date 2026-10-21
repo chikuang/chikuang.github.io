@@ -15,6 +15,7 @@ Start with the introductory resources. Read foundational papers after working th
 
 - **Attention and transformers — Module 4–5:** Vaswani et al. (2017), [Attention Is All You Need](https://arxiv.org/abs/1706.03762). First identify the inputs, outputs, attention equation, and block diagram; return to experiments later.
 - **Latent-variable generation — Module 7:** Kingma and Welling (2013 preprint), [Auto-Encoding Variational Bayes](https://arxiv.org/abs/1312.6114). Connect the ELBO to variational inference and study the reparameterization step.
+- **Adversarial generation — Module 7:** Goodfellow et al. (2014), [Generative Adversarial Networks](https://arxiv.org/abs/1406.2661). Contrast its discrimination objective with the VAE bound.
 - **Diffusion — Module 8:** Ho, Jain, and Abbeel (2020), [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239). Track the forward and reverse processes and the denoising objective.
 - **Efficient adaptation — Module 9:** Hu et al. (2021 preprint), [LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685). Identify which parameters are frozen and which low-rank matrices are learned.
 - **Preference learning — Module 9:** Rafailov et al. (2023), [Direct Preference Optimization: Your Language Model is Secretly a Reward Model](https://arxiv.org/abs/2305.18290). Study the preference likelihood and the role of the reference policy.
@@ -26,4 +27,4 @@ Start with the introductory resources. Read foundational papers after working th
 
 For each paper, write a short note answering: What is the statistical object? What is optimized? What assumptions are made? What is the comparison baseline? What are the experimental units? Which claim would I want to reproduce?
 
-Links and source identities were checked when this outline was created on October 20, 2026. Software documentation evolves; record the versions used for each future lab.
+Links and source identities were checked when the course was expanded on October 20, 2026. Software documentation evolves; record the versions used for each lab.

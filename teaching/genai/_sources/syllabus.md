@@ -1,9 +1,9 @@
 
-# Course outline
+# Course guide
 
 **STAT XXXX Generative AI**
 
-This sequence assumes a strong statistics background and begins at an introductory level in deep learning and GenAI. Modules are learning units, not calendar weeks. Work through them at a comfortable pace, returning to the mathematics when it clarifies an experiment. All proposed implementations use **Python**, progressing from NumPy to PyTorch and then selected pretrained-model tools.
+This sequence assumes a strong statistics background and begins at an introductory level in deep learning and GenAI. Modules are learning units, not calendar weeks. Work through them at a comfortable pace, returning to the mathematics when it clarifies an experiment. All 14 chapters now include developed lessons, executable **Python** labs, exercises, and worked solutions. Core experiments progress from NumPy to PyTorch and then transparent retrieval and tool-use policies. They run on a CPU without model downloads or API credentials. External language-model integrations are explicit extensions.
 
 ## Road map
 
@@ -53,7 +53,7 @@ This sequence assumes a strong statistics background and begins at an introducto
 
 - **Learn:** tokenization, vocabulary, one-hot representations, embedding lookup, positional information, cosine similarity, and contextual representations.
 - **Statistical lens:** design matrices, learned feature maps, matrix factorization, and identifiability.
-- **Python practice:** tokenize a small public text collection and compare bag-of-words with embedding-based similarity. Inspect examples where similarity is misleading.
+- **Python practice:** tokenize a small course-authored corpus, learn character merges, and compare bag-of-words with SVD embedding similarity. Inspect examples where similarity is misleading.
 - **Self-check:** explain why a token is not necessarily a word and why a two-dimensional embedding plot is not evidence of causal structure.
 
 (module-04)=
@@ -86,7 +86,7 @@ This sequence assumes a strong statistics background and begins at an introducto
 
 - **Learn:** next-token prediction, teacher forcing, context windows, pretraining versus inference, in-context examples, greedy decoding, temperature, top-k, and top-p.
 - **Statistical lens:** conditional likelihood, distribution shift, and transformations of a sampling distribution. In-context behavior can be studied statistically without assuming the model performs exact Bayesian inference.
-- **Python practice:** train a very small character model or use a small pretrained model; vary one decoding choice at a time on fixed prompts and repeat runs.
+- **Python practice:** train a small character GRU on a synthetic sentence grammar, hold out complete sentence combinations, and compare decoding choices on fixed prompts.
 - **Self-check:** explain why perplexity is not a universal measure of usefulness and why prompting is not parameter estimation by gradient descent at inference time.
 
 (module-07)=
@@ -164,13 +164,13 @@ This sequence assumes a strong statistics background and begins at an introducto
 
 - **Learn:** trajectory-level evaluation, failure taxonomies, repeated trials, cost/latency tradeoffs, memory ablations, prompt injection through retrieved text, and human approval for consequential actions.
 - **Statistical lens:** dependence within a task trajectory, factorial comparisons, uncertainty in success rates, and adaptive selection bias.
-- **Python practice:** compare a direct model call, a fixed workflow, and the agent on the same task set and budget. Inject harmless tool failures; log recovery, loop counts, and stopping behavior. Treat external documents as data rather than tool instructions.
+- **Python practice:** compare a cached-answer baseline, a one-pass tool workflow, and a bounded retry policy on paired tasks; extend the protocol to an LLM policy only after establishing these offline baselines. Inject harmless tool failures; log recovery, loop counts, and stopping behavior. Treat external documents as data rather than tool instructions.
 - **Self-check:** separate task failure, tool failure, unsupported answers, and budget exhaustion. Add multiple agents only as an optional ablation after establishing a single-agent baseline.
 
 (module-14)=
 ### 14 · Capstone: a GenAI system for a statistician
 
-Choose one modest project: a citation-grounded assistant for public statistical notes, a teaching assistant that explains simulation results, or a tool-using simulation planner with a constrained action space.
+Chapter 14 provides a complete simulation-assistant project with a validated request schema, coverage simulation, Monte Carlo intervals, a nominal baseline, and held-out scenarios. For an extension, choose a citation-grounded assistant for public statistical notes, a teaching assistant that explains simulation results, or a tool-using simulation planner with a constrained action space.
 
 Produce a **reproducible Python notebook and a short MyST chapter** containing:
 
