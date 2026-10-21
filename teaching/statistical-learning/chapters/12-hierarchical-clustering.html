@@ -1,0 +1,793 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="auto">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>12. Selective inference after hierarchical clustering &#8212; Topics of Statistical Learning</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "auto";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "auto";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/12-hierarchical-clustering';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/learning-controls.js?v=4698cf9e"></script>
+    <script src="../_static/course-demos.js?v=2eb4c93c"></script>
+    <link rel="canonical" href="https://chikuang.github.io/teaching/statistical-learning/chapters/12-hierarchical-clustering.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="13. Selective inference after k-means" href="13-kmeans-inference.html" />
+    <link rel="prev" title="11. Selective inference: asking a question after seeing the data" href="11-selective-inference.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+    <meta name="docbuild:last-update" content="October 21, 2026"/>
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="auto">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Topics of Statistical Learning</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    Topics of Statistical Learning
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Course guide</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide and study route</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../r-workflow.html">R workflow and reproducibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../assignments.html">Assignments and paper discussion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../project.html">Research project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">Interactive demonstrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">I · Weak supervision</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="01-statistical-targets.html">1. Statistical targets and observation mechanisms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02-weak-supervision.html">2. What weak supervision tells us</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03-pu-learning.html">3. Learning from positives and unlabelled observations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04-pu-practice.html">4. PU estimation, overfitting, and sensitivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05-uu-learning.html">5. Learning from two unlabelled mixtures</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">II · Preference learning</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="06-pairwise-preferences.html">6. Pairwise preference learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="07-contextual-preferences.html">7. Contextual preferences, judges, and reward learning</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">III · Online learning</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="08-online-learning.html">8. Online learning and regret</a></li>
+<li class="toctree-l1"><a class="reference internal" href="09-bandits.html">9. Bandits: learning from chosen actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="10-duelling-bandits.html">10. Duelling bandits and adaptive comparisons</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">IV · Inference after selection</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="11-selective-inference.html">11. Selective inference: asking a question after seeing the data</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">12. Selective inference after hierarchical clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="13-kmeans-inference.html">13. Selective inference after k-means</a></li>
+<li class="toctree-l1"><a class="reference internal" href="14-research-synthesis.html">14. Research synthesis: assumptions, validation, and independent information</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item"><a class="btn btn-sm nav-link course-pdf-button"
+   href="../Topics-of-Statistical-Learning.pdf" download
+   title="Download the complete course PDF" aria-label="Download course PDF">
+  <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> <span>PDF</span>
+</a>
+</div>
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/chikuang/Teaching-SML" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/chikuang/Teaching-SML/blob/main/docs/chapters/12-hierarchical-clustering.md?plain=1" target="_blank"
+   class="btn btn-sm btn-source-file-button dropdown-item"
+   title="Show source"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-code"></i>
+  </span>
+<span class="btn__text-container">Show source</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>12. Selective inference after hierarchical clustering</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#state-the-model-before-interpreting-a-cluster">12.1 State the model before interpreting a cluster</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-the-ordinary-reference-distribution-fails">12.2 Why the ordinary reference distribution fails</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reduce-the-problem-to-one-varying-distance">12.3 Reduce the problem to one varying distance</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-truncation-set-remembers-the-algorithm">12.4 The truncation set remembers the algorithm</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-must-be-fixed-or-accounted-for">12.5 What must be fixed or accounted for?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-ordinary-row-splitting-can-still-fail">12.6 Why ordinary row splitting can still fail</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducible-r-laboratory">12.7 Reproducible R laboratory</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#computed-output">Computed output</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solutions">Solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">Reading and next step</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="selective-inference-after-hierarchical-clustering">
+<h1>12. Selective inference after hierarchical clustering<a class="headerlink" href="#selective-inference-after-hierarchical-clustering" title="Link to this heading">#</a></h1>
+<section id="learning-objectives">
+<h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h2>
+<p>After this chapter, you should be able to define a selected-group mean contrast, explain why ordinary cluster comparisons can fail, derive the one-dimensional radial perturbation underlying a selective test, and distinguish exact known-variance inference from a plug-in analysis.</p>
+<p>Clustering constructs labels from observations. If those labels are then treated as pre-existing scientific groups, an ordinary test ignores the construction step. A visually separated partition is especially easy to produce because separation is an objective of the clustering algorithm itself.</p>
+</section>
+<section id="state-the-model-before-interpreting-a-cluster">
+<h2>12.1 State the model before interpreting a cluster<a class="headerlink" href="#state-the-model-before-interpreting-a-cluster" title="Link to this heading">#</a></h2>
+<p>Consider <span class="math notranslate nohighlight">\(n\)</span> independent observations of <span class="math notranslate nohighlight">\(q\)</span> features:</p>
+<div class="math notranslate nohighlight">
+\[
+X_i\sim N_q(\mu_i,\sigma^2 I_q),\qquad
+i=1,\ldots,n,\quad \sigma&gt;0\text{ known}.
+\]</div>
+<p>The means <span class="math notranslate nohighlight">\(\mu_i\)</span> are fixed unknown vectors and may differ across observations. This is a Gaussian mean model, not an assumed finite-mixture model. Let <span class="math notranslate nohighlight">\(\mathcal C(X)\)</span> denote the partition returned by a specified clustering algorithm with a fixed number of clusters <span class="math notranslate nohighlight">\(K\)</span>.</p>
+<p>For two non-overlapping index sets <span class="math notranslate nohighlight">\(C_1,C_2\)</span> appearing in that partition, define</p>
+<div class="math notranslate nohighlight">
+\[
+\bar\mu_C=\frac1{|C|}\sum_{i\in C}\mu_i,\qquad
+H_0^{C_1,C_2}:\bar\mu_{C_1}=\bar\mu_{C_2}.
+\]</div>
+<p>The null concerns the underlying means of the observations in these particular groups. It does not say that the entire population has one cluster, that <span class="math notranslate nohighlight">\(K\)</span> is correct, or that the groups represent two biological types. Those are different scientific questions requiring other models or evidence.</p>
+<p>The framework and exact hierarchical-clustering procedure were developed by <a class="reference external" href="https://doi.org/10.1080/01621459.2022.2116331">Gao, Bien, and Witten (2024)</a>. The article appeared online in 2022; the journal volume is dated 2024.</p>
+</section>
+<section id="why-the-ordinary-reference-distribution-fails">
+<h2>12.2 Why the ordinary reference distribution fails<a class="headerlink" href="#why-the-ordinary-reference-distribution-fails" title="Link to this heading">#</a></h2>
+<p>For fixed groups, let</p>
+<div class="math notranslate nohighlight">
+\[
+\nu_i=\frac{\mathbf1(i\in C_1)}{|C_1|}
+      -\frac{\mathbf1(i\in C_2)}{|C_2|},
+\qquad
+D=X^\top\nu=\bar X_{C_1}-\bar X_{C_2}.
+\]</div>
+<p>Then <span class="math notranslate nohighlight">\(\|\nu\|^2=|C_1|^{-1}+|C_2|^{-1}\)</span> and, under the fixed-group null,</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\|D\|^2}{\sigma^2\|\nu\|^2}\sim\chi_q^2.
+\]</div>
+<p>After clustering, <span class="math notranslate nohighlight">\(\nu\)</span> depends on <span class="math notranslate nohighlight">\(X\)</span>. Substituting the selected <span class="math notranslate nohighlight">\(\nu\)</span> into the fixed-group formula generally changes its null distribution. This is not solved by declaring the selected labels fixed <em>after</em> looking at the data: the repeated-sampling procedure still selects them.</p>
+<div class="course-example admonition">
+<p class="admonition-title">Example 12.1 — A significant difference created by the partition</p>
+<p>Suppose two estimated groups each contain ten observations, <span class="math notranslate nohighlight">\(\sigma=1\)</span>, and their observed mean difference is <span class="math notranslate nohighlight">\((1.2,0)^\top\)</span>. A fixed-group calculation gives</p>
+<div class="math notranslate nohighlight">
+\[
+W=\frac{1.2^2}{1/10+1/10}=7.2,\qquad
+\Pr(\chi_2^2\geq7.2)=e^{-3.6}\approx0.0273.
+\]</div>
+<p>This number does not account for the fact that the groups were chosen to separate the observations. Group sizes and means alone are insufficient to compute the selective p-value: the clustering algorithm and the geometry of the full dataset determine which alternative datasets would produce the same groups.</p>
+</div>
+</section>
+<section id="reduce-the-problem-to-one-varying-distance">
+<h2>12.3 Reduce the problem to one varying distance<a class="headerlink" href="#reduce-the-problem-to-one-varying-distance" title="Link to this heading">#</a></h2>
+<p>Write the observed contrast length as <span class="math notranslate nohighlight">\(r=\|x^\top\nu\|\)</span> and its direction as <span class="math notranslate nohighlight">\(u=x^\top\nu/r\)</span>. Under the continuous model, <span class="math notranslate nohighlight">\(r=0\)</span> has probability zero. Define</p>
+<div class="math notranslate nohighlight">
+\[
+P_\nu^\perp=I_n-\frac{\nu\nu^\top}{\|\nu\|^2}.
+\]</div>
+<p>The data decompose into a component orthogonal to the contrast and a component along it:</p>
+<div class="math notranslate nohighlight">
+\[
+X=P_\nu^\perp X+\frac{\nu}{\|\nu\|^2}(X^\top\nu)^\top.
+\]</div>
+<p>Condition on <span class="math notranslate nohighlight">\(P_\nu^\perp X=P_\nu^\perp x\)</span> and on the direction of <span class="math notranslate nohighlight">\(X^\top\nu\)</span> being <span class="math notranslate nohighlight">\(u\)</span>. The remaining scalar is the contrast length. A dataset with candidate length <span class="math notranslate nohighlight">\(\phi\geq0\)</span> is</p>
+<div class="math notranslate nohighlight">
+\[
+x'(\phi)=P_\nu^\perp x+\frac{\nu}{\|\nu\|^2}\phi u^\top
+=x+\frac{\nu}{\|\nu\|^2}(\phi-r)u^\top.
+\]</div>
+<p>Under the null, before imposing the clustering event, this length follows</p>
+<div class="math notranslate nohighlight">
+\[
+\Phi_{\mathrm{rad}}\sim \sigma\|\nu\|\chi_q.
+\]</div>
+<p>The notation <span class="math notranslate nohighlight">\(\Phi_{\mathrm{rad}}\)</span> denotes a random radius here, not the normal CDF. Gaussian independence separates the orthogonal component, and spherical symmetry under the null separates radius from direction.</p>
+<div class="course-example admonition">
+<p class="admonition-title">Example 12.2 — What the perturbation actually moves</p>
+<p>If both groups have size ten, <span class="math notranslate nohighlight">\(\|\nu\|^2=0.2\)</span>. Increasing the contrast length by <span class="math notranslate nohighlight">\(\Delta\)</span> moves every observation in <span class="math notranslate nohighlight">\(C_1\)</span> by <span class="math notranslate nohighlight">\(+\Delta u/2\)</span> and every observation in <span class="math notranslate nohighlight">\(C_2\)</span> by <span class="math notranslate nohighlight">\(-\Delta u/2\)</span>. Observations outside these groups remain unchanged.</p>
+<p>Within-group pairwise differences remain unchanged. The selected groups are pulled apart or pushed together while preserving the nuisance information on which we conditioned. With unequal sizes, the two shifts have unequal magnitudes so that the overall weighted mean is still preserved.</p>
+</div>
+</section>
+<section id="the-truncation-set-remembers-the-algorithm">
+<h2>12.4 The truncation set remembers the algorithm<a class="headerlink" href="#the-truncation-set-remembers-the-algorithm" title="Link to this heading">#</a></h2>
+<p>Define</p>
+<div class="math notranslate nohighlight">
+\[
+\mathcal S(x)=
+\{\phi\geq0:C_1,C_2\in\mathcal C(x'(\phi))\}.
+\]</div>
+<p>A selective p-value is the conditional upper tail</p>
+<div class="math notranslate nohighlight">
+\[
+p_{\mathrm{sel}}
+=\frac{
+\int_{\mathcal S(x)\cap[r,\infty)}
+ f_{\sigma\|\nu\|\chi_q}(t)\,dt}
+{\int_{\mathcal S(x)}
+ f_{\sigma\|\nu\|\chi_q}(t)\,dt}.
+\]</div>
+<p>The denominator conditions on observing those groups. The additional conditioning above removes nuisance parameters. Computing <span class="math notranslate nohighlight">\(\mathcal S\)</span> is the algorithmic challenge: as <span class="math notranslate nohighlight">\(\phi\)</span> varies, different merges can occur in the dendrogram.</p>
+<p>For several hierarchical linkages with squared Euclidean distance, the authors provide an efficient exact characterization. The selected set can contain multiple intervals. A coarse grid of radii is useful for visualization, but it is not an exact replacement for that characterization; narrow intervals or tail intervals can be missed.</p>
+<p>For teaching, use average linkage and squared Euclidean distance exactly as in the <a class="reference external" href="https://lucylgao.github.io/clusterpval/HierCluster.html">authors’ tutorial</a>. Changing the metric while retaining a formula derived for another metric is not a harmless implementation choice.</p>
+</section>
+<section id="what-must-be-fixed-or-accounted-for">
+<h2>12.5 What must be fixed or accounted for?<a class="headerlink" href="#what-must-be-fixed-or-accounted-for" title="Link to this heading">#</a></h2>
+<p>The first laboratory fixes <span class="math notranslate nohighlight">\(K=2\)</span>, leaving a single pair. It also fixes the distance, linkage, features, and noise scale. If an analyst searches across values of <span class="math notranslate nohighlight">\(K\)</span>, chooses features because they make the separation look stronger, or selects a pair after inspecting its test statistic, the stated conditioning event may no longer describe the full procedure.</p>
+<p>The package can estimate the noise scale when it is not supplied. That practical default does not convert an unknown-variance problem into the finite-sample known-variance theorem. Our simulation supplies <span class="math notranslate nohighlight">\(\sigma=1\)</span>. An application should distinguish an exact guarantee under known covariance from an approximation or asymptotic argument involving estimated covariance.</p>
+<p>Likewise, testing every pair introduces a multiple-testing problem. A valid selected-pair p-value alone does not assert familywise or false-discovery-rate control for an arbitrary collection of pairwise tests.</p>
+</section>
+<section id="why-ordinary-row-splitting-can-still-fail">
+<h2>12.6 Why ordinary row splitting can still fail<a class="headerlink" href="#why-ordinary-row-splitting-can-still-fail" title="Link to this heading">#</a></h2>
+<p>Imagine clustering training observations, training a classifier to reproduce those labels, assigning held-out observations, and testing the held-out features between assigned groups. The assignment uses each held-out observation’s own features. Those same features then determine both the group and the test statistic. The null for the selected held-out groups remains data-dependent.</p>
+<p>Independent replicate measurements of the same units can provide a different route: discover groups from one measurement and compare their underlying means with an independent measurement, under a suitable joint model. Distribution-specific data thinning is another approach discussed in Chapter 14. Neither construction follows merely from calling some rows a test set.</p>
+</section>
+<section id="reproducible-r-laboratory">
+<h2>12.7 Reproducible R laboratory<a class="headerlink" href="#reproducible-r-laboratory" title="Link to this heading">#</a></h2>
+<p>The required base-R experiment contrasts a fixed partition with average-linkage clustering under one Gaussian cloud. It demonstrates the calibration failure directly. When the authors’ <code>clusterpval</code> package is installed, the same script additionally executes its exact known-variance procedure and records how many runs succeeded. It reports explicit status if that extension is unavailable; it never labels a base-R naïve test as selective inference.</p>
+<p><a class="reference download internal" download="" href="../_downloads/142f7d99ae7a38e4587644c8b28dda4b/12-hierarchical-clustering.R"><span class="xref download myst">Download R lab</span></a></p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-number">Listing 2 </span><span class="caption-text">Fixed versus learned groups, with an optional authors’ exact selective procedure</span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Chapter 12: Gaussian cluster comparisons.</span>
+<span class="c1"># Required experiment uses base R. The authors' exact method runs when installed.</span>
+<span class="nf">set.seed</span><span class="p">(</span><span class="m">2026102112</span><span class="p">)</span>
+<span class="nf">options</span><span class="p">(</span><span class="n">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">145</span><span class="p">)</span>
+
+<span class="n">n</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">40L</span>
+<span class="n">q</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">2L</span>
+<span class="n">sigma</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1</span>
+<span class="n">repetitions</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">500L</span>
+<span class="n">alpha</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0.05</span>
+
+<span class="n">wald_p</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">groups</span><span class="p">,</span><span class="w"> </span><span class="n">known_sigma</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">stopifnot</span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="nf">unique</span><span class="p">(</span><span class="n">groups</span><span class="p">))</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">2L</span><span class="p">)</span>
+<span class="w">  </span><span class="n">g1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">groups</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nf">sort</span><span class="p">(</span><span class="nf">unique</span><span class="p">(</span><span class="n">groups</span><span class="p">))[</span><span class="m">1L</span><span class="p">]</span>
+<span class="w">  </span><span class="n">difference</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">colMeans</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">g1</span><span class="p">,</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="n">drop</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">])</span><span class="w"> </span><span class="o">-</span>
+<span class="w">    </span><span class="nf">colMeans</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">!</span><span class="n">g1</span><span class="p">,</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="n">drop</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">])</span>
+<span class="w">  </span><span class="n">variance</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">known_sigma</span><span class="o">^</span><span class="m">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">g1</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="o">!</span><span class="n">g1</span><span class="p">))</span>
+<span class="w">  </span><span class="nf">pchisq</span><span class="p">(</span><span class="nf">sum</span><span class="p">(</span><span class="n">difference</span><span class="o">^</span><span class="m">2</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">variance</span><span class="p">,</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">ncol</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="w"> </span><span class="n">lower.tail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">samples</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">lapply</span><span class="p">(</span><span class="nf">seq_len</span><span class="p">(</span><span class="n">repetitions</span><span class="p">),</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="nf">rnorm</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">q</span><span class="p">),</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">))</span>
+<span class="n">fixed_groups</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rep</span><span class="p">(</span><span class="m">1</span><span class="o">:</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">each</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="m">2L</span><span class="p">)</span>
+<span class="n">fixed_p</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">learned_p</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="n">repetitions</span><span class="p">)</span>
+<span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">b</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">seq_len</span><span class="p">(</span><span class="n">repetitions</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">x</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">samples</span><span class="p">[[</span><span class="n">b</span><span class="p">]]</span>
+<span class="w">  </span><span class="n">tree</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">hclust</span><span class="p">(</span><span class="nf">dist</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">^</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"average"</span><span class="p">)</span>
+<span class="w">  </span><span class="n">learned_groups</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">cutree</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2L</span><span class="p">)</span>
+<span class="w">  </span><span class="n">fixed_p</span><span class="p">[</span><span class="n">b</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">wald_p</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">fixed_groups</span><span class="p">,</span><span class="w"> </span><span class="n">sigma</span><span class="p">)</span>
+<span class="w">  </span><span class="n">learned_p</span><span class="p">[</span><span class="n">b</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">wald_p</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">learned_groups</span><span class="p">,</span><span class="w"> </span><span class="n">sigma</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">summarize_p</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">method</span><span class="p">,</span><span class="w"> </span><span class="n">values</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">rate</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">values</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">alpha</span><span class="p">)</span>
+<span class="w">  </span><span class="n">mc_interval</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">binom.test</span><span class="p">(</span><span class="nf">sum</span><span class="p">(</span><span class="n">values</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">alpha</span><span class="p">),</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">values</span><span class="p">))</span><span class="o">$</span><span class="n">conf.int</span>
+<span class="w">  </span><span class="nf">data.frame</span><span class="p">(</span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">method</span><span class="p">,</span><span class="w"> </span><span class="n">runs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">values</span><span class="p">),</span><span class="w"> </span><span class="n">rejection_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rate</span><span class="p">,</span>
+<span class="w">             </span><span class="n">monte_carlo_se</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sqrt</span><span class="p">(</span><span class="n">rate</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">rate</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">values</span><span class="p">)),</span>
+<span class="w">             </span><span class="n">mc_lower</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mc_interval</span><span class="p">[</span><span class="m">1L</span><span class="p">],</span><span class="w"> </span><span class="n">mc_upper</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mc_interval</span><span class="p">[</span><span class="m">2L</span><span class="p">])</span>
+<span class="p">}</span>
+
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Global null: independent N_2(0, I) observations; fixed K = 2\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="nf">rbind</span><span class="p">(</span><span class="nf">summarize_p</span><span class="p">(</span><span class="s">"Fixed groups: ordinary Wald"</span><span class="p">,</span><span class="w"> </span><span class="n">fixed_p</span><span class="p">),</span>
+<span class="w">            </span><span class="nf">summarize_p</span><span class="p">(</span><span class="s">"Learned groups: naive Wald"</span><span class="p">,</span><span class="w"> </span><span class="n">learned_p</span><span class="p">)),</span>
+<span class="w">      </span><span class="n">row.names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">,</span><span class="w"> </span><span class="n">digits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">4</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"\nExample 12.1: naive p-value for squared standardized contrast 7.2 ="</span><span class="p">,</span>
+<span class="w">    </span><span class="nf">format</span><span class="p">(</span><span class="nf">pchisq</span><span class="p">(</span><span class="m">7.2</span><span class="p">,</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">lower.tail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">),</span><span class="w"> </span><span class="n">digits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">6</span><span class="p">),</span><span class="w"> </span><span class="s">"\n"</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"mc_lower/mc_upper: exact 95% binomial intervals for simulation rejection probabilities.\n"</span><span class="p">)</span>
+
+<span class="n">selective_plot</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">NULL</span>
+<span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">requireNamespace</span><span class="p">(</span><span class="s">"clusterpval"</span><span class="p">,</span><span class="w"> </span><span class="n">quietly</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">selective_reps</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">min</span><span class="p">(</span><span class="m">100L</span><span class="p">,</span><span class="w"> </span><span class="n">repetitions</span><span class="p">)</span>
+<span class="w">  </span><span class="n">selective_p</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rep</span><span class="p">(</span><span class="kc">NA_real_</span><span class="p">,</span><span class="w"> </span><span class="n">selective_reps</span><span class="p">)</span>
+<span class="w">  </span><span class="n">errors</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">character</span><span class="p">()</span>
+<span class="w">  </span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">b</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">seq_len</span><span class="p">(</span><span class="n">selective_reps</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">x</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">samples</span><span class="p">[[</span><span class="n">b</span><span class="p">]]</span>
+<span class="w">    </span><span class="n">tree</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">hclust</span><span class="p">(</span><span class="nf">dist</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">^</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"average"</span><span class="p">)</span>
+<span class="w">    </span><span class="n">fit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tryCatch</span><span class="p">(</span>
+<span class="w">      </span><span class="n">clusterpval</span><span class="o">::</span><span class="nf">test_hier_clusters_exact</span><span class="p">(</span>
+<span class="w">        </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">link</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"average"</span><span class="p">,</span><span class="w"> </span><span class="n">hcl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tree</span><span class="p">,</span><span class="w"> </span><span class="n">K</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2L</span><span class="p">,</span>
+<span class="w">        </span><span class="n">k1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1L</span><span class="p">,</span><span class="w"> </span><span class="n">k2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2L</span><span class="p">,</span><span class="w"> </span><span class="n">sig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sigma</span>
+<span class="w">      </span><span class="p">),</span>
+<span class="w">      </span><span class="n">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="n">e</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">inherits</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span><span class="w"> </span><span class="s">"error"</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">errors</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span><span class="w"> </span><span class="nf">conditionMessage</span><span class="p">(</span><span class="n">fit</span><span class="p">))</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">selective_p</span><span class="p">[</span><span class="n">b</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">fit</span><span class="o">$</span><span class="n">pval</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">successful</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">is.finite</span><span class="p">(</span><span class="n">selective_p</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">selective_p</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">selective_p</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="m">1</span>
+<span class="w">  </span><span class="nf">cat</span><span class="p">(</span><span class="s">"\nAuthors' exact procedure EXECUTED; clusterpval version"</span><span class="p">,</span>
+<span class="w">      </span><span class="nf">as.character</span><span class="p">(</span><span class="n">utils</span><span class="o">::</span><span class="nf">packageVersion</span><span class="p">(</span><span class="s">"clusterpval"</span><span class="p">)),</span><span class="w"> </span><span class="s">"\n"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">cat</span><span class="p">(</span><span class="s">"Successful finite p-values:"</span><span class="p">,</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">successful</span><span class="p">),</span><span class="w"> </span><span class="s">"of"</span><span class="p">,</span><span class="w"> </span><span class="n">selective_reps</span><span class="p">,</span><span class="w"> </span><span class="s">"\n"</span><span class="p">)</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">all</span><span class="p">(</span><span class="n">successful</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">selective_plot</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">selective_p</span>
+<span class="w">    </span><span class="nf">print</span><span class="p">(</span><span class="nf">summarize_p</span><span class="p">(</span><span class="s">"Known-variance selective test"</span><span class="p">,</span><span class="w"> </span><span class="n">selective_p</span><span class="p">),</span>
+<span class="w">          </span><span class="n">row.names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">,</span><span class="w"> </span><span class="n">digits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">4</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">cat</span><span class="p">(</span><span class="s">"Calibration summary withheld because some selective runs failed.\n"</span><span class="p">)</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">errors</span><span class="p">))</span><span class="w"> </span><span class="nf">print</span><span class="p">(</span><span class="nf">unique</span><span class="p">(</span><span class="n">errors</span><span class="p">))</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nf">cat</span><span class="p">(</span><span class="s">"The selective Monte Carlo check is small; its standard error matters.\n"</span><span class="p">)</span>
+<span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">cat</span><span class="p">(</span><span class="s">"\nOptional exact selective procedure NOT EXECUTED: clusterpval is not installed.\n"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">cat</span><span class="p">(</span><span class="s">"Author installation instructions: https://lucylgao.github.io/clusterpval/\n"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">cat</span><span class="p">(</span><span class="s">"The base-R results above are ordinary/naive tests, not selective p-values.\n"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">plot_dir</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">Sys.getenv</span><span class="p">(</span><span class="s">"COURSE_FIGURE_DIR"</span><span class="p">,</span><span class="w"> </span><span class="n">unset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">""</span><span class="p">)</span>
+<span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">nzchar</span><span class="p">(</span><span class="n">plot_dir</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">dir.create</span><span class="p">(</span><span class="n">plot_dir</span><span class="p">,</span><span class="w"> </span><span class="n">recursive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">showWarnings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">png</span><span class="p">(</span><span class="nf">file.path</span><span class="p">(</span><span class="n">plot_dir</span><span class="p">,</span><span class="w"> </span><span class="s">"12-hierarchical-clustering.png"</span><span class="p">),</span>
+<span class="w">      </span><span class="n">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1400</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">650</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">130</span><span class="p">)</span>
+<span class="w">  </span><span class="n">old_par</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">par</span><span class="p">(</span><span class="n">mfrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">),</span><span class="w"> </span><span class="n">mar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">4.2</span><span class="p">,</span><span class="w"> </span><span class="m">4.2</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">))</span>
+<span class="w">  </span><span class="n">x</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">samples</span><span class="p">[[</span><span class="m">1L</span><span class="p">]]</span>
+<span class="w">  </span><span class="n">groups</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">cutree</span><span class="p">(</span><span class="nf">hclust</span><span class="p">(</span><span class="nf">dist</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">^</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"average"</span><span class="p">),</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2L</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"#2f6ca3"</span><span class="p">,</span><span class="w"> </span><span class="s">"#bd4b38"</span><span class="p">)[</span><span class="n">groups</span><span class="p">],</span><span class="w"> </span><span class="n">pch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">19</span><span class="p">,</span>
+<span class="w">       </span><span class="n">xlab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Feature 1"</span><span class="p">,</span><span class="w"> </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Feature 2"</span><span class="p">,</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"One Gaussian cloud; two learned groups"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">plot</span><span class="p">(</span><span class="nf">ecdf</span><span class="p">(</span><span class="n">fixed_p</span><span class="p">),</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"#2a8a7c"</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">do.points</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">,</span>
+<span class="w">       </span><span class="n">xlab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"p-value threshold"</span><span class="p">,</span><span class="w"> </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Empirical rejection probability"</span><span class="p">,</span>
+<span class="w">       </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Calibration under the global null"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">lines</span><span class="p">(</span><span class="nf">ecdf</span><span class="p">(</span><span class="n">learned_p</span><span class="p">),</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"#bd4b38"</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">do.points</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="n">legend_labels</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"Fixed groups"</span><span class="p">,</span><span class="w"> </span><span class="s">"Learned: naive"</span><span class="p">)</span>
+<span class="w">  </span><span class="n">legend_colors</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"#2a8a7c"</span><span class="p">,</span><span class="w"> </span><span class="s">"#bd4b38"</span><span class="p">)</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nf">is.null</span><span class="p">(</span><span class="n">selective_plot</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">lines</span><span class="p">(</span><span class="nf">ecdf</span><span class="p">(</span><span class="n">selective_plot</span><span class="p">),</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"#2f6ca3"</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">do.points</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">    </span><span class="n">legend_labels</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">legend_labels</span><span class="p">,</span><span class="w"> </span><span class="s">"Learned: selective"</span><span class="p">)</span>
+<span class="w">    </span><span class="n">legend_colors</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">legend_colors</span><span class="p">,</span><span class="w"> </span><span class="s">"#2f6ca3"</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nf">abline</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"grey40"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">legend</span><span class="p">(</span><span class="s">"bottomright"</span><span class="p">,</span><span class="w"> </span><span class="n">legend_labels</span><span class="p">,</span>
+<span class="w">         </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">legend_colors</span><span class="p">,</span><span class="w"> </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">bty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"n"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">par</span><span class="p">(</span><span class="n">old_par</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">invisible</span><span class="p">(</span><span class="nf">dev.off</span><span class="p">())</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+<section id="computed-output">
+<h3>Computed output<a class="headerlink" href="#computed-output" title="Link to this heading">#</a></h3>
+<div class="cell-output cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Global null: independent N_2(0, I) observations; fixed K = 2
+                      method runs rejection_rate monte_carlo_se mc_lower mc_upper
+ Fixed groups: ordinary Wald  500          0.068       0.011258  0.04755  0.09373
+  Learned groups: naive Wald  500          0.980       0.006261  0.96353  0.99037
+
+Example 12.1: naive p-value for squared standardized contrast 7.2 = 0.0273237 
+mc_lower/mc_upper: exact 95% binomial intervals for simulation rejection probabilities.
+
+Authors' exact procedure EXECUTED; clusterpval version 1.0.1 
+Successful finite p-values: 100 of 100 
+                        method runs rejection_rate monte_carlo_se mc_lower mc_upper
+ Known-variance selective test  100           0.06        0.02375  0.02233    0.126
+The selective Monte Carlo check is small; its standard error matters.
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/12-hierarchical-clustering.png"><img alt="Executed R experiment for hierarchical clustering; numerical results are printed above." src="../_images/12-hierarchical-clustering.png" style="width: 100%;" />
+</a>
+</div>
+</section>
+</section>
+<section id="exercises">
+<h2>Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
+<p><strong>Exercise 12.1.</strong> Derive <span class="math notranslate nohighlight">\(\operatorname{Var}(D)\)</span> for fixed groups and obtain the fixed-group chi-square statistic.</p>
+<p><strong>Exercise 12.2.</strong> For <span class="math notranslate nohighlight">\(|C_1|=a\)</span> and <span class="math notranslate nohighlight">\(|C_2|=b\)</span>, derive the two shifts induced by increasing <span class="math notranslate nohighlight">\(\phi\)</span> by <span class="math notranslate nohighlight">\(\Delta\)</span>.</p>
+<p><strong>Exercise 12.3.</strong> An analyst tries five linkages and reports the smallest selective p-value computed separately for each. Explain why the individual procedure’s guarantee does not justify that report.</p>
+<p><strong>Exercise 12.4.</strong> In a power simulation, estimated groups sometimes mix two generating populations. Which mean contrast is being tested? Why should recovery probability and rejection probability both be reported?</p>
+</section>
+<section id="solutions">
+<h2>Solutions<a class="headerlink" href="#solutions" title="Link to this heading">#</a></h2>
+<div class="dropdown admonition">
+<p class="admonition-title">Solution to Exercise 12.1</p>
+<p>Independence gives <span class="math notranslate nohighlight">\(\operatorname{Var}(X^\top\nu)=\sum_i\nu_i^2\sigma^2I_q=\sigma^2(1/a+1/b)I_q\)</span>. Under the null the contrast mean is zero. Dividing by its common standard deviation gives <span class="math notranslate nohighlight">\(q\)</span> independent standard normals, whose squared sum is <span class="math notranslate nohighlight">\(\chi_q^2\)</span>. The derivation assumes <span class="math notranslate nohighlight">\(\nu\)</span> is fixed; selection is precisely what invalidates using it unchanged for learned groups.</p>
+</div>
+<div class="dropdown admonition">
+<p class="admonition-title">Solution to Exercise 12.2</p>
+<p>The multiplier is <span class="math notranslate nohighlight">\(\nu_i/(1/a+1/b)\)</span>. It equals <span class="math notranslate nohighlight">\(b/(a+b)\)</span> in group 1 and <span class="math notranslate nohighlight">\(-a/(a+b)\)</span> in group 2. Thus the shifts are <span class="math notranslate nohighlight">\(b\Delta u/(a+b)\)</span> and <span class="math notranslate nohighlight">\(-a\Delta u/(a+b)\)</span>. Their weighted sum is zero, and their difference is <span class="math notranslate nohighlight">\(\Delta u\)</span>.</p>
+</div>
+<div class="dropdown admonition">
+<p class="admonition-title">Solution to Exercise 12.3</p>
+<p>Selecting the linkage by its p-value adds a data-dependent search. Each p-value was calibrated for its specified selection event, not for winning a competition across five analyses. The analyst must pre-specify the procedure or justify a method accounting for the additional search and the desired error criterion. Simply reporting the minimum retains neither the original conditional guarantee nor an automatic multiplicity guarantee.</p>
+</div>
+<div class="dropdown admonition">
+<p class="admonition-title">Solution to Exercise 12.4</p>
+<p>The target is the difference between averages of the underlying <span class="math notranslate nohighlight">\(\mu_i\)</span> over the <em>estimated</em> index sets. That can differ from the difference between the two generating population centres. Recovery probability describes whether the intended groups were obtained; conditional power given recovery describes detection after that event. A single unconditional rejection rate mixes these questions and can obscure a poor clustering procedure.</p>
+</div>
+</section>
+<section id="reading-and-next-step">
+<h2>Reading and next step<a class="headerlink" href="#reading-and-next-step" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Core:</strong> Gao, L. L., Bien, J., and Witten, D. (2024). <em>Selective Inference for Hierarchical Clustering</em>. <strong>JASA 119</strong>(545), 332–342. <a class="reference external" href="https://arxiv.org/abs/2012.02936">Open manuscript</a>.</p></li>
+<li><p><strong>Implementation:</strong> <a class="reference external" href="https://lucylgao.github.io/clusterpval/technical.html">clusterpval technical details</a> and <a class="reference external" href="https://lucylgao.github.io/clusterpval/HierCluster.html">hierarchical tutorial</a>.</p></li>
+</ul>
+<p>The next chapter replaces a sequence of hierarchical merges with the iterative assignment history of Lloyd’s k-means algorithm.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="11-selective-inference.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">11. Selective inference: asking a question after seeing the data</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="13-kmeans-inference.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">13. Selective inference after k-means</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#state-the-model-before-interpreting-a-cluster">12.1 State the model before interpreting a cluster</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-the-ordinary-reference-distribution-fails">12.2 Why the ordinary reference distribution fails</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reduce-the-problem-to-one-varying-distance">12.3 Reduce the problem to one varying distance</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-truncation-set-remembers-the-algorithm">12.4 The truncation set remembers the algorithm</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-must-be-fixed-or-accounted-for">12.5 What must be fixed or accounted for?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-ordinary-row-splitting-can-still-fail">12.6 Why ordinary row splitting can still fail</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducible-r-laboratory">12.7 Reproducible R laboratory</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#computed-output">Computed output</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solutions">Solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">Reading and next step</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="copyright">© Copyright 2026, <a href="https://chikuang.github.io/">Chi-Kuang Yeh</a>.</p>
+
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="last-updated">
+  Last updated on October 21, 2026.
+  <br/>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+<div class="extra_footer">
+  Topics of Statistical Learning
+</div>
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

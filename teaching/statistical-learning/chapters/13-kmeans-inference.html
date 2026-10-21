@@ -1,0 +1,837 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="auto">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>13. Selective inference after k-means &#8212; Topics of Statistical Learning</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "auto";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "auto";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/13-kmeans-inference';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/learning-controls.js?v=4698cf9e"></script>
+    <script src="../_static/course-demos.js?v=2eb4c93c"></script>
+    <link rel="canonical" href="https://chikuang.github.io/teaching/statistical-learning/chapters/13-kmeans-inference.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="14. Research synthesis: assumptions, validation, and independent information" href="14-research-synthesis.html" />
+    <link rel="prev" title="12. Selective inference after hierarchical clustering" href="12-hierarchical-clustering.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+    <meta name="docbuild:last-update" content="October 21, 2026"/>
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="auto">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Topics of Statistical Learning</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    Topics of Statistical Learning
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Course guide</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide and study route</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../r-workflow.html">R workflow and reproducibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../assignments.html">Assignments and paper discussion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../project.html">Research project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">Interactive demonstrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">I · Weak supervision</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="01-statistical-targets.html">1. Statistical targets and observation mechanisms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02-weak-supervision.html">2. What weak supervision tells us</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03-pu-learning.html">3. Learning from positives and unlabelled observations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04-pu-practice.html">4. PU estimation, overfitting, and sensitivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05-uu-learning.html">5. Learning from two unlabelled mixtures</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">II · Preference learning</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="06-pairwise-preferences.html">6. Pairwise preference learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="07-contextual-preferences.html">7. Contextual preferences, judges, and reward learning</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">III · Online learning</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="08-online-learning.html">8. Online learning and regret</a></li>
+<li class="toctree-l1"><a class="reference internal" href="09-bandits.html">9. Bandits: learning from chosen actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="10-duelling-bandits.html">10. Duelling bandits and adaptive comparisons</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">IV · Inference after selection</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="11-selective-inference.html">11. Selective inference: asking a question after seeing the data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="12-hierarchical-clustering.html">12. Selective inference after hierarchical clustering</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">13. Selective inference after k-means</a></li>
+<li class="toctree-l1"><a class="reference internal" href="14-research-synthesis.html">14. Research synthesis: assumptions, validation, and independent information</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item"><a class="btn btn-sm nav-link course-pdf-button"
+   href="../Topics-of-Statistical-Learning.pdf" download
+   title="Download the complete course PDF" aria-label="Download course PDF">
+  <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> <span>PDF</span>
+</a>
+</div>
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/chikuang/Teaching-SML" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/chikuang/Teaching-SML/blob/main/docs/chapters/13-kmeans-inference.md?plain=1" target="_blank"
+   class="btn btn-sm btn-source-file-button dropdown-item"
+   title="Show source"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-code"></i>
+  </span>
+<span class="btn__text-container">Show source</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>13. Selective inference after k-means</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lloyd-s-algorithm-is-part-of-the-statistical-procedure">13.1 Lloyd’s algorithm is part of the statistical procedure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-the-fitting-criterion-rewards-the-naive-test-statistic">13.2 Why the fitting criterion rewards the naïve test statistic</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditioning-on-the-assignment-history">13.3 Conditioning on the assignment history</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-choices-outside-the-path-also-matter">13.4 The choices outside the path also matter</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#three-different-assessments-of-a-clustering">13.5 Three different assessments of a clustering</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducible-r-laboratory">13.6 Reproducible R laboratory</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#computed-output">Computed output</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solutions">Solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">Reading and next step</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="selective-inference-after-k-means">
+<h1>13. Selective inference after k-means<a class="headerlink" href="#selective-inference-after-k-means" title="Link to this heading">#</a></h1>
+<section id="learning-objectives">
+<h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h2>
+<p>This chapter develops three skills: translating an iterative learning algorithm into a selection event, distinguishing a selected mean contrast from clustering stability, and evaluating an implementation whose inferential guarantee depends on the algorithmic history.</p>
+<p>We retain the known-variance Gaussian model and selected-group mean target from Chapter 12. The new difficulty is computational. A hierarchical procedure selects a sequence of merges. Lloyd’s k-means procedure alternates assignments and centre updates. The event describing its output therefore has a different structure.</p>
+</section>
+<section id="lloyd-s-algorithm-is-part-of-the-statistical-procedure">
+<h2>13.1 Lloyd’s algorithm is part of the statistical procedure<a class="headerlink" href="#lloyd-s-algorithm-is-part-of-the-statistical-procedure" title="Link to this heading">#</a></h2>
+<p>Given initial centres <span class="math notranslate nohighlight">\(c_1^{(0)},\ldots,c_K^{(0)}\)</span>, Lloyd’s algorithm alternates</p>
+<div class="math notranslate nohighlight">
+\[
+g_i^{(t)}
+=\mathop{\mathrm{argmin}}_{k}
+\|x_i-c_k^{(t-1)}\|^2
+\]</div>
+<p>and</p>
+<div class="math notranslate nohighlight">
+\[
+c_k^{(t)}
+=\frac{1}{|\{i:g_i^{(t)}=k\}|}
+\sum_{i:g_i^{(t)}=k}x_i.
+\]</div>
+<p>Tie handling, empty-cluster handling, initialization, the iteration limit, and stopping rules complete this description. Each assignment step and centre update cannot increase the within-cluster sum of squares when the algorithm is well defined. Monotonic improvement does not guarantee a global optimum.</p>
+<p>Different software can implement different algorithms under the name k-means. Base R’s default is not Lloyd’s algorithm. Even when Lloyd is requested, an inferential implementation may need information that ordinary fitting software discards. The <a class="reference external" href="https://yiqunchen.github.io/KmeansInference/articles/Tutorials.html">KmeansInference tutorial</a> explains why its fitting function retains the intermediate assignments.</p>
+<div class="course-example admonition">
+<p class="admonition-title">Example 13.1 — The final partition does not describe the full path</p>
+<p>Take one-dimensional observations <span class="math notranslate nohighlight">\((-3,-1,1,4)\)</span> and initialize centres at <span class="math notranslate nohighlight">\(-3\)</span> and <span class="math notranslate nohighlight">\(-1\)</span>. The first assignment puts <span class="math notranslate nohighlight">\(-3\)</span> alone and the other three observations together. Updating gives centres <span class="math notranslate nohighlight">\(-3\)</span> and <span class="math notranslate nohighlight">\(4/3\)</span>. The next assignment gives groups <span class="math notranslate nohighlight">\(\{-3,-1\}\)</span> and <span class="math notranslate nohighlight">\(\{1,4\}\)</span>, whose updated centres are <span class="math notranslate nohighlight">\(-2\)</span> and <span class="math notranslate nohighlight">\(2.5\)</span>.</p>
+<p>Starting instead at <span class="math notranslate nohighlight">\(-3\)</span> and <span class="math notranslate nohighlight">\(4\)</span> reaches the same final groups immediately. These runs share a final partition but not an assignment history. A test that conditions on the full path must describe the path actually used.</p>
+</div>
+</section>
+<section id="why-the-fitting-criterion-rewards-the-naive-test-statistic">
+<h2>13.2 Why the fitting criterion rewards the naïve test statistic<a class="headerlink" href="#why-the-fitting-criterion-rewards-the-naive-test-statistic" title="Link to this heading">#</a></h2>
+<p>For <span class="math notranslate nohighlight">\(K=2\)</span>, the sum-of-squares decomposition is particularly informative. Let <span class="math notranslate nohighlight">\(n_1,n_2\)</span> be cluster sizes, <span class="math notranslate nohighlight">\(\bar x\)</span> the overall mean, and <span class="math notranslate nohighlight">\(D=\bar x_{C_1}-\bar x_{C_2}\)</span>. Then</p>
+<div class="math notranslate nohighlight">
+\[
+\operatorname{TSS}
+=\operatorname{WCSS}+\operatorname{BSS},\qquad
+\operatorname{BSS}=\frac{n_1n_2}{n_1+n_2}\|D\|^2.
+\]</div>
+<p>The ordinary known-variance Wald statistic for fixed groups is</p>
+<div class="math notranslate nohighlight">
+\[
+W=\frac{\|D\|^2}{\sigma^2(1/n_1+1/n_2)}
+=\frac{\operatorname{BSS}}{\sigma^2}.
+\]</div>
+<p>For a fixed dataset, minimizing within-cluster variation therefore increases precisely the between-group statistic that a naïve test treats as unselected. The problem is built into the optimization objective; it is not only a peculiarity of one software implementation.</p>
+<div class="course-example admonition">
+<p class="admonition-title">Example 13.2 — Optimization and significance share a statistic</p>
+<p>Suppose <span class="math notranslate nohighlight">\(q=2\)</span>, <span class="math notranslate nohighlight">\(\sigma=1\)</span>, the total sum of squares is 80, and a two-cluster solution has within-cluster sum of squares 48. Then <span class="math notranslate nohighlight">\(\operatorname{BSS}=32\)</span> and <span class="math notranslate nohighlight">\(W=32\)</span>. A fixed-group chi-square calculation would give <span class="math notranslate nohighlight">\(e^{-16}\approx1.13\times10^{-7}\)</span>.</p>
+<p>These illustrative values describe the calculation, not an executed simulation result. Searching for a small WCSS also searches for a large <span class="math notranslate nohighlight">\(W\)</span>. A selective analysis must account for that search before interpreting the small reference tail as evidence.</p>
+</div>
+</section>
+<section id="conditioning-on-the-assignment-history">
+<h2>13.3 Conditioning on the assignment history<a class="headerlink" href="#conditioning-on-the-assignment-history" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://www.jmlr.org/papers/v24/22-0371.html">Chen and Witten (2023)</a> develop an efficiently computable selective test by conditioning on the intermediate assignments of k-means. The target remains</p>
+<div class="math notranslate nohighlight">
+\[
+H_0^{C_1,C_2}:\bar\mu_{C_1}=\bar\mu_{C_2}
+\]</div>
+<p>for the selected groups, under the stated Gaussian model. Their method is specific to the algorithm and conditioning event; a hierarchical-clustering formula cannot simply be reused.</p>
+<p>Use the same contrast vector <span class="math notranslate nohighlight">\(\nu\)</span>, observed direction <span class="math notranslate nohighlight">\(u\)</span>, and radius perturbation as before:</p>
+<div class="math notranslate nohighlight">
+\[
+x'(\phi)=P_\nu^\perp x+\frac{\nu}{\|\nu\|^2}\phi u^\top.
+\]</div>
+<p>Now require the algorithm to reproduce its observed assignment history as <span class="math notranslate nohighlight">\(\phi\)</span> varies. Along this path each observation is affine in <span class="math notranslate nohighlight">\(\phi\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+x_i'(\phi)=a_i+b_i\phi.
+\]</div>
+<p>Once a previous assignment is fixed, each updated centre is an average of such observations and is also affine in <span class="math notranslate nohighlight">\(\phi\)</span>. The condition that observation <span class="math notranslate nohighlight">\(i\)</span> chooses centre <span class="math notranslate nohighlight">\(k\)</span> instead of centre <span class="math notranslate nohighlight">\(\ell\)</span> is</p>
+<div class="math notranslate nohighlight">
+\[
+\|a_i+b_i\phi-c_k(\phi)\|^2
+\leq
+\|a_i+b_i\phi-c_\ell(\phi)\|^2.
+\]</div>
+<p>Both sides are quadratic in <span class="math notranslate nohighlight">\(\phi\)</span>. Intersecting the constraints across observations, candidate centres, and iterations yields an admissible set of radii. Integrating the appropriate scaled-chi density over this set gives the selective upper tail.</p>
+<p>This derivation explains the computational opportunity without claiming that the original selection event is polyhedral in the full data matrix. Quadratic inequalities along a one-dimensional path can be manageable even when a general multidimensional description is complicated.</p>
+</section>
+<section id="the-choices-outside-the-path-also-matter">
+<h2>13.4 The choices outside the path also matter<a class="headerlink" href="#the-choices-outside-the-path-also-matter" title="Link to this heading">#</a></h2>
+<p>The first demonstration fixes <span class="math notranslate nohighlight">\(K\)</span>, the features, the noise scale, and the initialization rule. The package’s fitting and inference routines use the same seed and iteration limit. A selected run from many random restarts is a different procedure: the comparison between restarts is another selection step.</p>
+<p>Similarly, choosing <span class="math notranslate nohighlight">\(K\)</span> from a silhouette plot, selecting coordinates after inspecting separation, or learning a transformation and treating it as known can move beyond the stated guarantee. This does not mean those actions are forbidden. It means that a theorem for one specified pipeline does not automatically cover an expanded pipeline.</p>
+<p>Conditional validity also has a cost. Conditioning on more of the path can discard information. A procedure with a finer conditioning event may be easier to compute but have lower power than a feasible procedure conditioning less. There is no universal rule that additional conditioning is free.</p>
+</section>
+<section id="three-different-assessments-of-a-clustering">
+<h2>13.5 Three different assessments of a clustering<a class="headerlink" href="#three-different-assessments-of-a-clustering" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Question</p></th>
+<th class="head"><p>Example quantity</p></th>
+<th class="head"><p>Interpretation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Does the algorithm produce a similar partition under perturbation?</p></td>
+<td><p>Pairwise co-membership agreement across runs</p></td>
+<td><p>Algorithmic or sampling stability</p></td>
+</tr>
+<tr class="row-odd"><td><p>Did it recover a stipulated grouping?</p></td>
+<td><p>Adjusted Rand index against known simulation labels</p></td>
+<td><p>Recovery relative to that reference</p></td>
+</tr>
+<tr class="row-even"><td><p>Is a selected mean contrast inconsistent with its null?</p></td>
+<td><p>Selective p-value</p></td>
+<td><p>Evidence under a specified sampling model and selection event</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>None of these quantities substitutes for the others. A stable partition of a continuous cloud need not reveal a mixture of populations. An unstable algorithm can still be paired with a correctly calibrated selected-hypothesis test. Recovery metrics require a reference grouping, while an inferential null must identify the relevant population parameter.</p>
+<p>For a simulation under alternatives, report how often the intended groups are recovered and what rejection probability is obtained conditional on that recovery, or otherwise describe the actual selected contrasts. This prevents a favourable rejection rate from hiding a changing target.</p>
+</section>
+<section id="reproducible-r-laboratory">
+<h2>13.6 Reproducible R laboratory<a class="headerlink" href="#reproducible-r-laboratory" title="Link to this heading">#</a></h2>
+<p>The base-R component implements a transparent two-centre Lloyd trace and verifies that its objective does not increase. It compares initializations using a label-invariant co-membership measure and demonstrates naïve null rejection after learning groups.</p>
+<p>If <code>KmeansInference</code> is installed, an additional block executes the authors’ fitting-dependent selective procedure, with fixed arguments, and reports paired naïve and selective results for that same procedure. The script distinguishes this extension from the base-R diagnostic. Initialization agreement is not assumed between two separately written implementations.</p>
+<p><a class="reference download internal" download="" href="../_downloads/5a25ffb13e214dedf398956acfbfb002/13-kmeans-inference.R"><span class="xref download myst">Download R lab</span></a></p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-number">Listing 3 </span><span class="caption-text">Lloyd’s assignment path, naïve calibration, and the authors’ selective method</span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Chapter 13: transparent Lloyd algorithm and optional authors' inference.</span>
+<span class="nf">set.seed</span><span class="p">(</span><span class="m">2026102113</span><span class="p">)</span>
+<span class="nf">options</span><span class="p">(</span><span class="n">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">145</span><span class="p">)</span>
+
+<span class="n">lloyd_trace</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">initial_indices</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1L</span><span class="p">,</span><span class="w"> </span><span class="nf">nrow</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span><span class="w"> </span><span class="n">max_iter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">30L</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">centers</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">initial_indices</span><span class="p">,</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="n">drop</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">]</span>
+<span class="w">  </span><span class="n">previous</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rep</span><span class="p">(</span><span class="m">0L</span><span class="p">,</span><span class="w"> </span><span class="nf">nrow</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="w">  </span><span class="n">history</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">list</span><span class="p">()</span>
+<span class="w">  </span><span class="n">objective</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">numeric</span><span class="p">()</span>
+<span class="w">  </span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">iteration</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">seq_len</span><span class="p">(</span><span class="n">max_iter</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">distances</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sapply</span><span class="p">(</span><span class="nf">seq_len</span><span class="p">(</span><span class="nf">nrow</span><span class="p">(</span><span class="n">centers</span><span class="p">)),</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+<span class="w">      </span><span class="nf">rowSums</span><span class="p">(</span><span class="nf">sweep</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="m">2L</span><span class="p">,</span><span class="w"> </span><span class="n">centers</span><span class="p">[</span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="s">"-"</span><span class="p">)</span><span class="o">^</span><span class="m">2</span><span class="p">))</span>
+<span class="w">    </span><span class="n">groups</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">max.col</span><span class="p">(</span><span class="o">-</span><span class="n">distances</span><span class="p">,</span><span class="w"> </span><span class="n">ties.method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"first"</span><span class="p">)</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="nf">unique</span><span class="p">(</span><span class="n">groups</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nf">nrow</span><span class="p">(</span><span class="n">centers</span><span class="p">))</span>
+<span class="w">      </span><span class="nf">stop</span><span class="p">(</span><span class="s">"Empty cluster: this demonstration does not silently repair it."</span><span class="p">)</span>
+<span class="w">    </span><span class="n">centers</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">t</span><span class="p">(</span><span class="nf">vapply</span><span class="p">(</span><span class="nf">seq_len</span><span class="p">(</span><span class="nf">nrow</span><span class="p">(</span><span class="n">centers</span><span class="p">)),</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+<span class="w">      </span><span class="nf">colMeans</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">groups</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="n">drop</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">]),</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">x</span><span class="p">))))</span>
+<span class="w">    </span><span class="n">history</span><span class="p">[[</span><span class="n">iteration</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">groups</span>
+<span class="w">    </span><span class="n">objective</span><span class="p">[</span><span class="n">iteration</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sum</span><span class="p">((</span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">centers</span><span class="p">[</span><span class="n">groups</span><span class="p">,</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="n">drop</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">])</span><span class="o">^</span><span class="m">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">identical</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span><span class="w"> </span><span class="n">previous</span><span class="p">))</span><span class="w"> </span><span class="kr">break</span>
+<span class="w">    </span><span class="n">previous</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">groups</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nf">list</span><span class="p">(</span><span class="n">groups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">groups</span><span class="p">,</span><span class="w"> </span><span class="n">centers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">centers</span><span class="p">,</span><span class="w"> </span><span class="n">history</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">history</span><span class="p">,</span>
+<span class="w">       </span><span class="n">objective</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">objective</span><span class="p">,</span>
+<span class="w">       </span><span class="n">converged</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">history</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="m">2L</span><span class="w"> </span><span class="o">&amp;&amp;</span>
+<span class="w">         </span><span class="nf">identical</span><span class="p">(</span><span class="n">history</span><span class="p">[[</span><span class="nf">length</span><span class="p">(</span><span class="n">history</span><span class="p">)]],</span><span class="w"> </span><span class="n">history</span><span class="p">[[</span><span class="nf">length</span><span class="p">(</span><span class="n">history</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1L</span><span class="p">]]))</span>
+<span class="p">}</span>
+
+<span class="n">pair_agreement</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">keep</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">upper.tri</span><span class="p">(</span><span class="nf">matrix</span><span class="p">(</span><span class="kc">FALSE</span><span class="p">,</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">a</span><span class="p">),</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">a</span><span class="p">)))</span>
+<span class="w">  </span><span class="nf">mean</span><span class="p">((</span><span class="nf">outer</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="s">"=="</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nf">outer</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="s">"=="</span><span class="p">))[</span><span class="n">keep</span><span class="p">])</span>
+<span class="p">}</span>
+
+<span class="n">wald_p</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">groups</span><span class="p">,</span><span class="w"> </span><span class="n">sigma</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">g</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">groups</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">1L</span>
+<span class="w">  </span><span class="n">d</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">colMeans</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="n">drop</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">])</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nf">colMeans</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">!</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="n">drop</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">])</span>
+<span class="w">  </span><span class="nf">pchisq</span><span class="p">(</span><span class="nf">sum</span><span class="p">(</span><span class="n">d</span><span class="o">^</span><span class="m">2</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">sigma</span><span class="o">^</span><span class="m">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">g</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="o">!</span><span class="n">g</span><span class="p">))),</span>
+<span class="w">         </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">ncol</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="w"> </span><span class="n">lower.tail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">n</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">40L</span>
+<span class="n">q</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">2L</span>
+<span class="n">repetitions</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">400L</span>
+<span class="n">samples</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">lapply</span><span class="p">(</span><span class="nf">seq_len</span><span class="p">(</span><span class="n">repetitions</span><span class="p">),</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="nf">rnorm</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">q</span><span class="p">),</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">))</span>
+<span class="n">x</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">samples</span><span class="p">[[</span><span class="m">2L</span><span class="p">]]</span><span class="w"> </span><span class="c1"># Fixed illustration; the calibration study uses every replicate.</span>
+<span class="n">first</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">lloyd_trace</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1L</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">))</span>
+<span class="n">second</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">lloyd_trace</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">10L</span><span class="p">,</span><span class="w"> </span><span class="m">30L</span><span class="p">))</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Lloyd trace for one Gaussian cloud\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="nf">data.frame</span><span class="p">(</span><span class="n">iteration</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">seq_along</span><span class="p">(</span><span class="n">first</span><span class="o">$</span><span class="n">objective</span><span class="p">),</span>
+<span class="w">                 </span><span class="n">within_sum_squares</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">first</span><span class="o">$</span><span class="n">objective</span><span class="p">),</span>
+<span class="w">      </span><span class="n">row.names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">,</span><span class="w"> </span><span class="n">digits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">5</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Objective never increases:"</span><span class="p">,</span>
+<span class="w">    </span><span class="nf">all</span><span class="p">(</span><span class="nf">diff</span><span class="p">(</span><span class="n">first</span><span class="o">$</span><span class="n">objective</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="m">1e-8</span><span class="p">),</span><span class="w"> </span><span class="s">"\n"</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Converged:"</span><span class="p">,</span><span class="w"> </span><span class="n">first</span><span class="o">$</span><span class="n">converged</span><span class="p">,</span><span class="w"> </span><span class="s">"\n"</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Pairwise co-membership agreement across two fixed initializations:"</span><span class="p">,</span>
+<span class="w">    </span><span class="nf">format</span><span class="p">(</span><span class="nf">pair_agreement</span><span class="p">(</span><span class="n">first</span><span class="o">$</span><span class="n">groups</span><span class="p">,</span><span class="w"> </span><span class="n">second</span><span class="o">$</span><span class="n">groups</span><span class="p">),</span><span class="w"> </span><span class="n">digits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">4</span><span class="p">),</span><span class="w"> </span><span class="s">"\n"</span><span class="p">)</span>
+
+<span class="n">naive_p</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">vapply</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">dat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">fit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">lloyd_trace</span><span class="p">(</span><span class="n">dat</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">wald_p</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span><span class="w"> </span><span class="n">fit</span><span class="o">$</span><span class="n">groups</span><span class="p">)</span>
+<span class="p">},</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="m">1</span><span class="p">))</span>
+
+<span class="n">summarize_p</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">method</span><span class="p">,</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">rate</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">p</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="m">0.05</span><span class="p">)</span>
+<span class="w">  </span><span class="n">mc_interval</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">binom.test</span><span class="p">(</span><span class="nf">sum</span><span class="p">(</span><span class="n">p</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="m">0.05</span><span class="p">),</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">p</span><span class="p">))</span><span class="o">$</span><span class="n">conf.int</span>
+<span class="w">  </span><span class="nf">data.frame</span><span class="p">(</span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">method</span><span class="p">,</span><span class="w"> </span><span class="n">runs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">p</span><span class="p">),</span><span class="w"> </span><span class="n">rejection_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rate</span><span class="p">,</span>
+<span class="w">             </span><span class="n">monte_carlo_se</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sqrt</span><span class="p">(</span><span class="n">rate</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">rate</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">p</span><span class="p">)),</span>
+<span class="w">             </span><span class="n">mc_lower</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mc_interval</span><span class="p">[</span><span class="m">1L</span><span class="p">],</span><span class="w"> </span><span class="n">mc_upper</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mc_interval</span><span class="p">[</span><span class="m">2L</span><span class="p">])</span>
+<span class="p">}</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"\nBase-R fixed-initialization Lloyd: global-null diagnostic\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="nf">summarize_p</span><span class="p">(</span><span class="s">"Naive Wald after Lloyd clustering"</span><span class="p">,</span><span class="w"> </span><span class="n">naive_p</span><span class="p">),</span>
+<span class="w">      </span><span class="n">row.names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">,</span><span class="w"> </span><span class="n">digits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">4</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"This diagnostic is not a selective-inference procedure.\n"</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"mc_lower/mc_upper are exact 95% binomial Monte Carlo intervals.\n"</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"An observed rate of 1 has plug-in MCSE 0 but still has binomial uncertainty.\n"</span><span class="p">)</span>
+
+<span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">requireNamespace</span><span class="p">(</span><span class="s">"KmeansInference"</span><span class="p">,</span><span class="w"> </span><span class="n">quietly</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">exact_reps</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">60L</span>
+<span class="w">  </span><span class="n">p_selective</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">p_naive_author</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rep</span><span class="p">(</span><span class="kc">NA_real_</span><span class="p">,</span><span class="w"> </span><span class="n">exact_reps</span><span class="p">)</span>
+<span class="w">  </span><span class="n">errors</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">character</span><span class="p">()</span>
+<span class="w">  </span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">b</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">seq_len</span><span class="p">(</span><span class="n">exact_reps</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">fit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tryCatch</span><span class="p">(</span>
+<span class="w">      </span><span class="n">KmeansInference</span><span class="o">::</span><span class="nf">kmeans_inference</span><span class="p">(</span>
+<span class="w">        </span><span class="n">samples</span><span class="p">[[</span><span class="n">b</span><span class="p">]],</span><span class="w"> </span><span class="m">2L</span><span class="p">,</span><span class="w"> </span><span class="m">1L</span><span class="p">,</span><span class="w"> </span><span class="m">2L</span><span class="p">,</span><span class="w"> </span><span class="n">sig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">,</span>
+<span class="w">        </span><span class="n">iter.max</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">30L</span><span class="p">,</span><span class="w"> </span><span class="n">seed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2026L</span><span class="p">,</span><span class="w"> </span><span class="n">verbose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span>
+<span class="w">      </span><span class="p">),</span>
+<span class="w">      </span><span class="n">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="n">e</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">inherits</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span><span class="w"> </span><span class="s">"error"</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">errors</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span><span class="w"> </span><span class="nf">conditionMessage</span><span class="p">(</span><span class="n">fit</span><span class="p">))</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">tab</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="n">fit</span><span class="p">)</span>
+<span class="w">      </span><span class="n">p_selective</span><span class="p">[</span><span class="n">b</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tab</span><span class="o">$</span><span class="n">p_selective</span><span class="p">[</span><span class="m">1L</span><span class="p">]</span>
+<span class="w">      </span><span class="n">p_naive_author</span><span class="p">[</span><span class="n">b</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tab</span><span class="o">$</span><span class="n">p_naive</span><span class="p">[</span><span class="m">1L</span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">valid</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">is.finite</span><span class="p">(</span><span class="n">p_selective</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">p_selective</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">p_selective</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="o">&amp;</span>
+<span class="w">    </span><span class="nf">is.finite</span><span class="p">(</span><span class="n">p_naive_author</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">cat</span><span class="p">(</span><span class="s">"\nAuthors' path-conditioned method EXECUTED; KmeansInference version"</span><span class="p">,</span>
+<span class="w">      </span><span class="nf">as.character</span><span class="p">(</span><span class="n">utils</span><span class="o">::</span><span class="nf">packageVersion</span><span class="p">(</span><span class="s">"KmeansInference"</span><span class="p">)),</span><span class="w"> </span><span class="s">"\n"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">cat</span><span class="p">(</span><span class="s">"Successful finite p-values:"</span><span class="p">,</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">valid</span><span class="p">),</span><span class="w"> </span><span class="s">"of"</span><span class="p">,</span><span class="w"> </span><span class="n">exact_reps</span><span class="p">,</span><span class="w"> </span><span class="s">"\n"</span><span class="p">)</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">all</span><span class="p">(</span><span class="n">valid</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">print</span><span class="p">(</span><span class="nf">rbind</span><span class="p">(</span>
+<span class="w">      </span><span class="nf">summarize_p</span><span class="p">(</span><span class="s">"Authors' algorithm: naive"</span><span class="p">,</span><span class="w"> </span><span class="n">p_naive_author</span><span class="p">),</span>
+<span class="w">      </span><span class="nf">summarize_p</span><span class="p">(</span><span class="s">"Authors' algorithm: selective"</span><span class="p">,</span><span class="w"> </span><span class="n">p_selective</span><span class="p">)</span>
+<span class="w">    </span><span class="p">),</span><span class="w"> </span><span class="n">row.names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">,</span><span class="w"> </span><span class="n">digits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">4</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">cat</span><span class="p">(</span><span class="s">"Calibration summary withheld because some runs failed.\n"</span><span class="p">)</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">errors</span><span class="p">))</span><span class="w"> </span><span class="nf">print</span><span class="p">(</span><span class="nf">unique</span><span class="p">(</span><span class="n">errors</span><span class="p">))</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nf">cat</span><span class="p">(</span><span class="s">"The paired comparison uses the same authors' algorithm and seed.\n"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">cat</span><span class="p">(</span><span class="s">"Sixty repetitions are a demonstration, not a high-precision size study.\n"</span><span class="p">)</span>
+<span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">cat</span><span class="p">(</span><span class="s">"\nOptional selective procedure NOT EXECUTED: KmeansInference is not installed.\n"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">cat</span><span class="p">(</span><span class="s">"Author instructions: https://yiqunchen.github.io/KmeansInference/\n"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">plot_dir</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">Sys.getenv</span><span class="p">(</span><span class="s">"COURSE_FIGURE_DIR"</span><span class="p">,</span><span class="w"> </span><span class="n">unset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">""</span><span class="p">)</span>
+<span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">nzchar</span><span class="p">(</span><span class="n">plot_dir</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">dir.create</span><span class="p">(</span><span class="n">plot_dir</span><span class="p">,</span><span class="w"> </span><span class="n">recursive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">showWarnings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">png</span><span class="p">(</span><span class="nf">file.path</span><span class="p">(</span><span class="n">plot_dir</span><span class="p">,</span><span class="w"> </span><span class="s">"13-kmeans-inference.png"</span><span class="p">),</span>
+<span class="w">      </span><span class="n">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1400</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">650</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">130</span><span class="p">)</span>
+<span class="w">  </span><span class="n">old_par</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">par</span><span class="p">(</span><span class="n">mfrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">),</span><span class="w"> </span><span class="n">mar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">4.2</span><span class="p">,</span><span class="w"> </span><span class="m">4.2</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">))</span>
+<span class="w">  </span><span class="nf">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"#2f6ca3"</span><span class="p">,</span><span class="w"> </span><span class="s">"#bd4b38"</span><span class="p">)[</span><span class="n">first</span><span class="o">$</span><span class="n">groups</span><span class="p">],</span><span class="w"> </span><span class="n">pch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">19</span><span class="p">,</span>
+<span class="w">       </span><span class="n">xlab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Feature 1"</span><span class="p">,</span><span class="w"> </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Feature 2"</span><span class="p">,</span>
+<span class="w">       </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Lloyd clusters in a Gaussian cloud"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">points</span><span class="p">(</span><span class="n">first</span><span class="o">$</span><span class="n">centers</span><span class="p">,</span><span class="w"> </span><span class="n">pch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">4</span><span class="p">,</span><span class="w"> </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">plot</span><span class="p">(</span><span class="nf">seq_along</span><span class="p">(</span><span class="n">first</span><span class="o">$</span><span class="n">objective</span><span class="p">),</span><span class="w"> </span><span class="n">first</span><span class="o">$</span><span class="n">objective</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"b"</span><span class="p">,</span><span class="w"> </span><span class="n">pch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">19</span><span class="p">,</span>
+<span class="w">       </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"#2a8a7c"</span><span class="p">,</span><span class="w"> </span><span class="n">xlab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Iteration"</span><span class="p">,</span><span class="w"> </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Within-cluster sum of squares"</span><span class="p">,</span>
+<span class="w">       </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Observed optimization path"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">par</span><span class="p">(</span><span class="n">old_par</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">invisible</span><span class="p">(</span><span class="nf">dev.off</span><span class="p">())</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+<section id="computed-output">
+<h3>Computed output<a class="headerlink" href="#computed-output" title="Link to this heading">#</a></h3>
+<div class="cell-output cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Lloyd trace for one Gaussian cloud
+ iteration within_sum_squares
+         1             66.109
+         2             65.540
+         3             63.685
+         4             61.906
+         5             61.432
+         6             61.432
+Objective never increases: TRUE 
+Converged: TRUE 
+Pairwise co-membership agreement across two fixed initializations: 0.5192 
+
+Base-R fixed-initialization Lloyd: global-null diagnostic
+                            method runs rejection_rate monte_carlo_se mc_lower mc_upper
+ Naive Wald after Lloyd clustering  400              1              0   0.9908        1
+This diagnostic is not a selective-inference procedure.
+mc_lower/mc_upper are exact 95% binomial Monte Carlo intervals.
+An observed rate of 1 has plug-in MCSE 0 but still has binomial uncertainty.
+
+Authors' path-conditioned method EXECUTED; KmeansInference version 0.1.0 
+Successful finite p-values: 60 of 60 
+                        method runs rejection_rate monte_carlo_se mc_lower mc_upper
+     Authors' algorithm: naive   60        1.00000        0.00000 0.940371   1.0000
+ Authors' algorithm: selective   60        0.03333        0.02317 0.004063   0.1153
+The paired comparison uses the same authors' algorithm and seed.
+Sixty repetitions are a demonstration, not a high-precision size study.
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/13-kmeans-inference.png"><img alt="Executed R experiment for kmeans inference; numerical results are printed above." src="../_images/13-kmeans-inference.png" style="width: 100%;" />
+</a>
+</div>
+</section>
+</section>
+<section id="exercises">
+<h2>Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
+<p><strong>Exercise 13.1.</strong> Prove the two-cluster identity <span class="math notranslate nohighlight">\(\operatorname{BSS}=n_1n_2\|D\|^2/(n_1+n_2)\)</span>.</p>
+<p><strong>Exercise 13.2.</strong> Expand one assignment inequality along <span class="math notranslate nohighlight">\(x'(\phi)\)</span> and show that it is a quadratic inequality. Why can its feasible set be disconnected?</p>
+<p><strong>Exercise 13.3.</strong> A software function returns a final partition but no iteration history. Is that enough to implement the path-conditioned procedure described here? What extra information is required?</p>
+<p><strong>Exercise 13.4.</strong> Construct a research report outline that presents stability, recovery, and selective testing without treating one as proof of another. Specify the null-model part of the experiment.</p>
+</section>
+<section id="solutions">
+<h2>Solutions<a class="headerlink" href="#solutions" title="Link to this heading">#</a></h2>
+<div class="dropdown admonition">
+<p class="admonition-title">Solution to Exercise 13.1</p>
+<p>Since <span class="math notranslate nohighlight">\(\bar x=(n_1\bar x_1+n_2\bar x_2)/n\)</span>, we have <span class="math notranslate nohighlight">\(\bar x_1-\bar x=(n_2/n)D\)</span> and <span class="math notranslate nohighlight">\(\bar x_2-\bar x=-(n_1/n)D\)</span>. Therefore</p>
+<div class="math notranslate nohighlight">
+\[
+n_1\|\bar x_1-\bar x\|^2+n_2\|\bar x_2-\bar x\|^2
+=\frac{n_1n_2^2+n_2n_1^2}{n^2}\|D\|^2
+=\frac{n_1n_2}{n}\|D\|^2.
+\]</div>
+</div>
+<div class="dropdown admonition">
+<p class="admonition-title">Solution to Exercise 13.2</p>
+<p>Write the two difference vectors as <span class="math notranslate nohighlight">\(r_k+s_k\phi\)</span> and <span class="math notranslate nohighlight">\(r_\ell+s_\ell\phi\)</span>. Subtracting their squared norms gives</p>
+<div class="math notranslate nohighlight">
+\[
+(\|s_k\|^2-\|s_\ell\|^2)\phi^2
++2(r_k^\top s_k-r_\ell^\top s_\ell)\phi
++\|r_k\|^2-\|r_\ell\|^2\leq0.
+\]</div>
+<p>A downward-opening quadratic can be nonpositive outside its two roots, producing two rays. Intersections of multiple such conditions with <span class="math notranslate nohighlight">\(\phi\geq0\)</span> can produce multiple intervals. A single truncation interval cannot be assumed.</p>
+</div>
+<div class="dropdown admonition">
+<p class="admonition-title">Solution to Exercise 13.3</p>
+<p>No. The procedure must recover the initial-centre rule, intermediate assignments, and relevant stopping and tie rules so that it can express the same selection event. Re-running a documented deterministic algorithm from preserved initialization information may recover the history; a bare final partition generally cannot identify it.</p>
+</div>
+<div class="dropdown admonition">
+<p class="admonition-title">Solution to Exercise 13.4</p>
+<p>First assess null calibration with independent <span class="math notranslate nohighlight">\(N_q(0,\sigma^2I_q)\)</span> rows and a known noise scale. Report selective rejection frequency with Monte Carlo uncertainty and all failures. Next introduce a documented mean structure, report recovery of its reference groups, and distinguish conditional power from unconditional rejection. Finally vary initialization or perturbations and show a separate co-membership stability measure. Keep the three headings and interpretations separate.</p>
+</div>
+</section>
+<section id="reading-and-next-step">
+<h2>Reading and next step<a class="headerlink" href="#reading-and-next-step" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Core:</strong> Chen, Y. T., and Witten, D. M. (2023). <em>Selective inference for k-means clustering</em>. <strong>JMLR 24</strong>(152), 1–41. <a class="reference external" href="https://www.jmlr.org/papers/v24/22-0371.html">Paper and code</a>.</p></li>
+<li><p><strong>Implementation:</strong> <a class="reference external" href="https://yiqunchen.github.io/KmeansInference/">KmeansInference</a> and its <a class="reference external" href="https://yiqunchen.github.io/KmeansInference/articles/Tutorials.html">software tutorials</a>.</p></li>
+</ul>
+<p>The final chapter turns the course’s methods into a reproducible research workflow and develops an independent-information comparison using Gaussian data thinning.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="12-hierarchical-clustering.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">12. Selective inference after hierarchical clustering</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="14-research-synthesis.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">14. Research synthesis: assumptions, validation, and independent information</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-objectives">Learning objectives</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lloyd-s-algorithm-is-part-of-the-statistical-procedure">13.1 Lloyd’s algorithm is part of the statistical procedure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-the-fitting-criterion-rewards-the-naive-test-statistic">13.2 Why the fitting criterion rewards the naïve test statistic</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditioning-on-the-assignment-history">13.3 Conditioning on the assignment history</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-choices-outside-the-path-also-matter">13.4 The choices outside the path also matter</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#three-different-assessments-of-a-clustering">13.5 Three different assessments of a clustering</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducible-r-laboratory">13.6 Reproducible R laboratory</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#computed-output">Computed output</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solutions">Solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-next-step">Reading and next step</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="copyright">© Copyright 2026, <a href="https://chikuang.github.io/">Chi-Kuang Yeh</a>.</p>
+
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="last-updated">
+  Last updated on October 21, 2026.
+  <br/>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+<div class="extra_footer">
+  Topics of Statistical Learning
+</div>
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

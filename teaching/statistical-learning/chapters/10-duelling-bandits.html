@@ -1,0 +1,702 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="auto">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>10. Duelling bandits and adaptive comparisons &#8212; Topics of Statistical Learning</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "auto";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "auto";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/10-duelling-bandits';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/learning-controls.js?v=4698cf9e"></script>
+    <script src="../_static/course-demos.js?v=2eb4c93c"></script>
+    <link rel="canonical" href="https://chikuang.github.io/teaching/statistical-learning/chapters/10-duelling-bandits.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="11. Selective inference: asking a question after seeing the data" href="11-selective-inference.html" />
+    <link rel="prev" title="9. Bandits: learning from chosen actions" href="09-bandits.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+    <meta name="docbuild:last-update" content="October 21, 2026"/>
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="auto">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Topics of Statistical Learning</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    Topics of Statistical Learning
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Course guide</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide and study route</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../r-workflow.html">R workflow and reproducibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../assignments.html">Assignments and paper discussion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../project.html">Research project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">Interactive demonstrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">I · Weak supervision</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="01-statistical-targets.html">1. Statistical targets and observation mechanisms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02-weak-supervision.html">2. What weak supervision tells us</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03-pu-learning.html">3. Learning from positives and unlabelled observations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04-pu-practice.html">4. PU estimation, overfitting, and sensitivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05-uu-learning.html">5. Learning from two unlabelled mixtures</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">II · Preference learning</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="06-pairwise-preferences.html">6. Pairwise preference learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="07-contextual-preferences.html">7. Contextual preferences, judges, and reward learning</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">III · Online learning</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="08-online-learning.html">8. Online learning and regret</a></li>
+<li class="toctree-l1"><a class="reference internal" href="09-bandits.html">9. Bandits: learning from chosen actions</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">10. Duelling bandits and adaptive comparisons</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">IV · Inference after selection</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="11-selective-inference.html">11. Selective inference: asking a question after seeing the data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="12-hierarchical-clustering.html">12. Selective inference after hierarchical clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="13-kmeans-inference.html">13. Selective inference after k-means</a></li>
+<li class="toctree-l1"><a class="reference internal" href="14-research-synthesis.html">14. Research synthesis: assumptions, validation, and independent information</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item"><a class="btn btn-sm nav-link course-pdf-button"
+   href="../Topics-of-Statistical-Learning.pdf" download
+   title="Download the complete course PDF" aria-label="Download course PDF">
+  <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> <span>PDF</span>
+</a>
+</div>
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/chikuang/Teaching-SML" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/chikuang/Teaching-SML/blob/main/docs/chapters/10-duelling-bandits.md?plain=1" target="_blank"
+   class="btn btn-sm btn-source-file-button dropdown-item"
+   title="Show source"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-code"></i>
+  </span>
+<span class="btn__text-container">Show source</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>10. Duelling bandits and adaptive comparisons</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-preference-matrix">10.1 · The preference matrix</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#declare-what-winning-means">10.2 · Declare what winning means</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-declared-regret-convention">10.3 · A declared regret convention</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#connect-adaptive-comparison-to-optimal-design">10.4 · Connect adaptive comparison to optimal design</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-transparent-explore-then-commit-baseline">10.5 · A transparent explore-then-commit baseline</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">10.6 · Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">Reading and transition</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="duelling-bandits-and-adaptive-comparisons">
+<h1>10. Duelling bandits and adaptive comparisons<a class="headerlink" href="#duelling-bandits-and-adaptive-comparisons" title="Link to this heading">#</a></h1>
+<p><strong>Question.</strong> Which comparison should we request next when feedback says only which alternative wins?</p>
+<p><a class="reference download internal" download="" href="../_downloads/11db043884d2d390e3ab9ec405480204/10-duelling-bandits.R"><span class="xref download myst">Download R lab</span></a></p>
+<p>Preference learning describes an observation type. Online learning describes a protocol. Duelling bandits combine them: choose a pair, observe a noisy comparison, and use that information to decide what to compare or deploy next. The bridge is useful for recommendation, evaluation, and adaptive experimental design, but it requires a precise definition of a good alternative.</p>
+<p>This chapter specifies competing winner criteria, illustrates cycles, and develops a transparent baseline. Its experiment is deliberately small enough that every assumption and regret calculation can be inspected.</p>
+<section id="the-preference-matrix">
+<h2>10.1 · The preference matrix<a class="headerlink" href="#the-preference-matrix" title="Link to this heading">#</a></h2>
+<p>Let <span class="math notranslate nohighlight">\(P_{ij}\)</span> be the probability that item <span class="math notranslate nohighlight">\(i\)</span> wins against <span class="math notranslate nohighlight">\(j\)</span>. In a binary comparison model without ties,</p>
+<div class="math notranslate nohighlight">
+\[
+P_{ij}+P_{ji}=1,\qquad P_{ii}=1/2.
+\]</div>
+<p>At time <span class="math notranslate nohighlight">\(t\)</span>, the learner selects <span class="math notranslate nohighlight">\((I_t,J_t)\)</span> using past comparisons and observes a Bernoulli outcome with probability <span class="math notranslate nohighlight">\(P_{I_tJ_t}\)</span>. The basic stochastic setting assumes a fixed matrix and conditionally independent comparison noise. Repeated judges, context changes, ties, or adversarial responses require a modified model.</p>
+<p>Bradley–Terry is a structured submodel: <span class="math notranslate nohighlight">\(P_{ij}=\sigma(\theta_i-\theta_j)\)</span>. A unique largest strength then gives an item that beats every other with probability greater than one half. General preference matrices need not have this structure.</p>
+</section>
+<section id="declare-what-winning-means">
+<h2>10.2 · Declare what winning means<a class="headerlink" href="#declare-what-winning-means" title="Link to this heading">#</a></h2>
+<p>Three common targets are distinct:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Criterion</p></th>
+<th class="head text-left"><p>Definition</p></th>
+<th class="head text-left"><p>What it emphasizes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>Condorcet winner</p></td>
+<td class="text-left"><p><span class="math notranslate nohighlight">\(P_{wi}&gt;1/2\)</span> for every <span class="math notranslate nohighlight">\(i\ne w\)</span></p></td>
+<td class="text-left"><p>Beats every opponent individually</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Borda winner</p></td>
+<td class="text-left"><p>Maximizes <span class="math notranslate nohighlight">\(b_i=(K-1)^{-1}\sum_{j\ne i}P_{ij}\)</span></p></td>
+<td class="text-left"><p>Average win probability against a uniform opponent</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Copeland winner</p></td>
+<td class="text-left"><p>Maximizes the number of opponents with <span class="math notranslate nohighlight">\(P_{ij}&gt;1/2\)</span></p></td>
+<td class="text-left"><p>Number of pairwise majorities</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Borda scores depend on the opponent distribution. Uniform weighting is a target choice, not a law of preference. Copeland scores ignore the sizes of probability margins. A Condorcet winner may not exist, even though Borda or Copeland maximizers exist in a finite set.</p>
+<div class="course-example admonition">
+<p class="admonition-title">Example 10.1 · A cycle with a Borda winner</p>
+<p><strong>Setup.</strong> A beats B with probability 0.75, B beats C with probability 0.65, and C beats A with probability 0.60.</p>
+<p><strong>Work it through.</strong> Every item loses to another, so there is no Condorcet winner. The Borda scores are <span class="math notranslate nohighlight">\(b_A=(0.75+0.40)/2=0.575\)</span>, <span class="math notranslate nohighlight">\(b_B=(0.25+0.65)/2=0.450\)</span>, and <span class="math notranslate nohighlight">\(b_C=(0.60+0.35)/2=0.475\)</span>. A is the Borda winner. All three have one pairwise majority, so their Copeland scores tie.</p>
+<p><strong>What this shows.</strong> Saying only “find the best item” leaves the statistical target incomplete. A method justified under a Condorcet assumption cannot acquire that assumption by silently substituting the Borda winner.</p>
+</div>
+</section>
+<section id="a-declared-regret-convention">
+<h2>10.3 · A declared regret convention<a class="headerlink" href="#a-declared-regret-convention" title="Link to this heading">#</a></h2>
+<p>Suppose a Condorcet winner <span class="math notranslate nohighlight">\(w\)</span> exists. Define gaps <span class="math notranslate nohighlight">\(\Delta_i=P_{wi}-1/2\)</span>, with <span class="math notranslate nohighlight">\(\Delta_w=0\)</span>. One convention for strong cumulative pseudo-regret is</p>
+<div class="math notranslate nohighlight" id="equation-eq-duel-regret">
+<span class="eqno">(10.1)<a class="headerlink" href="#equation-eq-duel-regret" title="Link to this equation">#</a></span>\[
+R_T^{\mathrm{strong}}=\sum_{t=1}^T
+\frac{\Delta_{I_t}+\Delta_{J_t}}{2}.
+\]</div>
+<p>The factor one half is a normalization; state it when comparing implementations. A weak-regret objective can instead use <span class="math notranslate nohighlight">\(\min(\Delta_{I_t},\Delta_{J_t})\)</span>, which incurs zero whenever one selected item is the winner. These objectives can prefer different policies.</p>
+<p>Self-comparisons also affect the attainable benchmark. Choosing <span class="math notranslate nohighlight">\((w,w)\)</span> incurs zero under Equation <a class="reference internal" href="#equation-eq-duel-regret">(10.1)</a> but provides no new preference information. If the application forbids self-comparisons and every other item has a positive gap, the best permitted pair has positive per-round cost under this convention. The action space and benchmark must agree.</p>
+<div class="course-example admonition">
+<p class="admonition-title">Example 10.2 · A comparison can be informative and costly</p>
+<p><strong>Setup.</strong> There is a Condorcet winner W with <span class="math notranslate nohighlight">\(P_{WA}=0.70\)</span> and <span class="math notranslate nohighlight">\(P_{WB}=0.60\)</span>.</p>
+<p><strong>Work it through.</strong> The gaps are <span class="math notranslate nohighlight">\(\Delta_A=0.20\)</span> and <span class="math notranslate nohighlight">\(\Delta_B=0.10\)</span>. A duel between A and B has strong pseudo-regret 0.15. A duel between W and A has strong pseudo-regret 0.10 but weak regret zero. A self-comparison of W has zero regret and no information about another item.</p>
+<p><strong>What this shows.</strong> Estimating all comparisons well and obtaining good choices while learning are different goals. A policy that quickly stops comparing may look efficient until it commits to the wrong item.</p>
+</div>
+</section>
+<section id="connect-adaptive-comparison-to-optimal-design">
+<h2>10.4 · Connect adaptive comparison to optimal design<a class="headerlink" href="#connect-adaptive-comparison-to-optimal-design" title="Link to this heading">#</a></h2>
+<p>For a fixed Bradley–Terry parameter, Chapter 6 derived information contributions</p>
+<div class="math notranslate nohighlight">
+\[
+I_{ij}(\theta)=P_{ij}(1-P_{ij})(e_i-e_j)(e_i-e_j)^{\mathsf T}.
+\]</div>
+<p>An estimation-oriented design can allocate comparisons to minimize uncertainty in a specified contrast or a collection of contrasts. An online policy must additionally weigh the opportunity cost of comparing inferior items. For instance, repeatedly comparing two nearly tied middle-ranked items may be useful for estimating their difference while contributing little to identifying the overall winner.</p>
+<p>A pilot estimate can guide later allocations, but preserve sufficient graph connectivity for the desired contrasts. Greedy selection can neglect entire components. A local information criterion depends on unknown strengths and is not automatically optimal under misspecification or a different winner definition.</p>
+<p>Adaptive sampling changes the inference argument. A correctly specified conditional likelihood can account for outcomes given predictable pair choices, but its standard errors and stopping behaviour still need an appropriate justification. A naive bootstrap of individual adaptively collected rows need not reproduce the sampling protocol. Low regret, precise final estimation, and valid inference are three separate claims.</p>
+</section>
+<section id="a-transparent-explore-then-commit-baseline">
+<h2>10.5 · A transparent explore-then-commit baseline<a class="headerlink" href="#a-transparent-explore-then-commit-baseline" title="Link to this heading">#</a></h2>
+<p>The lab uses a fixed Bradley–Terry matrix with a unique Condorcet winner. During a balanced pilot, every pair is compared equally often. It estimates each item’s average win frequency and selects the largest. Under Bradley–Terry, the highest strength is also the unique Borda maximizer, so this selection rule is aligned with the intended winner in this specific model.</p>
+<p>After the pilot, the policy commits to self-comparing the selected item. A baseline continues balanced comparisons throughout. The code calculates strong pseudo-regret from the known simulated matrix and records whether the selected item is correct. Those probabilities are available to the evaluator, not to the learning rule.</p>
+<p>This baseline is not asserted to be regret-optimal. With a fixed pilot and nonzero probability of a wrong commitment, extending the horizon indefinitely can produce linear expected regret. More sophisticated duelling algorithms continue collecting targeted evidence and require their own assumptions and analyses. The separate cyclic example demonstrates why the Condorcet regret target cannot simply be carried over to every matrix.</p>
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Chapter 10: winner definitions, cycles, and a transparent duelling policy.</span>
+<span class="nf">set.seed</span><span class="p">(</span><span class="m">2026102110</span><span class="p">)</span>
+<span class="nf">options</span><span class="p">(</span><span class="n">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">100</span><span class="p">)</span>
+<span class="n">theta</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">-.8</span><span class="p">,</span><span class="w"> </span><span class="m">-.3</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">.</span><span class="m">4</span><span class="p">,</span><span class="w"> </span><span class="n">.</span><span class="m">9</span><span class="p">)</span>
+<span class="n">K</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+<span class="n">P</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">plogis</span><span class="p">(</span><span class="nf">outer</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span><span class="w"> </span><span class="n">theta</span><span class="p">,</span><span class="w"> </span><span class="s">"-"</span><span class="p">))</span>
+<span class="n">condorcet</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">P</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">which</span><span class="p">(</span><span class="nf">vapply</span><span class="p">(</span><span class="nf">seq_len</span><span class="p">(</span><span class="nf">nrow</span><span class="p">(</span><span class="n">P</span><span class="p">)),</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="nf">all</span><span class="p">(</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">.</span><span class="m">5</span><span class="p">),</span><span class="w"> </span><span class="nf">logical</span><span class="p">(</span><span class="m">1</span><span class="p">)))</span>
+<span class="p">}</span>
+<span class="n">borda</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">P</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nf">rowSums</span><span class="p">(</span><span class="n">P</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nf">diag</span><span class="p">(</span><span class="n">P</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">P</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span><span class="p">)</span>
+<span class="n">winner</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">condorcet</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+<span class="nf">stopifnot</span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">winner</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">1L</span><span class="p">)</span>
+<span class="n">delta</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">P</span><span class="p">[</span><span class="n">winner</span><span class="p">,</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">.</span><span class="m">5</span>
+<span class="n">pairs</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">t</span><span class="p">(</span><span class="nf">combn</span><span class="p">(</span><span class="nf">seq_len</span><span class="p">(</span><span class="n">K</span><span class="p">),</span><span class="w"> </span><span class="m">2</span><span class="p">))</span>
+<span class="bp">T</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">600L</span>
+<span class="n">explore</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">150L</span><span class="w"> </span><span class="c1"># Multiple of the number of pairs, so exploration is balanced.</span>
+<span class="n">B</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">150L</span>
+<span class="n">out</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="kc">NA_real_</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="n">dimnames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="kc">NULL</span><span class="p">,</span>
+<span class="w">       </span><span class="nf">c</span><span class="p">(</span><span class="s">"balanced_regret"</span><span class="p">,</span><span class="w"> </span><span class="s">"explore_commit_regret"</span><span class="p">,</span><span class="w"> </span><span class="s">"selected_correctly"</span><span class="p">)))</span>
+<span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">b</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">seq_len</span><span class="p">(</span><span class="n">B</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">wins</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">K</span><span class="p">)</span>
+<span class="w">  </span><span class="n">trials</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">K</span><span class="p">)</span>
+<span class="w">  </span><span class="n">balanced_regret</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">explore_regret</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0</span>
+<span class="w">  </span><span class="n">selected</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">NA_integer_</span>
+<span class="w">  </span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">seq_len</span><span class="p">(</span><span class="bp">T</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">pair</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pairs</span><span class="p">[(</span><span class="n">t</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1L</span><span class="p">)</span><span class="w"> </span><span class="o">%%</span><span class="w"> </span><span class="nf">nrow</span><span class="p">(</span><span class="n">pairs</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1L</span><span class="p">,</span><span class="w"> </span><span class="p">]</span>
+<span class="w">    </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pair</span><span class="p">[</span><span class="m">1</span><span class="p">];</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pair</span><span class="p">[</span><span class="m">2</span><span class="p">]</span>
+<span class="w">    </span><span class="n">round_regret</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="p">(</span><span class="n">delta</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">delta</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="m">2</span>
+<span class="w">    </span><span class="n">balanced_regret</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">balanced_regret</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">round_regret</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">explore</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">y</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rbinom</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">])</span>
+<span class="w">      </span><span class="n">wins</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">wins</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">y</span>
+<span class="w">      </span><span class="n">wins</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">wins</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">y</span>
+<span class="w">      </span><span class="n">trials</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">trials</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span>
+<span class="w">      </span><span class="n">trials</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">trials</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span>
+<span class="w">      </span><span class="n">explore_regret</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">explore_regret</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">round_regret</span>
+<span class="w">      </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">explore</span><span class="p">)</span><span class="w"> </span><span class="n">selected</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">which.max</span><span class="p">(</span><span class="nf">rowSums</span><span class="p">(</span><span class="n">wins</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">rowSums</span><span class="p">(</span><span class="n">trials</span><span class="p">))</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="c1"># Commit to (selected, selected): no informative comparison is collected.</span>
+<span class="w">      </span><span class="n">explore_regret</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">explore_regret</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">delta</span><span class="p">[</span><span class="n">selected</span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">out</span><span class="p">[</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">balanced_regret</span><span class="p">,</span><span class="w"> </span><span class="n">explore_regret</span><span class="p">,</span><span class="w"> </span><span class="n">selected</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">winner</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Bradley-Terry preference matrix:\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="nf">round</span><span class="p">(</span><span class="n">P</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">))</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Condorcet winner:"</span><span class="p">,</span><span class="w"> </span><span class="n">winner</span><span class="p">,</span><span class="w"> </span><span class="s">"\n"</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Borda scores:\n"</span><span class="p">);</span><span class="w"> </span><span class="nf">print</span><span class="p">(</span><span class="nf">round</span><span class="p">(</span><span class="nf">borda</span><span class="p">(</span><span class="n">P</span><span class="p">),</span><span class="w"> </span><span class="m">3</span><span class="p">))</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"\nStrong pseudo-regret uses half the sum of the two winner gaps:\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="nf">round</span><span class="p">(</span><span class="nf">rbind</span><span class="p">(</span><span class="n">mean</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">colMeans</span><span class="p">(</span><span class="n">out</span><span class="p">),</span><span class="w"> </span><span class="n">mcse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">sd</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">sqrt</span><span class="p">(</span><span class="n">B</span><span class="p">)),</span><span class="w"> </span><span class="m">4</span><span class="p">))</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Explore-then-commit is a teaching baseline, not a claim of optimal regret.\n"</span><span class="p">)</span>
+
+<span class="n">cycle</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="n">.</span><span class="m">5</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">)</span>
+<span class="n">cycle</span><span class="p">[</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">.</span><span class="m">75</span><span class="p">;</span><span class="w"> </span><span class="n">cycle</span><span class="p">[</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">.</span><span class="m">25</span>
+<span class="n">cycle</span><span class="p">[</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">.</span><span class="m">65</span><span class="p">;</span><span class="w"> </span><span class="n">cycle</span><span class="p">[</span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">.</span><span class="m">35</span>
+<span class="n">cycle</span><span class="p">[</span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">.</span><span class="m">60</span><span class="p">;</span><span class="w"> </span><span class="n">cycle</span><span class="p">[</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">.</span><span class="m">40</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"\nA cyclic matrix (row item beats column item):\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Condorcet winners:"</span><span class="p">,</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="nf">condorcet</span><span class="p">(</span><span class="n">cycle</span><span class="p">)))</span><span class="w"> </span><span class="nf">condorcet</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="s">"none"</span><span class="p">,</span><span class="w"> </span><span class="s">"\n"</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Borda scores and Borda winner:\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="nf">borda</span><span class="p">(</span><span class="n">cycle</span><span class="p">));</span><span class="w"> </span><span class="nf">print</span><span class="p">(</span><span class="nf">which.max</span><span class="p">(</span><span class="nf">borda</span><span class="p">(</span><span class="n">cycle</span><span class="p">)))</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"A Condorcet-regret target is unavailable for this cyclic example.\n"</span><span class="p">)</span>
+
+<span class="n">figure_dir</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">Sys.getenv</span><span class="p">(</span><span class="s">"COURSE_FIGURE_DIR"</span><span class="p">,</span><span class="w"> </span><span class="s">""</span><span class="p">)</span>
+<span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">nzchar</span><span class="p">(</span><span class="n">figure_dir</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">dir.create</span><span class="p">(</span><span class="n">figure_dir</span><span class="p">,</span><span class="w"> </span><span class="n">recursive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">showWarnings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">png</span><span class="p">(</span><span class="nf">file.path</span><span class="p">(</span><span class="n">figure_dir</span><span class="p">,</span><span class="w"> </span><span class="s">"10-duelling-bandits.png"</span><span class="p">),</span>
+<span class="w">      </span><span class="n">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1100</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">550</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">110</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">par</span><span class="p">(</span><span class="n">mfrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">),</span><span class="w"> </span><span class="n">mar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">5</span><span class="p">,</span><span class="w"> </span><span class="m">4.5</span><span class="p">,</span><span class="w"> </span><span class="m">4</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">))</span>
+<span class="w">  </span><span class="nf">boxplot</span><span class="p">(</span><span class="nf">as.data.frame</span><span class="p">(</span><span class="n">out</span><span class="p">[,</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="m">2</span><span class="p">]),</span><span class="w"> </span><span class="n">names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"Balanced"</span><span class="p">,</span><span class="w"> </span><span class="s">"Explore then commit"</span><span class="p">),</span>
+<span class="w">          </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"#A6D4D7"</span><span class="p">,</span><span class="w"> </span><span class="s">"#DBAACB"</span><span class="p">),</span><span class="w"> </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Strong cumulative pseudo-regret"</span><span class="p">,</span>
+<span class="w">          </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"A finite-horizon policy comparison"</span><span class="p">,</span><span class="w"> </span><span class="n">cex.axis</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">.</span><span class="m">85</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">mtext</span><span class="p">(</span><span class="nf">paste</span><span class="p">(</span><span class="s">"Correct commitment:"</span><span class="p">,</span><span class="w"> </span><span class="nf">round</span><span class="p">(</span><span class="nf">mean</span><span class="p">(</span><span class="n">out</span><span class="p">[,</span><span class="w"> </span><span class="m">3</span><span class="p">]),</span><span class="w"> </span><span class="m">3</span><span class="p">)),</span><span class="w"> </span><span class="n">side</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">.</span><span class="m">75</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">barplot</span><span class="p">(</span><span class="nf">borda</span><span class="p">(</span><span class="n">cycle</span><span class="p">),</span><span class="w"> </span><span class="n">names.arg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"A"</span><span class="p">,</span><span class="w"> </span><span class="s">"B"</span><span class="p">,</span><span class="w"> </span><span class="s">"C"</span><span class="p">),</span>
+<span class="w">          </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"#007A87"</span><span class="p">,</span><span class="w"> </span><span class="s">"#B9C7CA"</span><span class="p">,</span><span class="w"> </span><span class="s">"#B9C7CA"</span><span class="p">),</span><span class="w"> </span><span class="n">ylim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">.</span><span class="m">7</span><span class="p">),</span>
+<span class="w">          </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Uniform-opponent win probability"</span><span class="p">,</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"A cycle can still have a Borda winner"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">mtext</span><span class="p">(</span><span class="s">"There is no Condorcet winner in this matrix"</span><span class="p">,</span><span class="w"> </span><span class="n">side</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">.</span><span class="m">75</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">invisible</span><span class="p">(</span><span class="nf">dev.off</span><span class="p">())</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</details></div>
+<div class="cell-output cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Bradley-Terry preference matrix:
+      [,1]  [,2]  [,3]  [,4]  [,5]
+[1,] 0.500 0.378 0.310 0.231 0.154
+[2,] 0.622 0.500 0.426 0.332 0.231
+[3,] 0.690 0.574 0.500 0.401 0.289
+[4,] 0.769 0.668 0.599 0.500 0.378
+[5,] 0.846 0.769 0.711 0.622 0.500
+Condorcet winner: 5 
+Borda scores:
+[1] 0.268 0.403 0.489 0.603 0.737
+
+Strong pseudo-regret uses half the sum of the two winner gaps:
+     balanced_regret explore_commit_regret selected_correctly
+mean        113.6962               34.2002             0.9000
+mcse          0.0000                1.4427             0.0246
+Explore-then-commit is a teaching baseline, not a claim of optimal regret.
+
+A cyclic matrix (row item beats column item):
+     [,1] [,2] [,3]
+[1,] 0.50 0.75 0.40
+[2,] 0.25 0.50 0.65
+[3,] 0.60 0.35 0.50
+Condorcet winners: none 
+Borda scores and Borda winner:
+[1] 0.575 0.450 0.475
+[1] 1
+A Condorcet-regret target is unavailable for this cyclic example.
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/10-duelling-bandits.png"><img alt="Executed R experiment for duelling bandits; numerical results are printed above." src="../_images/10-duelling-bandits.png" style="width: 100%;" />
+</a>
+</div>
+</section>
+<section id="exercises">
+<h2>10.6 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Verify the three winner criteria in Example 10.1. Define a weighted opponent score <span class="math notranslate nohighlight">\(b_i(q)=\sum_{j\ne i}q_jP_{ij}/(1-q_i)\)</span> for positive weights summing to one. Use <span class="math notranslate nohighlight">\(q=(0.90,0.05,0.05)\)</span> to show that its maximizer can differ from the uniform-opponent Borda winner.</p></li>
+<li><p>Derive the strong and weak regret of the three duels in Example 10.2. Explain why comparing the winner against itself is a modelling convention that may not match every application.</p></li>
+<li><p>Vary the pilot length while keeping the horizon fixed. Report regret, correct selection frequency, and Monte Carlo uncertainty. Explain why no single pilot length must be best across all gap configurations.</p></li>
+<li><p>Design a study whose goal is a confidence interval for one preference contrast rather than cumulative reward. Specify the contrast, budget, comparison allocation, and the inference assumptions that an adaptive version would need.</p></li>
+</ol>
+<div class="dropdown admonition">
+<p class="admonition-title">Worked solutions</p>
+<p><strong>1.</strong> Each item wins one majority and loses one, so Condorcet fails and Copeland ties. The stated Borda means select A. Under the specified weights, the scores become <span class="math notranslate nohighlight">\(0.575\)</span>, <span class="math notranslate nohighlight">\(0.271\)</span>, and <span class="math notranslate nohighlight">\(0.587\)</span>, so C maximizes the new target. Each denominator conditions the opponent distribution on excluding the item itself. Changing the weighting changes what “average” means; it is an explicit change of target.</p>
+<p><strong>2.</strong> For A versus B, the strong regret is 0.15 and the weak regret is 0.10. For W versus A, they are 0.10 and 0. Self-comparing W makes both zero. An interface requiring two distinct displayed items needs a benchmark respecting that restriction.</p>
+<p><strong>3.</strong> A longer pilot leaves fewer rounds for exploitation but can lower the probability of committing incorrectly. Smaller gaps can make the identification problem harder while reducing the cost of mistakes. Keep the pilot budget divisible by the number of pairs if retaining exactly balanced exploration.</p>
+<p><strong>4.</strong> For a fixed design, a contrast-specific information criterion supplies one defensible allocation objective. For an adaptive design, record pair-choice probabilities or the full selection rule, stopping decisions, and independent sampling units; justify the interval under that protocol. Reusing a fixed-design Wald formula is not itself a justification.</p>
+</div>
+</section>
+<section id="reading-and-transition">
+<h2>Reading and transition<a class="headerlink" href="#reading-and-transition" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://doi.org/10.1016/j.jcss.2011.12.028">Yue, Broder, Kleinberg, and Joachims (2012)</a> develops the K-armed duelling-bandit problem. The <a class="reference external" href="https://tor-lattimore.com/downloads/book/book.pdf">Bandit Algorithms text</a> supplies the surrounding sequential-decision framework. The next block asks what inferential claims remain valid after the same data help select the question to be tested.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="09-bandits.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">9. Bandits: learning from chosen actions</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="11-selective-inference.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">11. Selective inference: asking a question after seeing the data</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-preference-matrix">10.1 · The preference matrix</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#declare-what-winning-means">10.2 · Declare what winning means</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-declared-regret-convention">10.3 · A declared regret convention</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#connect-adaptive-comparison-to-optimal-design">10.4 · Connect adaptive comparison to optimal design</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-transparent-explore-then-commit-baseline">10.5 · A transparent explore-then-commit baseline</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">10.6 · Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">Reading and transition</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="copyright">© Copyright 2026, <a href="https://chikuang.github.io/">Chi-Kuang Yeh</a>.</p>
+
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="last-updated">
+  Last updated on October 21, 2026.
+  <br/>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+<div class="extra_footer">
+  Topics of Statistical Learning
+</div>
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

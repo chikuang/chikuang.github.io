@@ -1,0 +1,646 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="auto">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>9. Bandits: learning from chosen actions &#8212; Topics of Statistical Learning</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "auto";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "auto";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/09-bandits';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/learning-controls.js?v=4698cf9e"></script>
+    <script src="../_static/course-demos.js?v=2eb4c93c"></script>
+    <link rel="canonical" href="https://chikuang.github.io/teaching/statistical-learning/chapters/09-bandits.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="10. Duelling bandits and adaptive comparisons" href="10-duelling-bandits.html" />
+    <link rel="prev" title="8. Online learning and regret" href="08-online-learning.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+    <meta name="docbuild:last-update" content="October 21, 2026"/>
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="auto">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Topics of Statistical Learning</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    Topics of Statistical Learning
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Course guide</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide and study route</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../r-workflow.html">R workflow and reproducibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../assignments.html">Assignments and paper discussion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../project.html">Research project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">Interactive demonstrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">I · Weak supervision</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="01-statistical-targets.html">1. Statistical targets and observation mechanisms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02-weak-supervision.html">2. What weak supervision tells us</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03-pu-learning.html">3. Learning from positives and unlabelled observations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04-pu-practice.html">4. PU estimation, overfitting, and sensitivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05-uu-learning.html">5. Learning from two unlabelled mixtures</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">II · Preference learning</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="06-pairwise-preferences.html">6. Pairwise preference learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="07-contextual-preferences.html">7. Contextual preferences, judges, and reward learning</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">III · Online learning</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="08-online-learning.html">8. Online learning and regret</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">9. Bandits: learning from chosen actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="10-duelling-bandits.html">10. Duelling bandits and adaptive comparisons</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">IV · Inference after selection</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="11-selective-inference.html">11. Selective inference: asking a question after seeing the data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="12-hierarchical-clustering.html">12. Selective inference after hierarchical clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="13-kmeans-inference.html">13. Selective inference after k-means</a></li>
+<li class="toctree-l1"><a class="reference internal" href="14-research-synthesis.html">14. Research synthesis: assumptions, validation, and independent information</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item"><a class="btn btn-sm nav-link course-pdf-button"
+   href="../Topics-of-Statistical-Learning.pdf" download
+   title="Download the complete course PDF" aria-label="Download course PDF">
+  <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> <span>PDF</span>
+</a>
+</div>
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/chikuang/Teaching-SML" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/chikuang/Teaching-SML/blob/main/docs/chapters/09-bandits.md?plain=1" target="_blank"
+   class="btn btn-sm btn-source-file-button dropdown-item"
+   title="Show source"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-code"></i>
+  </span>
+<span class="btn__text-container">Show source</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>9. Bandits: learning from chosen actions</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-stochastic-model">9.1 · Define the stochastic model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-greedy-allocation-can-fail">9.2 · Why greedy allocation can fail</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upper-confidence-bounds">9.3 · Upper confidence bounds</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cumulative-reward-and-final-identification-differ">9.4 · Cumulative reward and final identification differ</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execute-a-stationary-bandit-experiment">9.5 · Execute a stationary bandit experiment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">9.6 · Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">Reading and transition</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="bandits-learning-from-chosen-actions">
+<h1>9. Bandits: learning from chosen actions<a class="headerlink" href="#bandits-learning-from-chosen-actions" title="Link to this heading">#</a></h1>
+<p><strong>Question.</strong> How can we choose well while collecting the information needed to learn what is good?</p>
+<p><a class="reference download internal" download="" href="../_downloads/8abb540fc63026083b02e751772a9c67/09-bandits.R"><span class="xref download myst">Download R lab</span></a></p>
+<p>An online learner with full information sees the consequences of all candidate predictions after each round. A bandit learner sees only the reward of the action it chose. This creates an allocation problem: repeatedly choosing an apparently good action can prevent discovery of a better one.</p>
+<p>We begin with stationary stochastic bandits. The assumptions make the target clear and allow a small experiment whose behaviour can be inspected without a large model or external service.</p>
+<section id="define-the-stochastic-model">
+<h2>9.1 · Define the stochastic model<a class="headerlink" href="#define-the-stochastic-model" title="Link to this heading">#</a></h2>
+<p>There are <span class="math notranslate nohighlight">\(K\)</span> arms. Arm <span class="math notranslate nohighlight">\(i\)</span> supplies iid rewards with a fixed mean <span class="math notranslate nohighlight">\(\mu_i\)</span>; for this chapter rewards lie in <span class="math notranslate nohighlight">\([0,1]\)</span>. At time <span class="math notranslate nohighlight">\(t\)</span>, the policy chooses <span class="math notranslate nohighlight">\(A_t\)</span> from past actions and observed rewards, then observes <span class="math notranslate nohighlight">\(Y_t\)</span> from that arm. No unchosen reward is revealed to the policy.</p>
+<p>The independent-arm-stream formulation is convenient. More general conditional-mean assumptions are possible, but must be stated before importing a theorem. Here means do not drift, reward distributions do not depend on previous actions, and a reward is observed immediately.</p>
+<p>Let <span class="math notranslate nohighlight">\(\mu_* = \max_i\mu_i\)</span> and <span class="math notranslate nohighlight">\(\Delta_i=\mu_* - \mu_i\)</span>. The realized allocation defines cumulative <strong>pseudo-regret</strong></p>
+<div class="math notranslate nohighlight" id="equation-eq-bandit-pseudoregret">
+<span class="eqno">(9.1)<a class="headerlink" href="#equation-eq-bandit-pseudoregret" title="Link to this equation">#</a></span>\[
+\bar R_T=\sum_{t=1}^T\Delta_{A_t}
+=\sum_{i=1}^K\Delta_iN_i(T),
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(N_i(T)\)</span> counts pulls of arm <span class="math notranslate nohighlight">\(i\)</span>. Its expectation measures the expected reward lost through choosing suboptimal means. By contrast, <span class="math notranslate nohighlight">\(T\mu_*-\sum_tY_t\)</span> also includes reward noise and can be negative. Distinguish these quantities when plotting a simulation.</p>
+</section>
+<section id="why-greedy-allocation-can-fail">
+<h2>9.2 · Why greedy allocation can fail<a class="headerlink" href="#why-greedy-allocation-can-fail" title="Link to this heading">#</a></h2>
+<p>A greedy policy samples each arm initially and then repeatedly chooses the largest empirical mean. Early noise can make the best arm look poor. If that arm is never revisited, the error cannot be corrected.</p>
+<p>An <span class="math notranslate nohighlight">\(\varepsilon\)</span>-greedy policy selects a random arm with probability <span class="math notranslate nohighlight">\(\varepsilon\)</span> and otherwise acts greedily. A fixed positive <span class="math notranslate nohighlight">\(\varepsilon\)</span> maintains exploration but keeps selecting suboptimal arms at a positive rate, so its asymptotic pseudo-regret is generally linear when gaps are positive. A finite-horizon experiment can still favour a particular tuning: asymptotic orders do not determine every finite-sample ranking.</p>
+<p>Bandit learning is therefore connected to experimental design, but its objective includes the rewards obtained during learning. A design chosen only for final estimation precision may spend too much time on actions that are costly in terms of cumulative reward.</p>
+</section>
+<section id="upper-confidence-bounds">
+<h2>9.3 · Upper confidence bounds<a class="headerlink" href="#upper-confidence-bounds" title="Link to this heading">#</a></h2>
+<p>After pulling each arm once, a common UCB rule for bounded rewards is</p>
+<div class="math notranslate nohighlight" id="equation-eq-ucb-index">
+<span class="eqno">(9.2)<a class="headerlink" href="#equation-eq-ucb-index" title="Link to this equation">#</a></span>\[
+A_t\in\arg\max_i\left\{
+\widehat\mu_i(t-1)+\sqrt{\frac{2\log t}{N_i(t-1)}}\right\}.
+\]</div>
+<p>The empirical mean rewards an arm that looks promising. The bonus rewards uncertainty and decreases with the number of observations. The index can exceed 1: it is a selection score, not a fitted Bernoulli probability.</p>
+<p>For a fixed sample size, Hoeffding’s inequality bounds deviations of a bounded sample mean exponentially in its sample size. A bandit proof must additionally handle the adaptively chosen count and repeated opportunities for error. One cannot simply substitute a random count into an arbitrary fixed-sample interval and declare simultaneous or optional-stopping validity.</p>
+<p>Under the stationary bounded-reward assumptions, UCB analysis bounds the expected number of pulls of each suboptimal arm by order <span class="math notranslate nohighlight">\(\log T/\Delta_i^2\)</span>, plus lower-order terms. Substituting into Equation <a class="reference internal" href="#equation-eq-bandit-pseudoregret">(9.1)</a> gives gap-dependent regret of order <span class="math notranslate nohighlight">\(\sum_{i:\Delta_i&gt;0}\log T/\Delta_i\)</span>. Small gaps make learning harder. This statement is about cumulative decisions, not an automatically valid final confidence interval.</p>
+<div class="course-example admonition">
+<p class="admonition-title">Example 9.1 · The lower empirical mean can be the sensible next choice</p>
+<p><strong>Setup.</strong> Before round 101, two arms have counts 80 and 20 and empirical means 0.60 and 0.50.</p>
+<p><strong>Work it through.</strong> Their UCB indices are approximately <span class="math notranslate nohighlight">\(0.60+\sqrt{2\log101/80}=0.940\)</span> and <span class="math notranslate nohighlight">\(0.50+\sqrt{2\log101/20}=1.179\)</span>. The second arm is selected.</p>
+<p><strong>What this shows.</strong> UCB is not claiming the second arm has an estimated success probability above one. It selects the less-explored arm because plausible improvements still matter to future decisions.</p>
+</div>
+</section>
+<section id="cumulative-reward-and-final-identification-differ">
+<h2>9.4 · Cumulative reward and final identification differ<a class="headerlink" href="#cumulative-reward-and-final-identification-differ" title="Link to this heading">#</a></h2>
+<p>In <strong>best-arm identification</strong>, the output is an arm, and the goal may be to make the probability of a wrong recommendation at most <span class="math notranslate nohighlight">\(\delta\)</span> using few observations. In cumulative-regret minimization, every reward during the experiment matters. The two goals are related but are not interchangeable.</p>
+<div class="course-example admonition">
+<p class="admonition-title">Example 9.2 · Account for both exploration and a wrong commitment</p>
+<p><strong>Setup.</strong> Two arms have means 0.65 and 0.55. Over a horizon of 1,000, an explore-then-commit policy pulls each arm 50 times and then chooses one arm permanently. Suppose, illustratively, that this pilot leads to the wrong choice with probability 0.10.</p>
+<p><strong>Work it through.</strong> Exploration costs <span class="math notranslate nohighlight">\(50(0.10)=5\)</span> units of expected reward. A wrong commitment costs an additional <span class="math notranslate nohighlight">\(900(0.10)\)</span>, occurring with probability 0.10, for an expected cost of 9. Total expected pseudo-regret is 14.</p>
+<p><strong>What this shows.</strong> The error probability and its consequences both matter. The 0.10 error probability is a hypothetical input here, not a computed guarantee for this sample size. A real analysis must estimate or bound it under its reward model.</p>
+</div>
+<p>Inference after adaptive allocation is another distinct question. Selecting the largest estimated arm and reporting its ordinary fixed-sample interval can combine allocation effects, winner selection, and stopping. Later chapters study how data-dependent selection changes inferential targets. A low-regret theorem alone does not solve that problem.</p>
+</section>
+<section id="execute-a-stationary-bandit-experiment">
+<h2>9.5 · Execute a stationary bandit experiment<a class="headerlink" href="#execute-a-stationary-bandit-experiment" title="Link to this heading">#</a></h2>
+<p>The lab compares uniform exploration, fixed-<span class="math notranslate nohighlight">\(\varepsilon\)</span> greedy allocation, and UCB. Each simulation generates a table of potential rewards to couple the policies, but a policy receives only its chosen entry. The simulator uses the known means solely to calculate pseudo-regret.</p>
+<p>Use the same horizon and initial sampling rule for every policy. The output reports mean pseudo-regret, its Monte Carlo standard error, average reward, and the proportion of optimal-arm selections. It also reports a paired difference. Unfavourable finite-horizon results are legitimate; interpret the horizon, reward gaps, and tuning rather than altering the seed.</p>
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Chapter 9: stationary bounded rewards. Base R; no reward stream is shown to a policy.</span>
+<span class="nf">set.seed</span><span class="p">(</span><span class="m">2026102109</span><span class="p">)</span>
+<span class="nf">options</span><span class="p">(</span><span class="n">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">100</span><span class="p">)</span>
+<span class="n">means</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">.</span><span class="m">25</span><span class="p">,</span><span class="w"> </span><span class="n">.</span><span class="m">40</span><span class="p">,</span><span class="w"> </span><span class="n">.</span><span class="m">55</span><span class="p">,</span><span class="w"> </span><span class="n">.</span><span class="m">65</span><span class="p">)</span>
+<span class="n">K</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">means</span><span class="p">)</span>
+<span class="bp">T</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1200L</span>
+<span class="n">B</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">100L</span>
+<span class="n">policies</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"uniform"</span><span class="p">,</span><span class="w"> </span><span class="s">"epsilon_0.1"</span><span class="p">,</span><span class="w"> </span><span class="s">"ucb"</span><span class="p">)</span>
+<span class="n">one_run</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">reward_table</span><span class="p">,</span><span class="w"> </span><span class="n">policy</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">counts</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">reward_sum</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+<span class="w">  </span><span class="n">regret</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">total_reward</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">optimal_choices</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0</span>
+<span class="w">  </span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">seq_len</span><span class="p">(</span><span class="nf">nrow</span><span class="p">(</span><span class="n">reward_table</span><span class="p">)))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">K</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">a</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">t</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">policy</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">"uniform"</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">a</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sample.int</span><span class="p">(</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">policy</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">"epsilon_0.1"</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">a</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">runif</span><span class="p">(</span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">.</span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="nf">sample.int</span><span class="p">(</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="nf">which.max</span><span class="p">(</span><span class="n">reward_sum</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">counts</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">index</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">reward_sum</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">counts</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nf">sqrt</span><span class="p">(</span><span class="m">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">counts</span><span class="p">)</span>
+<span class="w">      </span><span class="n">a</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">which.max</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">y</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">reward_table</span><span class="p">[</span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="p">]</span><span class="w"> </span><span class="c1"># Only this chosen reward is supplied to the update.</span>
+<span class="w">    </span><span class="n">counts</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">counts</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span>
+<span class="w">    </span><span class="n">reward_sum</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">reward_sum</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">y</span>
+<span class="w">    </span><span class="n">regret</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">regret</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nf">max</span><span class="p">(</span><span class="n">means</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">means</span><span class="p">[</span><span class="n">a</span><span class="p">]</span>
+<span class="w">    </span><span class="n">total_reward</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">total_reward</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">y</span>
+<span class="w">    </span><span class="n">optimal_choices</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">optimal_choices</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nf">which.max</span><span class="p">(</span><span class="n">means</span><span class="p">))</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nf">c</span><span class="p">(</span><span class="n">pseudo_regret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">regret</span><span class="p">,</span><span class="w"> </span><span class="n">reward_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">total_reward</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">nrow</span><span class="p">(</span><span class="n">reward_table</span><span class="p">),</span>
+<span class="w">    </span><span class="n">optimal_fraction</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">optimal_choices</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">nrow</span><span class="p">(</span><span class="n">reward_table</span><span class="p">))</span>
+<span class="p">}</span>
+<span class="n">ans</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">array</span><span class="p">(</span><span class="kc">NA_real_</span><span class="p">,</span><span class="w"> </span><span class="n">dim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">policies</span><span class="p">),</span><span class="w"> </span><span class="m">3</span><span class="p">),</span>
+<span class="w">             </span><span class="n">dimnames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="kc">NULL</span><span class="p">,</span><span class="w"> </span><span class="n">policies</span><span class="p">,</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"pseudo_regret"</span><span class="p">,</span><span class="w"> </span><span class="s">"reward_rate"</span><span class="p">,</span><span class="w"> </span><span class="s">"optimal_fraction"</span><span class="p">)))</span>
+<span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">b</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">seq_len</span><span class="p">(</span><span class="n">B</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1"># Common potential outcomes couple policies for paired comparisons.</span>
+<span class="w">  </span><span class="n">reward_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sapply</span><span class="p">(</span><span class="n">means</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="nf">rbinom</span><span class="p">(</span><span class="bp">T</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">p</span><span class="p">))</span>
+<span class="w">  </span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">seq_along</span><span class="p">(</span><span class="n">policies</span><span class="p">))</span><span class="w"> </span><span class="n">ans</span><span class="p">[</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">one_run</span><span class="p">(</span><span class="n">reward_table</span><span class="p">,</span><span class="w"> </span><span class="n">policies</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+<span class="p">}</span>
+<span class="n">out</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">cbind</span><span class="p">(</span><span class="n">mean_regret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">colMeans</span><span class="p">(</span><span class="n">ans</span><span class="p">[,</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">]),</span>
+<span class="w">             </span><span class="n">regret_mcse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="n">ans</span><span class="p">[,</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">],</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">sd</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">sqrt</span><span class="p">(</span><span class="n">B</span><span class="p">),</span>
+<span class="w">             </span><span class="n">mean_reward</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">colMeans</span><span class="p">(</span><span class="n">ans</span><span class="p">[,</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">]),</span>
+<span class="w">             </span><span class="n">optimal_fraction</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">colMeans</span><span class="p">(</span><span class="n">ans</span><span class="p">[,</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">]))</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Stationary Bernoulli bandits; fixed horizon, all arms sampled once first:\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="nf">round</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="m">4</span><span class="p">))</span>
+<span class="n">paired</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ans</span><span class="p">[,</span><span class="w"> </span><span class="s">"ucb"</span><span class="p">,</span><span class="w"> </span><span class="s">"pseudo_regret"</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">ans</span><span class="p">[,</span><span class="w"> </span><span class="s">"epsilon_0.1"</span><span class="p">,</span><span class="w"> </span><span class="s">"pseudo_regret"</span><span class="p">]</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"\nPaired UCB minus epsilon-greedy pseudo-regret (negative favours UCB):\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="nf">round</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="n">mean_difference</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">paired</span><span class="p">),</span><span class="w"> </span><span class="n">mcse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sd</span><span class="p">(</span><span class="n">paired</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">sqrt</span><span class="p">(</span><span class="n">B</span><span class="p">)),</span><span class="w"> </span><span class="m">4</span><span class="p">))</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Finite-horizon rankings can depend on gaps, tuning and horizon.\n"</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"The simulator knows means for scoring; the policies do not.\n"</span><span class="p">)</span>
+
+<span class="n">figure_dir</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">Sys.getenv</span><span class="p">(</span><span class="s">"COURSE_FIGURE_DIR"</span><span class="p">,</span><span class="w"> </span><span class="s">""</span><span class="p">)</span>
+<span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">nzchar</span><span class="p">(</span><span class="n">figure_dir</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">dir.create</span><span class="p">(</span><span class="n">figure_dir</span><span class="p">,</span><span class="w"> </span><span class="n">recursive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">showWarnings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">png</span><span class="p">(</span><span class="nf">file.path</span><span class="p">(</span><span class="n">figure_dir</span><span class="p">,</span><span class="w"> </span><span class="s">"09-bandits.png"</span><span class="p">),</span><span class="w"> </span><span class="n">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1000</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">600</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">110</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">par</span><span class="p">(</span><span class="n">mar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">5</span><span class="p">,</span><span class="w"> </span><span class="m">4.5</span><span class="p">,</span><span class="w"> </span><span class="m">4</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">))</span>
+<span class="w">  </span><span class="nf">boxplot</span><span class="p">(</span><span class="nf">as.data.frame</span><span class="p">(</span><span class="n">ans</span><span class="p">[,</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="s">"pseudo_regret"</span><span class="p">]),</span>
+<span class="w">          </span><span class="n">names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"Uniform"</span><span class="p">,</span><span class="w"> </span><span class="s">"Epsilon = 0.1"</span><span class="p">,</span><span class="w"> </span><span class="s">"UCB"</span><span class="p">),</span>
+<span class="w">          </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"#E9D28B"</span><span class="p">,</span><span class="w"> </span><span class="s">"#A6D4D7"</span><span class="p">,</span><span class="w"> </span><span class="s">"#DBAACB"</span><span class="p">),</span>
+<span class="w">          </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Cumulative pseudo-regret"</span><span class="p">,</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Finite-horizon regret across simulations"</span><span class="p">,</span>
+<span class="w">          </span><span class="n">sub</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">paste</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="s">"replications; horizon"</span><span class="p">,</span><span class="w"> </span><span class="bp">T</span><span class="p">,</span><span class="w"> </span><span class="s">"; stationary Bernoulli rewards"</span><span class="p">))</span>
+<span class="w">  </span><span class="nf">points</span><span class="p">(</span><span class="nf">seq_along</span><span class="p">(</span><span class="n">policies</span><span class="p">),</span><span class="w"> </span><span class="n">out</span><span class="p">[,</span><span class="w"> </span><span class="s">"mean_regret"</span><span class="p">],</span><span class="w"> </span><span class="n">pch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">18</span><span class="p">,</span><span class="w"> </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.3</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">legend</span><span class="p">(</span><span class="s">"topright"</span><span class="p">,</span><span class="w"> </span><span class="n">legend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Monte Carlo mean"</span><span class="p">,</span><span class="w"> </span><span class="n">pch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">18</span><span class="p">,</span><span class="w"> </span><span class="n">bty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"n"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">invisible</span><span class="p">(</span><span class="nf">dev.off</span><span class="p">())</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</details></div>
+<div class="cell-output cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Stationary Bernoulli bandits; fixed horizon, all arms sampled once first:
+            mean_regret regret_mcse mean_reward optimal_fraction
+uniform        225.1350      0.6526      0.4613           0.2503
+epsilon_0.1     47.6945      3.5296      0.6103           0.7338
+ucb             70.3205      1.1183      0.5908           0.6587
+
+Paired UCB minus epsilon-greedy pseudo-regret (negative favours UCB):
+mean_difference            mcse 
+        22.6260          3.7281 
+Finite-horizon rankings can depend on gaps, tuning and horizon.
+The simulator knows means for scoring; the policies do not.
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/09-bandits.png"><img alt="Executed R experiment for bandits; numerical results are printed above." src="../_images/09-bandits.png" style="width: 100%;" />
+</a>
+</div>
+</section>
+<section id="exercises">
+<h2>9.6 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Derive <span class="math notranslate nohighlight">\(E\bar R_T=\sum_i\Delta_iE N_i(T)\)</span>. Explain why reward noise is absent from the pseudo-regret conditional on the chosen arms.</p></li>
+<li><p>Keep the total horizon fixed and move the two largest means closer together. Record regret and optimal-arm selection. Explain why these two metrics can change in different directions.</p></li>
+<li><p>Replace fixed <span class="math notranslate nohighlight">\(\varepsilon=0.1\)</span> with another declared exploration schedule. Compare it without tuning on the same replications used for the final report.</p></li>
+<li><p>Change all means halfway through. Identify exactly which stationary assumptions fail and specify a more suitable comparator for evaluating tracking.</p></li>
+</ol>
+<div class="dropdown admonition">
+<p class="admonition-title">Worked solutions</p>
+<p><strong>1.</strong> Group the terms <span class="math notranslate nohighlight">\(\Delta_{A_t}\)</span> by arm. Linearity of expectation yields the displayed identity without requiring that counts be independent of rewards. Pseudo-regret records mean opportunity cost; the action path remains random, but additional reward noise is excluded.</p>
+<p><strong>2.</strong> Smaller gaps make the identity of the best arm harder to learn, yet a wrong selection costs less. An algorithm can select the optimal arm less often while incurring less pseudo-regret. Report both quantities and the changed population means.</p>
+<p><strong>3.</strong> Use development simulations to select a schedule and independent simulation seeds or scenarios for its final assessment. Otherwise the best-looking tuning is selected on evaluation noise. A schedule’s empirical success is not a proof of its regret rate.</p>
+<p><strong>4.</strong> The arm distributions and means are no longer fixed. A comparator that may switch at known segment boundaries is different from the best single arm over the whole horizon. A general tracking claim requires a restriction on change, an appropriate policy, and analysis for that setting.</p>
+</div>
+</section>
+<section id="reading-and-transition">
+<h2>Reading and transition<a class="headerlink" href="#reading-and-transition" title="Link to this heading">#</a></h2>
+<p>Read Chapters 4, 6, and 7 of <a class="reference external" href="https://tor-lattimore.com/downloads/book/book.pdf">Lattimore and Szepesvári, <em>Bandit Algorithms</em></a>. They define the stochastic protocol and develop explore-then-commit and UCB analyses. Next, replace numerical rewards with pairwise preference feedback.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="08-online-learning.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">8. Online learning and regret</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="10-duelling-bandits.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">10. Duelling bandits and adaptive comparisons</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-stochastic-model">9.1 · Define the stochastic model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-greedy-allocation-can-fail">9.2 · Why greedy allocation can fail</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upper-confidence-bounds">9.3 · Upper confidence bounds</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cumulative-reward-and-final-identification-differ">9.4 · Cumulative reward and final identification differ</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execute-a-stationary-bandit-experiment">9.5 · Execute a stationary bandit experiment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">9.6 · Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">Reading and transition</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="copyright">© Copyright 2026, <a href="https://chikuang.github.io/">Chi-Kuang Yeh</a>.</p>
+
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="last-updated">
+  Last updated on October 21, 2026.
+  <br/>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+<div class="extra_footer">
+  Topics of Statistical Learning
+</div>
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

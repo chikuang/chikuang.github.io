@@ -1,0 +1,696 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="auto">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>8. Online learning and regret &#8212; Topics of Statistical Learning</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "auto";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "auto";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/08-online-learning';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/learning-controls.js?v=4698cf9e"></script>
+    <script src="../_static/course-demos.js?v=2eb4c93c"></script>
+    <link rel="canonical" href="https://chikuang.github.io/teaching/statistical-learning/chapters/08-online-learning.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="9. Bandits: learning from chosen actions" href="09-bandits.html" />
+    <link rel="prev" title="7. Contextual preferences, judges, and reward learning" href="07-contextual-preferences.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+    <meta name="docbuild:last-update" content="October 21, 2026"/>
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="auto">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Topics of Statistical Learning</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    Topics of Statistical Learning
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Course guide</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide and study route</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../r-workflow.html">R workflow and reproducibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../assignments.html">Assignments and paper discussion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../project.html">Research project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">Interactive demonstrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">I · Weak supervision</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="01-statistical-targets.html">1. Statistical targets and observation mechanisms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02-weak-supervision.html">2. What weak supervision tells us</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03-pu-learning.html">3. Learning from positives and unlabelled observations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04-pu-practice.html">4. PU estimation, overfitting, and sensitivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05-uu-learning.html">5. Learning from two unlabelled mixtures</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">II · Preference learning</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="06-pairwise-preferences.html">6. Pairwise preference learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="07-contextual-preferences.html">7. Contextual preferences, judges, and reward learning</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">III · Online learning</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">8. Online learning and regret</a></li>
+<li class="toctree-l1"><a class="reference internal" href="09-bandits.html">9. Bandits: learning from chosen actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="10-duelling-bandits.html">10. Duelling bandits and adaptive comparisons</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">IV · Inference after selection</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="11-selective-inference.html">11. Selective inference: asking a question after seeing the data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="12-hierarchical-clustering.html">12. Selective inference after hierarchical clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="13-kmeans-inference.html">13. Selective inference after k-means</a></li>
+<li class="toctree-l1"><a class="reference internal" href="14-research-synthesis.html">14. Research synthesis: assumptions, validation, and independent information</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item"><a class="btn btn-sm nav-link course-pdf-button"
+   href="../Topics-of-Statistical-Learning.pdf" download
+   title="Download the complete course PDF" aria-label="Download course PDF">
+  <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> <span>PDF</span>
+</a>
+</div>
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/chikuang/Teaching-SML" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/chikuang/Teaching-SML/blob/main/docs/chapters/08-online-learning.md?plain=1" target="_blank"
+   class="btn btn-sm btn-source-file-button dropdown-item"
+   title="Show source"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-code"></i>
+  </span>
+<span class="btn__text-container">Show source</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>8. Online learning and regret</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#write-the-protocol-before-the-algorithm">8.1 · Write the protocol before the algorithm</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learn-from-experts-with-hedge">8.2 · Learn from experts with Hedge</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#derive-projected-online-gradient-descent">8.3 · Derive projected online gradient descent</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regret-is-not-automatically-statistical-risk">8.4 · Regret is not automatically statistical risk</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execute-the-full-information-experiment">8.5 · Execute the full-information experiment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">8.6 · Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">Reading and transition</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="online-learning-and-regret">
+<h1>8. Online learning and regret<a class="headerlink" href="#online-learning-and-regret" title="Link to this heading">#</a></h1>
+<p><strong>Question.</strong> How should a learner act when each decision must precede the next observation?</p>
+<p><a class="reference download internal" download="" href="../_downloads/ee14df61181fb78fafa13408e39cae8f/08-online-learning.R"><span class="xref download myst">Download R lab</span></a></p>
+<p>Batch learning chooses a rule after observing a training sample. Online learning specifies a sequence: act, observe feedback, update, and act again. The feedback might contain a full loss function or only a partial observation. This chapter begins with full information, where the mathematical distinction between prediction and adaptation is easiest to see.</p>
+<p>The central target is cumulative loss relative to a declared comparator. Small regret is a precise guarantee, but its meaning depends on what that comparator is allowed to do.</p>
+<section id="write-the-protocol-before-the-algorithm">
+<h2>8.1 · Write the protocol before the algorithm<a class="headerlink" href="#write-the-protocol-before-the-algorithm" title="Link to this heading">#</a></h2>
+<p>At round <span class="math notranslate nohighlight">\(t\)</span>, the learner chooses <span class="math notranslate nohighlight">\(w_t\in\mathcal W\)</span> using information available before the new loss. A loss function <span class="math notranslate nohighlight">\(\ell_t\)</span> is revealed, the learner incurs <span class="math notranslate nohighlight">\(\ell_t(w_t)\)</span>, and it updates its decision. In the full-information setting it can use the observed loss function or an appropriate gradient. In prediction with experts, it sees every expert’s loss after acting.</p>
+<p>For a fixed decision set, define</p>
+<div class="math notranslate nohighlight" id="equation-eq-online-regret">
+<span class="eqno">(8.1)<a class="headerlink" href="#equation-eq-online-regret" title="Link to this equation">#</a></span>\[
+\operatorname{Regret}_T=
+\sum_{t=1}^T\ell_t(w_t)
+-\min_{w\in\mathcal W}\sum_{t=1}^T\ell_t(w).
+\]</div>
+<p>The comparator is the best <strong>single fixed decision in hindsight</strong>. This is not necessarily the best decision at each time. Regret can be negative, because the learner changes its decision while the comparator cannot. The useful goal is an upper bound growing more slowly than <span class="math notranslate nohighlight">\(T\)</span>.</p>
+<p>The sequence need not be iid for the deterministic convex regret argument below. For randomized partial-feedback methods, specify what the environment can observe before choosing outcomes; an adversary that reacts to the current random action can change the guarantee.</p>
+</section>
+<section id="learn-from-experts-with-hedge">
+<h2>8.2 · Learn from experts with Hedge<a class="headerlink" href="#learn-from-experts-with-hedge" title="Link to this heading">#</a></h2>
+<p>Suppose <span class="math notranslate nohighlight">\(K\)</span> experts supply advice and their losses satisfy <span class="math notranslate nohighlight">\(L_{tk}\in[0,1]\)</span>. Hedge maintains weights</p>
+<div class="math notranslate nohighlight">
+\[
+p_{tk}=\frac{\exp\{-\eta\sum_{s&lt;t}L_{sk}\}}
+{\sum_j\exp\{-\eta\sum_{s&lt;t}L_{sj}\}}.
+\]</div>
+<p>The learner’s mixture loss is <span class="math notranslate nohighlight">\(\sum_kp_{tk}L_{tk}\)</span>. It is the conditional expected loss when an expert is sampled using <span class="math notranslate nohighlight">\(p_t\)</span>. With a convex loss of a numerical prediction, combining predictions can sometimes have loss no larger than the mixture loss, by Jensen’s inequality; that is an additional property of the prediction setup.</p>
+<p>Full-information feedback is essential to this update: all expert losses are observed after the round. The exponential-weights analysis yields a bound of the form <span class="math notranslate nohighlight">\(\log K/\eta+\eta T/8\)</span> for bounded losses and the mixture-loss convention. Balancing the terms gives order <span class="math notranslate nohighlight">\(\sqrt{T\log K}\)</span> regret.</p>
+<div class="course-example admonition">
+<p class="admonition-title">Example 8.1 · Good adaptation can still lose on the next round</p>
+<p><strong>Setup.</strong> Two experts incur losses <span class="math notranslate nohighlight">\((0,1)\)</span> on the first round and <span class="math notranslate nohighlight">\((1,0)\)</span> on the second. Use uniform initial weights and <span class="math notranslate nohighlight">\(\eta=\log3\)</span>.</p>
+<p><strong>Work it through.</strong> Round-one mixture loss is <span class="math notranslate nohighlight">\(1/2\)</span>. The updated weights are <span class="math notranslate nohighlight">\((3/4,1/4)\)</span>, so round-two mixture loss is <span class="math notranslate nohighlight">\(3/4\)</span>. Total loss is <span class="math notranslate nohighlight">\(1.25\)</span>; either fixed expert loses exactly 1, so regret is <span class="math notranslate nohighlight">\(0.25\)</span>.</p>
+<p><strong>What this shows.</strong> The weight update uses past evidence and cannot know that the next outcome reverses. A cumulative guarantee does not assert that every update improves the next prediction.</p>
+</div>
+</section>
+<section id="derive-projected-online-gradient-descent">
+<h2>8.3 · Derive projected online gradient descent<a class="headerlink" href="#derive-projected-online-gradient-descent" title="Link to this heading">#</a></h2>
+<p>Let <span class="math notranslate nohighlight">\(\mathcal W\)</span> be closed and convex with Euclidean diameter at most <span class="math notranslate nohighlight">\(D\)</span>. Suppose each <span class="math notranslate nohighlight">\(\ell_t\)</span> is convex and a subgradient <span class="math notranslate nohighlight">\(g_t\)</span> at <span class="math notranslate nohighlight">\(w_t\)</span> has norm at most <span class="math notranslate nohighlight">\(G\)</span>. Projected OGD is</p>
+<div class="math notranslate nohighlight">
+\[
+w_{t+1}=\Pi_{\mathcal W}(w_t-\eta g_t).
+\]</div>
+<p>For any fixed comparator <span class="math notranslate nohighlight">\(u\in\mathcal W\)</span>, convexity gives <span class="math notranslate nohighlight">\(\ell_t(w_t)-\ell_t(u)\le g_t^{\mathsf T}(w_t-u)\)</span>. The projection inequality gives</p>
+<div class="math notranslate nohighlight">
+\[
+\|w_{t+1}-u\|^2\le\|w_t-u\|^2
+-2\eta g_t^{\mathsf T}(w_t-u)+\eta^2\|g_t\|^2.
+\]</div>
+<p>Rearranging and summing cancels the intermediate squared distances. Consequently,</p>
+<div class="math notranslate nohighlight" id="equation-eq-ogd-bound">
+<span class="eqno">(8.2)<a class="headerlink" href="#equation-eq-ogd-bound" title="Link to this equation">#</a></span>\[
+\operatorname{Regret}_T\le\frac{D^2}{2\eta}
++\frac{\eta G^2T}{2}.
+\]</div>
+<p>For a known horizon, <span class="math notranslate nohighlight">\(\eta=D/(G\sqrt T)\)</span> yields <span class="math notranslate nohighlight">\(DG\sqrt T\)</span>. The proof makes the assumptions visible: bounded domain, bounded subgradients, convex losses, and updates that occur after the current decision. Smoothness is not required for this bound.</p>
+<div class="course-example admonition">
+<p class="admonition-title">Example 8.2 · A guarantee with an explicit comparator</p>
+<p><strong>Setup.</strong> Decisions lie in <span class="math notranslate nohighlight">\([-1,1]\)</span> and losses are linear, <span class="math notranslate nohighlight">\(\ell_t(w)=g_tw\)</span> with <span class="math notranslate nohighlight">\(|g_t|\le1\)</span>. Take <span class="math notranslate nohighlight">\(T=100\)</span>.</p>
+<p><strong>Work it through.</strong> Here <span class="math notranslate nohighlight">\(D=2\)</span>, <span class="math notranslate nohighlight">\(G=1\)</span>, and the constant step size is <span class="math notranslate nohighlight">\(0.2\)</span>. Equation <a class="reference internal" href="#equation-eq-ogd-bound">(8.2)</a> gives regret at most 20. The best fixed decision has total loss <span class="math notranslate nohighlight">\(-|\sum_tg_t|\)</span>, while a separate best decision at every time would have loss <span class="math notranslate nohighlight">\(-\sum_t|g_t|\)</span>.</p>
+<p><strong>What this shows.</strong> The guarantee concerns the first comparator. Replacing it with the second changes the problem; the original proof does not establish small regret against an unrestricted sequence of decisions.</p>
+</div>
+</section>
+<section id="regret-is-not-automatically-statistical-risk">
+<h2>8.4 · Regret is not automatically statistical risk<a class="headerlink" href="#regret-is-not-automatically-statistical-risk" title="Link to this heading">#</a></h2>
+<p>Under iid observations <span class="math notranslate nohighlight">\(Z_t\)</span>, let <span class="math notranslate nohighlight">\(\ell_t(w)=\ell(w,Z_t)\)</span> and <span class="math notranslate nohighlight">\(R(w)=E\ell(w,Z)\)</span>. If <span class="math notranslate nohighlight">\(w_t\)</span> depends only on preceding observations, it is independent of the current iid <span class="math notranslate nohighlight">\(Z_t\)</span>. For convex loss, the average iterate <span class="math notranslate nohighlight">\(\bar w_T=T^{-1}\sum_tw_t\)</span> then satisfies an online-to-batch inequality of the form</p>
+<div class="math notranslate nohighlight">
+\[
+E\{R(\bar w_T)-R(w^*)\}\le
+\frac{E\operatorname{Regret}_T}{T},
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(w^*\)</span> minimizes population risk and the expectations exist. Independence and convexity justify this conversion. An arbitrary dependent or drifting sequence does not permit the same argument merely because an online algorithm was used.</p>
+<p>Likewise, a fixed-comparator regret bound does not establish calibrated confidence intervals, validity under arbitrary optional stopping, or successful tracking of unrestricted change. Dynamic or adaptive regret changes the comparator class and generally needs additional structure or a different guarantee.</p>
+</section>
+<section id="execute-the-full-information-experiment">
+<h2>8.5 · Execute the full-information experiment<a class="headerlink" href="#execute-the-full-information-experiment" title="Link to this heading">#</a></h2>
+<p>The lab supplies all experts’ losses after each decision. One expert has the smallest expected loss in the first half, and another in the second. It compares uniform mixing, ordinary Hedge, and a policy told the exact change boundary. The last is an oracle illustration, explicitly using information unavailable to a learner that must detect changes.</p>
+<p>The table reports loss relative to both a fixed expert and a two-segment comparator. The OGD example separately checks the deterministic inequality on a realized sequence of linear losses. These examples distinguish a full-information calculation from the bandit experiment in the next chapter.</p>
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Chapter 8: full-information Hedge and projected online gradient descent.</span>
+<span class="nf">set.seed</span><span class="p">(</span><span class="m">2026102108</span><span class="p">)</span>
+<span class="nf">options</span><span class="p">(</span><span class="n">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">100</span><span class="p">)</span>
+<span class="bp">T</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">800L</span>
+<span class="n">K</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">3L</span>
+<span class="n">losses</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="bp">T</span><span class="p">,</span><span class="w"> </span><span class="n">K</span><span class="p">)</span>
+<span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">seq_len</span><span class="p">(</span><span class="bp">T</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">error_probability</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="bp">T</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="m">2</span><span class="p">)</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">.</span><span class="m">15</span><span class="p">,</span><span class="w"> </span><span class="n">.</span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="n">.</span><span class="m">45</span><span class="p">)</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">.</span><span class="m">45</span><span class="p">,</span><span class="w"> </span><span class="n">.</span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="n">.</span><span class="m">15</span><span class="p">)</span>
+<span class="w">  </span><span class="n">losses</span><span class="p">[</span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rbinom</span><span class="p">(</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">error_probability</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">hedge</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">L</span><span class="p">,</span><span class="w"> </span><span class="n">reset_at</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">integer</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">horizon</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">nrow</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
+<span class="w">  </span><span class="n">eta</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sqrt</span><span class="p">(</span><span class="m">8</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">L</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">horizon</span><span class="p">)</span>
+<span class="w">  </span><span class="n">score</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rep</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="nf">ncol</span><span class="p">(</span><span class="n">L</span><span class="p">))</span>
+<span class="w">  </span><span class="n">incurred</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="n">horizon</span><span class="p">)</span>
+<span class="w">  </span><span class="n">weights</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="kc">NA_real_</span><span class="p">,</span><span class="w"> </span><span class="n">horizon</span><span class="p">,</span><span class="w"> </span><span class="nf">ncol</span><span class="p">(</span><span class="n">L</span><span class="p">))</span>
+<span class="w">  </span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">seq_len</span><span class="p">(</span><span class="n">horizon</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="w"> </span><span class="o">%in%</span><span class="w"> </span><span class="n">reset_at</span><span class="p">)</span><span class="w"> </span><span class="n">score</span><span class="p">[]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0</span>
+<span class="w">    </span><span class="n">z</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="o">-</span><span class="n">eta</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">score</span>
+<span class="w">    </span><span class="n">w</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">exp</span><span class="p">(</span><span class="n">z</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nf">max</span><span class="p">(</span><span class="n">z</span><span class="p">))</span>
+<span class="w">    </span><span class="n">w</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">w</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+<span class="w">    </span><span class="n">weights</span><span class="p">[</span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">w</span>
+<span class="w">    </span><span class="n">incurred</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">w</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="p">])</span>
+<span class="w">    </span><span class="n">score</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">score</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="c1"># Update only after the round's loss is incurred.</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nf">list</span><span class="p">(</span><span class="n">loss</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">incurred</span><span class="p">,</span><span class="w"> </span><span class="n">weights</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">weights</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">ordinary</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">hedge</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span>
+<span class="n">restart</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">hedge</span><span class="p">(</span><span class="n">losses</span><span class="p">,</span><span class="w"> </span><span class="n">reset_at</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">T</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1L</span><span class="p">)</span>
+<span class="n">best_fixed</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">min</span><span class="p">(</span><span class="nf">colSums</span><span class="p">(</span><span class="n">losses</span><span class="p">))</span>
+<span class="n">best_two_segments</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">min</span><span class="p">(</span><span class="nf">colSums</span><span class="p">(</span><span class="n">losses</span><span class="p">[</span><span class="m">1</span><span class="o">:</span><span class="p">(</span><span class="bp">T</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="m">2</span><span class="p">),</span><span class="w"> </span><span class="p">]))</span><span class="w"> </span><span class="o">+</span>
+<span class="w">  </span><span class="nf">min</span><span class="p">(</span><span class="nf">colSums</span><span class="p">(</span><span class="n">losses</span><span class="p">[(</span><span class="bp">T</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="o">:</span><span class="bp">T</span><span class="p">,</span><span class="w"> </span><span class="p">]))</span>
+<span class="n">summarize</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">total_loss</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">v</span><span class="p">),</span>
+<span class="w">                           </span><span class="n">fixed_regret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">best_fixed</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">two_segment_regret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">best_two_segments</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Full-information losses; mixture loss is expected loss under sampled experts:\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="nf">round</span><span class="p">(</span><span class="nf">rbind</span><span class="p">(</span><span class="n">uniform</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">summarize</span><span class="p">(</span><span class="nf">rowMeans</span><span class="p">(</span><span class="n">losses</span><span class="p">)),</span>
+<span class="w">                  </span><span class="n">hedge</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">summarize</span><span class="p">(</span><span class="n">ordinary</span><span class="o">$</span><span class="n">loss</span><span class="p">),</span>
+<span class="w">                  </span><span class="n">known_boundary_restart</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">summarize</span><span class="p">(</span><span class="n">restart</span><span class="o">$</span><span class="n">loss</span><span class="p">)),</span><span class="w"> </span><span class="m">3</span><span class="p">))</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"\nThe restart policy is given the true change boundary; it is an oracle illustration.\n"</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"A negative fixed-comparator regret is possible because the learner can change weights.\n"</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Hedge weights before rounds 1, 400, 401 and 800:\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="nf">round</span><span class="p">(</span><span class="n">ordinary</span><span class="o">$</span><span class="n">weights</span><span class="p">[</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">400</span><span class="p">,</span><span class="w"> </span><span class="m">401</span><span class="p">,</span><span class="w"> </span><span class="m">800</span><span class="p">),</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="m">4</span><span class="p">))</span>
+
+<span class="c1"># Linear convex losses ell_t(w)=g_t*w on [-1,1]; diameter D=2 and gradient bound G=1.</span>
+<span class="n">horizon</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">400L</span>
+<span class="n">g</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="m">-1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">),</span><span class="w"> </span><span class="n">horizon</span><span class="p">,</span><span class="w"> </span><span class="n">replace</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">prob</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">.</span><span class="m">55</span><span class="p">,</span><span class="w"> </span><span class="n">.</span><span class="m">45</span><span class="p">))</span>
+<span class="n">D</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">2</span>
+<span class="n">G</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1</span>
+<span class="n">eta</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">D</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">G</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">sqrt</span><span class="p">(</span><span class="n">horizon</span><span class="p">))</span>
+<span class="n">w</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0</span>
+<span class="n">ogd_loss</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="n">horizon</span><span class="p">)</span>
+<span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">seq_len</span><span class="p">(</span><span class="n">horizon</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">ogd_loss</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">g</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">w</span>
+<span class="w">  </span><span class="n">w</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">max</span><span class="p">(</span><span class="m">-1</span><span class="p">,</span><span class="w"> </span><span class="nf">min</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">w</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">eta</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">g</span><span class="p">[</span><span class="n">t</span><span class="p">]))</span>
+<span class="p">}</span>
+<span class="n">best_constant_loss</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="o">-</span><span class="nf">abs</span><span class="p">(</span><span class="nf">sum</span><span class="p">(</span><span class="n">g</span><span class="p">))</span>
+<span class="n">regret</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">ogd_loss</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">best_constant_loss</span>
+<span class="n">bound</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">D</span><span class="o">^</span><span class="m">2</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="m">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">eta</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">eta</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">G</span><span class="o">^</span><span class="m">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">horizon</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="m">2</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"\nProjected OGD, fixed-comparator regret and the deterministic upper bound:\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="n">regret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">regret</span><span class="p">,</span><span class="w"> </span><span class="n">bound</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bound</span><span class="p">,</span><span class="w"> </span><span class="n">step_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">eta</span><span class="p">))</span>
+<span class="nf">stopifnot</span><span class="p">(</span><span class="n">regret</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">bound</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1e-10</span><span class="p">)</span>
+
+<span class="n">figure_dir</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">Sys.getenv</span><span class="p">(</span><span class="s">"COURSE_FIGURE_DIR"</span><span class="p">,</span><span class="w"> </span><span class="s">""</span><span class="p">)</span>
+<span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">nzchar</span><span class="p">(</span><span class="n">figure_dir</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">dir.create</span><span class="p">(</span><span class="n">figure_dir</span><span class="p">,</span><span class="w"> </span><span class="n">recursive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">showWarnings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">png</span><span class="p">(</span><span class="nf">file.path</span><span class="p">(</span><span class="n">figure_dir</span><span class="p">,</span><span class="w"> </span><span class="s">"08-online-learning.png"</span><span class="p">),</span>
+<span class="w">      </span><span class="n">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1100</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">850</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">110</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">par</span><span class="p">(</span><span class="n">mfrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">),</span><span class="w"> </span><span class="n">mar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">4</span><span class="p">,</span><span class="w"> </span><span class="m">4.5</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">))</span>
+<span class="w">  </span><span class="n">colours</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"#007A87"</span><span class="p">,</span><span class="w"> </span><span class="s">"#A2006E"</span><span class="p">,</span><span class="w"> </span><span class="s">"#B88A00"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">matplot</span><span class="p">(</span><span class="nf">seq_len</span><span class="p">(</span><span class="bp">T</span><span class="p">),</span><span class="w"> </span><span class="n">ordinary</span><span class="o">$</span><span class="n">weights</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"l"</span><span class="p">,</span><span class="w"> </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span>
+<span class="w">          </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">colours</span><span class="p">,</span><span class="w"> </span><span class="n">xlab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Round"</span><span class="p">,</span><span class="w"> </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Weight before observing losses"</span><span class="p">,</span>
+<span class="w">          </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Ordinary Hedge retains evidence from the first regime"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">abline</span><span class="p">(</span><span class="n">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">T</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">legend</span><span class="p">(</span><span class="s">"topright"</span><span class="p">,</span><span class="w"> </span><span class="n">legend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">paste</span><span class="p">(</span><span class="s">"Expert"</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="n">K</span><span class="p">),</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">colours</span><span class="p">,</span>
+<span class="w">         </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">bty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"n"</span><span class="p">,</span><span class="w"> </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">.</span><span class="m">8</span><span class="p">)</span>
+<span class="w">  </span><span class="n">comparator_loss</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">losses</span><span class="p">[,</span><span class="w"> </span><span class="nf">which.min</span><span class="p">(</span><span class="nf">colSums</span><span class="p">(</span><span class="n">losses</span><span class="p">))]</span>
+<span class="w">  </span><span class="n">loss_differences</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">cbind</span><span class="p">(</span><span class="nf">rowMeans</span><span class="p">(</span><span class="n">losses</span><span class="p">),</span><span class="w"> </span><span class="n">ordinary</span><span class="o">$</span><span class="n">loss</span><span class="p">,</span><span class="w"> </span><span class="n">restart</span><span class="o">$</span><span class="n">loss</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">comparator_loss</span>
+<span class="w">  </span><span class="n">cumulative_difference</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="n">loss_differences</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">cumsum</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">matplot</span><span class="p">(</span><span class="nf">seq_len</span><span class="p">(</span><span class="bp">T</span><span class="p">),</span><span class="w"> </span><span class="n">cumulative_difference</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"l"</span><span class="p">,</span><span class="w"> </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span>
+<span class="w">          </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">colours</span><span class="p">,</span><span class="w"> </span><span class="n">xlab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Round"</span><span class="p">,</span><span class="w"> </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Cumulative loss difference"</span><span class="p">,</span>
+<span class="w">          </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Comparator: the best fixed expert over the complete horizon"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">abline</span><span class="p">(</span><span class="n">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">T</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">legend</span><span class="p">(</span><span class="s">"bottomleft"</span><span class="p">,</span><span class="w"> </span><span class="n">legend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"Uniform"</span><span class="p">,</span><span class="w"> </span><span class="s">"Hedge"</span><span class="p">,</span><span class="w"> </span><span class="s">"Known-boundary restart"</span><span class="p">),</span>
+<span class="w">         </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">colours</span><span class="p">,</span><span class="w"> </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">bty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"n"</span><span class="p">,</span><span class="w"> </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">.</span><span class="m">8</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">invisible</span><span class="p">(</span><span class="nf">dev.off</span><span class="p">())</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</details></div>
+<div class="cell-output cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Full-information losses; mixture loss is expected loss under sampled experts:
+                       total_loss fixed_regret two_segment_regret
+uniform                   240.000       20.000            123.000
+hedge                     231.052       11.052            114.052
+known_boundary_restart    139.536      -80.464             22.536
+
+The restart policy is given the true change boundary; it is an oracle illustration.
+A negative fixed-comparator regret is possible because the learner can change weights.
+Hedge weights before rounds 1, 400, 401 and 800:
+       [,1]   [,2]   [,3]
+[1,] 0.3333 0.3333 0.3333
+[2,] 0.9953 0.0047 0.0000
+[3,] 0.9953 0.0047 0.0000
+[4,] 0.1081 0.8799 0.0120
+
+Projected OGD, fixed-comparator regret and the deterministic upper bound:
+   regret     bound step_size 
+     23.2      40.0       0.1
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/08-online-learning.png"><img alt="Executed R experiment for online learning; numerical results are printed above." src="../_images/08-online-learning.png" style="width: 100%;" />
+</a>
+</div>
+</section>
+<section id="exercises">
+<h2>8.6 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Reproduce Example 8.1 with <span class="math notranslate nohighlight">\(\eta=0\)</span>. Explain why the result does not show that learning is useless.</p></li>
+<li><p>Complete the projection-and-telescoping proof. What breaks if the gradient has no finite bound on the decision set?</p></li>
+<li><p>Run the experiment without changing the experts’ loss probabilities halfway through. Report both comparators and explain when they coincide or differ in a finite sample.</p></li>
+<li><p>A researcher sorts a static dataset into an arbitrary order and calls it a time series. What online-learning questions can still be studied, and which claims about temporal distribution shift are unsupported?</p></li>
+</ol>
+<div class="dropdown admonition">
+<p class="admonition-title">Worked solutions</p>
+<p><strong>1.</strong> With zero learning rate, the weights stay uniform and total loss is 1, matching the best fixed expert in this particular two-round sequence. Other sequences reward adaptation. A two-round counterexample to monotone improvement is not a universal comparison of algorithms.</p>
+<p><strong>2.</strong> Bound the first squared distance by <span class="math notranslate nohighlight">\(D^2\)</span>, discard the nonnegative final squared distance, and bound <span class="math notranslate nohighlight">\(\sum_t\|g_t\|^2\)</span> by <span class="math notranslate nohighlight">\(TG^2\)</span>. Without a gradient bound, that sum can be large or require a different data-dependent analysis.</p>
+<p><strong>3.</strong> Even under stationary expected losses, random outcomes can make the best realized expert differ across halves. The two-segment comparator is at least as flexible and has loss no larger than the best fixed expert. Report this distinction rather than interpreting every difference as evidence of population drift.</p>
+<p><strong>4.</strong> One can study sequential prediction under the chosen presentation protocol, computation, and regret relative to declared comparators. The imposed order does not supply evidence that the original population evolved over real time. A temporal claim requires a defensible timestamp or longitudinal data-generating interpretation.</p>
+</div>
+</section>
+<section id="reading-and-transition">
+<h2>Reading and transition<a class="headerlink" href="#reading-and-transition" title="Link to this heading">#</a></h2>
+<p>Read Sections 1.1–1.3 and 3.1 of <a class="reference external" href="https://arxiv.org/abs/1909.05207">Hazan, <em>Introduction to Online Convex Optimization</em>, second edition</a>. The text also develops alternative comparator notions. Next, remove full feedback: choosing an action determines which reward is observed.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="07-contextual-preferences.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">7. Contextual preferences, judges, and reward learning</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="09-bandits.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">9. Bandits: learning from chosen actions</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#write-the-protocol-before-the-algorithm">8.1 · Write the protocol before the algorithm</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learn-from-experts-with-hedge">8.2 · Learn from experts with Hedge</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#derive-projected-online-gradient-descent">8.3 · Derive projected online gradient descent</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regret-is-not-automatically-statistical-risk">8.4 · Regret is not automatically statistical risk</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execute-the-full-information-experiment">8.5 · Execute the full-information experiment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">8.6 · Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-and-transition">Reading and transition</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="copyright">© Copyright 2026, <a href="https://chikuang.github.io/">Chi-Kuang Yeh</a>.</p>
+
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="last-updated">
+  Last updated on October 21, 2026.
+  <br/>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+<div class="extra_footer">
+  Topics of Statistical Learning
+</div>
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

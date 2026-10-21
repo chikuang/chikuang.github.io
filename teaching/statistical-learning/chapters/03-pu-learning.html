@@ -1,0 +1,786 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="auto">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>3. Learning from positives and unlabelled observations &#8212; Topics of Statistical Learning</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "auto";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "auto";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/03-pu-learning';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/learning-controls.js?v=4698cf9e"></script>
+    <script src="../_static/course-demos.js?v=2eb4c93c"></script>
+    <link rel="canonical" href="https://chikuang.github.io/teaching/statistical-learning/chapters/03-pu-learning.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="4. PU estimation, overfitting, and sensitivity" href="04-pu-practice.html" />
+    <link rel="prev" title="2. What weak supervision tells us" href="02-weak-supervision.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+    <meta name="docbuild:last-update" content="October 21, 2026"/>
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="auto">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Topics of Statistical Learning</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    Topics of Statistical Learning
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Course guide</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide and study route</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../r-workflow.html">R workflow and reproducibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../assignments.html">Assignments and paper discussion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../project.html">Research project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">Interactive demonstrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">I · Weak supervision</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="01-statistical-targets.html">1. Statistical targets and observation mechanisms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02-weak-supervision.html">2. What weak supervision tells us</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">3. Learning from positives and unlabelled observations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04-pu-practice.html">4. PU estimation, overfitting, and sensitivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05-uu-learning.html">5. Learning from two unlabelled mixtures</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">II · Preference learning</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="06-pairwise-preferences.html">6. Pairwise preference learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="07-contextual-preferences.html">7. Contextual preferences, judges, and reward learning</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">III · Online learning</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="08-online-learning.html">8. Online learning and regret</a></li>
+<li class="toctree-l1"><a class="reference internal" href="09-bandits.html">9. Bandits: learning from chosen actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="10-duelling-bandits.html">10. Duelling bandits and adaptive comparisons</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">IV · Inference after selection</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="11-selective-inference.html">11. Selective inference: asking a question after seeing the data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="12-hierarchical-clustering.html">12. Selective inference after hierarchical clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="13-kmeans-inference.html">13. Selective inference after k-means</a></li>
+<li class="toctree-l1"><a class="reference internal" href="14-research-synthesis.html">14. Research synthesis: assumptions, validation, and independent information</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item"><a class="btn btn-sm nav-link course-pdf-button"
+   href="../Topics-of-Statistical-Learning.pdf" download
+   title="Download the complete course PDF" aria-label="Download course PDF">
+  <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> <span>PDF</span>
+</a>
+</div>
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/chikuang/Teaching-SML" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/chikuang/Teaching-SML/blob/main/docs/chapters/03-pu-learning.md?plain=1" target="_blank"
+   class="btn btn-sm btn-source-file-button dropdown-item"
+   title="Show source"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-code"></i>
+  </span>
+<span class="btn__text-container">Show source</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>3. Learning from positives and unlabelled observations</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-missing">What is missing?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-two-sample-model">The two-sample model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deriving-the-pu-risk-identity">Deriving the PU risk identity</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-logistic-objective-that-can-be-implemented-directly">A logistic objective that can be implemented directly</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-different-design-labels-revealed-within-one-sample">A different design: labels revealed within one sample</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-assumptions-do-not-supply">What the assumptions do not supply</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#r-laboratory-a-linear-pu-classifier">R laboratory — A linear PU classifier</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#executed-laboratory-output">Executed laboratory output</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#primary-readings">Primary readings</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="learning-from-positives-and-unlabelled-observations">
+<h1>3. Learning from positives and unlabelled observations<a class="headerlink" href="#learning-from-positives-and-unlabelled-observations" title="Link to this heading">#</a></h1>
+<p><em>Topics of Statistical Learning · Week 3</em></p>
+<section id="what-is-missing">
+<h2>What is missing?<a class="headerlink" href="#what-is-missing" title="Link to this heading">#</a></h2>
+<p>In positive–unlabelled learning, some observations are known to belong to a positive class, while an unlabelled collection contains both classes. Examples include confirmed relevant documents and a broader document collection, or confirmed examples of a phenomenon together with background observations. An unlabelled observation has an unknown class, not a known negative class.</p>
+<p>The main task is to express a target classification risk using distributions from which data are actually available. The derivation is short, but its sampling assumptions are consequential. We first use an explicit two-sample model, then distinguish it from a single dataset in which only some positive labels are revealed.</p>
+</section>
+<section id="the-two-sample-model">
+<h2>The two-sample model<a class="headerlink" href="#the-two-sample-model" title="Link to this heading">#</a></h2>
+<p>Let <span class="math notranslate nohighlight">\(Y\in\{+1,-1\}\)</span>, let <span class="math notranslate nohighlight">\(\pi=P(Y=+1)\in(0,1)\)</span> be the target class prior, and write</p>
+<div class="math notranslate nohighlight">
+\[
+P_+=P(X\mid Y=+1),\qquad P_-=P(X\mid Y=-1).
+\]</div>
+<p>The target feature marginal is</p>
+<div class="math notranslate nohighlight">
+\[
+P_U=\pi P_+ +(1-\pi)P_-.
+\]</div>
+<p>The introductory sampling scheme provides independent observations <span class="math notranslate nohighlight">\(X^+_1,\ldots,X^+_{n_+}\sim P_+\)</span> and <span class="math notranslate nohighlight">\(X^U_1,\ldots,X^U_{n_U}\sim P_U\)</span>. These are representative samples from the specified positive distribution and the full target feature marginal. For now, <span class="math notranslate nohighlight">\(\pi\)</span> is known.</p>
+<p>The ratio <span class="math notranslate nohighlight">\(n_+/(n_++n_U)\)</span> is controlled by data collection and is not an estimator of the target prevalence in this two-sample design. We may deliberately collect many confirmed positives while the target population contains relatively few positives.</p>
+</section>
+<section id="deriving-the-pu-risk-identity">
+<h2>Deriving the PU risk identity<a class="headerlink" href="#deriving-the-pu-risk-identity" title="Link to this heading">#</a></h2>
+<p>For a score <span class="math notranslate nohighlight">\(g\)</span> and loss <span class="math notranslate nohighlight">\(\ell\)</span>, define <span class="math notranslate nohighlight">\(\ell_\pm(X)=\ell(g(X),\pm1)\)</span>. The ordinary population risk is</p>
+<div class="math notranslate nohighlight">
+\[
+R(g)=\pi E_+\ell_+ +(1-\pi)E_-\ell_-.
+\]</div>
+<p>The unavailable negative expectation can be removed by applying the mixture relation to <span class="math notranslate nohighlight">\(\ell_-\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+E_U\ell_-=\pi E_+\ell_-+(1-\pi)E_-\ell_-.
+\]</div>
+<p>Substituting gives</p>
+<div class="math notranslate nohighlight">
+\[
+\boxed{R(g)=\pi E_+\ell_+ + E_U\ell_- -\pi E_+\ell_- .}
+\]</div>
+<p>Each expectation on the right can be estimated from the observed samples. The subtraction removes the positive-class contribution that would otherwise be counted when unlabelled observations are temporarily evaluated as negative.</p>
+<p>The identity applies to a loss with finite relevant expectations. It is not restricted to zero–one loss. Its empirical version is</p>
+<div class="math notranslate nohighlight">
+\[
+\widehat R_{\mathrm{PU}}(g)
+=\frac{\pi}{n_+}\sum_i\ell(g(X_i^+),+1)
++\frac1{n_U}\sum_j\ell(g(X_j^U),-1)
+-\frac{\pi}{n_+}\sum_i\ell(g(X_i^+),-1).
+\]</div>
+<p>For a fixed <span class="math notranslate nohighlight">\(g\)</span> and the stated known-prior sampling model, this estimator is unbiased. A model fitted by minimizing it still needs generalization analysis or independent evaluation. The fitted model is not fixed with respect to its training sample.</p>
+<div class="course-example admonition">
+<p class="admonition-title">Worked example 3.1 — Removing positive contamination</p>
+<p>Suppose <span class="math notranslate nohighlight">\(\pi=0.3\)</span>, sensitivity is <span class="math notranslate nohighlight">\(0.8\)</span>, and the false-positive rate is <span class="math notranslate nohighlight">\(0.1\)</span>. Under zero–one loss,</p>
+<div class="math notranslate nohighlight">
+\[
+E_+\ell_+=0.2,\qquad E_+\ell_-=0.8,
+\]</div>
+<p>while <span class="math notranslate nohighlight">\(E_U\ell_-=P\{g(X)=+1\}=0.3(0.8)+0.7(0.1)=0.31\)</span>. The PU identity yields</p>
+<div class="math notranslate nohighlight">
+\[
+R(g)=0.3(0.2)+0.31-0.3(0.8)=0.13.
+\]</div>
+<p>The direct fully labelled calculation is <span class="math notranslate nohighlight">\(0.3(0.2)+0.7(0.1)=0.13\)</span>. The observed marginal predicted-positive rate <span class="math notranslate nohighlight">\(0.31\)</span> includes true positives as well as false positives. It is not the negative-class error contribution; subtracting <span class="math notranslate nohighlight">\(0.24\)</span> leaves the required contribution <span class="math notranslate nohighlight">\(0.07\)</span>.</p>
+</div>
+</section>
+<section id="a-logistic-objective-that-can-be-implemented-directly">
+<h2>A logistic objective that can be implemented directly<a class="headerlink" href="#a-logistic-objective-that-can-be-implemented-directly" title="Link to this heading">#</a></h2>
+<p>Take <span class="math notranslate nohighlight">\(g_\beta(x)=\beta_0+x^\mathsf T\beta_1\)</span> and logistic losses</p>
+<div class="math notranslate nohighlight">
+\[
+\ell(g,+1)=\log(1+e^{-g}),\qquad
+\ell(g,-1)=\log(1+e^g).
+\]</div>
+<p>Since <span class="math notranslate nohighlight">\(\log(1+e^{-g})-\log(1+e^g)=-g\)</span>, the empirical PU risk simplifies to</p>
+<div class="math notranslate nohighlight">
+\[
+\widehat R_{\mathrm{PU}}(\beta)
+=\frac1{n_U}\sum_j\log(1+e^{g_\beta(X_j^U)})
+-\frac{\pi}{n_+}\sum_i g_\beta(X_i^+).
+\]</div>
+<p>For this linear score, the objective is convex. A positive quadratic penalty can stabilize estimation and ensure a finite minimizer; the penalty is a chosen regularizer rather than an unbiased component of the target risk. More flexible score classes introduce different computational and statistical issues. Chapter 4 examines the negative empirical risks that can arise from the subtraction.</p>
+<p>Implement the softplus function stably as <span class="math notranslate nohighlight">\(\max(z,0)+\log(1+e^{-|z|})\)</span>, rather than forming a potentially overflowing <span class="math notranslate nohighlight">\(e^z\)</span>.</p>
+</section>
+<section id="a-different-design-labels-revealed-within-one-sample">
+<h2>A different design: labels revealed within one sample<a class="headerlink" href="#a-different-design-labels-revealed-within-one-sample" title="Link to this heading">#</a></h2>
+<p>Now suppose observations are sampled from the target population and <span class="math notranslate nohighlight">\(S=1\)</span> indicates that a positive label is recorded. We assume <span class="math notranslate nohighlight">\(P(S=1\mid Y=-1,X)=0\)</span>. Under <strong>selected completely at random</strong>, or SCAR,</p>
+<div class="math notranslate nohighlight">
+\[
+P(S=1\mid Y=+1,X=x)=c
+\]</div>
+<p>for a constant <span class="math notranslate nohighlight">\(c&gt;0\)</span>. Then <span class="math notranslate nohighlight">\(P(S=1\mid X=x)=cP(Y=+1\mid X=x)\)</span>, and the labelled positives have distribution <span class="math notranslate nohighlight">\(P_+\)</span>. However, the observations with <span class="math notranslate nohighlight">\(S=0\)</span> are not distributed as the full feature marginal.</p>
+<div class="course-example admonition">
+<p class="admonition-title">Worked example 3.2 — Unlabelled rows are not always the marginal sample</p>
+<p>Let <span class="math notranslate nohighlight">\(\pi=0.3\)</span> and <span class="math notranslate nohighlight">\(c=0.4\)</span>. The probability of an observed positive label is <span class="math notranslate nohighlight">\(0.12\)</span>. Among observations without a recorded label,</p>
+<div class="math notranslate nohighlight">
+\[
+P(Y=+1\mid S=0)=\frac{\pi(1-c)}{1-\pi c}
+=\frac{0.18}{0.88}\approx0.2045.
+\]</div>
+<p>Using the classifier from Example 3.1, the predicted-positive rate in this subset is <span class="math notranslate nohighlight">\(0.2045(0.8)+0.7955(0.1)\approx0.2432\)</span>. If we incorrectly substitute that rate for <span class="math notranslate nohighlight">\(E_U\ell_-\)</span>, the PU expression becomes about <span class="math notranslate nohighlight">\(0.0632\)</span>, rather than the target risk <span class="math notranslate nohighlight">\(0.13\)</span>.</p>
+<p>All feature vectors in the original population sample can represent the marginal distribution. The labelled-positive and full-feature averages then share observations, so their dependence matters for variance calculations. Alternatively, use a sampling model and risk expression designed specifically for the observed-label partition.</p>
+</div>
+</section>
+<section id="what-the-assumptions-do-not-supply">
+<h2>What the assumptions do not supply<a class="headerlink" href="#what-the-assumptions-do-not-supply" title="Link to this heading">#</a></h2>
+<p>SCAR makes the recorded positives representative of the positive class. It does not by itself identify an unknown <span class="math notranslate nohighlight">\(c\)</span> or <span class="math notranslate nohighlight">\(\pi\)</span>. In the observed posterior <span class="math notranslate nohighlight">\(P(S=1\mid X)=c\eta(X)\)</span>, different pairs <span class="math notranslate nohighlight">\((c,\eta)\)</span> can produce the same product without additional restrictions. Likewise, a positive distribution and its mixture with an unrestricted negative distribution need not uniquely determine an unknown mixture proportion.</p>
+<p>Known prevalence, a separately collected validation sample, or additional identifiable structure can supply information. Any class-prior estimator introduced later must state its own assumptions. Treating a supplied prior as known is appropriate for an introductory simulation, provided the simulation also examines sensitivity to an incorrect value.</p>
+</section>
+<section id="r-laboratory-a-linear-pu-classifier">
+<h2>R laboratory — A linear PU classifier<a class="headerlink" href="#r-laboratory-a-linear-pu-classifier" title="Link to this heading">#</a></h2>
+<p>The lab fits a regularized logistic PU objective to independent positive and marginal samples. It compares the resulting rule with a naive positive-versus-unlabelled fit, a fully labelled oracle benchmark, and the known Bayes score for the simulation. All evaluation uses a new labelled test sample. The final section verifies the SCAR subset calculation using a separate population sample.</p>
+<p><a class="reference download internal" download="" href="../_downloads/3f0145ff8b70496b3316dc5d25e90392/03-pu-learning.R"><span class="xref download myst">Download R lab</span></a></p>
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Topics of Statistical Learning</span>
+<span class="c1"># Lab 03: Logistic PU learning under an explicit two-sample design</span>
+<span class="c1"># Base R only. Run with: Rscript 03-pu-learning.R</span>
+<span class="nf">set.seed</span><span class="p">(</span><span class="m">2026102103</span><span class="p">)</span>
+
+<span class="n">prior</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0.30</span>
+<span class="n">n_positive</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">250L</span>
+<span class="n">n_unlabelled</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1500L</span>
+<span class="n">n_test</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">50000L</span>
+<span class="n">lambda</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0.01</span>
+<span class="n">softplus</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="nf">pmax</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nf">log1p</span><span class="p">(</span><span class="nf">exp</span><span class="p">(</span><span class="o">-</span><span class="nf">abs</span><span class="p">(</span><span class="n">z</span><span class="p">)))</span>
+<span class="n">design</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="nf">cbind</span><span class="p">(</span><span class="n">intercept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">)</span>
+<span class="n">sample_population</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">y</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rbinom</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="m">1L</span><span class="p">,</span><span class="w"> </span><span class="n">prior</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">list</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">rnorm</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">mean</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">ifelse</span><span class="p">(</span><span class="n">y</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">1L</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">-1</span><span class="p">)),</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">y</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">x_positive</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rnorm</span><span class="p">(</span><span class="n">n_positive</span><span class="p">,</span><span class="w"> </span><span class="n">mean</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">)</span>
+<span class="n">unlabelled</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sample_population</span><span class="p">(</span><span class="n">n_unlabelled</span><span class="p">)</span>
+<span class="n">z_positive</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">design</span><span class="p">(</span><span class="n">x_positive</span><span class="p">)</span>
+<span class="n">z_unlabelled</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">design</span><span class="p">(</span><span class="n">unlabelled</span><span class="o">$</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">pu_objective</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">gu</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">drop</span><span class="p">(</span><span class="n">z_unlabelled</span><span class="w"> </span><span class="o">%*%</span><span class="w"> </span><span class="n">beta</span><span class="p">)</span>
+<span class="w">  </span><span class="n">gp</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">drop</span><span class="p">(</span><span class="n">z_positive</span><span class="w"> </span><span class="o">%*%</span><span class="w"> </span><span class="n">beta</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">mean</span><span class="p">(</span><span class="nf">softplus</span><span class="p">(</span><span class="n">gu</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">prior</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">gp</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">lambda</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">beta</span><span class="o">^</span><span class="m">2</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">pu_gradient</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">gu</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">drop</span><span class="p">(</span><span class="n">z_unlabelled</span><span class="w"> </span><span class="o">%*%</span><span class="w"> </span><span class="n">beta</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">drop</span><span class="p">(</span><span class="nf">crossprod</span><span class="p">(</span><span class="n">z_unlabelled</span><span class="p">,</span><span class="w"> </span><span class="nf">plogis</span><span class="p">(</span><span class="n">gu</span><span class="p">)))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">n_unlabelled</span><span class="w"> </span><span class="o">-</span>
+<span class="w">    </span><span class="n">prior</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">colMeans</span><span class="p">(</span><span class="n">z_positive</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">lambda</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">beta</span>
+<span class="p">}</span>
+<span class="n">pu_fit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">optim</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">),</span><span class="w"> </span><span class="n">pu_objective</span><span class="p">,</span><span class="w"> </span><span class="n">pu_gradient</span><span class="p">,</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"BFGS"</span><span class="p">,</span>
+<span class="w">                </span><span class="n">control</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="n">reltol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1e-10</span><span class="p">,</span><span class="w"> </span><span class="n">maxit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1000L</span><span class="p">))</span>
+
+<span class="n">fit_labelled</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">objective</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">g</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">drop</span><span class="p">(</span><span class="n">z</span><span class="w"> </span><span class="o">%*%</span><span class="w"> </span><span class="n">beta</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">mean</span><span class="p">(</span><span class="nf">softplus</span><span class="p">(</span><span class="n">g</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">g</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">lambda</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">beta</span><span class="o">^</span><span class="m">2</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">gradient</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">drop</span><span class="p">(</span><span class="nf">crossprod</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="w"> </span><span class="nf">plogis</span><span class="p">(</span><span class="nf">drop</span><span class="p">(</span><span class="n">z</span><span class="w"> </span><span class="o">%*%</span><span class="w"> </span><span class="n">beta</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">y</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">nrow</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="o">+</span>
+<span class="w">      </span><span class="m">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">lambda</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">beta</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nf">optim</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">),</span><span class="w"> </span><span class="n">objective</span><span class="p">,</span><span class="w"> </span><span class="n">gradient</span><span class="p">,</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"BFGS"</span><span class="p">,</span>
+<span class="w">        </span><span class="n">control</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="n">reltol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1e-10</span><span class="p">,</span><span class="w"> </span><span class="n">maxit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1000L</span><span class="p">))</span>
+<span class="p">}</span>
+
+<span class="c1"># Naive benchmark: recorded positives = 1, all marginal U observations = 0.</span>
+<span class="n">naive_fit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">fit_labelled</span><span class="p">(</span><span class="nf">rbind</span><span class="p">(</span><span class="n">z_positive</span><span class="p">,</span><span class="w"> </span><span class="n">z_unlabelled</span><span class="p">),</span>
+<span class="w">                          </span><span class="nf">c</span><span class="p">(</span><span class="nf">rep</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">n_positive</span><span class="p">),</span><span class="w"> </span><span class="nf">rep</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">n_unlabelled</span><span class="p">)))</span>
+<span class="c1"># Oracle benchmark only: uses latent labels that a PU learner cannot observe.</span>
+<span class="n">oracle_fit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">fit_labelled</span><span class="p">(</span><span class="n">z_unlabelled</span><span class="p">,</span><span class="w"> </span><span class="n">unlabelled</span><span class="o">$</span><span class="n">y</span><span class="p">)</span>
+<span class="n">beta_bayes</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="nf">qlogis</span><span class="p">(</span><span class="n">prior</span><span class="p">),</span><span class="w"> </span><span class="m">2</span><span class="p">)</span>
+
+<span class="n">test</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sample_population</span><span class="p">(</span><span class="n">n_test</span><span class="p">)</span>
+<span class="n">z_test</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">design</span><span class="p">(</span><span class="n">test</span><span class="o">$</span><span class="n">x</span><span class="p">)</span>
+<span class="n">coefficients</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rbind</span><span class="p">(</span><span class="n">naive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">naive_fit</span><span class="o">$</span><span class="n">par</span><span class="p">,</span><span class="w"> </span><span class="n">PU</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pu_fit</span><span class="o">$</span><span class="n">par</span><span class="p">,</span>
+<span class="w">                      </span><span class="n">labelled_oracle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oracle_fit</span><span class="o">$</span><span class="n">par</span><span class="p">,</span><span class="w"> </span><span class="n">Bayes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">beta_bayes</span><span class="p">)</span>
+<span class="n">assessment</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">do.call</span><span class="p">(</span><span class="n">rbind</span><span class="p">,</span><span class="w"> </span><span class="nf">lapply</span><span class="p">(</span><span class="nf">seq_len</span><span class="p">(</span><span class="nf">nrow</span><span class="p">(</span><span class="n">coefficients</span><span class="p">)),</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">score</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">drop</span><span class="p">(</span><span class="n">z_test</span><span class="w"> </span><span class="o">%*%</span><span class="w"> </span><span class="n">coefficients</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="p">])</span>
+<span class="w">  </span><span class="n">probability</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">plogis</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+<span class="w">  </span><span class="n">errors</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.numeric</span><span class="p">((</span><span class="n">score</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">test</span><span class="o">$</span><span class="n">y</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">data.frame</span><span class="p">(</span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">rownames</span><span class="p">(</span><span class="n">coefficients</span><span class="p">)[</span><span class="n">j</span><span class="p">],</span>
+<span class="w">             </span><span class="n">intercept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">coefficients</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">],</span><span class="w"> </span><span class="n">slope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">coefficients</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">],</span>
+<span class="w">             </span><span class="n">test_error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">errors</span><span class="p">),</span><span class="w"> </span><span class="n">test_error_MCSE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sd</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">sqrt</span><span class="p">(</span><span class="n">n_test</span><span class="p">),</span>
+<span class="w">             </span><span class="n">test_log_loss</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="nf">softplus</span><span class="p">(</span><span class="n">score</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">test</span><span class="o">$</span><span class="n">y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">score</span><span class="p">),</span>
+<span class="w">             </span><span class="n">test_Brier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">mean</span><span class="p">((</span><span class="n">probability</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">test</span><span class="o">$</span><span class="n">y</span><span class="p">)</span><span class="o">^</span><span class="m">2</span><span class="p">))</span>
+<span class="p">}))</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Target prior:"</span><span class="p">,</span><span class="w"> </span><span class="n">prior</span><span class="p">,</span><span class="w"> </span><span class="s">"; sample sizes P ="</span><span class="p">,</span><span class="w"> </span><span class="n">n_positive</span><span class="p">,</span>
+<span class="w">    </span><span class="s">", U ="</span><span class="p">,</span><span class="w"> </span><span class="n">n_unlabelled</span><span class="p">,</span><span class="w"> </span><span class="s">"\n"</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Positive fraction in the assembled training data:"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">n_positive</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">n_positive</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n_unlabelled</span><span class="p">),</span><span class="w"> </span><span class="s">"(not the target prior)\n\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">assessment</span><span class="p">,</span><span class="w"> </span><span class="n">digits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">5</span><span class="p">,</span><span class="w"> </span><span class="n">row.names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+
+<span class="c1"># Separate single-sample SCAR experiment.</span>
+<span class="n">population</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sample_population</span><span class="p">(</span><span class="m">50000L</span><span class="p">)</span>
+<span class="n">labelling_probability</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0.4</span>
+<span class="n">s</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">population</span><span class="o">$</span><span class="n">y</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">1L</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="nf">runif</span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">population</span><span class="o">$</span><span class="n">y</span><span class="p">))</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">labelling_probability</span>
+<span class="n">scar_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span>
+<span class="w">  </span><span class="n">quantity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"Observed-label fraction"</span><span class="p">,</span><span class="w"> </span><span class="s">"Positive fraction among S=0"</span><span class="p">,</span>
+<span class="w">               </span><span class="s">"Feature mean in full population"</span><span class="p">,</span><span class="w"> </span><span class="s">"Feature mean among S=0"</span><span class="p">),</span>
+<span class="w">  </span><span class="n">empirical</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="nf">mean</span><span class="p">(</span><span class="n">s</span><span class="p">),</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">population</span><span class="o">$</span><span class="n">y</span><span class="p">[</span><span class="o">!</span><span class="n">s</span><span class="p">]),</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">population</span><span class="o">$</span><span class="n">x</span><span class="p">),</span>
+<span class="w">                </span><span class="nf">mean</span><span class="p">(</span><span class="n">population</span><span class="o">$</span><span class="n">x</span><span class="p">[</span><span class="o">!</span><span class="n">s</span><span class="p">])),</span>
+<span class="w">  </span><span class="n">theoretical</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">prior</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">labelling_probability</span><span class="p">,</span>
+<span class="w">                  </span><span class="n">prior</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">labelling_probability</span><span class="p">)</span><span class="w"> </span><span class="o">/</span>
+<span class="w">                    </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">prior</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">labelling_probability</span><span class="p">),</span>
+<span class="w">                  </span><span class="m">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">prior</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span><span class="p">,</span>
+<span class="w">                  </span><span class="m">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">prior</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">labelling_probability</span><span class="p">)</span><span class="w"> </span><span class="o">/</span>
+<span class="w">                    </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">prior</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">labelling_probability</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span><span class="p">))</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"\nSeparate SCAR population sample:\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">scar_table</span><span class="p">,</span><span class="w"> </span><span class="n">digits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">5</span><span class="p">,</span><span class="w"> </span><span class="n">row.names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"\nThe S=0 subset is not the full target feature marginal.\n"</span><span class="p">)</span>
+
+<span class="n">figure_dir</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">Sys.getenv</span><span class="p">(</span><span class="s">"COURSE_FIGURE_DIR"</span><span class="p">,</span><span class="w"> </span><span class="n">unset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">""</span><span class="p">)</span>
+<span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">nzchar</span><span class="p">(</span><span class="n">figure_dir</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">dir.create</span><span class="p">(</span><span class="n">figure_dir</span><span class="p">,</span><span class="w"> </span><span class="n">recursive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">showWarnings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">png</span><span class="p">(</span><span class="nf">file.path</span><span class="p">(</span><span class="n">figure_dir</span><span class="p">,</span><span class="w"> </span><span class="s">"03-pu-learning.png"</span><span class="p">),</span><span class="w"> </span><span class="n">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1500</span><span class="p">,</span>
+<span class="w">      </span><span class="n">height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">700</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">140</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"cairo"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">par</span><span class="p">(</span><span class="n">mfrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">),</span><span class="w"> </span><span class="n">mar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">4.5</span><span class="p">,</span><span class="w"> </span><span class="m">4.5</span><span class="p">,</span><span class="w"> </span><span class="m">3.2</span><span class="p">,</span><span class="w"> </span><span class="m">1.2</span><span class="p">))</span>
+<span class="w">  </span><span class="n">grid</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">seq</span><span class="p">(</span><span class="m">-4</span><span class="p">,</span><span class="w"> </span><span class="m">4</span><span class="p">,</span><span class="w"> </span><span class="n">length.out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">401L</span><span class="p">)</span>
+<span class="w">  </span><span class="n">positive_density</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">dnorm</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">)</span>
+<span class="w">  </span><span class="n">marginal_density</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">prior</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">positive_density</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">prior</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">dnorm</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span><span class="w"> </span><span class="m">-1</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">matplot</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span><span class="w"> </span><span class="nf">cbind</span><span class="p">(</span><span class="n">positive_density</span><span class="p">,</span><span class="w"> </span><span class="n">marginal_density</span><span class="p">),</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"l"</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span>
+<span class="w">          </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">),</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"#2D8063"</span><span class="p">,</span><span class="w"> </span><span class="s">"#1B4965"</span><span class="p">),</span><span class="w"> </span><span class="n">xlab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Feature x"</span><span class="p">,</span>
+<span class="w">          </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Density"</span><span class="p">,</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Observed sampling distributions"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">legend</span><span class="p">(</span><span class="s">"topright"</span><span class="p">,</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"Representative positives"</span><span class="p">,</span><span class="w"> </span><span class="s">"Full marginal U"</span><span class="p">),</span>
+<span class="w">         </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">),</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"#2D8063"</span><span class="p">,</span><span class="w"> </span><span class="s">"#1B4965"</span><span class="p">),</span><span class="w"> </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">bty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"n"</span><span class="p">,</span><span class="w"> </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.8</span><span class="p">)</span>
+<span class="w">  </span><span class="n">probabilities</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">plogis</span><span class="p">(</span><span class="nf">design</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span><span class="w"> </span><span class="o">%*%</span><span class="w"> </span><span class="nf">t</span><span class="p">(</span><span class="n">coefficients</span><span class="p">))</span>
+<span class="w">  </span><span class="nf">matplot</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span><span class="w"> </span><span class="n">probabilities</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"l"</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">),</span>
+<span class="w">          </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"#B44A3D"</span><span class="p">,</span><span class="w"> </span><span class="s">"#1B4965"</span><span class="p">,</span><span class="w"> </span><span class="s">"#2D8063"</span><span class="p">,</span><span class="w"> </span><span class="s">"#333333"</span><span class="p">),</span>
+<span class="w">          </span><span class="n">xlab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Feature x"</span><span class="p">,</span><span class="w"> </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Predicted positive probability"</span><span class="p">,</span>
+<span class="w">          </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Independent models and Bayes reference"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">abline</span><span class="p">(</span><span class="n">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.5</span><span class="p">,</span><span class="w"> </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"#BBBBBB"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">legend</span><span class="p">(</span><span class="s">"topleft"</span><span class="p">,</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"Naive"</span><span class="p">,</span><span class="w"> </span><span class="s">"PU"</span><span class="p">,</span><span class="w"> </span><span class="s">"Labelled oracle"</span><span class="p">,</span><span class="w"> </span><span class="s">"Bayes"</span><span class="p">),</span>
+<span class="w">         </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">),</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"#B44A3D"</span><span class="p">,</span><span class="w"> </span><span class="s">"#1B4965"</span><span class="p">,</span><span class="w"> </span><span class="s">"#2D8063"</span><span class="p">,</span><span class="w"> </span><span class="s">"#333333"</span><span class="p">),</span>
+<span class="w">         </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">bty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"n"</span><span class="p">,</span><span class="w"> </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.8</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">invisible</span><span class="p">(</span><span class="nf">dev.off</span><span class="p">())</span>
+<span class="p">}</span>
+
+<span class="nf">stopifnot</span><span class="p">(</span><span class="n">pu_fit</span><span class="o">$</span><span class="n">convergence</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0L</span><span class="p">,</span><span class="w"> </span><span class="n">naive_fit</span><span class="o">$</span><span class="n">convergence</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0L</span><span class="p">,</span>
+<span class="w">          </span><span class="n">oracle_fit</span><span class="o">$</span><span class="n">convergence</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0L</span><span class="p">,</span><span class="w"> </span><span class="nf">all</span><span class="p">(</span><span class="nf">is.finite</span><span class="p">(</span><span class="n">coefficients</span><span class="p">)))</span>
+</pre></div>
+</div>
+</details></div>
+<section id="executed-laboratory-output">
+<h3>Executed laboratory output<a class="headerlink" href="#executed-laboratory-output" title="Link to this heading">#</a></h3>
+<div class="cell-output cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Target prior: 0.3 ; sample sizes P = 250 , U = 1500 
+Positive fraction in the assembled training data: 0.1428571 (not the target prior)
+
+          method intercept   slope test_error test_error_MCSE test_log_loss
+           naive  -1.63544 0.61106    0.29092       0.0020312       0.49859
+              PU  -0.66237 1.46182    0.13840       0.0015443       0.33206
+ labelled_oracle  -0.80028 1.71235    0.13836       0.0015441       0.32360
+           Bayes  -0.84730 2.00000    0.13852       0.0015449       0.32073
+ test_Brier
+    0.17327
+    0.10228
+    0.10066
+    0.10007
+
+Separate SCAR population sample:
+                        quantity empirical theoretical
+         Observed-label fraction   0.12218     0.12000
+     Positive fraction among S=0   0.20510     0.20455
+ Feature mean in full population  -0.39511    -0.40000
+          Feature mean among S=0  -0.58891    -0.59091
+
+The S=0 subset is not the full target feature marginal.
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/03-pu-learning.png"><img alt="Executed R experiment for pu learning; numerical results are printed above." src="../_images/03-pu-learning.png" style="width: 100%;" />
+</a>
+</div>
+</section>
+</section>
+<section id="exercises">
+<h2>Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Derive the PU identity for squared probability loss as well as for zero–one loss. Which step changes?</p></li>
+<li><p>In the two-sample design, why does increasing <span class="math notranslate nohighlight">\(n_+\)</span> while holding the target population fixed not increase <span class="math notranslate nohighlight">\(\pi\)</span>?</p></li>
+<li><p>Show the logistic simplification above and derive the gradient for a linear score with design vector <span class="math notranslate nohighlight">\(z(x)=(1,x^\mathsf T)^\mathsf T\)</span>.</p></li>
+<li><p>In a single SCAR sample, derive <span class="math notranslate nohighlight">\(P(Y=+1\mid S=0)\)</span> and state when it equals <span class="math notranslate nohighlight">\(\pi\)</span>.</p></li>
+</ol>
+<div class="dropdown admonition">
+<p class="admonition-title">Worked solutions</p>
+<p><strong>1.</strong> The mixture identity holds for any integrable function, so no algebraic step changes. Substitute the chosen loss for <span class="math notranslate nohighlight">\(\ell_-\)</span> and then for the full risk. The interpretation and optimization properties of the resulting objective do change with the loss.</p>
+<p><strong>2.</strong> The investigator controls the numbers sampled from <span class="math notranslate nohighlight">\(P_+\)</span> and <span class="math notranslate nohighlight">\(P_U\)</span>. The target prevalence belongs to the population represented by <span class="math notranslate nohighlight">\(P_U\)</span>, not to the artificially assembled training collection.</p>
+<p><strong>3.</strong> The difference of the two logistic losses is <span class="math notranslate nohighlight">\(-g\)</span>. With quadratic penalty <span class="math notranslate nohighlight">\(\lambda\|\beta\|^2\)</span>, the gradient is <span class="math notranslate nohighlight">\(n_U^{-1}\sum_j\operatorname{logit}^{-1}(z_j^\mathsf T\beta)z_j-\pi n_+^{-1}\sum_i z_i+2\lambda\beta\)</span>.</p>
+<p><strong>4.</strong> Bayes’ rule gives <span class="math notranslate nohighlight">\(\pi(1-c)/(1-\pi c)\)</span>. For <span class="math notranslate nohighlight">\(0&lt;\pi&lt;1\)</span>, equality with <span class="math notranslate nohighlight">\(\pi\)</span> requires <span class="math notranslate nohighlight">\(c=0\)</span>, in which case no labels are observed. The degenerate all-negative or all-positive populations also require separate treatment. For a useful nondegenerate SCAR sample with <span class="math notranslate nohighlight">\(c&gt;0\)</span>, the unlabelled subset has a smaller positive proportion.</p>
+</div>
+</section>
+<section id="primary-readings">
+<h2>Primary readings<a class="headerlink" href="#primary-readings" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://cseweb.ucsd.edu/~elkan/posonly.pdf">Elkan and Noto (2008), “Learning Classifiers from Only Positive and Unlabeled Data”</a>: the observed-label mechanism and SCAR relationship.</p></li>
+<li><p><a class="reference external" href="https://proceedings.mlr.press/v37/plessis15.html">du Plessis, Niu, and Sugiyama (2015), “Convex Formulation for Learning from Positive and Unlabeled Data”</a>: risk rewriting and convex formulations.</p></li>
+<li><p><a class="reference external" href="https://proceedings.neurips.cc/paper_files/paper/2017/hash/7cce53cf90577442771720a370c3c723-Abstract.html">Kiryo et al. (2017), “Positive-Unlabeled Learning with Non-Negative Risk Estimator”</a>: the empirical-risk formulation and its practical limitations.</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="02-weak-supervision.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">2. What weak supervision tells us</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="04-pu-practice.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">4. PU estimation, overfitting, and sensitivity</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-missing">What is missing?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-two-sample-model">The two-sample model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deriving-the-pu-risk-identity">Deriving the PU risk identity</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-logistic-objective-that-can-be-implemented-directly">A logistic objective that can be implemented directly</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-different-design-labels-revealed-within-one-sample">A different design: labels revealed within one sample</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-assumptions-do-not-supply">What the assumptions do not supply</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#r-laboratory-a-linear-pu-classifier">R laboratory — A linear PU classifier</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#executed-laboratory-output">Executed laboratory output</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#primary-readings">Primary readings</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="copyright">© Copyright 2026, <a href="https://chikuang.github.io/">Chi-Kuang Yeh</a>.</p>
+
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="last-updated">
+  Last updated on October 21, 2026.
+  <br/>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+<div class="extra_footer">
+  Topics of Statistical Learning
+</div>
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,769 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="auto">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>5. Learning from two unlabelled mixtures &#8212; Topics of Statistical Learning</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "auto";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "auto";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/course.css?v=5d561857" />
+    <link rel="stylesheet" type="text/css" href="../_static/statistical-learning.css?v=2b1b4fb0" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'chapters/05-uu-learning';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/learning-controls.js?v=4698cf9e"></script>
+    <script src="../_static/course-demos.js?v=2eb4c93c"></script>
+    <link rel="canonical" href="https://chikuang.github.io/teaching/statistical-learning/chapters/05-uu-learning.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="6. Pairwise preference learning" href="06-pairwise-preferences.html" />
+    <link rel="prev" title="4. PU estimation, overfitting, and sensitivity" href="04-pu-practice.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+    <meta name="docbuild:last-update" content="October 21, 2026"/>
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="auto">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Topics of Statistical Learning</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    Topics of Statistical Learning
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Course guide</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../syllabus.html">Course guide and study route</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../r-workflow.html">R workflow and reproducibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../assignments.html">Assignments and paper discussion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../project.html">Research project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">Interactive demonstrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../readings.html">Reading guide</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">I · Weak supervision</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="01-statistical-targets.html">1. Statistical targets and observation mechanisms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02-weak-supervision.html">2. What weak supervision tells us</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03-pu-learning.html">3. Learning from positives and unlabelled observations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04-pu-practice.html">4. PU estimation, overfitting, and sensitivity</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">5. Learning from two unlabelled mixtures</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">II · Preference learning</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="06-pairwise-preferences.html">6. Pairwise preference learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="07-contextual-preferences.html">7. Contextual preferences, judges, and reward learning</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">III · Online learning</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="08-online-learning.html">8. Online learning and regret</a></li>
+<li class="toctree-l1"><a class="reference internal" href="09-bandits.html">9. Bandits: learning from chosen actions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="10-duelling-bandits.html">10. Duelling bandits and adaptive comparisons</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">IV · Inference after selection</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="11-selective-inference.html">11. Selective inference: asking a question after seeing the data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="12-hierarchical-clustering.html">12. Selective inference after hierarchical clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="13-kmeans-inference.html">13. Selective inference after k-means</a></li>
+<li class="toctree-l1"><a class="reference internal" href="14-research-synthesis.html">14. Research synthesis: assumptions, validation, and independent information</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item"><a class="btn btn-sm nav-link course-pdf-button"
+   href="../Topics-of-Statistical-Learning.pdf" download
+   title="Download the complete course PDF" aria-label="Download course PDF">
+  <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> <span>PDF</span>
+</a>
+</div>
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/chikuang/Teaching-SML" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/chikuang/Teaching-SML/blob/main/docs/chapters/05-uu-learning.md?plain=1" target="_blank"
+   class="btn btn-sm btn-source-file-button dropdown-item"
+   title="Show source"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-code"></i>
+  </span>
+<span class="btn__text-container">Show source</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>5. Learning from two unlabelled mixtures</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-supervision-comes-from">Where the supervision comes from</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-two-mixture-model-and-target-population">The two-mixture model and target population</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inverting-the-mixtures">Inverting the mixtures</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-small-prior-separation-is-a-statistical-problem">Why small prior separation is a statistical problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#identification-failures-and-links-to-pu-learning">Identification failures and links to PU learning</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#r-laboratory-prior-separation-and-assumption-failure">R laboratory — Prior separation and assumption failure</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#executed-laboratory-output">Executed laboratory output</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#primary-readings">Primary readings</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="learning-from-two-unlabelled-mixtures">
+<h1>5. Learning from two unlabelled mixtures<a class="headerlink" href="#learning-from-two-unlabelled-mixtures" title="Link to this heading">#</a></h1>
+<p><em>Topics of Statistical Learning · Week 5</em></p>
+<section id="where-the-supervision-comes-from">
+<h2>Where the supervision comes from<a class="headerlink" href="#where-the-supervision-comes-from" title="Link to this heading">#</a></h2>
+<p>Unlabelled–unlabelled learning uses two collections without individual class labels. It is not ordinary clustering: the aim is to predict a specified positive or negative class, and aggregate information about the two collections supplies supervision. The basic model assumes that their class proportions are known and different, while their class-conditional feature distributions are shared.</p>
+<p>The central calculation is a two-by-two linear inversion. It reveals both why learning is possible and why nearly equal mixture proportions produce unstable risk estimates. This chapter treats the prior information as known so the identification argument is transparent; estimating it requires additional assumptions and analysis.</p>
+</section>
+<section id="the-two-mixture-model-and-target-population">
+<h2>The two-mixture model and target population<a class="headerlink" href="#the-two-mixture-model-and-target-population" title="Link to this heading">#</a></h2>
+<p>Let <span class="math notranslate nohighlight">\(P_+\)</span> and <span class="math notranslate nohighlight">\(P_-\)</span> be the positive- and negative-class feature distributions. We observe independent samples from</p>
+<div class="math notranslate nohighlight">
+\[
+Q_1=aP_+ +(1-a)P_-,\qquad
+Q_2=bP_+ +(1-b)P_-,
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(a,b\in[0,1]\)</span> are known and <span class="math notranslate nohighlight">\(a\ne b\)</span>. Usually both are strictly between zero and one, so both collections are genuinely unlabelled mixtures. The target population has a separately specified positive prior <span class="math notranslate nohighlight">\(\pi\)</span>, giving risk</p>
+<div class="math notranslate nohighlight">
+\[
+R_\pi(g)=\pi E_+\ell_+ +(1-\pi)E_-\ell_-.
+\]</div>
+<p>The target prior need not equal <span class="math notranslate nohighlight">\(a\)</span> or <span class="math notranslate nohighlight">\(b\)</span>. Setting <span class="math notranslate nohighlight">\(\pi=1/2\)</span> deliberately evaluates balanced risk. It does not establish that either observed collection, or the application population, is balanced.</p>
+<p>The assumption of common <span class="math notranslate nohighlight">\(P_+\)</span> and <span class="math notranslate nohighlight">\(P_-\)</span> is essential. Different feature distributions in the two collections must arise from their class proportions under this model. A change in measurement instruments or in the positive-class population can violate that relationship even when the proportions are known accurately.</p>
+</section>
+<section id="inverting-the-mixtures">
+<h2>Inverting the mixtures<a class="headerlink" href="#inverting-the-mixtures" title="Link to this heading">#</a></h2>
+<p>For any measurable set, the two mixture equations form a linear system with determinant <span class="math notranslate nohighlight">\(a-b\)</span>. Its inverse yields the distribution identities</p>
+<div class="math notranslate nohighlight">
+\[
+P_+=\frac{(1-b)Q_1-(1-a)Q_2}{a-b},\qquad
+P_-=\frac{aQ_2-bQ_1}{a-b}.
+\]</div>
+<p>These are identities between probability measures under the assumed model, although their right sides contain signed coefficients. Their population values remain non-negative measures. Empirical versions need not have every property of a probability distribution in a finite sample.</p>
+<p>For an integrable function <span class="math notranslate nohighlight">\(h\)</span>, the same equations hold with distributions replaced by expectations. Apply the first to <span class="math notranslate nohighlight">\(\ell_+\)</span> and the second to <span class="math notranslate nohighlight">\(\ell_-\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+R_\pi(g)
+={}&amp;\frac{\pi}{a-b}\left\{(1-b)E_{Q_1}\ell_+-(1-a)E_{Q_2}\ell_+\right\}\\
+&amp;+\frac{1-\pi}{a-b}\left\{aE_{Q_2}\ell_- -bE_{Q_1}\ell_-\right\}.
+\end{aligned}
+\end{split}\]</div>
+<p>Replacing these expectations with sample averages gives an unbiased estimator for a fixed rule under the known-prior model. As in PU learning, fitting a rule and selecting its tuning parameters require further control of generalization and optimization. Unbiasedness for a fixed rule is not a universal guarantee for every learning algorithm.</p>
+<div class="course-example admonition">
+<p class="admonition-title">Worked example 5.1 — Recovering class-specific error from aggregate information</p>
+<p>Let <span class="math notranslate nohighlight">\(a=0.8\)</span>, <span class="math notranslate nohighlight">\(b=0.2\)</span>, and let a classifier predict positive on a feature region <span class="math notranslate nohighlight">\(A\)</span>. Suppose <span class="math notranslate nohighlight">\(Q_1(A)=0.69\)</span> and <span class="math notranslate nohighlight">\(Q_2(A)=0.36\)</span>. Inversion gives</p>
+<div class="math notranslate nohighlight">
+\[
+P_+(A)=\frac{0.8(0.69)-0.2(0.36)}{0.6}=0.80,
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+P_-(A)=\frac{0.8(0.36)-0.2(0.69)}{0.6}=0.25.
+\]</div>
+<p>The classifier therefore has false-negative rate <span class="math notranslate nohighlight">\(0.20\)</span> and false-positive rate <span class="math notranslate nohighlight">\(0.25\)</span>. At target prior <span class="math notranslate nohighlight">\(\pi=0.4\)</span>, its error is <span class="math notranslate nohighlight">\(0.4(0.20)+0.6(0.25)=0.23\)</span>. Its balanced error is <span class="math notranslate nohighlight">\(0.225\)</span>.</p>
+<p>Neither observed collection was labelled at the individual level. The different, known mixing proportions made the two class-specific probabilities recoverable. Predicting which collection an observation came from is a related but different classification problem.</p>
+</div>
+</section>
+<section id="why-small-prior-separation-is-a-statistical-problem">
+<h2>Why small prior separation is a statistical problem<a class="headerlink" href="#why-small-prior-separation-is-a-statistical-problem" title="Link to this heading">#</a></h2>
+<p>Let <span class="math notranslate nohighlight">\(h_1\)</span> and <span class="math notranslate nohighlight">\(h_2\)</span> collect the coefficients of the losses in the two expectations:</p>
+<div class="math notranslate nohighlight">
+\[
+h_1(X)=\frac{\pi(1-b)\ell_+(X)-(1-\pi)b\ell_-(X)}{a-b},
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+h_2(X)=\frac{(1-\pi)a\ell_-(X)-\pi(1-a)\ell_+(X)}{a-b}.
+\]</div>
+<p>For independent sample sizes <span class="math notranslate nohighlight">\(n_1,n_2\)</span> and a fixed rule,</p>
+<div class="math notranslate nohighlight">
+\[
+\operatorname{Var}(\widehat R_\pi)
+=\frac{\operatorname{Var}_{Q_1}(h_1)}{n_1}
++\frac{\operatorname{Var}_{Q_2}(h_2)}{n_2}.
+\]</div>
+<p>The coefficients contain <span class="math notranslate nohighlight">\(1/(a-b)\)</span>. In typical nondegenerate examples, variance is amplified at the scale <span class="math notranslate nohighlight">\(1/(a-b)^2\)</span>. Particular losses and rules can create cancellations, so the exact variance is the appropriate quantity to inspect.</p>
+<p>For balanced zero–one risk of a threshold classifier predicting positive when <span class="math notranslate nohighlight">\(X&gt;t\)</span>, write <span class="math notranslate nohighlight">\(F_k=P_{Q_k}(X\leq t)\)</span>. The estimator simplifies to</p>
+<div class="math notranslate nohighlight">
+\[
+\widehat R_{1/2}=\frac12+\frac{\widehat F_1-\widehat F_2}{2(a-b)},
+\]</div>
+<p>and its variance is</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{F_1(1-F_1)}{4n_1(a-b)^2}
++\frac{F_2(1-F_2)}{4n_2(a-b)^2}.
+\]</div>
+<div class="course-example admonition">
+<p class="admonition-title">Worked example 5.2 — An unbiased estimate outside the probability range</p>
+<p>Let <span class="math notranslate nohighlight">\(P_+=N(1,1)\)</span>, <span class="math notranslate nohighlight">\(P_-=N(-1,1)\)</span>, <span class="math notranslate nohighlight">\(t=0\)</span>, and <span class="math notranslate nohighlight">\(\pi=1/2\)</span>. The true classification risk is <span class="math notranslate nohighlight">\(\Phi(-1)\approx0.1587\)</span>. Take <span class="math notranslate nohighlight">\(n_1=n_2=500\)</span> and fix <span class="math notranslate nohighlight">\(a=0.7\)</span>.</p>
+<p>When <span class="math notranslate nohighlight">\(b=0.3\)</span>, the fixed-rule risk estimator has standard deviation about <span class="math notranslate nohighlight">\(0.038\)</span>. When <span class="math notranslate nohighlight">\(b=0.69\)</span>, the standard deviation is about <span class="math notranslate nohighlight">\(1.52\)</span>. Both estimators remain unbiased under the model, but the second often falls below zero or above one.</p>
+<p>This is not a floating-point error. The two collections contain little information for separating their latent class contributions. Clipping the result to <span class="math notranslate nohighlight">\([0,1]\)</span> changes the estimator and generally introduces bias. At <span class="math notranslate nohighlight">\(a=b\)</span>, the displayed inverse is undefined and the basic two-mixture model no longer identifies the class-specific distributions without additional restrictions.</p>
+</div>
+</section>
+<section id="identification-failures-and-links-to-pu-learning">
+<h2>Identification failures and links to PU learning<a class="headerlink" href="#identification-failures-and-links-to-pu-learning" title="Link to this heading">#</a></h2>
+<p>If <span class="math notranslate nohighlight">\(a=b\)</span>, both observed distributions give the same mixture equation. An unrestricted pair <span class="math notranslate nohighlight">\((P_+,P_-)\)</span> cannot generally be recovered from that single equation. If the proportions themselves are unknown, even their difference and class orientation need not be identifiable from the observed distributions alone. Extra assumptions can change this conclusion, but they must be stated explicitly.</p>
+<p>If class-conditionals differ between collections, the algebra is solving the wrong system. A larger sample can then concentrate the risk estimate around an incorrect limit. Sensitivity experiments should examine this structural failure as well as finite-sample variability.</p>
+<p>PU learning is a useful special case: set <span class="math notranslate nohighlight">\(a=1\)</span> so <span class="math notranslate nohighlight">\(Q_1=P_+\)</span> and set <span class="math notranslate nohighlight">\(b=\pi\)</span> so <span class="math notranslate nohighlight">\(Q_2\)</span> is the target feature marginal. Substitution reduces the UU expression to <span class="math notranslate nohighlight">\(\pi E_+\ell_+ + E_U\ell_- -\pi E_+\ell_-\)</span>. This unification concerns observation distributions and risk identities; it does not make a set of ordinary clustering labels into positive-class supervision.</p>
+</section>
+<section id="r-laboratory-prior-separation-and-assumption-failure">
+<h2>R laboratory — Prior separation and assumption failure<a class="headerlink" href="#r-laboratory-prior-separation-and-assumption-failure" title="Link to this heading">#</a></h2>
+<p>The lab holds one threshold classifier fixed and repeatedly estimates its balanced target risk. It compares four values of <span class="math notranslate nohighlight">\(b\)</span> while keeping <span class="math notranslate nohighlight">\(a=0.7\)</span>, reports empirical and exact standard deviations, and records the fraction of estimates outside <span class="math notranslate nohighlight">\([0,1]\)</span>. A final experiment shifts the positive-class mean in the second collection and compares the misspecified correction’s analytic limit with its simulation average.</p>
+<p>Known latent classes are used only inside the generator. The risk estimator receives features and supplied proportions, not individual class labels. The analytic reference risk is available to the evaluator because the simulation model is specified.</p>
+<p><a class="reference download internal" download="" href="../_downloads/15317dba86bd516304f66bc333e60ea1/05-uu-learning.R"><span class="xref download myst">Download R lab</span></a></p>
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Topics of Statistical Learning</span>
+<span class="c1"># Lab 05: Two-unlabelled-mixture risk estimation and instability</span>
+<span class="c1"># Base R only. Run with: Rscript 05-uu-learning.R</span>
+<span class="nf">set.seed</span><span class="p">(</span><span class="m">2026102105</span><span class="p">)</span>
+
+<span class="n">target_prior</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0.5</span>
+<span class="n">a</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0.7</span>
+<span class="n">b_values</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">0.3</span><span class="p">,</span><span class="w"> </span><span class="m">0.5</span><span class="p">,</span><span class="w"> </span><span class="m">0.65</span><span class="p">,</span><span class="w"> </span><span class="m">0.69</span><span class="p">)</span>
+<span class="n">n_each</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">500L</span>
+<span class="n">n_rep</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1000L</span>
+<span class="n">threshold</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0.2</span>
+<span class="n">positive_mean</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1</span>
+<span class="n">negative_mean</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">-1</span>
+
+<span class="n">sample_mixture</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">proportion</span><span class="p">,</span><span class="w"> </span><span class="n">positive_location</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">positive_mean</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1"># Labels are internal to simulation and never passed to the risk estimator.</span>
+<span class="w">  </span><span class="n">latent_y</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rbinom</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="m">1L</span><span class="p">,</span><span class="w"> </span><span class="n">proportion</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">rnorm</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">mean</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">ifelse</span><span class="p">(</span><span class="n">latent_y</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">1L</span><span class="p">,</span><span class="w"> </span><span class="n">positive_location</span><span class="p">,</span><span class="w"> </span><span class="n">negative_mean</span><span class="p">))</span>
+<span class="p">}</span>
+<span class="n">mixture_cdf</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">proportion</span><span class="p">,</span><span class="w"> </span><span class="n">positive_location</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">positive_mean</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">proportion</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">pnorm</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span><span class="w"> </span><span class="n">positive_location</span><span class="p">)</span><span class="w"> </span><span class="o">+</span>
+<span class="w">    </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">proportion</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">pnorm</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span><span class="w"> </span><span class="n">negative_mean</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">risk_from_features</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span><span class="w"> </span><span class="n">x2</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">target_prior</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">abs</span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="m">1e-12</span><span class="p">)</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="s">"Distinct known mixture priors are required."</span><span class="p">)</span>
+<span class="w">  </span><span class="n">loss1_positive</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">x1</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">threshold</span><span class="p">)</span>
+<span class="w">  </span><span class="n">loss2_positive</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">x2</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">threshold</span><span class="p">)</span>
+<span class="w">  </span><span class="n">loss1_negative</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">loss1_positive</span>
+<span class="w">  </span><span class="n">loss2_negative</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">loss2_positive</span>
+<span class="w">  </span><span class="n">target_prior</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">((</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">loss1_positive</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">loss2_positive</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="o">+</span>
+<span class="w">    </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">target_prior</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">loss2_negative</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">loss1_negative</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">true_risk</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">target_prior</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">pnorm</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span><span class="w"> </span><span class="n">positive_mean</span><span class="p">)</span><span class="w"> </span><span class="o">+</span>
+<span class="w">  </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">target_prior</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nf">pnorm</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span><span class="w"> </span><span class="n">negative_mean</span><span class="p">))</span>
+<span class="n">estimates</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="kc">NA_real_</span><span class="p">,</span><span class="w"> </span><span class="n">n_rep</span><span class="p">,</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">b_values</span><span class="p">))</span>
+<span class="n">summary_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">do.call</span><span class="p">(</span><span class="n">rbind</span><span class="p">,</span><span class="w"> </span><span class="nf">lapply</span><span class="p">(</span><span class="nf">seq_along</span><span class="p">(</span><span class="n">b_values</span><span class="p">),</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">b</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">b_values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+<span class="w">  </span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">r</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">seq_len</span><span class="p">(</span><span class="n">n_rep</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">estimates</span><span class="p">[</span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;-</span><span class="w"> </span><span class="nf">risk_from_features</span><span class="p">(</span><span class="nf">sample_mixture</span><span class="p">(</span><span class="n">n_each</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="p">),</span>
+<span class="w">                                           </span><span class="nf">sample_mixture</span><span class="p">(</span><span class="n">n_each</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">),</span>
+<span class="w">                                           </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">target_prior</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">estimates</span><span class="p">[,</span><span class="w"> </span><span class="n">j</span><span class="p">]</span>
+<span class="w">  </span><span class="n">f1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">mixture_cdf</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="w">  </span><span class="n">f2</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">mixture_cdf</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="w">  </span><span class="n">coefficient1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="p">(</span><span class="n">target_prior</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">target_prior</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b</span><span class="p">)</span>
+<span class="w">  </span><span class="n">coefficient2</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="p">(</span><span class="n">target_prior</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">target_prior</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b</span><span class="p">)</span>
+<span class="w">  </span><span class="n">exact_sd</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sqrt</span><span class="p">(</span><span class="n">coefficient1</span><span class="o">^</span><span class="m">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">f1</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">f1</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">n_each</span><span class="w"> </span><span class="o">+</span>
+<span class="w">                    </span><span class="n">coefficient2</span><span class="o">^</span><span class="m">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">f2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">f2</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">n_each</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">data.frame</span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">prior_gap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">mean_risk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">value</span><span class="p">),</span>
+<span class="w">             </span><span class="n">bias</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">true_risk</span><span class="p">,</span><span class="w"> </span><span class="n">empirical_SD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sd</span><span class="p">(</span><span class="n">value</span><span class="p">),</span>
+<span class="w">             </span><span class="n">exact_SD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">exact_sd</span><span class="p">,</span><span class="w"> </span><span class="n">mean_MCSE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sd</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">sqrt</span><span class="p">(</span><span class="n">n_rep</span><span class="p">),</span>
+<span class="w">             </span><span class="n">fraction_outside_0_1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">value</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="m">1</span><span class="p">))</span>
+<span class="p">}))</span>
+
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Target prior:"</span><span class="p">,</span><span class="w"> </span><span class="n">target_prior</span><span class="p">,</span><span class="w"> </span><span class="s">"; threshold:"</span><span class="p">,</span><span class="w"> </span><span class="n">threshold</span><span class="p">,</span><span class="w"> </span><span class="s">"\n"</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Independent samples per replication:"</span><span class="p">,</span><span class="w"> </span><span class="n">n_each</span><span class="p">,</span><span class="w"> </span><span class="s">"from each mixture\n"</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Replications:"</span><span class="p">,</span><span class="w"> </span><span class="n">n_rep</span><span class="p">,</span><span class="w"> </span><span class="s">"; analytic target risk:"</span><span class="p">,</span><span class="w"> </span><span class="n">true_risk</span><span class="p">,</span><span class="w"> </span><span class="s">"\n\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">summary_table</span><span class="p">,</span><span class="w"> </span><span class="n">digits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">5</span><span class="p">,</span><span class="w"> </span><span class="n">row.names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+
+<span class="c1"># Misspecification: only the positive class in mixture 2 is shifted.</span>
+<span class="n">b_shift</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0.3</span>
+<span class="n">shifted_positive_mean</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1.75</span>
+<span class="n">f1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">mixture_cdf</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">f2_shift</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">mixture_cdf</span><span class="p">(</span><span class="n">b_shift</span><span class="p">,</span><span class="w"> </span><span class="n">shifted_positive_mean</span><span class="p">)</span>
+<span class="n">correction_limit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">target_prior</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">((</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b_shift</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">f1</span><span class="w"> </span><span class="o">-</span>
+<span class="w">                                      </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">f2_shift</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b_shift</span><span class="p">)</span><span class="w"> </span><span class="o">+</span>
+<span class="w">  </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">target_prior</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">f2_shift</span><span class="p">)</span><span class="w"> </span><span class="o">-</span>
+<span class="w">                         </span><span class="n">b_shift</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">f1</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b_shift</span><span class="p">)</span>
+<span class="n">shift_estimates</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">replicate</span><span class="p">(</span><span class="m">300L</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">risk_from_features</span><span class="p">(</span><span class="nf">sample_mixture</span><span class="p">(</span><span class="m">2000L</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="p">),</span>
+<span class="w">                     </span><span class="nf">sample_mixture</span><span class="p">(</span><span class="m">2000L</span><span class="p">,</span><span class="w"> </span><span class="n">b_shift</span><span class="p">,</span><span class="w"> </span><span class="n">shifted_positive_mean</span><span class="p">),</span>
+<span class="w">                     </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b_shift</span><span class="p">,</span><span class="w"> </span><span class="n">target_prior</span><span class="p">)</span>
+<span class="p">})</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"\nCommon-class-conditional assumption violated in mixture 2:\n"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="nf">data.frame</span><span class="p">(</span><span class="n">target_risk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">true_risk</span><span class="p">,</span><span class="w"> </span><span class="n">misspecified_limit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">correction_limit</span><span class="p">,</span>
+<span class="w">                 </span><span class="n">simulated_mean</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">shift_estimates</span><span class="p">),</span>
+<span class="w">                 </span><span class="n">mean_MCSE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sd</span><span class="p">(</span><span class="n">shift_estimates</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">sqrt</span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">shift_estimates</span><span class="p">)),</span>
+<span class="w">                 </span><span class="n">asymptotic_bias</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">correction_limit</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">true_risk</span><span class="p">),</span>
+<span class="w">      </span><span class="n">digits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">5</span><span class="p">,</span><span class="w"> </span><span class="n">row.names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"\nThe target population still uses positive mean 1 and negative mean -1.\n"</span><span class="p">)</span>
+<span class="nf">cat</span><span class="p">(</span><span class="s">"Larger samples reduce variability around the misspecified limit, not its bias.\n"</span><span class="p">)</span>
+
+<span class="n">figure_dir</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">Sys.getenv</span><span class="p">(</span><span class="s">"COURSE_FIGURE_DIR"</span><span class="p">,</span><span class="w"> </span><span class="n">unset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">""</span><span class="p">)</span>
+<span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">nzchar</span><span class="p">(</span><span class="n">figure_dir</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">dir.create</span><span class="p">(</span><span class="n">figure_dir</span><span class="p">,</span><span class="w"> </span><span class="n">recursive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">showWarnings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">png</span><span class="p">(</span><span class="nf">file.path</span><span class="p">(</span><span class="n">figure_dir</span><span class="p">,</span><span class="w"> </span><span class="s">"05-uu-learning.png"</span><span class="p">),</span><span class="w"> </span><span class="n">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1500</span><span class="p">,</span>
+<span class="w">      </span><span class="n">height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">700</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">140</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"cairo"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">par</span><span class="p">(</span><span class="n">mfrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">),</span><span class="w"> </span><span class="n">mar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">4.5</span><span class="p">,</span><span class="w"> </span><span class="m">4.5</span><span class="p">,</span><span class="w"> </span><span class="m">3.2</span><span class="p">,</span><span class="w"> </span><span class="m">1.2</span><span class="p">))</span>
+<span class="w">  </span><span class="nf">plot</span><span class="p">(</span><span class="n">summary_table</span><span class="o">$</span><span class="n">prior_gap</span><span class="p">,</span><span class="w"> </span><span class="n">summary_table</span><span class="o">$</span><span class="n">exact_SD</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"l"</span><span class="p">,</span><span class="w"> </span><span class="n">log</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"xy"</span><span class="p">,</span>
+<span class="w">       </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"#1B4965"</span><span class="p">,</span><span class="w"> </span><span class="n">xlab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Mixture-prior separation |a - b| (log scale)"</span><span class="p">,</span>
+<span class="w">       </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Risk estimator SD (log scale)"</span><span class="p">,</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Small separation reduces precision"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">points</span><span class="p">(</span><span class="n">summary_table</span><span class="o">$</span><span class="n">prior_gap</span><span class="p">,</span><span class="w"> </span><span class="n">summary_table</span><span class="o">$</span><span class="n">empirical_SD</span><span class="p">,</span>
+<span class="w">         </span><span class="n">pch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">19</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"#2D8063"</span><span class="p">,</span><span class="w"> </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.1</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">legend</span><span class="p">(</span><span class="s">"topright"</span><span class="p">,</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"Exact fixed-rule SD"</span><span class="p">,</span><span class="w"> </span><span class="s">"Simulation SD"</span><span class="p">),</span>
+<span class="w">         </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"#1B4965"</span><span class="p">,</span><span class="w"> </span><span class="s">"#2D8063"</span><span class="p">),</span><span class="w"> </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="kc">NA</span><span class="p">),</span><span class="w"> </span><span class="n">pch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="kc">NA</span><span class="p">,</span><span class="w"> </span><span class="m">19</span><span class="p">),</span>
+<span class="w">         </span><span class="n">bty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"n"</span><span class="p">,</span><span class="w"> </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.8</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">hist</span><span class="p">(</span><span class="n">shift_estimates</span><span class="p">,</span><span class="w"> </span><span class="n">breaks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">24L</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"#DDE9F1"</span><span class="p">,</span><span class="w"> </span><span class="n">border</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"white"</span><span class="p">,</span>
+<span class="w">       </span><span class="n">xlim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">range</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="n">true_risk</span><span class="p">,</span><span class="w"> </span><span class="n">shift_estimates</span><span class="p">)),</span><span class="w"> </span><span class="n">xlab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Estimated target risk"</span><span class="p">,</span>
+<span class="w">       </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"Violation of shared class-conditionals"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">abline</span><span class="p">(</span><span class="n">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">true_risk</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"#B44A3D"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">abline</span><span class="p">(</span><span class="n">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">correction_limit</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"#1B4965"</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">legend</span><span class="p">(</span><span class="s">"topleft"</span><span class="p">,</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"True target risk"</span><span class="p">,</span><span class="w"> </span><span class="s">"Misspecified limit"</span><span class="p">),</span>
+<span class="w">         </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"#B44A3D"</span><span class="p">,</span><span class="w"> </span><span class="s">"#1B4965"</span><span class="p">),</span><span class="w"> </span><span class="n">lty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">),</span><span class="w"> </span><span class="n">lwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">bty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"n"</span><span class="p">,</span><span class="w"> </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.8</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">invisible</span><span class="p">(</span><span class="nf">dev.off</span><span class="p">())</span>
+<span class="p">}</span>
+
+<span class="nf">stopifnot</span><span class="p">(</span><span class="nf">all</span><span class="p">(</span><span class="nf">is.finite</span><span class="p">(</span><span class="n">estimates</span><span class="p">)),</span>
+<span class="w">          </span><span class="nf">all</span><span class="p">(</span><span class="nf">is.finite</span><span class="p">(</span><span class="n">shift_estimates</span><span class="p">)),</span>
+<span class="w">          </span><span class="nf">all</span><span class="p">(</span><span class="n">summary_table</span><span class="o">$</span><span class="n">exact_SD</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="m">0</span><span class="p">))</span>
+</pre></div>
+</div>
+</details></div>
+<section id="executed-laboratory-output">
+<h3>Executed laboratory output<a class="headerlink" href="#executed-laboratory-output" title="Link to this heading">#</a></h3>
+<div class="cell-output cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Target prior: 0.5 ; threshold: 0.2 
+Independent samples per replication: 500 from each mixture
+Replications: 1000 ; analytic target risk: 0.1634625 
+
+   a    b prior_gap mean_risk        bias empirical_SD exact_SD mean_MCSE
+ 0.7 0.30      0.40   0.16297 -0.00048753     0.038230 0.037876 0.0012089
+ 0.7 0.50      0.20   0.15915 -0.00431253     0.077636 0.078280 0.0024551
+ 0.7 0.65      0.05   0.17360  0.01013747     0.309276 0.312986 0.0097802
+ 0.7 0.69      0.01   0.25130  0.08783747     1.495712 1.559242 0.0472986
+ fraction_outside_0_1
+                0.000
+                0.018
+                0.296
+                0.724
+
+Common-class-conditional assumption violated in mixture 2:
+ target_risk misspecified_limit simulated_mean mean_MCSE asymptotic_bias
+     0.16346            0.22019        0.21973 0.0011821        0.056732
+
+The target population still uses positive mean 1 and negative mean -1.
+Larger samples reduce variability around the misspecified limit, not its bias.
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/05-uu-learning.png"><img alt="Executed R experiment for uu learning; numerical results are printed above." src="../_images/05-uu-learning.png" style="width: 100%;" />
+</a>
+</div>
+</section>
+</section>
+<section id="exercises">
+<h2>Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Verify both measure inversions by substitution. Why is the condition <span class="math notranslate nohighlight">\(a\ne b\)</span> necessary for this argument?</p></li>
+<li><p>Substitute <span class="math notranslate nohighlight">\(a=1\)</span> and <span class="math notranslate nohighlight">\(b=\pi\)</span> into the UU risk identity and recover the PU identity.</p></li>
+<li><p>Derive the balanced zero–one estimator and its variance. Why must the two sample sizes appear separately?</p></li>
+<li><p>If the separation <span class="math notranslate nohighlight">\(|a-b|\)</span> is approximately halved while other variance factors remain similar, how should both sample sizes change to maintain approximately the same precision?</p></li>
+<li><p>What is the difference between fixing an unstable finite-sample estimate and fixing a violated common-class-conditional assumption?</p></li>
+</ol>
+<div class="dropdown admonition">
+<p class="admonition-title">Worked solutions</p>
+<p><strong>1.</strong> The coefficient of <span class="math notranslate nohighlight">\(P_+\)</span> in the first numerator is <span class="math notranslate nohighlight">\(a(1-b)-b(1-a)=a-b\)</span>, and the coefficient of <span class="math notranslate nohighlight">\(P_-\)</span> is zero. The second identity is analogous. At equal priors the matrix is singular and this cancellation does not provide an inverse.</p>
+<p><strong>2.</strong> The first bracket becomes <span class="math notranslate nohighlight">\(\pi E_+\ell_+\)</span>. The second becomes <span class="math notranslate nohighlight">\(E_U\ell_- -\pi E_+\ell_-\)</span> because <span class="math notranslate nohighlight">\(a-b=1-\pi\)</span>. Their sum is the PU expression.</p>
+<p><strong>3.</strong> For a threshold rule, <span class="math notranslate nohighlight">\(\ell_+=\mathbf1(X\leq t)\)</span> and <span class="math notranslate nohighlight">\(\ell_-=1-\ell_+\)</span>. At <span class="math notranslate nohighlight">\(\pi=1/2\)</span>, collecting constants gives the stated estimator. Independent Bernoulli sample means have variances <span class="math notranslate nohighlight">\(F_k(1-F_k)/n_k\)</span>; the two independent samples may have different sizes and different event probabilities.</p>
+<p><strong>4.</strong> Increase both sizes by approximately a factor of four. This compensates for the squared inverse separation, provided the remaining variance terms are comparable. It does not repair exact equality of the priors.</p>
+<p><strong>5.</strong> More observations or appropriate regularization can improve a noisy but correctly specified estimator. Structural misspecification changes what the expression estimates. Addressing it requires an observation model, target, or data source that matches the application, not simply more repetitions of the same biased procedure.</p>
+</div>
+</section>
+<section id="primary-readings">
+<h2>Primary readings<a class="headerlink" href="#primary-readings" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://arxiv.org/abs/1808.10585">Lu et al. (2019), “On the Minimal Supervision for Training Any Binary Classifier from Only Unlabeled Data”</a>: the two-mixture risk formulation and its learning theory.</p></li>
+<li><p><a class="reference external" href="https://proceedings.mlr.press/v108/lu20c.html">Lu et al. (2020), “Mitigating Overfitting in Supervised Classification from Two Unlabeled Datasets: A Consistent Risk Correction Approach”</a>: correction of empirical risks in flexible UU learning.</p></li>
+<li><p><a class="reference external" href="https://proceedings.mlr.press/v139/lu21c.html">Lu et al. (2021), “Binary Classification from Multiple Unlabeled Datasets via Surrogate Set Classification”</a>: an optional extension beyond two collections.</p></li>
+</ul>
+<p><strong>Connection to the next block:</strong> Preference data replace an absolute class label with a comparison. We will again ask which target the observation mechanism identifies before fitting a model.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="04-pu-practice.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">4. PU estimation, overfitting, and sensitivity</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="06-pairwise-preferences.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">6. Pairwise preference learning</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-supervision-comes-from">Where the supervision comes from</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-two-mixture-model-and-target-population">The two-mixture model and target population</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inverting-the-mixtures">Inverting the mixtures</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-small-prior-separation-is-a-statistical-problem">Why small prior separation is a statistical problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#identification-failures-and-links-to-pu-learning">Identification failures and links to PU learning</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#r-laboratory-prior-separation-and-assumption-failure">R laboratory — Prior separation and assumption failure</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#executed-laboratory-output">Executed laboratory output</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">Exercises</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#primary-readings">Primary readings</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="copyright">© Copyright 2026, <a href="https://chikuang.github.io/">Chi-Kuang Yeh</a>.</p>
+
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="last-updated">
+  Last updated on October 21, 2026.
+  <br/>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+<div class="extra_footer">
+  Topics of Statistical Learning
+</div>
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
