@@ -12,7 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/03-tokens-embeddings.ipynb)
 
-**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+**Python support:** Review Appendix A.1–A.4 for indexing, loops and array axes. Predict the shape of every intermediate array before running it. Use **Show all code** while working.
+
 
 A model receives numbers, not the meaning of a sentence. Tokenization defines the discrete observations; an embedding maps those observations into vectors. We will construct both operations explicitly, fit a small distributional representation, and test what it fails to preserve. The statistical analogues are the construction of a design matrix and the estimation of a feature map.
 
@@ -261,21 +262,78 @@ The input state is $X_{t,:}=E_{x_t,:}+P_{t,:}$. The sum preserves width $d$ whil
 Position features do not themselves create understanding. They allow a model to distinguish order when the prediction objective rewards doing so. Learned absolute positions and relative-position mechanisms are other options; each has implications for generalizing to lengths not seen in training. Padding positions also need an explicit mask so they do not become evidence.
 
 
-### Coding and experiment practice · Test representation stability
+### Coding and experiment practice · Refit a representation and align its vocabulary
 
-**Task.** Remove one sentence, refit the SVD, and compare nearest neighbors for a token present in both fitted vocabularies. Use the intersection vocabulary.
+**1. Predict before running.** If deleting a sentence removes a word, why can row number 5 represent different words in two fitted matrices?
 
-**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+**2. Implement and check.** Complete the entire workflow: rebuild vocabulary, count co-occurrences, compute PPMI, refit SVD, intersect vocabularies, and rank neighbors. The reference returns a dictionary from word to vector so row numbers cannot silently misalign. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
 
-```python
-def neighbor_overlap(first, second, k):
-    # first and second are ranked token lists; return overlap / k.
-    return ...
+```{code-cell} python
+def fit_representation(texts, dimension=4):
+    vocabulary = sorted({word for text in texts for word in tokenize(text)})
+    position = {word: i for i, word in enumerate(vocabulary)}
+    counts = np.zeros((len(vocabulary), len(vocabulary)))
+    for text in texts:
+        ids = [position[word] for word in tokenize(text)]
+        for i, word_id in enumerate(ids):
+            for j in range(max(0, i-2), min(len(ids), i+3)):
+                if i != j:
+                    counts[word_id, ids[j]] += 1
+    expected = counts.sum(1, keepdims=True) @ counts.sum(0, keepdims=True)
+    ratios = np.divide(counts * counts.sum(), expected,
+                       out=np.ones_like(counts), where=(counts > 0) & (expected > 0))
+    ppmi = np.maximum(np.log(ratios), 0)
+    left, singular, _ = np.linalg.svd(ppmi, full_matrices=False)
+    vectors = left[:, :dimension] * np.sqrt(singular[:dimension])
+    return dict(zip(vocabulary, vectors))
 ```
 
-:::{dropdown} Hint and acceptance checks
-Return `len(set(first[:k]) & set(second[:k])) / k`, after removing the query token and restricting both lists to the same vocabulary. Check that identical lists give 1 and disjoint lists give 0. Report which sentence was removed and how many tokens remain; raw SVD coordinates are not identifiable.
-:::
+Read the fit in four stages. `position` maps words to matrix rows. The nested loops count neighbors within a two-position window. `np.divide(..., where=...)` avoids division by zero; replacing unused ratios by one makes their log zero. SVD then supplies a four-dimensional representation. Finally, `zip` pairs each word with its vector, and `dict` stores those pairs by name. No coordinates from the full-corpus fit are reused in the reduced fit.
+
+The next function accepts the fitted dictionary, query word, and a **shared set of candidate words**. It excludes zero-length vectors because their cosine direction is undefined. A tuple `(-score, word)` sorts highest scores first and breaks ties alphabetically.
+
+```{code-cell} python
+def ranked_common_neighbors(fitted, query, common):
+    q = fitted[query]
+    if np.linalg.norm(q) == 0:
+        raise ValueError('Query has no defined cosine direction')
+    scores = []
+    for word in sorted(common - {query}):
+        vector = fitted[word]
+        if np.linalg.norm(vector) > 0:
+            cosine = float(vector @ q / (np.linalg.norm(vector) * np.linalg.norm(q)))
+            scores.append((word, cosine))
+    return [word for word, score in sorted(scores, key=lambda pair: (-pair[1], pair[0]))]
+
+def neighbor_overlap(first, second, k):
+    if not 1 <= k <= min(len(first), len(second)):
+        raise ValueError('Both lists must contain at least k neighbors')
+    return len(set(first[:k]) & set(second[:k])) / k
+```
+
+Now assemble the experiment. `corpus[1:]` removes the first sentence. The `&` operator intersects vocabulary sets by word identity. Restrict both rankings to that intersection **before** taking their first four neighbors. Inspect the printed lists as well as the scalar overlap: the scalar hides which words changed.
+
+```{code-cell} python
+full_fit = fit_representation(corpus)
+reduced_fit = fit_representation(corpus[1:])
+common = set(full_fit) & set(reduced_fit)
+# Keep only words with a defined direction in both fits.
+common = {w for w in common if np.linalg.norm(full_fit[w]) > 0
+          and np.linalg.norm(reduced_fit[w]) > 0}
+first = ranked_common_neighbors(full_fit, 'models', common)
+second = ranked_common_neighbors(reduced_fit, 'models', common)
+assert neighbor_overlap(['a', 'b'], ['a', 'b'], 2) == 1
+assert neighbor_overlap(['a', 'b'], ['c', 'd'], 2) == 0
+print('Removed:', corpus[0], '| common directed vocabulary:', len(common))
+print('Neighbors:', first[:4], second[:4], '| overlap:', neighbor_overlap(first, second, 4))
+```
+
+The first function repeats fitting; the second compares on a common set; the third summarizes overlap. Alphabetical ordering breaks tied scores reproducibly. We omit the unused unknown-token row in this refitting exercise. A rotated embedding can have identical neighbors, so raw coordinate differences are not the target.
+
+**3. Extend one factor.** Remove each sentence in turn, preselect a query that survives each comparison, and report vocabulary size and overlap. This is sensitivity analysis of eight authored sentences, not a population uncertainty interval.
+
+**Submission and rubric.** Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.
+
 
 ## 3.7 · Exercises
 

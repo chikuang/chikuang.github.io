@@ -12,7 +12,7 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/a-python-pytorch.ipynb) · [Installation](../python-workflow.md)
 
-Read A.1–A.4 before Chapter 2, A.5–A.8 before Chapter 5, and A.9–A.10 before Chapters 10–14. Run each cell in order. Predict its output before pressing **Shift+Enter**. The examples are deliberately smaller than the chapter models; once each operation is familiar, return to the full experiment.
+Read A.1–A.4 alongside Chapter 1 and before Chapter 2. Read A.5–A.7 **before the neural-network lab in Chapter 2**, A.8 before Chapter 5, and A.9 before Chapters 10, 12, and 14. A.10 is practice, not an additional prerequisite. A.11 explains local imports and the live-notebook workflow; A.12 explains compact syntax used later. Run each cell in order. Predict its output before pressing **Shift+Enter**. The examples are deliberately smaller than the chapter models; once each operation is familiar, return to the full experiment.
 
 ## A.1 · Names, values, and containers
 
@@ -320,3 +320,50 @@ A slice preserves the sliced axis. Use `mean(axis=0, keepdims=True)` for column 
 :::
 
 Use the official [Python tutorial](https://docs.python.org/3/tutorial/), [NumPy broadcasting guide](https://numpy.org/doc/stable/user/basics.broadcasting.html), and [PyTorch autograd introduction](https://docs.pytorch.org/tutorials/beginner/basics/autogradqs_tutorial.html) as references. Learn these operations through small computations before adding another framework.
+
+
+## A.11 · Files, local modules, and a fresh notebook kernel
+
+A module is a Python file containing reusable definitions. In the live labs, `from labs.contracts import validate_response` imports the same function used by Chapter 10. This avoids two validators quietly implementing different scientific inclusion rules. A downloaded notebook that imports course modules must stay inside the cloned course folder, or point to that folder with `GENAI_COURSE_ROOT`.
+
+```{code-cell} python
+from pathlib import Path
+import os
+import sys
+
+root = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd()))
+print('Python version:', sys.version.split()[0])
+print('Course root found:', (root / 'labs/model.json').is_file())
+print('Example relative path:', Path('labs') / 'contracts.py')
+```
+
+`Path.cwd()` is the current working directory, not necessarily the notebook's saved folder. `os.environ.get(name, default)` reads an optional environment setting and uses the default if absent. `root / 'labs'` joins paths; it does not divide strings. `sys.path.insert(0, str(root))`, used in the live notebooks, lets Python locate the local `labs` package. It does not install packages or load a model.
+
+A notebook kernel is a running Python process. Running a cell twice can append two results or make two model calls. **Restart Kernel and Run All Cells** checks that the notebook does not depend on objects created out of order. A saved output is evidence from an earlier run, not evidence that the current kernel has those objects.
+
+Before studying, check `sys.executable` in your own notebook: it should point to the course environment. If `import torch` works in a terminal but fails in Jupyter, compare the interpreters before changing the lesson code. `NameError` usually indicates a cell-order problem; `ModuleNotFoundError` indicates an environment or import-path problem; a rejected JSON response is a model/interface outcome after setup has succeeded.
+
+## A.12 · Expand compact syntax before using it
+
+A list comprehension is an ordinary loop with its output collection written compactly. Begin with the loop while learning; use the shorter expression after you can predict its result.
+
+```{code-cell} python
+values = [2, 4, 6]
+squares = []
+for value in values:
+    squares.append(value ** 2)
+compact = [value ** 2 for value in values]
+assert squares == compact == [4, 16, 36]
+print(squares)
+
+def affine(x, slope=1, intercept=0):
+    return slope * x + intercept
+
+settings = {'slope': 2, 'intercept': 1}
+assert affine(3, **settings) == affine(3, slope=2, intercept=1) == 7
+print('Expanded keyword arguments:', affine(3, **settings))
+```
+
+`**settings` unpacks dictionary keys into named arguments; it does not exponentiate a dictionary. In a function definition, `**settings` collects extra named arguments into a dictionary. Chapter 6 passes decoding options this way. Default argument expressions are evaluated when a function is defined: `features=Z` captures the current object, so changing a global name later does not change that default.
+
+`@torch.no_grad()` above a function applies a wrapper so calls do not record gradients. It is the function-wide version of `with torch.no_grad():`. `lambda x: x + 1` is a short function expression; when a function becomes difficult to explain in one sentence, use a named `def` instead. These conveniences change how code is written, not the model or estimand.

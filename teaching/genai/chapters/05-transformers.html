@@ -192,6 +192,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendices/a-python-pytorch.html">Appendix A · Python and PyTorch, one operation at a time</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../appendices/b-real-llm-systems.html">Appendix B · A real local LLM, RAG, and tool-using agent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices/c-guided-live-labs.html">Appendix C · Four guided live notebooks</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Supplement</span></p>
 <ul class="nav bd-sidenav">
@@ -359,7 +360,10 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#expand-the-two-sublayers">Expand the two sublayers</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implement-a-small-decoder-block">5.3 · Implement a small decoder block</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implement-a-small-decoder-block">5.3 · Implement a small decoder block</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-the-head-axes-with-actual-values">Inspect the head axes with actual values</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#test-the-complete-model-for-future-leakage">5.4 · Test the complete model for future leakage</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#shift-the-targets-not-the-information-boundary">5.5 · Shift the targets, not the information boundary</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#encoder-decoder-and-encoderdecoder">5.6 · Encoder, decoder, and encoder–decoder</a></li>
@@ -387,7 +391,7 @@
 <h1>5 · Assembling the transformer<a class="headerlink" href="#assembling-the-transformer" title="Link to this heading">#</a></h1>
 <p><strong>Question.</strong> How does one attention calculation become a sequence model?</p>
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/05-transformers.ipynb">Download the executed notebook</a></p>
-<p><strong>Python support:</strong> <a class="reference internal" href="../appendices/a-python-pytorch.html"><span class="std std-doc">Appendix A</span></a> explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s <strong>Show all code</strong> control while working through the lab.</p>
+<p><strong>Python support:</strong> Review <a class="reference internal" href="../appendices/a-python-pytorch.html#a-6-what-a-model-class-means"><span class="std std-ref">A.6–A.8: classes, updates and tensor dimensions</span></a>. A.12 explains comprehensions, decorators and <code class="docutils literal notranslate"><span class="pre">**settings</span></code>. Use <strong>Show all code</strong> while working.</p>
 <p>Attention mixes information between positions. A transformer also transforms features within each position, preserves information through residual paths, and maps the resulting features to a prediction. We will build a small decoder-only model explicitly. The goal is to follow every tensor and verify the information boundary, not to reproduce the scale of a modern language model.</p>
 <p><strong>Prerequisites:</strong> Chapters 2–4. <strong>Outcomes:</strong> trace IDs to logits; distinguish normalization across features from normalization across a batch; implement a decoder block; test causality end to end. The entire example uses a CPU and randomly initialized parameters.</p>
 <section id="pipeline-and-framework">
@@ -537,8 +541,16 @@ Z=\operatorname{LN}(H)W_{\mathrm{vocab}}+\mathbf1 b_{\mathrm{vocab}}^\top,
         <span class="n">mixed</span> <span class="o">=</span> <span class="p">(</span><span class="n">weights</span> <span class="o">@</span> <span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">mixed</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">norm2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-
-<span class="k">class</span><span class="w"> </span><span class="nc">TinyDecoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+</div>
+<p>The block maps <code class="docutils literal notranslate"><span class="pre">(batch,</span> <span class="pre">time,</span> <span class="pre">width)</span></code> back to the same shape. The wrapper below first looks up token and position vectors, then maps the final states to one logit per vocabulary item. <code class="docutils literal notranslate"><span class="pre">self</span></code> refers to this particular model instance; submodules assigned to it register their trainable parameters.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">TinyDecoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">=</span> <span class="n">max_length</span>
@@ -555,8 +567,16 @@ Z=\operatorname{LN}(H)W_{\mathrm{vocab}}+\mathbf1 b_{\mathrm{vocab}}^\top,
         <span class="n">positions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">ids</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final_norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
-
-<span class="n">model</span> <span class="o">=</span> <span class="n">TinyDecoder</span><span class="p">()</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+</div>
+<p>Constructing a model allocates its parameters. Calling <code class="docutils literal notranslate"><span class="pre">model(ids)</span></code> invokes <code class="docutils literal notranslate"><span class="pre">forward</span></code>; these are different operations.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">TinyDecoder</span><span class="p">()</span>
 <span class="n">ids</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
 <span class="n">logits</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">'Input:'</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ids</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="s1">'logits:'</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">logits</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
@@ -576,6 +596,48 @@ Parameter count: 8628
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">transpose</span></code> changes the view of tensor axes. Calling <code class="docutils literal notranslate"><span class="pre">contiguous()</span></code> before the final reshape makes the memory layout compatible with the requested merged head dimension. This is an implementation detail worth checking because reshaping the wrong axes can silently mix positions and heads.</p>
 <p>There is no dropout in this teaching model. Production architectures often include additional regularization, more layers, different positional mechanisms, and optimized attention kernels. None of those additions changes the need to understand the basic information flow.</p>
+<section id="inspect-the-head-axes-with-actual-values">
+<h3>Inspect the head axes with actual values<a class="headerlink" href="#inspect-the-head-axes-with-actual-values" title="Link to this heading">#</a></h3>
+<p>Use a separate width-six block with three heads, so each head has two features. The explicit loop below expands the comprehension in <code class="docutils literal notranslate"><span class="pre">forward</span></code>. Reshaping exposes axes; transposing changes their order. Neither operation estimates a new parameter.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">walk_block</span> <span class="o">=</span> <span class="n">DecoderBlock</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">heads</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">walk_x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">36</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span>
+<span class="n">normalized</span> <span class="o">=</span> <span class="n">walk_block</span><span class="o">.</span><span class="n">norm1</span><span class="p">(</span><span class="n">walk_x</span><span class="p">)</span>
+<span class="n">q0</span><span class="p">,</span> <span class="n">k0</span><span class="p">,</span> <span class="n">v0</span> <span class="o">=</span> <span class="n">walk_block</span><span class="o">.</span><span class="n">qkv</span><span class="p">(</span><span class="n">normalized</span><span class="p">)</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">heads</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="p">(</span><span class="n">q0</span><span class="p">,</span> <span class="n">k0</span><span class="p">,</span> <span class="n">v0</span><span class="p">):</span>
+    <span class="n">heads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">q</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">heads</span>
+<span class="k">assert</span> <span class="n">q</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># batch, head, time, head feature</span>
+<span class="k">assert</span> <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">q0</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="n">scores_walk</span> <span class="o">=</span> <span class="n">q</span> <span class="o">@</span> <span class="n">k</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">mask_walk</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span><span class="o">.</span><span class="n">tril</span><span class="p">()</span>
+<span class="n">weights_walk</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">scores_walk</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="o">~</span><span class="n">mask_walk</span><span class="p">,</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">inf</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">mixed_walk</span> <span class="o">=</span> <span class="p">(</span><span class="n">weights_walk</span> <span class="o">@</span> <span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="n">residual_walk</span> <span class="o">=</span> <span class="n">walk_x</span> <span class="o">+</span> <span class="n">walk_block</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">mixed_walk</span><span class="p">)</span>
+<span class="n">manual_walk</span> <span class="o">=</span> <span class="n">residual_walk</span> <span class="o">+</span> <span class="n">walk_block</span><span class="o">.</span><span class="n">ffn</span><span class="p">(</span><span class="n">walk_block</span><span class="o">.</span><span class="n">norm2</span><span class="p">(</span><span class="n">residual_walk</span><span class="p">))</span>
+<span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">weights_walk</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">weights_walk</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="o">~</span><span class="n">mask_walk</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">manual_walk</span><span class="p">,</span> <span class="n">walk_block</span><span class="p">(</span><span class="n">walk_x</span><span class="p">),</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Input / heads / scores / merged:'</span><span class="p">,</span> <span class="n">walk_x</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">q</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+      <span class="n">scores_walk</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">mixed_walk</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Head 1, time 2, coordinate 0:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="mi">4</span><span class="p">))</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Input / heads / scores / merged: torch.Size([2, 3, 6]) torch.Size([2, 3, 3, 2]) torch.Size([2, 3, 3, 3]) torch.Size([2, 3, 6])
+Head 1, time 2, coordinate 0: -0.676
+</pre></div>
+</div>
+</div>
+</div>
+<p>The indexed equality tells you where one original feature moved. The final equality compares the expanded calculation with the model’s actual forward pass. A shape check alone cannot detect every axis permutation; a value correspondence and a future-token intervention provide stronger diagnostics. Attention weights sum over the <strong>key-time axis</strong>, the last axis of <code class="docutils literal notranslate"><span class="pre">scores_walk</span></code>.</p>
+</section>
 </section>
 <section id="test-the-complete-model-for-future-leakage">
 <h2>5.4 · Test the complete model for future leakage<a class="headerlink" href="#test-the-complete-model-for-future-leakage" title="Link to this heading">#</a></h2>
@@ -692,22 +754,38 @@ Parameter count: 8628
 <p>During autoregressive inference, earlier keys and values can be cached rather than recomputed. Our model does not implement that optimization. Truncating a long prompt to fit a context window changes the conditioning information, and learned absolute position tables do not automatically support unseen positions. Computational shortcuts must be evaluated for their effect on the task.</p>
 <section id="coding-and-experiment-practice-trace-a-future-token-intervention">
 <h3>Coding and experiment practice · Trace a future-token intervention<a class="headerlink" href="#coding-and-experiment-practice-trace-a-future-token-intervention" title="Link to this heading">#</a></h3>
-<p><strong>Task.</strong> Copy the full-model causality check. Replace the final token ID, keeping sequence length fixed, and compare earlier logits before and after. Then remove the causal mask in an experimental copy.</p>
-<p><strong>Submission.</strong> Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.</p>
+<p><strong>1. Predict before running.</strong> Why is checking only the attention matrix weaker than checking earlier logits of the complete network?</p>
+<p><strong>2. Implement and check.</strong> Hold sequence length and all earlier IDs fixed, replace the final ID, and compare all earlier logits with an explicit tolerance. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
-<details class="course-code-fold"><summary>Code</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">earlier_logits_unchanged</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">original</span><span class="p">,</span> <span class="n">changed</span><span class="p">):</span>
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">earlier_logits_unchanged</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">original</span><span class="p">,</span> <span class="n">changed</span><span class="p">):</span>
     <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
     <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="n">original</span><span class="p">)[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">model</span><span class="p">(</span><span class="n">changed</span><span class="p">)[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="n">original</span><span class="p">)[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">model</span><span class="p">(</span><span class="n">changed</span><span class="p">)[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                              <span class="n">atol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
+
+<span class="n">probe</span> <span class="o">=</span> <span class="n">ids</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+<span class="n">probe</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">probe</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">12</span>
+<span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">ids</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">probe</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">ids</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">probe</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="k">assert</span> <span class="n">earlier_logits_unchanged</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">probe</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Complete model passed the future-token intervention.'</span><span class="p">)</span>
 </pre></div>
 </div>
 </details></div>
-<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-<span class="sd-summary-text">Hint and acceptance checks</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">For the masked model, expect equality within floating-point tolerance. Without the mask, an earlier logit can change. A single accidental equality does not prove causality; try several nonidentical token replacements. Evaluate the whole network, since normalization across positions could also leak information.</p>
 </div>
-</details></section>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Complete model passed the future-token intervention.
+</pre></div>
+</div>
+</div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">clone()</span></code> prevents the intervention from changing the original array. <code class="docutils literal notranslate"><span class="pre">eval()</span></code> controls training-dependent behavior; <code class="docutils literal notranslate"><span class="pre">no_grad()</span></code> disables gradient recording. They perform different jobs. The fixture checks the whole composition, including residuals and normalization.</p>
+<p><strong>3. Extend one factor.</strong> Copy the block under a new name and remove its causal mask. Try several nonidentical final-token replacements. Report maximum earlier-logit changes; one accidental equality does not prove a causal information boundary.</p>
+<p><strong>Submission and rubric.</strong> Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.</p>
+</section>
 </section>
 <section id="exercises">
 <h2>5.8 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
@@ -791,7 +869,10 @@ Parameter count: 8628
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#expand-the-two-sublayers">Expand the two sublayers</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implement-a-small-decoder-block">5.3 · Implement a small decoder block</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implement-a-small-decoder-block">5.3 · Implement a small decoder block</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-the-head-axes-with-actual-values">Inspect the head axes with actual values</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#test-the-complete-model-for-future-leakage">5.4 · Test the complete model for future leakage</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#shift-the-targets-not-the-information-boundary">5.5 · Shift the targets, not the information boundary</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#encoder-decoder-and-encoderdecoder">5.6 · Encoder, decoder, and encoder–decoder</a></li>

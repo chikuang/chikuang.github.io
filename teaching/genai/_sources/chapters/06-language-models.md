@@ -12,7 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/06-language-models.ipynb)
 
-**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+**Python support:** Review [A.6–A.8: classes, updates and tensor dimensions](../appendices/a-python-pytorch.md#a6--what-a-model-class-means). A.12 explains comprehensions, decorators and `**settings`. Use **Show all code** while working.
+
 
 A language model specifies conditional token distributions. A prompt supplies conditioning information; a decoder turns probabilities into a sequence. These are three different objects. We will train a small character model on an explicitly artificial sentence distribution, evaluate it on held-out combinations, and sample it under several decoding rules.
 
@@ -141,6 +142,11 @@ class DecoderBlock(nn.Module):
         x = x + self.project(mixed)
         return x + self.ffn(self.norm2(x))
 
+```
+
+The block maps `(batch, time, width)` back to the same shape. The wrapper below first looks up token and position vectors, then maps the final states to one logit per vocabulary item. `self` refers to this particular model instance; submodules assigned to it register their trainable parameters.
+
+```{code-cell} python
 class TinyDecoder(nn.Module):
     def __init__(self, vocab_size=12, width=24, max_length=32):
         super().__init__()
@@ -159,12 +165,22 @@ class TinyDecoder(nn.Module):
         x = self.token(ids) + self.position(positions)
         return self.head(self.final_norm(self.block(x)))
 
+```
+
+Constructing a model allocates its parameters. Calling `model(ids)` invokes `forward`; these are different operations.
+
+```{code-cell} python
 model = TinyDecoder(vocab_size=len(chars), width=24, max_length=96)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.008)
 def log_loss(x, y):
     return nn.functional.cross_entropy(model(x).reshape(-1, len(chars)),
                                         y.reshape(-1), ignore_index=0)
 
+```
+
+Before looping, identify three state variables: `history` stores scalar diagnostics, `best` is the smallest validation loss so far, and `checkpoint` is a copied parameter snapshot. No test observation participates in this choice.
+
+```{code-cell} python
 history, best, checkpoint = [], float('inf'), None
 for epoch in range(220):
     model.train()
@@ -309,19 +325,38 @@ Pretraining estimates a broad conditional model. Supervised instruction tuning c
 
 ### Coding and experiment practice · Compare decoding distributions
 
-**Task.** Use the trained Chapter 5 decoder from this chapter. Run three temperatures on the same ten fixed seeds; record text, stop reason, and whether the generated sentence belongs to the known grammar.
+**1. Predict before running.** Can changing temperature improve the already-computed test likelihood without changing any model weight?
 
-**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+**2. Implement and check.** Use the trained decoder, three temperatures and the same ten seeds. Store each result before computing a summary so malformed or truncated strings remain inspectable. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
 
-```python
+```{code-cell} python
 def grammar_hit(generation, allowed_sentences):
-    # generation has text and stop_reason fields.
-    return ...
+    return (generation['stop_reason'] == 'end_token'
+            and generation['text'] in allowed_sentences)
+
+assert grammar_hit({'text': sentences[0], 'stop_reason': 'end_token'}, set(sentences))
+assert not grammar_hit({'text': sentences[0], 'stop_reason': 'length_limit'}, set(sentences))
+decoding_rows = []
+for temperature in [0.6, 1.0, 1.4]:
+    for seed in range(10):
+        output = generate(seed=seed, temperature=temperature, top_p=0.95)
+        decoding_rows.append({'temperature': temperature, 'seed': seed,
+                              **output, 'grammar_hit': grammar_hit(output, set(sentences))})
+assert len(decoding_rows) == 30
+for temperature in [0.6, 1.0, 1.4]:
+    rows = [row for row in decoding_rows if row['temperature'] == temperature]
+    print(temperature, 'hits:', sum(row['grammar_hit'] for row in rows),
+          'distinct:', len({row['text'] for row in rows}),
+          'truncated:', sum(row['stop_reason'] != 'end_token' for row in rows))
+print('First retained record:', decoding_rows[0])
 ```
 
-:::{dropdown} Hint and acceptance checks
-Return `generation["stop_reason"] == "end_token" and generation["text"] in allowed_sentences`. Treat length- or context-limited output as incomplete. Report grammar membership and diversity separately; neither is unrestricted language quality. Keep test likelihood fixed because decoding settings do not refit model parameters.
-:::
+The outer loop selects a decoding distribution; the inner loop samples ten trajectories. `**output` copies the text and stop reason into a larger dictionary. Grammar membership and diversity answer different questions. The known grammar is a diagnostic specification, not training data newly supplied to the model.
+
+**3. Extend one factor.** Choose a new prefix before evaluating, keep the same seed grid, and compare truncation, grammar membership and diversity. Preserve all 30 records. Test likelihood remains the score of the unchanged fitted conditionals.
+
+**Submission and rubric.** Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.
+
 
 ## 6.6 · Exercises
 
@@ -348,3 +383,6 @@ Return `generation["stop_reason"] == "end_token" and generation["text"] in allow
 ## 6.7 · Further reading and transition
 
 The [transformer paper](https://arxiv.org/abs/1706.03762) motivates the architecture reused from Chapter 5. [Appendix B](../appendices/b-real-llm-systems.md) moves from our trained toy decoder to an actual pretrained instruction model, including chat templates and bounded generation. A GRU is a possible architecture-comparison exercise, not a prerequisite for this chapter. Next, [Chapter 7](07-latent-variable-models.md) constructs distributions through latent variables instead of a token-by-token factorization.
+
+
+**Choose the next route.** For LLM/RAG/Agent work, complete [live lab 1](../appendices/c-guided-live-labs.md#c1--see-the-complete-first-call) now, then continue to [Chapter 10](10-rag.md). For other generative families, continue to Chapter 7. Both routes build on the distinction between fitted conditionals and the decoding distribution established here.

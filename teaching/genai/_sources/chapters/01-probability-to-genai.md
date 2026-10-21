@@ -12,7 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/01-probability-to-genai.ipynb) · [Set up Python](../python-workflow.md)
 
-**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+**Python support:** Read Appendix A.1–A.4 alongside the small examples here; no earlier Python knowledge is required. Use **Show all code** while working.
+
 
 You already know how to define a model, estimate its parameters, assess its fit, and simulate from it. These are useful starting points for generative AI. The unfamiliar part is often the data representation and software vocabulary, rather than the basic idea of learning a distribution.
 
@@ -690,20 +691,32 @@ The simulation ranges summarize variation across 300 independently generated tra
 
 ### Coding and experiment practice · Audit a sampler
 
-**Task.** Implement `frequency_error(probabilities, size, seed)` returning the largest absolute difference between generated frequencies and the fitted probabilities. Compare sizes 100, 1,000, and 10,000 over 30 prespecified seeds.
+**1. Predict before running.** Will every individual run improve when the number of generated draws increases? Explain why not.
 
-**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+**2. Implement and check.** Write `frequency_error(probabilities, size, seed)` returning one scalar. A degenerate distribution provides an exact fixture; repeated seeds provide a Monte Carlo experiment. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
 
-```python
+```{code-cell} python
 def frequency_error(probabilities, size, seed):
+    probabilities = np.asarray(probabilities, dtype=float)
     rng = np.random.default_rng(seed)
-    # Draw size categorical observations; return a scalar error.
-    return ...
+    draws = rng.choice(len(probabilities), size=size, p=probabilities)
+    frequencies = np.bincount(draws, minlength=len(probabilities)) / size
+    return float(np.max(np.abs(frequencies - probabilities)))
+
+assert frequency_error([1., 0.], 100, 1) == 0
+assert frequency_error([0.6, 0.3, 0.1], 100, 2) == frequency_error([0.6, 0.3, 0.1], 100, 2)
+for size in [100, 1000, 10000]:
+    errors = [frequency_error([0.6, 0.3, 0.1], size, seed) for seed in range(30)]
+    assert all(0 <= error <= 1 for error in errors)
+    print(size, 'mean maximum frequency error:', round(float(np.mean(errors)), 4))
 ```
 
-:::{dropdown} Hint and acceptance checks
-Use `rng.choice`, then `np.bincount(..., minlength=len(probabilities)) / size`. Compare the average error across the same fixed seed list at each size. Individual runs need not improve monotonically. This checks Monte Carlo approximation to the fitted law, not its fit to real data.
-:::
+`minlength` keeps unobserved categories in the frequency vector. The denominator is the number of generated draws, not the number of training observations. The same seed list pairs the comparison settings, but does not guarantee monotonic errors.
+
+**3. Extend one factor.** Change the fitted probabilities while keeping budgets and seed list fixed. Distinguish approximation to the fitted law from estimation error relative to the data-generating law.
+
+**Submission and rubric.** Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.
+
 
 ## 1.14 · Exercises
 

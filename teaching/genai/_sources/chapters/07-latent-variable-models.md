@@ -12,7 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/07-latent-variable-models.ipynb)
 
-**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+**Python support:** Review [A.5–A.7: tensors, classes and updates](../appendices/a-python-pytorch.md#a5--tensors-and-one-derivative). These chapters form the optional generative-model/adaptation branch after Chapter 6. Use **Show all code** while working.
+
 
 A latent-variable model generates an unobserved $Z$ and then generates $X$ conditional on it. This connects directly to mixture models and random-effects models. The difficulty is often integrating over $Z$. We will derive a variational objective, train a small variational autoencoder (VAE) on two-dimensional observations, and contrast its objective with adversarial learning and invertible transformations.
 
@@ -265,21 +266,43 @@ Expressive flows use transformations whose inverse and determinant remain comput
 :::
 
 
-### Coding and experiment practice · Compare distributions beyond their means
+### Coding and experiment practice · Choose statistics that distinguish distributions
 
-**Task.** Fit one Gaussian and the VAE on the same training data. Define four nearest-center regions before evaluation; compare generated region frequencies on fixed simulation budgets.
+**1. Predict before running.** Why do a centered spherical Gaussian and the symmetric four-cluster mixture both assign one quarter of their mass to each nearest-center region?
 
-**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+**2. Implement and check.** Compare fitted single-Gaussian and VAE samples under the same 1,000-draw budget. Predeclare radius 0.4. Report region occupancy, nearest-center distance quantiles and mass within that radius. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
 
-```python
-def region_frequencies(samples, centers):
-    # Assign each sample to its nearest center, then count all regions.
-    return ...
+```{code-cell} python
+def distribution_diagnostics(samples, centers, radius=0.4):
+    samples = np.asarray(samples)
+    distances = np.sqrt(((samples[:, None, :] - centers[None, :, :]) ** 2).sum(axis=2))
+    nearest = distances.min(axis=1)
+    region = distances.argmin(axis=1)
+    return {'occupancy': np.bincount(region, minlength=len(centers)) / len(samples),
+            'distance_quantiles': np.quantile(nearest, [0.25, 0.5, 0.75]),
+            'near_center_mass': float(np.mean(nearest <= radius))}
+
+at_centers = distribution_diagnostics(centers, centers)
+assert np.allclose(at_centers['occupancy'], 0.25)
+assert at_centers['near_center_mass'] == 1
+assert distribution_diagnostics(np.zeros((4, 2)), centers)['near_center_mass'] == 0
+comparison_rng = np.random.default_rng(707)
+gaussian_sample = comparison_rng.multivariate_normal(
+    train.numpy().mean(0), np.cov(train.numpy(), rowvar=False, bias=True), size=1000)
+fresh_target = centers[comparison_rng.integers(0, 4, 1000)] + comparison_rng.normal(0, 0.18, (1000, 2))
+for name, sample in [('Fresh target', fresh_target), ('Fitted Gaussian', gaussian_sample),
+                     ('Fitted VAE', generated.numpy())]:
+    diagnostics = distribution_diagnostics(sample, centers)
+    assert len(sample) == 1000 and np.isclose(diagnostics['occupancy'].sum(), 1)
+    print(name, {key: np.round(value, 3) for key, value in diagnostics.items()})
 ```
 
-:::{dropdown} Hint and acceptance checks
-Compute squared Euclidean distances with explicit sample and center axes; use `argmin(axis=1)` and `bincount(..., minlength=len(centers)) / len(samples)`. The frequencies must sum to one. Also inspect within-region spread: matching occupancy alone cannot establish equality of distributions.
-:::
+The three-dimensional distance array has sample, center and coordinate axes before summation. Nearest-center regions here are the four quadrants. Equal occupancy cannot reveal the empty space between modes. Distance and neighborhood mass add sensitivity to that difference; no finite collection of summaries proves equality of distributions. The fresh target is a simulator reference, not extra fitting data.
+
+**3. Extend one factor.** Vary the predeclared radius on a development set, then freeze it before a fresh comparison. Alternatively compare a moment-matched spherical Gaussian with the true mixture to construct an explicit counterexample to occupancy alone.
+
+**Submission and rubric.** Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.
+
 
 ## 7.8 · Exercises
 

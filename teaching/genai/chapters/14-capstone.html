@@ -192,6 +192,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendices/a-python-pytorch.html">Appendix A · Python and PyTorch, one operation at a time</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../appendices/b-real-llm-systems.html">Appendix B · A real local LLM, RAG, and tool-using agent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices/c-guided-live-labs.html">Appendix C · Four guided live notebooks</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Supplement</span></p>
 <ul class="nav bd-sidenav">
@@ -367,11 +368,12 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluate-the-locked-scenarios">14.5 · Evaluate the locked scenarios</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#include-uncertainty-in-the-reference-comparison">Include uncertainty in the reference comparison</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continue-with-the-implemented-system">Continue with the implemented system</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-first-complete-live-milestone">A first complete live milestone</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#add-a-generative-component-as-an-ablation">14.6 · Add a generative component as an ablation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#produce-a-reproducibility-manifest-and-report">14.7 · Produce a reproducibility manifest and report</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-validate-the-whole-request-to-report-chain">Coding and experiment practice · Validate the whole request-to-report chain</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-verify-request-computation-and-report-separately">Coding and experiment practice · Verify request, computation and report separately</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">14.8 · Exercises</a></li>
@@ -391,7 +393,7 @@
 <h1>14 · Capstone: a GenAI system for a statistician<a class="headerlink" href="#capstone-a-genai-system-for-a-statistician" title="Link to this heading">#</a></h1>
 <p><strong>Question.</strong> Can we build a small assistant whose claims can be reproduced and checked?</p>
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/14-capstone.ipynb">Download the executed notebook</a></p>
-<p><strong>Python support:</strong> <a class="reference internal" href="../appendices/a-python-pytorch.html"><span class="std std-doc">Appendix A</span></a> explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s <strong>Show all code</strong> control while working through the lab.</p>
+<p><strong>Python support:</strong> Read <a class="reference internal" href="../appendices/a-python-pytorch.html#a-9-structured-requests-validation-and-errors"><span class="std std-ref">A.9: JSON and validation</span></a> and <a class="reference internal" href="../appendices/a-python-pytorch.html#a-11-files-local-modules-and-a-fresh-notebook-kernel"><span class="std std-ref">A.11: local modules and kernels</span></a> before the implementation. Use <strong>Show all code</strong> while working.</p>
 <p>This chapter completes a worked project: a bounded simulation assistant that investigates the coverage of an approximate confidence interval. It receives a structured request, runs an approved simulation, and returns an evidence-based report with Monte Carlo uncertainty. We compare it with a nominal-coverage baseline on scenarios excluded from development.</p>
 <p>The executable assistant uses deterministic planning and report templates. It is a baseline and execution core for a GenAI system, not a hidden LLM call. A language model can later translate a user’s request into the schema or explain the returned evidence, while the numerical claims remain controlled by the tested tool. This separation makes the project runnable without an API key and makes the contribution of an LLM an explicit ablation.</p>
 <p><strong>Prerequisites:</strong> Chapters 2, 11–13. <strong>Outcomes:</strong> write a scoped project specification; implement the complete evidence path; evaluate on held-out scenarios; report uncertainty and failures; define a meaningful generative extension.</p>
@@ -746,6 +748,11 @@ Mean absolute error: nominal / tool 0.021 0.01
 <h3>Continue with the implemented system<a class="headerlink" href="#continue-with-the-implemented-system" title="Link to this heading">#</a></h3>
 <p><a class="reference internal" href="../appendices/b-real-llm-systems.html"><span class="std std-doc">Appendix B, B.6</span></a> now implements this extension with a real model. It records natural-language translation, bounded simulation, generated reporting, and rejection of unsupported requests. Inspect both successful and failed traces before extending the task set.</p>
 </section>
+<section id="a-first-complete-live-milestone">
+<h3>A first complete live milestone<a class="headerlink" href="#a-first-complete-live-milestone" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="../appendices/c-guided-live-labs.html#c-4-finish-a-bounded-workflow-before-adding-generated-prose"><span class="std std-ref">Live lab 4</span></a> runs the local LLM to interpret each request, validates it, calls the numerical coverage tool, and produces a declared deterministic report. This is a complete bounded workflow with an actual LLM component. It retains interpretation errors and schema failures, including the unsupported-family case, rather than switching to a correct request behind the scenes.</p>
+<p>The two supported scenarios in the recorded run complete successfully. Inspect the parsed family and sample size before looking at the coverage estimate. The flat live-tool output carries the same fields as this chapter’s nested request/result object. The separate LLM-written reporting experiment below remains an additional component to evaluate; the template is never silently substituted for a failed generated report.</p>
+</section>
 </section>
 <section id="add-a-generative-component-as-an-ablation">
 <h2>14.6 · Add a generative component as an ablation<a class="headerlink" href="#add-a-generative-component-as-an-ablation" title="Link to this heading">#</a></h2>
@@ -867,23 +874,47 @@ exponential,120,0.9500,0.9580,0.9438
 </div>
 <p>A final project report should state the question and task population, describe the baseline and extension, document splits and seeds, show results with uncertainty and failures, and explain limitations in plain language. Include the executable notebook and environment information so another reader can reproduce the evidence.</p>
 <p>For this worked example, a supported conclusion is narrow: the assistant executes a bounded coverage simulation and reports its numerical output faithfully. Any advantage over the nominal baseline is conditional on the evaluated scenarios and simulation budget. The lab has not demonstrated general natural-language planning or safe autonomous statistical analysis.</p>
-<section id="coding-and-experiment-practice-validate-the-whole-request-to-report-chain">
-<h3>Coding and experiment practice · Validate the whole request-to-report chain<a class="headerlink" href="#coding-and-experiment-practice-validate-the-whole-request-to-report-chain" title="Link to this heading">#</a></h3>
-<p><strong>Task.</strong> Use Appendix B to compare the natural-language request, parsed family and sample size, tool result, and reported estimate. Include an unsupported distribution and a deliberately mistranslated request.</p>
-<p><strong>Submission.</strong> Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.</p>
+<section id="coding-and-experiment-practice-verify-request-computation-and-report-separately">
+<h3>Coding and experiment practice · Verify request, computation and report separately<a class="headerlink" href="#coding-and-experiment-practice-verify-request-computation-and-report-separately" title="Link to this heading">#</a></h3>
+<p><strong>1. Predict before running.</strong> Can a correct normal-family simulation be a failed response to an exponential-family request?</p>
+<p><strong>2. Implement and check.</strong> Compare structured report fields with tool evidence at a declared three-decimal precision, then separately compare interpreted intent with the intended task. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
-<details class="course-code-fold"><summary>Code</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">numeric_fields_match</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">tool_result</span><span class="p">):</span>
-    <span class="c1"># Require matching family, n, and estimate with a declared precision.</span>
-    <span class="k">return</span> <span class="o">...</span>
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">numeric_fields_match</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">tool_result</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="n">tool_result</span><span class="p">[</span><span class="s1">'request'</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'family'</span><span class="p">)</span> <span class="o">==</span> <span class="n">request</span><span class="p">[</span><span class="s1">'family'</span><span class="p">]</span>
+            <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'n'</span><span class="p">))</span> <span class="ow">is</span> <span class="nb">int</span> <span class="ow">and</span> <span class="n">report</span><span class="p">[</span><span class="s1">'n'</span><span class="p">]</span> <span class="o">==</span> <span class="n">request</span><span class="p">[</span><span class="s1">'n'</span><span class="p">]</span>
+            <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'estimate'</span><span class="p">))</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">report</span><span class="p">[</span><span class="s1">'estimate'</span><span class="p">])</span>
+            <span class="ow">and</span> <span class="nb">round</span><span class="p">(</span><span class="n">report</span><span class="p">[</span><span class="s1">'estimate'</span><span class="p">],</span> <span class="n">digits</span><span class="p">)</span> <span class="o">==</span> <span class="nb">round</span><span class="p">(</span><span class="n">tool_result</span><span class="p">[</span><span class="s1">'estimate'</span><span class="p">],</span> <span class="n">digits</span><span class="p">))</span>
+
+<span class="n">fixture_tool</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'request'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'family'</span><span class="p">:</span> <span class="s1">'normal'</span><span class="p">,</span> <span class="s1">'n'</span><span class="p">:</span> <span class="mi">12</span><span class="p">},</span> <span class="s1">'estimate'</span><span class="p">:</span> <span class="mf">0.91234</span><span class="p">}</span>
+<span class="n">fixture_report</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'family'</span><span class="p">:</span> <span class="s1">'normal'</span><span class="p">,</span> <span class="s1">'n'</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span> <span class="s1">'estimate'</span><span class="p">:</span> <span class="mf">0.912</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">numeric_fields_match</span><span class="p">(</span><span class="n">fixture_report</span><span class="p">,</span> <span class="n">fixture_tool</span><span class="p">)</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">numeric_fields_match</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">fixture_report</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">fixture_tool</span><span class="p">)</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">numeric_fields_match</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">fixture_report</span><span class="p">,</span> <span class="n">estimate</span><span class="o">=</span><span class="mf">0.95</span><span class="p">),</span> <span class="n">fixture_tool</span><span class="p">)</span>
+<span class="n">intended</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'family'</span><span class="p">:</span> <span class="s1">'exponential'</span><span class="p">,</span> <span class="s1">'n'</span><span class="p">:</span> <span class="mi">12</span><span class="p">}</span>
+<span class="n">intent_matches</span> <span class="o">=</span> <span class="n">fixture_tool</span><span class="p">[</span><span class="s1">'request'</span><span class="p">]</span> <span class="o">==</span> <span class="n">intended</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">intent_matches</span>  <span class="c1"># Correct arithmetic cannot repair the wrong task.</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Numeric faithfulness:'</span><span class="p">,</span> <span class="n">numeric_fields_match</span><span class="p">(</span><span class="n">fixture_report</span><span class="p">,</span> <span class="n">fixture_tool</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Original request preserved:'</span><span class="p">,</span> <span class="n">intent_matches</span><span class="p">)</span>
 </pre></div>
 </div>
 </details></div>
-<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-<span class="sd-summary-text">Hint and acceptance checks</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">Compare family and n exactly, and the estimate at the declared display precision. Then separately check the parsed request against the original intended task. Numerical faithfulness cannot repair a mistranslation. Verify normal-family tool output against the analytic reference and inspect narrative claims manually.</p>
 </div>
-</details></section>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Numeric faithfulness: True
+Original request preserved: False
+</pre></div>
+</div>
+</div>
+</div>
+<p>This fixture isolates a numeric reporting rule. It does not judge the prose, and it deliberately shows that the intent check can fail while the numeric check passes. The live workflow in Appendix C uses the same distinction with actual model interpretations.</p>
+<p><strong>3. Extend one factor.</strong> Complete live lab 4, including its unsupported family. Then compare a separately labeled LLM-written report with the deterministic report from identical tool evidence. Require correct interpretation, numerical agreement and statistically supported narrative for full success; retain each stage failure.</p>
+<p><strong>Submission and rubric.</strong> Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.</p>
+</section>
 </section>
 <section id="exercises">
 <h2>14.8 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
@@ -972,11 +1003,12 @@ exponential,120,0.9500,0.9580,0.9438
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluate-the-locked-scenarios">14.5 · Evaluate the locked scenarios</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#include-uncertainty-in-the-reference-comparison">Include uncertainty in the reference comparison</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continue-with-the-implemented-system">Continue with the implemented system</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-first-complete-live-milestone">A first complete live milestone</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#add-a-generative-component-as-an-ablation">14.6 · Add a generative component as an ablation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#produce-a-reproducibility-manifest-and-report">14.7 · Produce a reproducibility manifest and report</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-validate-the-whole-request-to-report-chain">Coding and experiment practice · Validate the whole request-to-report chain</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-verify-request-computation-and-report-separately">Coding and experiment practice · Verify request, computation and report separately</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">14.8 · Exercises</a></li>

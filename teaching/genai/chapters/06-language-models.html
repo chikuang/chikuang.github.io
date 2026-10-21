@@ -192,6 +192,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendices/a-python-pytorch.html">Appendix A · Python and PyTorch, one operation at a time</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../appendices/b-real-llm-systems.html">Appendix B · A real local LLM, RAG, and tool-using agent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices/c-guided-live-labs.html">Appendix C · Four guided live notebooks</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Supplement</span></p>
 <ul class="nav bd-sidenav">
@@ -385,7 +386,7 @@
 <h1>6 · Language model training, prompting, and decoding<a class="headerlink" href="#language-model-training-prompting-and-decoding" title="Link to this heading">#</a></h1>
 <p><strong>Question.</strong> What is learned in the weights, and what changes when we provide a prompt?</p>
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/06-language-models.ipynb">Download the executed notebook</a></p>
-<p><strong>Python support:</strong> <a class="reference internal" href="../appendices/a-python-pytorch.html"><span class="std std-doc">Appendix A</span></a> explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s <strong>Show all code</strong> control while working through the lab.</p>
+<p><strong>Python support:</strong> Review <a class="reference internal" href="../appendices/a-python-pytorch.html#a-6-what-a-model-class-means"><span class="std std-ref">A.6–A.8: classes, updates and tensor dimensions</span></a>. A.12 explains comprehensions, decorators and <code class="docutils literal notranslate"><span class="pre">**settings</span></code>. Use <strong>Show all code</strong> while working.</p>
 <p>A language model specifies conditional token distributions. A prompt supplies conditioning information; a decoder turns probabilities into a sequence. These are three different objects. We will train a small character model on an explicitly artificial sentence distribution, evaluate it on held-out combinations, and sample it under several decoding rules.</p>
 <p><strong>Prerequisites:</strong> Chapters 1–5. <strong>Outcomes:</strong> align shifted targets; distinguish teacher forcing from generation; evaluate held-out log loss; implement temperature, top-k, and nucleus sampling. We continue the exact <code class="docutils literal notranslate"><span class="pre">DecoderBlock</span></code> and <code class="docutils literal notranslate"><span class="pre">TinyDecoder</span></code> from Chapter 5, now fitting them on training text and selecting a checkpoint on validation text. <a class="reference internal" href="../appendices/a-python-pytorch.html"><span class="std std-doc">Appendix A</span></a> explains the Python syntax and tensor operations step by step.</p>
 <section id="pipeline-and-framework">
@@ -532,8 +533,16 @@ Training input and target shape: (42, 34) (42, 34)
         <span class="n">mixed</span> <span class="o">=</span> <span class="p">(</span><span class="n">weights</span> <span class="o">@</span> <span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">mixed</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">norm2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-
-<span class="k">class</span><span class="w"> </span><span class="nc">TinyDecoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+</div>
+<p>The block maps <code class="docutils literal notranslate"><span class="pre">(batch,</span> <span class="pre">time,</span> <span class="pre">width)</span></code> back to the same shape. The wrapper below first looks up token and position vectors, then maps the final states to one logit per vocabulary item. <code class="docutils literal notranslate"><span class="pre">self</span></code> refers to this particular model instance; submodules assigned to it register their trainable parameters.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">TinyDecoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">=</span> <span class="n">max_length</span>
@@ -550,14 +559,30 @@ Training input and target shape: (42, 34) (42, 34)
         <span class="n">positions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">ids</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final_norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
-
-<span class="n">model</span> <span class="o">=</span> <span class="n">TinyDecoder</span><span class="p">(</span><span class="n">vocab_size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">chars</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">96</span><span class="p">)</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+</div>
+<p>Constructing a model allocates its parameters. Calling <code class="docutils literal notranslate"><span class="pre">model(ids)</span></code> invokes <code class="docutils literal notranslate"><span class="pre">forward</span></code>; these are different operations.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">TinyDecoder</span><span class="p">(</span><span class="n">vocab_size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">chars</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">96</span><span class="p">)</span>
 <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.008</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">log_loss</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">chars</span><span class="p">)),</span>
                                         <span class="n">y</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">ignore_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-<span class="n">history</span><span class="p">,</span> <span class="n">best</span><span class="p">,</span> <span class="n">checkpoint</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">float</span><span class="p">(</span><span class="s1">'inf'</span><span class="p">),</span> <span class="kc">None</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+</div>
+<p>Before looping, identify three state variables: <code class="docutils literal notranslate"><span class="pre">history</span></code> stores scalar diagnostics, <code class="docutils literal notranslate"><span class="pre">best</span></code> is the smallest validation loss so far, and <code class="docutils literal notranslate"><span class="pre">checkpoint</span></code> is a copied parameter snapshot. No test observation participates in this choice.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">history</span><span class="p">,</span> <span class="n">best</span><span class="p">,</span> <span class="n">checkpoint</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">float</span><span class="p">(</span><span class="s1">'inf'</span><span class="p">),</span> <span class="kc">None</span>
 <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">220</span><span class="p">):</span>
     <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
     <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
@@ -741,21 +766,48 @@ Generation left all model parameters unchanged.
 <p>Pretraining estimates a broad conditional model. Supervised instruction tuning changes parameters using instruction/response examples. Retrieval supplies external context. A system can combine all three. None is a substitute for checking whether the output answers the intended question using valid evidence.</p>
 <section id="coding-and-experiment-practice-compare-decoding-distributions">
 <h3>Coding and experiment practice · Compare decoding distributions<a class="headerlink" href="#coding-and-experiment-practice-compare-decoding-distributions" title="Link to this heading">#</a></h3>
-<p><strong>Task.</strong> Use the trained Chapter 5 decoder from this chapter. Run three temperatures on the same ten fixed seeds; record text, stop reason, and whether the generated sentence belongs to the known grammar.</p>
-<p><strong>Submission.</strong> Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.</p>
+<p><strong>1. Predict before running.</strong> Can changing temperature improve the already-computed test likelihood without changing any model weight?</p>
+<p><strong>2. Implement and check.</strong> Use the trained decoder, three temperatures and the same ten seeds. Store each result before computing a summary so malformed or truncated strings remain inspectable. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
-<details class="course-code-fold"><summary>Code</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">grammar_hit</span><span class="p">(</span><span class="n">generation</span><span class="p">,</span> <span class="n">allowed_sentences</span><span class="p">):</span>
-    <span class="c1"># generation has text and stop_reason fields.</span>
-    <span class="k">return</span> <span class="o">...</span>
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">grammar_hit</span><span class="p">(</span><span class="n">generation</span><span class="p">,</span> <span class="n">allowed_sentences</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">generation</span><span class="p">[</span><span class="s1">'stop_reason'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'end_token'</span>
+            <span class="ow">and</span> <span class="n">generation</span><span class="p">[</span><span class="s1">'text'</span><span class="p">]</span> <span class="ow">in</span> <span class="n">allowed_sentences</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">grammar_hit</span><span class="p">({</span><span class="s1">'text'</span><span class="p">:</span> <span class="n">sentences</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">'stop_reason'</span><span class="p">:</span> <span class="s1">'end_token'</span><span class="p">},</span> <span class="nb">set</span><span class="p">(</span><span class="n">sentences</span><span class="p">))</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">grammar_hit</span><span class="p">({</span><span class="s1">'text'</span><span class="p">:</span> <span class="n">sentences</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">'stop_reason'</span><span class="p">:</span> <span class="s1">'length_limit'</span><span class="p">},</span> <span class="nb">set</span><span class="p">(</span><span class="n">sentences</span><span class="p">))</span>
+<span class="n">decoding_rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">temperature</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">generate</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="n">temperature</span><span class="p">,</span> <span class="n">top_p</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+        <span class="n">decoding_rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">'temperature'</span><span class="p">:</span> <span class="n">temperature</span><span class="p">,</span> <span class="s1">'seed'</span><span class="p">:</span> <span class="n">seed</span><span class="p">,</span>
+                              <span class="o">**</span><span class="n">output</span><span class="p">,</span> <span class="s1">'grammar_hit'</span><span class="p">:</span> <span class="n">grammar_hit</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">set</span><span class="p">(</span><span class="n">sentences</span><span class="p">))})</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">decoding_rows</span><span class="p">)</span> <span class="o">==</span> <span class="mi">30</span>
+<span class="k">for</span> <span class="n">temperature</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">]:</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">decoding_rows</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">'temperature'</span><span class="p">]</span> <span class="o">==</span> <span class="n">temperature</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="s1">'hits:'</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">'grammar_hit'</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">),</span>
+          <span class="s1">'distinct:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">({</span><span class="n">row</span><span class="p">[</span><span class="s1">'text'</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">}),</span>
+          <span class="s1">'truncated:'</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">'stop_reason'</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">'end_token'</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'First retained record:'</span><span class="p">,</span> <span class="n">decoding_rows</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </pre></div>
 </div>
 </details></div>
-<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-<span class="sd-summary-text">Hint and acceptance checks</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">Return <code class="docutils literal notranslate"><span class="pre">generation[&quot;stop_reason&quot;]</span> <span class="pre">==</span> <span class="pre">&quot;end_token&quot;</span> <span class="pre">and</span> <span class="pre">generation[&quot;text&quot;]</span> <span class="pre">in</span> <span class="pre">allowed_sentences</span></code>. Treat length- or context-limited output as incomplete. Report grammar membership and diversity separately; neither is unrestricted language quality. Keep test likelihood fixed because decoding settings do not refit model parameters.</p>
 </div>
-</details></section>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>0.6 hits: 7 distinct: 10 truncated: 0
+1.0 hits: 5 distinct: 9 truncated: 0
+1.4 hits: 0 distinct: 10 truncated: 0
+First retained record: {'temperature': 0.6, 'seed': 0, 'text': 'the student learns uncertainty.', 'stop_reason': 'end_token', 'grammar_hit': True}
+</pre></div>
+</div>
+</div>
+</div>
+<p>The outer loop selects a decoding distribution; the inner loop samples ten trajectories. <code class="docutils literal notranslate"><span class="pre">**output</span></code> copies the text and stop reason into a larger dictionary. Grammar membership and diversity answer different questions. The known grammar is a diagnostic specification, not training data newly supplied to the model.</p>
+<p><strong>3. Extend one factor.</strong> Choose a new prefix before evaluating, keep the same seed grid, and compare truncation, grammar membership and diversity. Preserve all 30 records. Test likelihood remains the score of the unchanged fitted conditionals.</p>
+<p><strong>Submission and rubric.</strong> Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.</p>
+</section>
 </section>
 <section id="exercises">
 <h2>6.6 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
@@ -779,6 +831,7 @@ Generation left all model parameters unchanged.
 <section id="further-reading-and-transition">
 <h2>6.7 · Further reading and transition<a class="headerlink" href="#further-reading-and-transition" title="Link to this heading">#</a></h2>
 <p>The <a class="reference external" href="https://arxiv.org/abs/1706.03762">transformer paper</a> motivates the architecture reused from Chapter 5. <a class="reference internal" href="../appendices/b-real-llm-systems.html"><span class="std std-doc">Appendix B</span></a> moves from our trained toy decoder to an actual pretrained instruction model, including chat templates and bounded generation. A GRU is a possible architecture-comparison exercise, not a prerequisite for this chapter. Next, <a class="reference internal" href="07-latent-variable-models.html"><span class="std std-doc">Chapter 7</span></a> constructs distributions through latent variables instead of a token-by-token factorization.</p>
+<p><strong>Choose the next route.</strong> For LLM/RAG/Agent work, complete <a class="reference internal" href="../appendices/c-guided-live-labs.html#c-1-see-the-complete-first-call"><span class="std std-ref">live lab 1</span></a> now, then continue to <a class="reference internal" href="10-rag.html"><span class="std std-doc">Chapter 10</span></a>. For other generative families, continue to Chapter 7. Both routes build on the distinction between fitted conditionals and the decoding distribution established here.</p>
 </section>
 </section>
 

@@ -192,6 +192,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendices/a-python-pytorch.html">Appendix A · Python and PyTorch, one operation at a time</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../appendices/b-real-llm-systems.html">Appendix B · A real local LLM, RAG, and tool-using agent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices/c-guided-live-labs.html">Appendix C · Four guided live notebooks</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Supplement</span></p>
 <ul class="nav bd-sidenav">
@@ -426,7 +427,7 @@
 <h1>1 · From probability models to generative AI<a class="headerlink" href="#from-probability-models-to-generative-ai" title="Link to this heading">#</a></h1>
 <p><strong>Complete lesson · Python from the beginning · A statistician’s perspective</strong></p>
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/01-probability-to-genai.ipynb">Download the executed notebook</a> · <a class="reference internal" href="../python-workflow.html"><span class="std std-doc">Set up Python</span></a></p>
-<p><strong>Python support:</strong> <a class="reference internal" href="../appendices/a-python-pytorch.html"><span class="std std-doc">Appendix A</span></a> explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s <strong>Show all code</strong> control while working through the lab.</p>
+<p><strong>Python support:</strong> Read Appendix A.1–A.4 alongside the small examples here; no earlier Python knowledge is required. Use <strong>Show all code</strong> while working.</p>
 <p>You already know how to define a model, estimate its parameters, assess its fit, and simulate from it. These are useful starting points for generative AI. The unfamiliar part is often the data representation and software vocabulary, rather than the basic idea of learning a distribution.</p>
 <p>By the end of this chapter you will fit a categorical distribution, generate observations from it, and build a small language model that generates short sequences. You will also understand why a model can assign high probability to a plausible sentence without establishing that the sentence is true.</p>
 <p>The examples use a laptop CPU, NumPy, and Matplotlib. No GPU, pretrained model, API key, or prior Python knowledge is required. Run code cells <strong>from top to bottom</strong>: later cells use objects defined earlier. The website displays the outputs from a successful clean execution. To change a cell and run it yourself, use the downloadable notebook in JupyterLab or VS Code.</p>
@@ -1362,22 +1363,41 @@ Large generated sample frequencies: [0.478 0.349 0.173]
 </div>
 <section id="coding-and-experiment-practice-audit-a-sampler">
 <h3>Coding and experiment practice · Audit a sampler<a class="headerlink" href="#coding-and-experiment-practice-audit-a-sampler" title="Link to this heading">#</a></h3>
-<p><strong>Task.</strong> Implement <code class="docutils literal notranslate"><span class="pre">frequency_error(probabilities,</span> <span class="pre">size,</span> <span class="pre">seed)</span></code> returning the largest absolute difference between generated frequencies and the fitted probabilities. Compare sizes 100, 1,000, and 10,000 over 30 prespecified seeds.</p>
-<p><strong>Submission.</strong> Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.</p>
+<p><strong>1. Predict before running.</strong> Will every individual run improve when the number of generated draws increases? Explain why not.</p>
+<p><strong>2. Implement and check.</strong> Write <code class="docutils literal notranslate"><span class="pre">frequency_error(probabilities,</span> <span class="pre">size,</span> <span class="pre">seed)</span></code> returning one scalar. A degenerate distribution provides an exact fixture; repeated seeds provide a Monte Carlo experiment. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
-<details class="course-code-fold"><summary>Code</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">frequency_error</span><span class="p">(</span><span class="n">probabilities</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">seed</span><span class="p">):</span>
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">frequency_error</span><span class="p">(</span><span class="n">probabilities</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">seed</span><span class="p">):</span>
+    <span class="n">probabilities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">probabilities</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
-    <span class="c1"># Draw size categorical observations; return a scalar error.</span>
-    <span class="k">return</span> <span class="o">...</span>
+    <span class="n">draws</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">probabilities</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">probabilities</span><span class="p">)</span>
+    <span class="n">frequencies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">draws</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">probabilities</span><span class="p">))</span> <span class="o">/</span> <span class="n">size</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">frequencies</span> <span class="o">-</span> <span class="n">probabilities</span><span class="p">)))</span>
+
+<span class="k">assert</span> <span class="n">frequency_error</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="k">assert</span> <span class="n">frequency_error</span><span class="p">([</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="n">frequency_error</span><span class="p">([</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">10000</span><span class="p">]:</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[</span><span class="n">frequency_error</span><span class="p">([</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span> <span class="n">size</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span> <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">30</span><span class="p">)]</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">error</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">error</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="s1">'mean maximum frequency error:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">errors</span><span class="p">)),</span> <span class="mi">4</span><span class="p">))</span>
 </pre></div>
 </div>
 </details></div>
-<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-<span class="sd-summary-text">Hint and acceptance checks</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">Use <code class="docutils literal notranslate"><span class="pre">rng.choice</span></code>, then <code class="docutils literal notranslate"><span class="pre">np.bincount(...,</span> <span class="pre">minlength=len(probabilities))</span> <span class="pre">/</span> <span class="pre">size</span></code>. Compare the average error across the same fixed seed list at each size. Individual runs need not improve monotonically. This checks Monte Carlo approximation to the fitted law, not its fit to real data.</p>
 </div>
-</details></section>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>100 mean maximum frequency error: 0.0573
+1000 mean maximum frequency error: 0.016
+10000 mean maximum frequency error: 0.0049
+</pre></div>
+</div>
+</div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">minlength</span></code> keeps unobserved categories in the frequency vector. The denominator is the number of generated draws, not the number of training observations. The same seed list pairs the comparison settings, but does not guarantee monotonic errors.</p>
+<p><strong>3. Extend one factor.</strong> Change the fitted probabilities while keeping budgets and seed list fixed. Distinguish approximation to the fitted law from estimation error relative to the data-generating law.</p>
+<p><strong>Submission and rubric.</strong> Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.</p>
+</section>
 </section>
 <section id="exercises">
 <h2>1.14 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>

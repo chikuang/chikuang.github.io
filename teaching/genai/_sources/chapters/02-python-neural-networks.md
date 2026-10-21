@@ -12,7 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/02-python-neural-networks.ipynb) · [Python setup](../python-workflow.md)
 
-**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+**Python support:** First complete [A.5: tensors](../appendices/a-python-pytorch.md#a5--tensors-and-one-derivative), [A.6: classes](../appendices/a-python-pytorch.md#a6--what-a-model-class-means), and [A.7: one update](../appendices/a-python-pytorch.md#a7--perform-one-update-then-build-a-loop). Do not postpone these until Chapter 5. Use **Show all code** while working.
+
 
 A neural network is a parameterized function fitted by an optimization procedure. Its hidden layers are learned basis expansions. This chapter starts with array operations, connects logistic regression to a small network, and makes the training loop visible. We will compare both models on the same simulated classification problem, using a validation set to select a checkpoint and a separate test set for final evaluation.
 
@@ -177,6 +178,35 @@ Estimate preprocessing parameters on training observations only. Validation obse
 
 One epoch visits all training observations. A minibatch supplies a noisy gradient estimate. We shuffle the training indices each epoch, evaluate validation loss without gradients, and save the parameters with the lowest validation loss. `state_dict()` contains model parameters; copying its tensors prevents later training from changing the saved checkpoint.
 
+### Walk one batch through all five operations
+
+The following cell uses two observations and a separate logistic model with zero weights. It does not change the later training/validation/test split. Predict `batch_logits`, then identify which line first changes the weights.
+
+```{code-cell} python
+batch_x = torch.tensor([[1., 0.], [0., 1.]])
+batch_y = torch.tensor([1., 0.])
+walk_model = nn.Linear(2, 1, bias=False)
+with torch.no_grad():
+    walk_model.weight.zero_()
+walk_optimizer = torch.optim.SGD(walk_model.parameters(), lr=0.2)
+walk_optimizer.zero_grad()
+batch_logits = walk_model(batch_x).squeeze(-1)
+batch_loss = nn.functional.binary_cross_entropy_with_logits(batch_logits, batch_y)
+print('Shapes:', batch_x.shape, batch_logits.shape, batch_y.shape)
+print('Before:', walk_model.weight.detach().tolist(), 'loss:', batch_loss.item())
+batch_loss.backward()
+print('Derivative:', walk_model.weight.grad.tolist())
+assert torch.allclose(walk_model.weight.grad, torch.tensor([[-0.25, 0.25]]))
+walk_optimizer.step()
+assert torch.allclose(walk_model.weight, torch.tensor([[0.05, -0.05]]))
+print('After:', walk_model.weight.detach().tolist())
+torch.manual_seed(2026)  # Give the full experiment its declared initialization seed.
+```
+
+`nn.Linear(2, 1)` maps two covariates to one logit; its output is `(2, 1)`. `squeeze(-1)` removes only the final singleton axis so it matches the two labels. The mean-loss gradient divides by two. `backward()` fills `.grad`; only `step()` updates parameters. `detach()` creates a tensor view outside the differentiation graph for inspection; it is not a parameter update.
+
+The longer `fit` function below repeats this same cycle. Its added responsibilities are shuffling rows, evaluating validation loss, and copying the best parameter snapshot. Read these as separate responsibilities: optimization changes weights, validation chooses which weights to retain, and the test set evaluates the final choice.
+
 ```{code-cell} python
 import copy
 
@@ -290,19 +320,40 @@ A useful development test is to overfit a tiny training subset deliberately. If 
 
 ### Coding and experiment practice · Verify the gradient before fitting
 
-**Task.** Implement mean logistic loss and its analytic gradient using NumPy. Compare the gradient with centered finite differences in each coordinate on a five-observation example.
+**1. Predict before running.** For a positive label with a predicted probability below one, what is the sign of the derivative with respect to its logit?
 
-**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+**2. Implement and check.** Implement mean logistic loss and a gradient with the same shape as `beta`. Use five observations, a nonzero vector, and centered finite differences. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
 
-```python
+```{code-cell} python
 def logistic_loss_gradient(X, y, beta):
-    # Return scalar mean loss and a gradient with beta.shape.
-    return ..., ...
+    eta = X @ beta
+    p = 1 / (1 + np.exp(-eta))  # Moderate logits in this fixture.
+    loss = np.mean(np.logaddexp(0, eta) - y * eta)
+    gradient = X.T @ (p - y) / len(y)
+    return float(loss), gradient
+
+fixture_X = np.array([[1., 0.], [1., 1.], [1., -1.], [1., 2.], [1., 0.5]])
+fixture_y = np.array([0., 1., 0., 1., 1.])
+fixture_beta = np.array([0.2, -0.4])
+value, analytic = logistic_loss_gradient(fixture_X, fixture_y, fixture_beta)
+finite = np.zeros_like(fixture_beta)
+for j in range(len(fixture_beta)):
+    delta = np.zeros_like(fixture_beta)
+    delta[j] = 1e-5
+    plus = logistic_loss_gradient(fixture_X, fixture_y, fixture_beta + delta)[0]
+    minus = logistic_loss_gradient(fixture_X, fixture_y, fixture_beta - delta)[0]
+    finite[j] = (plus - minus) / (2e-5)
+assert analytic.shape == fixture_beta.shape
+assert np.allclose(analytic, finite, atol=1e-7, rtol=1e-5)
+print('Analytic / finite difference:', analytic, finite)
 ```
 
-:::{dropdown} Hint and acceptance checks
-Use `np.logaddexp(0, X @ beta) - y*(X @ beta)` for losses and `X.T @ (sigmoid(X @ beta)-y) / len(y)` for the gradient. Use a moderate coefficient vector, finite-difference step 1e-5, and `np.allclose` with an explicitly stated tolerance. Test a nonzero vector; checking only zero coefficients can miss errors.
-:::
+Each `delta` changes only one coefficient. Dividing by twice the step implements a centered derivative. Checking only zero coefficients can conceal errors, so this fixture deliberately uses nonzero coefficients.
+
+**3. Extend one factor.** Change one label, then repeat the comparison. Include the loss and both gradients in your table. This checks differentiation of the specified loss, not generalization of a fitted model.
+
+**Submission and rubric.** Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.
+
 
 ## 2.8 · Exercises
 

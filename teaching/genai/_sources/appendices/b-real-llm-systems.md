@@ -10,11 +10,13 @@ kernelspec:
 
 **From the transparent baselines to actual model-generated decisions.** This lab loads an openly available instruction model, generates answers, retrieves evidence, validates model-proposed tool calls, and connects natural-language requests to the statistical simulation in Chapter 14. The language model really runs: it is not replaced by a rule or a canned answer.
 
-[Download the analysis notebook](https://chikuang.github.io/teaching/genai/notebooks/b-real-llm-systems.ipynb) · [Full executable runner](https://github.com/chikuang/Teaching-GenAI/blob/main/labs/llm_lab.py) · [Recorded follow-up trace](../_static/experiments/llm-run.json) · [Recorded pilot trace](../_static/experiments/llm-pilot.json)
+[Download the analysis notebook](https://chikuang.github.io/teaching/genai/notebooks/b-real-llm-systems.ipynb) · [Current executable runner](https://github.com/chikuang/Teaching-GenAI/blob/main/labs/llm_lab.py) · [Recorded follow-up trace](../_static/experiments/llm-run.json) · [Recorded pilot trace](../_static/experiments/llm-pilot.json)
 
-**Prerequisites:** Appendix A, Chapters 6, 10, 11, and 12. For the simulation assistant, also read Chapter 14. **Outcome:** execute the live model yourself; distinguish model text from validated actions; diagnose failures from complete traces; compare systems without treating a small authored question set as a population benchmark.
+**Prerequisites by section:** B.3 needs Chapter 6 and A.5–A.8; B.4 adds Chapter 10; B.5 adds Chapters 11–12. For a first hands-on call, begin with [Appendix C.1](c-guided-live-labs.md#c1--see-the-complete-first-call) instead of running the whole comparison at once. For the simulation assistant, also read Chapter 14. **Outcome:** execute the live model yourself; distinguish model text from validated actions; diagnose failures from complete traces; compare systems without treating a small authored question set as a population benchmark.
 
 ## B.1 · Two execution modes, clearly separated
+
+The saved follow-up is the **historical v1 experiment**, whose unchanged source is in `labs/archived-v1/`. Its old `valid` column uses its original, weaker response contract. The current runner shares Chapter 10's validator and identifies new records as schema version 2; do not pool validity rates across these versions. Historical source archives identify recorded bytes; use the corresponding Git revision to recreate their original folder layout.
 
 The regular book build runs the NumPy/PyTorch teaching labs and **reanalyzes a saved real-model run** here. It does not download a model or pretend to generate fresh LLM responses during every render. The saved JSON contains prompts, raw completions, parsed outputs, tool traces, model revision, software versions, decoding settings, token counts, timing, and failures.
 
@@ -159,6 +161,28 @@ for row in record['rag']:
 
 Interpret comparisons at the question level. If oracle context succeeds and retrieved context fails, inspect whether the needed passage reached the prompt and whether distractors changed generation. If both fail, inspect the raw answer and schema. An oracle run is not guaranteed to dominate each other condition under every model.
 
+### Reaudit the saved raw RAG outputs under the current contract
+
+This cell does not rerun the model or overwrite its historical scores. It applies the common response contract to the original raw strings and the exact supplied IDs. JSON parseability is a weaker condition than contract validity; neither measures semantic support.
+
+```{code-cell} python
+import sys
+sys.path.insert(0, str(root))
+from labs.contracts import assess_response
+current_audit = []
+for row in record['rag']:
+    raw = record['calls'][row['call_ids'][0]]['raw']
+    selected = [{'id': source_id} for source_id in row['contexts']]
+    audit = assess_response(raw, selected)
+    current_audit.append(audit)
+print('Historical valid:', sum(row['valid'] for row in record['rag']))
+print('Current JSON parseable:', sum(row['json_parseable'] for row in current_audit))
+print('Current contract valid:', sum(row['contract_valid'] for row in current_audit))
+print('Semantic support requires a separate rubric and review.')
+```
+
+For a same-corpus bridge from Chapter 10, use [live lab 2](c-guided-live-labs.md#c2--replace-the-generator-while-keeping-the-experiment-fixed). This earlier appendix experiment uses four fictional-study passages, a different tokenizer and a different context policy; it is a separate comparison. The guided notebook preserves the chapter pipeline and exposes each replacement step.
+
 ## B.5 · An LLM actually chooses tools
 
 The agent's policy is `LocalLM`, not the rule policy in Chapter 12. It may propose `lookup`, `summarize`, `finish`, or `abstain`. Each decision is parsed and validated outside the model. There are at most four decisions, including finish; tools operate only on two in-memory demonstration datasets.
@@ -245,7 +269,7 @@ for row in demo['rows']:
 
 **Statistical review task.** In the normal-case development report, the model interprets interval endpoints around 0.92–0.96 as a confidence level. Those endpoints are bounds for the coverage probability being estimated; the Monte Carlo interval procedure has a nominal 95% level. This is a substantive interpretation error beyond JSON formatting. A permissive parser would not fix it. For teaching or publication, require both valid fields and a separate narrative check.
 
-The [complete development trace](../_static/experiments/capstone-demo.json) preserves these failed reports and successful tool executions. A further revision should be evaluated on fresh requests, with its changes and prior failures retained.
+The [complete development trace](../_static/experiments/capstone-demo.json) preserves these failed reports and successful tool executions. The next bounded milestone is implemented in [live lab 4](c-guided-live-labs.md#c4--finish-a-bounded-workflow-before-adding-generated-prose): real LLM interpretation, validated simulation and explicitly deterministic reporting. It preserves the old failed generated reports. Further prompt and report revisions need fresh evaluation requests.
 
 ## B.7 · What these results do and do not measure
 
@@ -271,7 +295,7 @@ Timing covers recorded generation calls and excludes model loading, retrieval, a
 1. **Trace one answer.** Locate the exact retrieved passage, prompt, raw completion, parsed fields, and validator outcome for one question. Explain which stage could change its outcome.
 2. **Challenge the rubric.** Construct an answer that contains the expected keyword but contradicts the passage. Demonstrate why keyword success is insufficient; write a human adjudication rubric before reviewing additional outputs.
 3. **Add a task.** Author two new fictional study passages and four questions before rerunning either model. Freeze prompts and state whether this is a new evaluation or further development.
-4. **Compare action policies.** Add a task that genuinely needs branching, including a failed first lookup. Compare the fixed workflow and agent under a matched maximum call budget. Preserve all failures.
+4. **Compare action policies.** Work through the failed-lookup/alias-resolution example in [live lab 3](c-guided-live-labs.md#c3--observe-a-decision-change-after-failure), then add a new task requiring a different branch. Compare the fixed workflow and agent under a matched maximum call budget. Preserve all failures.
 5. **Audit the report.** Compare every numerical and distributional claim in one generated explanation with the tool JSON. A faithful estimate paired with an unjustified coverage guarantee should fail narrative review.
 
 :::{dropdown} Hints and worked evaluation plan

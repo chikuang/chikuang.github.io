@@ -12,7 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/04-attention.ipynb)
 
-**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+**Python support:** Review Appendix A.1–A.4 for indexing, loops and array axes. Predict the shape of every intermediate array before running it. Use **Show all code** while working.
+
 
 Attention constructs a weighted average whose weights depend on the current query. For a statistician, normalized kernel weighting is a useful starting analogy. The important differences are that the representations are learned, keys and values can differ, and several attention operations are composed inside a prediction model. This chapter calculates the weights, tests the causal information boundary, and implements multiple heads without hiding the dimensions.
 
@@ -222,19 +223,34 @@ For a useful diagnostic, compare predictions after controlled changes to inputs,
 
 ### Coding and experiment practice · Implement a causal weighted average
 
-**Task.** Write masked attention on a 3-by-3 score matrix and three values. Check forbidden weights, row sums, and invariance of the first output when only the final value changes.
+**1. Predict before running.** With all allowed scores zero, what are the first two outputs for values 3, 9, 99?
 
-**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+**2. Implement and check.** Return both the attention weights and weighted values for a square score matrix. Mask before normalization. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
 
-```python
+```{code-cell} python
 def causal_average(scores, values):
-    # Mask scores before stable row-wise softmax.
-    return ..., ...  # weights, weighted values
+    allowed = np.tril(np.ones_like(scores, dtype=bool))
+    masked = np.where(allowed, scores, -np.inf)
+    weights = np.exp(masked - masked.max(axis=1, keepdims=True))
+    weights /= weights.sum(axis=1, keepdims=True)
+    return weights, weights @ values
+
+fixture_scores = np.zeros((3, 3))
+weights_check, averages = causal_average(fixture_scores, np.array([3., 9., 99.]))
+assert np.allclose(averages, [3., 6., 37.])
+assert np.allclose(weights_check.sum(1), 1)
+assert np.all(weights_check[np.triu_indices(3, 1)] == 0)
+_, changed_average = causal_average(fixture_scores, np.array([3., 9., -99.]))
+assert np.allclose(averages[:2], changed_average[:2])
+print('Expected weighted values:', averages)
 ```
 
-:::{dropdown} Hint and acceptance checks
-Form a lower-triangular Boolean mask, replace disallowed scores by negative infinity, subtract each row maximum, exponentiate and normalize. Return `weights, weights @ values`. Row sums must be one; entries above the diagonal must be zero. Changing the final value may change the final output but cannot change earlier outputs.
-:::
+`np.where` retains allowed scores and replaces the rest by negative infinity. Subtracting a row maximum stabilizes exponentiation. The final row can change when the last value changes; the first two cannot.
+
+**3. Extend one factor.** Give the last key an extremely large unmasked score. Compare masking before softmax with zeroing weights afterward without renormalizing. Tabulate row sums and outputs to diagnose the wrong procedure.
+
+**Submission and rubric.** Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.
+
 
 ## 4.8 · Exercises
 

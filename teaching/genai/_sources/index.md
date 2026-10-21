@@ -31,6 +31,8 @@ Every chapter starts with a concrete question, develops a statistical formulatio
 
 Each chapter also includes a **pipeline or framework diagram** with the inputs, outputs, and checks at each stage. Read these alongside the code to distinguish fitting from prediction, model generation from evaluation, and an agent's proposals from tool execution. The [RAG chapter](chapters/10-rag.md) follows one question through indexing, retrieval, context selection, prompt construction, response validation, and evaluation.
 
+**Recommended system-building route:** Chapters 1–6 → live lab 1 → Chapter 10 and live lab 2 → Chapter 11 → Chapter 12 and live lab 3 → Chapters 13–14 and live lab 4. Chapters 7–9 form an optional branch after Chapter 6. See the [guided live notebooks](appendices/c-guided-live-labs.md) and the prerequisite table in the [course guide](syllabus.md).
+
 ## Study and experiment
 
 1. [Set up Python and JupyterLab](python-workflow.md). You can also read the rendered lessons without installing anything.
@@ -81,6 +83,7 @@ chapters/14-capstone
 
 appendices/a-python-pytorch
 appendices/b-real-llm-systems
+appendices/c-guided-live-labs
 ```
 
 ```{toctree}

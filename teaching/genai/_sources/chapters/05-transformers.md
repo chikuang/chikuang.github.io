@@ -12,7 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/05-transformers.ipynb)
 
-**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+**Python support:** Review [A.6–A.8: classes, updates and tensor dimensions](../appendices/a-python-pytorch.md#a6--what-a-model-class-means). A.12 explains comprehensions, decorators and `**settings`. Use **Show all code** while working.
+
 
 Attention mixes information between positions. A transformer also transforms features within each position, preserves information through residual paths, and maps the resulting features to a prediction. We will build a small decoder-only model explicitly. The goal is to follow every tensor and verify the information boundary, not to reproduce the scale of a modern language model.
 
@@ -139,6 +140,11 @@ class DecoderBlock(nn.Module):
         x = x + self.project(mixed)
         return x + self.ffn(self.norm2(x))
 
+```
+
+The block maps `(batch, time, width)` back to the same shape. The wrapper below first looks up token and position vectors, then maps the final states to one logit per vocabulary item. `self` refers to this particular model instance; submodules assigned to it register their trainable parameters.
+
+```{code-cell} python
 class TinyDecoder(nn.Module):
     def __init__(self, vocab_size=12, width=24, max_length=32):
         super().__init__()
@@ -157,6 +163,11 @@ class TinyDecoder(nn.Module):
         x = self.token(ids) + self.position(positions)
         return self.head(self.final_norm(self.block(x)))
 
+```
+
+Constructing a model allocates its parameters. Calling `model(ids)` invokes `forward`; these are different operations.
+
+```{code-cell} python
 model = TinyDecoder()
 ids = torch.tensor([[1, 2, 3, 4, 5], [4, 3, 2, 1, 0]])
 logits = model(ids)
@@ -168,6 +179,37 @@ assert logits.shape == (2, 5, 12)
 `transpose` changes the view of tensor axes. Calling `contiguous()` before the final reshape makes the memory layout compatible with the requested merged head dimension. This is an implementation detail worth checking because reshaping the wrong axes can silently mix positions and heads.
 
 There is no dropout in this teaching model. Production architectures often include additional regularization, more layers, different positional mechanisms, and optimized attention kernels. None of those additions changes the need to understand the basic information flow.
+
+### Inspect the head axes with actual values
+
+Use a separate width-six block with three heads, so each head has two features. The explicit loop below expands the comprehension in `forward`. Reshaping exposes axes; transposing changes their order. Neither operation estimates a new parameter.
+
+```{code-cell} python
+walk_block = DecoderBlock(width=6, heads=3)
+walk_x = torch.arange(36, dtype=torch.float32).reshape(2, 3, 6) / 10
+normalized = walk_block.norm1(walk_x)
+q0, k0, v0 = walk_block.qkv(normalized).chunk(3, dim=-1)
+heads = []
+for tensor in (q0, k0, v0):
+    heads.append(tensor.reshape(2, 3, 3, 2).transpose(1, 2))
+q, k, v = heads
+assert q.shape == (2, 3, 3, 2)  # batch, head, time, head feature
+assert q[0, 1, 2, 0] == q0[0, 2, 2]
+scores_walk = q @ k.transpose(-2, -1) / math.sqrt(2)
+mask_walk = torch.ones(3, 3, dtype=torch.bool).tril()
+weights_walk = torch.softmax(scores_walk.masked_fill(~mask_walk, -torch.inf), -1)
+mixed_walk = (weights_walk @ v).transpose(1, 2).contiguous().reshape(2, 3, 6)
+residual_walk = walk_x + walk_block.project(mixed_walk)
+manual_walk = residual_walk + walk_block.ffn(walk_block.norm2(residual_walk))
+assert torch.allclose(weights_walk.sum(-1), torch.ones(2, 3, 3))
+assert torch.all(weights_walk[..., ~mask_walk] == 0)
+assert torch.allclose(manual_walk, walk_block(walk_x), atol=1e-6)
+print('Input / heads / scores / merged:', walk_x.shape, q.shape,
+      scores_walk.shape, mixed_walk.shape)
+print('Head 1, time 2, coordinate 0:', round(q[0, 1, 2, 0].item(), 4))
+```
+
+The indexed equality tells you where one original feature moved. The final equality compares the expanded calculation with the model's actual forward pass. A shape check alone cannot detect every axis permutation; a value correspondence and a future-token intervention provide stronger diagnostics. Attention weights sum over the **key-time axis**, the last axis of `scores_walk`.
 
 ## 5.4 · Test the complete model for future leakage
 
@@ -217,6 +259,10 @@ plt.show()
 
 This experiment intentionally overfits four short sequences. It establishes that gradients and targets are connected well enough to reduce this training objective. It does **not** establish language understanding or held-out performance. Chapter 6 introduces a separate validation and test protocol.
 
+```{raw} latex
+\clearpage
+```
+
 :::{admonition} Example 5.2 · Parallel training still uses causal information
 :class: course-example
 :name: ex-shifted-token-targets
@@ -252,20 +298,31 @@ During autoregressive inference, earlier keys and values can be cached rather th
 
 ### Coding and experiment practice · Trace a future-token intervention
 
-**Task.** Copy the full-model causality check. Replace the final token ID, keeping sequence length fixed, and compare earlier logits before and after. Then remove the causal mask in an experimental copy.
+**1. Predict before running.** Why is checking only the attention matrix weaker than checking earlier logits of the complete network?
 
-**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+**2. Implement and check.** Hold sequence length and all earlier IDs fixed, replace the final ID, and compare all earlier logits with an explicit tolerance. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
 
-```python
+```{code-cell} python
 def earlier_logits_unchanged(model, original, changed):
     model.eval()
     with torch.no_grad():
-        return torch.allclose(model(original)[:, :-1], model(changed)[:, :-1])
+        return torch.allclose(model(original)[:, :-1], model(changed)[:, :-1],
+                              atol=1e-6, rtol=1e-5)
+
+probe = ids.clone()
+probe[:, -1] = (probe[:, -1] + 1) % 12
+assert torch.equal(ids[:, :-1], probe[:, :-1])
+assert not torch.equal(ids[:, -1], probe[:, -1])
+assert earlier_logits_unchanged(model, ids, probe)
+print('Complete model passed the future-token intervention.')
 ```
 
-:::{dropdown} Hint and acceptance checks
-For the masked model, expect equality within floating-point tolerance. Without the mask, an earlier logit can change. A single accidental equality does not prove causality; try several nonidentical token replacements. Evaluate the whole network, since normalization across positions could also leak information.
-:::
+`clone()` prevents the intervention from changing the original array. `eval()` controls training-dependent behavior; `no_grad()` disables gradient recording. They perform different jobs. The fixture checks the whole composition, including residuals and normalization.
+
+**3. Extend one factor.** Copy the block under a new name and remove its causal mask. Try several nonidentical final-token replacements. Report maximum earlier-logit changes; one accidental equality does not prove a causal information boundary.
+
+**Submission and rubric.** Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.
+
 
 ## 5.8 · Exercises
 

@@ -7,7 +7,7 @@ This sequence assumes a strong statistics background and begins at an introducto
 
 ## Two complementary study routes
 
-For a first pass focused on attention and agents, read Chapters 1–6, then 10–14. Read Appendix A alongside the first six chapters and run Appendix B after the RAG and agent foundations. Chapters 7–9 supply the wider generative-model and adaptation perspective; return to them for variational inference, score estimation, and preference learning. They remain part of the full course, but need not delay the first functioning LLM system.
+For a first pass focused on attention and agents, read Chapters 1–6, then 10–14. Read Appendix A alongside the first six chapters and begin live notebook 1 after Chapter 6, then return to the later live notebooks after their matching chapters. Appendix B retains the comparative experiments. Chapters 7–9 supply the wider generative-model and adaptation perspective; return to them for variational inference, score estimation, and preference learning. They remain part of the full course, but need not delay the first functioning LLM system.
 
 Each chapter now separates questions from revealable answers and includes a coding/experiment task with acceptance criteria. Start with the original lab, make one controlled change, and write a short explanation of the target, result, and limitation. The **Show all code** button provides a persistent study preference; outputs stay visible and answers remain separately controlled.
 
@@ -31,6 +31,26 @@ Each chapter now separates questions from revealable answers and includes a codi
 | 14 | [A statistician's GenAI project](chapters/14-capstone.md) | Reproducible empirical research | Deliver a small teaching or research system |
 
 ## Part I · From statistical learning to attention
+
+
+## A route with concrete stopping points
+
+| Read | Python preparation | Demonstrate before continuing |
+|:--|:--|:--|
+| Chapter 1 | A.1–A.4 alongside the lesson | Explain one probability estimate and one generated draw. |
+| Chapter 2 | A.5–A.7 first | Trace one forward/loss/backward/update cycle. |
+| Chapters 3–4 | A.1–A.4, especially axes | Tokenize a sentence and verify a masked weighted average. |
+| Chapters 5–6 | A.8 and A.12 | Trace tensor dimensions and distinguish fitting from decoding. |
+| Live lab 1 | Appendix C.1 | Run one real model call and inspect its tokens. |
+| Chapter 10 + live lab 2 | A.9 and A.11 | Replace the generator while preserving the RAG pipeline. |
+| Chapter 11 | Question-level paired outcomes | Separate contract checks, semantic review and task success. |
+| Chapter 12 + live lab 3 | The tool-contract migration table | Explain an error observation and the resulting next action. |
+| Chapter 13 | The complete retry/cache table | Calculate a paired factorial contrast. |
+| Chapter 14 + live lab 4 | Request, tool and report contracts | Complete and verify the natural-language simulation workflow. |
+
+Chapters 7–9 are a parallel branch: latent variables and ELBO, diffusion as regression, and low-rank/preference adaptation. Return to them after Chapter 6 or after the system-building route. Their small numerical experiments explain mechanisms; they do not claim to train a production image generator or fine-tune a large instruction model.
+
+[Appendix C](appendices/c-guided-live-labs.md) provides the four self-contained live notebooks. Each starts from a fresh kernel, loads the pinned local model, exposes the relevant intermediate objects, and saves actual calls. Appendix B retains the earlier comparative experiments and failures for analysis.
 
 (module-01)=
 ### 1 · Generative AI as probabilistic modeling

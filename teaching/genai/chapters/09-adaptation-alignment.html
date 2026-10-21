@@ -192,6 +192,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendices/a-python-pytorch.html">Appendix A · Python and PyTorch, one operation at a time</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../appendices/b-real-llm-systems.html">Appendix B · A real local LLM, RAG, and tool-using agent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices/c-guided-live-labs.html">Appendix C · Four guided live notebooks</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Supplement</span></p>
 <ul class="nav bd-sidenav">
@@ -369,7 +370,7 @@
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-tiny-direct-preference-objective">9.5 · A tiny direct-preference objective</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-an-adaptation-evaluation">9.6 · Design an adaptation evaluation</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-check-a-low-rank-update">Coding and experiment practice · Check a low-rank update</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-compare-low-rank-and-full-updates">Coding and experiment practice · Compare low-rank and full updates</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">9.7 · Exercises</a></li>
@@ -389,7 +390,7 @@
 <h1>9 · Fine-tuning, LoRA, and preference learning<a class="headerlink" href="#fine-tuning-lora-and-preference-learning" title="Link to this heading">#</a></h1>
 <p><strong>Question.</strong> How do we adapt an existing model, and whose preferences are represented?</p>
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/09-adaptation-alignment.ipynb">Download the executed notebook</a></p>
-<p><strong>Python support:</strong> <a class="reference internal" href="../appendices/a-python-pytorch.html"><span class="std std-doc">Appendix A</span></a> explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s <strong>Show all code</strong> control while working through the lab.</p>
+<p><strong>Python support:</strong> Review <a class="reference internal" href="../appendices/a-python-pytorch.html#a-5-tensors-and-one-derivative"><span class="std std-ref">A.5–A.7: tensors, classes and updates</span></a>. These chapters form the optional generative-model/adaptation branch after Chapter 6. Use <strong>Show all code</strong> while working.</p>
 <p>Adaptation can change the conditioning information, some parameters, or all parameters. Preference learning adds another distinction: observations now describe comparisons between responses rather than necessarily providing a uniquely correct response. We will fit a low-rank update to a synthetic regression problem and then fit a small preference policy whose objective can be inspected directly.</p>
 <p><strong>Prerequisites:</strong> Chapters 2 and 6, matrix rank, and logistic likelihood. <strong>Outcomes:</strong> identify what is frozen; implement a low-rank update; interpret paired preference data; derive the role of a reference policy. These are small numerical experiments, not fine-tuning runs on a large pretrained language model.</p>
 <section id="pipeline-and-framework">
@@ -685,22 +686,53 @@ Equal-preference log loss: 0.693
 <h2>9.6 · Design an adaptation evaluation<a class="headerlink" href="#design-an-adaptation-evaluation" title="Link to this heading">#</a></h2>
 <p>Keep separate evaluations for task quality, instruction compliance, factual support, and resource cost. Use a baseline with the same retrieval access and decoding budget. If preference tuning improves a judge score, inspect whether response length or style changed in a way the judge rewards independently of correctness.</p>
 <p>Record the base model, adaptation data, frozen parameters, trainable parameters, optimizer, checkpoint rule, and evaluation split. Prevent task-family leakage where paraphrases of the same underlying question appear in both training and testing. A comparison against an untuned baseline is informative only if the baseline receives an appropriate prompt and comparable evidence.</p>
-<section id="coding-and-experiment-practice-check-a-low-rank-update">
-<h3>Coding and experiment practice · Check a low-rank update<a class="headerlink" href="#coding-and-experiment-practice-check-a-low-rank-update" title="Link to this heading">#</a></h3>
-<p><strong>Task.</strong> Generate small A and B matrices, compute their product, and check its rank and trainable parameter count. Compare with a full matrix update under equal data and a declared optimization budget.</p>
-<p><strong>Submission.</strong> Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.</p>
+<section id="coding-and-experiment-practice-compare-low-rank-and-full-updates">
+<h3>Coding and experiment practice · Compare low-rank and full updates<a class="headerlink" href="#coding-and-experiment-practice-compare-low-rank-and-full-updates" title="Link to this heading">#</a></h3>
+<p><strong>1. Predict before running.</strong> For input width 12, output width 8 and rank 2, how many trainable entries are there? Does rank two constrain the full adapted weight?</p>
+<p><strong>2. Implement and check.</strong> Check rank and parameter count, then refit the low-rank and full update on identical data with 450 optimizer steps each. Keep rank choice separate from final test reporting. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
-<details class="course-code-fold"><summary>Code</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">lora_parameter_count</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">,</span> <span class="n">rank</span><span class="p">):</span>
-    <span class="k">return</span> <span class="o">...</span>
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">lora_parameter_count</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">,</span> <span class="n">update_rank</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">update_rank</span> <span class="o">*</span> <span class="p">(</span><span class="n">d_in</span> <span class="o">+</span> <span class="n">d_out</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">lora_parameter_count</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">40</span>
+<span class="n">fixture_A</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mf">1.</span><span class="p">],</span> <span class="p">[</span><span class="mf">2.</span><span class="p">],</span> <span class="p">[</span><span class="mf">3.</span><span class="p">]])</span>
+<span class="n">fixture_B</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mf">1.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">]])</span>
+<span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_rank</span><span class="p">(</span><span class="n">fixture_A</span> <span class="o">@</span> <span class="n">fixture_B</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="n">comparison_rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">91</span><span class="p">,</span> <span class="mi">92</span><span class="p">,</span> <span class="mi">93</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">constrained</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">]:</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+        <span class="n">delta</span><span class="p">,</span> <span class="n">train_error</span><span class="p">,</span> <span class="n">test_error</span> <span class="o">=</span> <span class="n">fit_update</span><span class="p">(</span><span class="n">constrained</span><span class="p">)</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">lora_parameter_count</span><span class="p">(</span><span class="n">din</span><span class="p">,</span> <span class="n">dout</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span> <span class="k">if</span> <span class="n">constrained</span> <span class="k">else</span> <span class="n">din</span><span class="o">*</span><span class="n">dout</span>
+        <span class="n">comparison_rows</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">seed</span><span class="p">,</span> <span class="n">constrained</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">train_error</span><span class="p">,</span> <span class="n">test_error</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">constrained</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_rank</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">rank</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Seed / low rank / parameters / train MSE / test MSE'</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">comparison_rows</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
 </pre></div>
 </div>
 </details></div>
-<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-<span class="sd-summary-text">Hint and acceptance checks</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">Return <code class="docutils literal notranslate"><span class="pre">rank</span> <span class="pre">*</span> <span class="pre">(d_in</span> <span class="pre">+</span> <span class="pre">d_out)</span></code>. Check the numerical rank of <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">&#64;</span> <span class="pre">B</span></code> is at most rank, using a declared tolerance. This constrains the update, not the rank of the original weight matrix plus update. The synthetic low-rank truth favors this constraint, so state that assumption in the comparison.</p>
 </div>
-</details></section>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Seed / low rank / parameters / train MSE / test MSE
+(91, False, 96, 0.008189053274691105, 0.013526544906198978)
+(91, True, 40, 0.009340641088783741, 0.011721049435436726)
+(92, False, 96, 0.008189053274691105, 0.013526544906198978)
+(92, True, 40, 0.009340641088783741, 0.011721049435436726)
+(93, False, 96, 0.008189053274691105, 0.013526544906198978)
+(93, True, 40, 0.00934097170829773, 0.011730912141501904)
+</pre></div>
+</div>
+</div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">fit_update</span></code> uses the fixed training and test arrays defined above, creates a fresh optimizer, and performs the same declared number of steps. The seeds vary initialization, not training datasets; these repetitions cannot measure dataset-sampling uncertainty. The rank restriction applies to the update, not <code class="docutils literal notranslate"><span class="pre">W0</span> <span class="pre">+</span> <span class="pre">update</span></code>.</p>
+<p><strong>3. Extend one factor.</strong> On a new development experiment change the generating update from rank two to full rank. Keep data size, noise and optimization budgets fixed. Declare which setting favors the structural assumption. This numerical experiment is a bridge to LoRA, not a claim that a pretrained LLM was fine-tuned.</p>
+<p><strong>Submission and rubric.</strong> Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.</p>
+</section>
 </section>
 <section id="exercises">
 <h2>9.7 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
@@ -790,7 +822,7 @@ Equal-preference log loss: 0.693
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-tiny-direct-preference-objective">9.5 · A tiny direct-preference objective</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-an-adaptation-evaluation">9.6 · Design an adaptation evaluation</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-check-a-low-rank-update">Coding and experiment practice · Check a low-rank update</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-compare-low-rank-and-full-updates">Coding and experiment practice · Compare low-rank and full updates</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">9.7 · Exercises</a></li>

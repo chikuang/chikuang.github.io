@@ -5,7 +5,7 @@ The whole website is built by a **Python toolchain: Sphinx + MyST-NB + sphinx-bo
 ## 1 · Choose how to study
 
 - **Read first:** all examples and their outputs are visible on the website.
-- **Experiment:** use the **Download the executed notebook** link at the top of any chapter, open the file in JupyterLab, and change the code. Every chapter is self-contained; run its cells from top to bottom.
+- **Experiment:** use the **Download the executed notebook** link at the top of any chapter, open the file in JupyterLab, and change the code. Run cells from top to bottom. Chapters 10 and 12 and the live notebooks import shared course modules, so save those downloads inside the cloned course folder and start Jupyter there.
 - **Write lessons:** edit the Markdown files under `docs/` and rebuild the website.
 
 A *terminal* accepts commands that manage files and run programs. A *notebook* contains text and Python code cells. Enter the commands below in a terminal; enter the Python examples from the lessons in notebook code cells. The shell prompt is not part of a command.
@@ -52,6 +52,24 @@ python -m jupyterlab
 JupyterLab opens in your browser. Open the `.ipynb` file using its file browser. Select a code cell and press **Shift+Enter**. Run from the top: later cells refer to earlier objects. A number in brackets indicates a completed execution; an asterisk indicates a running cell.
 
 To check reproducibility, choose **Kernel → Restart Kernel and Run All Cells**. The downloaded notebook already contains the website's executed outputs, but you can edit the cells and run them again. Saving a notebook preserves its code and outputs; it does not preserve every object in the running kernel's memory.
+
+### Five-minute readiness check
+
+In a notebook opened from the cloned course, run:
+
+```python
+import sys
+from pathlib import Path
+import numpy as np
+import torch
+print(sys.version)
+print(sys.executable)
+print(Path.cwd())
+print(np.array([1, 2, 3]).mean())
+print(torch.tensor([[1., 2.]]).shape)
+```
+
+Expect mean `2.0` and shape `(1, 2)`. Confirm that the interpreter belongs to your course environment and the folder is inside the clone. The beginner route needs Python and Jupyter; TeX is only needed when you choose to build the book PDF. [Appendix C](appendices/c-guided-live-labs.md) provides four live-model notebooks with their own loading, generation and acceptance steps.
 
 ## 4 · Build the website and PDF
 
@@ -149,7 +167,7 @@ The course's GitHub Actions workflow independently executes and builds the lesso
 
 Chapters 1, 3, 4, and 10–14 use NumPy or the Python standard library. Chapters 2 and 5–9 also use PyTorch. All core examples use local synthetic or course-authored data. No cell sends data to an external model service.
 
-The full build executes 14 chapter notebooks, the Python warm-up, and both appendix notebooks, validates that all code cells completed without errors, and exports the executed notebooks alongside the website and PDF. Numerical results can differ slightly across package versions and processors; retain seeds and version information when making comparisons.
+The full build executes 14 chapter notebooks, the Python warm-up, and three appendix notebooks, validates that all code cells completed without errors, and exports the executed notebooks alongside the website and PDF. Numerical results can differ slightly across package versions and processors; retain seeds and version information when making comparisons.
 
 The RAG, agent, and capstone notebooks distinguish deterministic components from model-generated decisions. [Appendix B](appendices/b-real-llm-systems.md) gives a complete local-model implementation and analyzes recorded actual runs. To generate your own responses:
 

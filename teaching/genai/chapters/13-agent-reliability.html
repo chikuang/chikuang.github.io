@@ -192,6 +192,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendices/a-python-pytorch.html">Appendix A · Python and PyTorch, one operation at a time</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../appendices/b-real-llm-systems.html">Appendix B · A real local LLM, RAG, and tool-using agent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices/c-guided-live-labs.html">Appendix C · Four guided live notebooks</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Supplement</span></p>
 <ul class="nav bd-sidenav">
@@ -366,7 +367,7 @@
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-cost-and-failure-examples">13.5 · Inspect cost and failure examples</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#factorial-comparisons-and-adaptive-evaluation">13.6 · Factorial comparisons and adaptive evaluation</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-complete-a-factorial-ablation">Coding and experiment practice · Complete a factorial ablation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-complete-the-factorial-contrast">Coding and experiment practice · Complete the factorial contrast</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continue-with-the-implemented-system">Continue with the implemented system</a></li>
 </ul>
 </li>
@@ -387,7 +388,7 @@
 <h1>13 · Agent reliability and experimental design<a class="headerlink" href="#agent-reliability-and-experimental-design" title="Link to this heading">#</a></h1>
 <p><strong>Question.</strong> Does adaptive tool use improve outcomes enough to justify its additional complexity?</p>
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/13-agent-reliability.ipynb">Download the executed notebook</a></p>
-<p><strong>Python support:</strong> <a class="reference internal" href="../appendices/a-python-pytorch.html"><span class="std std-doc">Appendix A</span></a> explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s <strong>Show all code</strong> control while working through the lab.</p>
+<p><strong>Python support:</strong> Read <a class="reference internal" href="../appendices/a-python-pytorch.html#a-9-structured-requests-validation-and-errors"><span class="std std-ref">A.9: JSON and validation</span></a> and <a class="reference internal" href="../appendices/a-python-pytorch.html#a-11-files-local-modules-and-a-fresh-notebook-kernel"><span class="std std-ref">A.11: local modules and kernels</span></a> before the implementation. Use <strong>Show all code</strong> while working.</p>
 <p>A successful demonstration does not measure reliability. We need repeated tasks, failures with known causes, and a comparison that accounts for additional calls. This chapter constructs a controlled simulator: a cached answer, a one-pass tool workflow, and a bounded retry policy solve the same mean-estimation requests. These are programmed policies, not measured LLM agents. Their role is to teach experimental design before introducing an expensive or opaque policy.</p>
 <p><strong>Prerequisites:</strong> Chapters 11–12. <strong>Outcomes:</strong> distinguish trajectories from tasks; classify failure modes; inject reproducible failures; compare paired outcomes with clustered uncertainty; measure the cost of recovery.</p>
 <section id="pipeline-and-framework">
@@ -489,6 +490,26 @@ Range of timeout probabilities: 0.11 0.45
 </div>
 </div>
 <p>Common random streams make a policy’s first call encounter the same failure as another policy’s first call. Later attempts have their own observations. This creates a paired experiment rather than confounding the comparison with unrelated random failures. All failure rates and stale-data shifts are chosen for illustration.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Attempt limit</p></th>
+<th class="head text-left"><p>Cache off</p></th>
+<th class="head text-left"><p>Cache on</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>1</p></td>
+<td class="text-left"><p>One pass <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">False)</span></code></p></td>
+<td class="text-left"><p>One pass plus cache <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">True)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>3</p></td>
+<td class="text-left"><p>Retry up to 3 <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">False)</span></code></p></td>
+<td class="text-left"><p>Retry plus cache <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">True)</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Cache</span> <span class="pre">only</span> <span class="pre">=</span> <span class="pre">(0,</span> <span class="pre">True)</span></code> is outside this table. Here “no retry” means one initial attempt, not zero attempts. A malformed payload ends the run without fallback; cache is used only after the allowed timeout attempts are exhausted. This rule is fixed in all four cells.</p>
 </section>
 <section id="compare-policy-interventions">
 <h2>13.3 · Compare policy interventions<a class="headerlink" href="#compare-policy-interventions" title="Link to this heading">#</a></h2>
@@ -512,6 +533,7 @@ Range of timeout probabilities: 0.11 0.45
     <span class="k">return</span> <span class="p">{</span><span class="s1">'value'</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">'status'</span><span class="p">:</span> <span class="s1">'budget_exhausted'</span><span class="p">,</span> <span class="s1">'calls'</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">),</span> <span class="s1">'trace'</span><span class="p">:</span> <span class="n">trace</span><span class="p">}</span>
 
 <span class="n">configurations</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'Cache only'</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="s1">'One pass'</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+                  <span class="s1">'One pass plus cache'</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
                   <span class="s1">'Retry up to 3'</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span> <span class="s1">'Retry plus cache'</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="kc">True</span><span class="p">)}</span>
 <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">budget</span><span class="p">,</span> <span class="n">fallback</span><span class="p">)</span> <span class="ow">in</span> <span class="n">configurations</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -535,6 +557,7 @@ Range of timeout probabilities: 0.11 0.45
 <p class="course-output-label">Output</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Cache only success 0.612 calls 0.0 outcomes {'cached': 400}
 One pass success 0.692 calls 1.0 outcomes {'answered': 277, 'budget_exhausted': 111, 'invalid_payload': 12}
+One pass plus cache success 0.85 calls 1.0 outcomes {'answered': 277, 'cached': 111, 'invalid_payload': 12}
 Retry up to 3 success 0.93 calls 1.39 outcomes {'answered': 372, 'budget_exhausted': 14, 'invalid_payload': 14}
 Retry plus cache success 0.952 calls 1.39 outcomes {'answered': 372, 'cached': 14, 'invalid_payload': 14}
 </pre></div>
@@ -567,13 +590,13 @@ Retry plus cache success 0.952 calls 1.39 outcomes {'answered': 372, 'cached': 1
 <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">configurations</span><span class="p">)</span>
 <span class="n">success</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="s1">'success'</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="n">name</span><span class="p">]])</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
 <span class="n">calls</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="s1">'calls'</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="n">name</span><span class="p">]])</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">))</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mf">4.2</span><span class="p">))</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#a2006e'</span><span class="p">)</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">calls</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#fed34c'</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">'#705600'</span><span class="p">)</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">ylabel</span><span class="o">=</span><span class="s1">'Success fraction'</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">ylabel</span><span class="o">=</span><span class="s1">'Mean tool calls'</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">:</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">'x'</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">'x'</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">35</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -586,7 +609,7 @@ Retry plus cache success 0.952 calls 1.39 outcomes {'answered': 372, 'cached': 1
 Task-cluster bootstrap interval: [0.195 0.28 ]
 </pre></div>
 </div>
-<img alt="../_images/813a3dbe2c2f068fb3bf38c916173c50e9518cec78304c45b82d96b0374197c5.png" src="../_images/813a3dbe2c2f068fb3bf38c916173c50e9518cec78304c45b82d96b0374197c5.png" />
+<img alt="../_images/4c851daed0bf6c66e9f1e79066fdf2d0c94d729e130b75314e09a46cc9cfb285.png" src="../_images/4c851daed0bf6c66e9f1e79066fdf2d0c94d729e130b75314e09a46cc9cfb285.png" />
 </div>
 </div>
 <p>The interval describes the chosen simulator and sampled task distribution. It does not include uncertainty about whether that simulator resembles production. When tasks are sampled by document or user, move the resampling unit to that higher level.</p>
@@ -637,6 +660,7 @@ Task-cluster bootstrap interval: [0.195 0.28 ]
 <p class="course-output-label">Output</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Cache only utility 0.612 error among answered 0.388
 One pass utility 0.662 error among answered 0.0
+One pass plus cache utility 0.82 error among answered 0.124
 Retry up to 3 utility 0.888 error among answered 0.0
 Retry plus cache utility 0.911 error among answered 0.013
 Recovery trace: {'value': 0.8543511034891461, 'status': 'answered', 'calls': 2, 'trace': ['timeout', 'ok'], 'task': 1, 'replicate': 2, 'success': np.True_}
@@ -655,25 +679,56 @@ Recovery trace: {'value': 0.8543511034891461, 'status': 'answered', 'calls': 2, 
 \[
 \Delta_{AB}=(\mu_{11}-\mu_{01})-(\mu_{10}-\mu_{00}).
 \]</div>
-<p>It asks whether the effect of A changes when B is enabled. Estimate all four conditions on the same tasks and resample the paired task-level contrasts. A positive interaction is scale-dependent and does not establish that either factor improves every task. The current retry/cache comparison illustrates ablations; a complete two-factor experiment would add every required combination before estimating this contrast.</p>
+<p>It asks whether the effect of A changes when B is enabled. Estimate all four conditions on the same tasks and resample the paired task-level contrasts. A positive interaction is scale-dependent and does not establish that either factor improves every task. The experiment now includes all four one/three-call by cache-off/on conditions. The zero-call Cache only condition is an additional baseline and never enters the factorial contrast. The practice below computes paired task contrasts for success and calls.</p>
 <p>Do not repeatedly inspect test outcomes, change the policy, and continue calling the same set “held out.” Use a development suite for repairs and a locked evaluation suite for final reporting. Record the number of policy variants considered, since selection among many noisy estimates creates optimism.</p>
 <p>Prompt injection tests should include untrusted documents and tool messages that request unauthorized behavior. Score whether the execution boundary rejects invalid actions, not merely whether the final response sounds cautious. The harmless adversarial-note experiment in Chapter 12 is one deterministic unit test, not a comprehensive security evaluation.</p>
-<section id="coding-and-experiment-practice-complete-a-factorial-ablation">
-<h3>Coding and experiment practice · Complete a factorial ablation<a class="headerlink" href="#coding-and-experiment-practice-complete-a-factorial-ablation" title="Link to this heading">#</a></h3>
-<p><strong>Task.</strong> Add the missing retry/cache combination to the reliability experiment. Define a two-by-two table of mean task success and mean calls, then calculate the interaction contrast.</p>
-<p><strong>Submission.</strong> Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.</p>
+<section id="coding-and-experiment-practice-complete-the-factorial-contrast">
+<h3>Coding and experiment practice · Complete the factorial contrast<a class="headerlink" href="#coding-and-experiment-practice-complete-the-factorial-contrast" title="Link to this heading">#</a></h3>
+<p><strong>1. Predict before running.</strong> Why is zero-call Cache only not the cache-enabled cell of a one-call versus three-call experiment?</p>
+<p><strong>2. Implement and check.</strong> Use the four explicitly named one/three-call × cache-off/on conditions. Keep the zero-call cache baseline outside the factorial contrast. Calculate success and call interactions within each task before resampling tasks. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
-<details class="course-code-fold"><summary>Code</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">interaction</span><span class="p">(</span><span class="n">no_retry_no_cache</span><span class="p">,</span> <span class="n">retry_only</span><span class="p">,</span> <span class="n">cache_only</span><span class="p">,</span> <span class="n">both</span><span class="p">):</span>
-    <span class="k">return</span> <span class="o">...</span>
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">interaction</span><span class="p">(</span><span class="n">one_no_cache</span><span class="p">,</span> <span class="n">three_no_cache</span><span class="p">,</span> <span class="n">one_cache</span><span class="p">,</span> <span class="n">three_cache</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">three_cache</span> <span class="o">-</span> <span class="n">three_no_cache</span> <span class="o">-</span> <span class="n">one_cache</span> <span class="o">+</span> <span class="n">one_no_cache</span>
+
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">interaction</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">),</span> <span class="mf">0.2</span><span class="p">)</span>
+<span class="n">factor_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'One pass'</span><span class="p">,</span> <span class="s1">'Retry up to 3'</span><span class="p">,</span> <span class="s1">'One pass plus cache'</span><span class="p">,</span> <span class="s1">'Retry plus cache'</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'success'</span><span class="p">,</span> <span class="s1">'calls'</span><span class="p">]:</span>
+    <span class="n">by_task</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">factor_names</span><span class="p">:</span>
+        <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">row</span><span class="p">[</span><span class="n">metric</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="n">name</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_tasks</span><span class="p">,</span> <span class="n">repeats</span><span class="p">)</span>
+        <span class="n">by_task</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">matrix</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">matrix</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">task_contrasts</span> <span class="o">=</span> <span class="n">interaction</span><span class="p">(</span><span class="o">*</span><span class="n">by_task</span><span class="p">)</span>
+    <span class="n">task_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">1313</span><span class="p">)</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="n">n_tasks</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="n">n_tasks</span><span class="p">))</span>
+    <span class="n">uncertainty</span> <span class="o">=</span> <span class="n">task_contrasts</span><span class="p">[</span><span class="n">task_ids</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="s1">'interaction:'</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">task_contrasts</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span> <span class="mi">4</span><span class="p">),</span>
+          <span class="s1">'task-bootstrap interval:'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">uncertainty</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.025</span><span class="p">,</span> <span class="mf">0.975</span><span class="p">])</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
 </pre></div>
 </div>
 </details></div>
-<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-<span class="sd-summary-text">Hint and acceptance checks</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">Return <code class="docutils literal notranslate"><span class="pre">both</span> <span class="pre">-</span> <span class="pre">retry_only</span> <span class="pre">-</span> <span class="pre">cache_only</span> <span class="pre">+</span> <span class="pre">no_retry_no_cache</span></code>. Compute within-task contrasts before task-level uncertainty estimation. Hold the task set and retry budget fixed. A positive success interaction is not necessarily a positive utility interaction after costs.</p>
 </div>
-</details></section>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>success One pass 0.6925
+success Retry up to 3 0.93
+success One pass plus cache 0.85
+success Retry plus cache 0.9525
+success interaction: -0.135 task-bootstrap interval: [-0.1775 -0.0975]
+calls One pass 1.0
+calls Retry up to 3 1.39
+calls One pass plus cache 1.0
+calls Retry plus cache 1.39
+calls interaction: 0.0 task-bootstrap interval: [0. 0.]
+</pre></div>
+</div>
+</div>
+</div>
+<p>Each row of the reshaped matrix is one task and each column one repeated trajectory. Compute the paired contrast before sampling rows. The resulting intervals concern this simulator and task sampling scheme; they do not include uncertainty about whether the simulator resembles an application.</p>
+<p><strong>3. Extend one factor.</strong> Change stale-cache prevalence on a fresh development simulation while holding all four intervention settings fixed. Report both success and cost interactions. A positive success interaction need not imply a positive utility interaction.</p>
+<p><strong>Submission and rubric.</strong> Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.</p>
+</section>
 <section id="continue-with-the-implemented-system">
 <h3>Continue with the implemented system<a class="headerlink" href="#continue-with-the-implemented-system" title="Link to this heading">#</a></h3>
 <p>The controlled reliability experiment isolates mechanisms. <a class="reference internal" href="../appendices/b-real-llm-systems.html"><span class="std std-doc">Appendix B</span></a> adds actual LLM failures and call counts. Its observed failures motivate hypotheses, but its tiny task set and single greedy run cannot estimate general agent reliability. Use the factorial and task-sampling design here when expanding that experiment.</p>
@@ -766,7 +821,7 @@ Recovery trace: {'value': 0.8543511034891461, 'status': 'answered', 'calls': 2, 
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-cost-and-failure-examples">13.5 · Inspect cost and failure examples</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#factorial-comparisons-and-adaptive-evaluation">13.6 · Factorial comparisons and adaptive evaluation</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-complete-a-factorial-ablation">Coding and experiment practice · Complete a factorial ablation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-complete-the-factorial-contrast">Coding and experiment practice · Complete the factorial contrast</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continue-with-the-implemented-system">Continue with the implemented system</a></li>
 </ul>
 </li>

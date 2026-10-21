@@ -192,6 +192,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendices/a-python-pytorch.html">Appendix A · Python and PyTorch, one operation at a time</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../appendices/b-real-llm-systems.html">Appendix B · A real local LLM, RAG, and tool-using agent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices/c-guided-live-labs.html">Appendix C · Four guided live notebooks</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Supplement</span></p>
 <ul class="nav bd-sidenav">
@@ -365,7 +366,7 @@
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditioning-and-the-limits-of-the-example">8.5 · Conditioning and the limits of the example</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-diagnose-score-error-by-noise-level">Coding and experiment practice · Diagnose score error by noise level</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-diagnose-score-error-at-several-noise-levels">Coding and experiment practice · Diagnose score error at several noise levels</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">8.6 · Exercises</a></li>
@@ -385,7 +386,7 @@
 <h1>8 · Diffusion and score-based generation<a class="headerlink" href="#diffusion-and-score-based-generation" title="Link to this heading">#</a></h1>
 <p><strong>Question.</strong> How can learning to remove noise support generation from noise?</p>
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/08-diffusion.ipynb">Download the executed notebook</a></p>
-<p><strong>Python support:</strong> <a class="reference internal" href="../appendices/a-python-pytorch.html"><span class="std std-doc">Appendix A</span></a> explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s <strong>Show all code</strong> control while working through the lab.</p>
+<p><strong>Python support:</strong> Review <a class="reference internal" href="../appendices/a-python-pytorch.html#a-5-tensors-and-one-derivative"><span class="std std-ref">A.5–A.7: tensors, classes and updates</span></a>. These chapters form the optional generative-model/adaptation branch after Chapter 6. Use <strong>Show all code</strong> while working.</p>
 <p>Diffusion models train a reverse process for a known noising mechanism. We will fit a one-dimensional denoiser to a two-component Gaussian mixture, then run an explicit reverse chain. The example is small enough that we can also calculate the true noisy density’s score and compare it with the learned function.</p>
 <p><strong>Prerequisites:</strong> Chapters 2 and 7, Gaussian conditioning, and gradients. <strong>Outcomes:</strong> simulate the forward marginal; distinguish noise prediction from direct observation reconstruction; derive the score relation; inspect a learned reverse sampler. No images, pretrained weights, or external datasets are required.</p>
 <section id="pipeline-and-framework">
@@ -686,23 +687,66 @@ q(x_{t-1}\mid x_t,x_0)=N(\widetilde\mu_t(x_t,x_0),\widetilde\beta_t I),
 <h2>8.5 · Conditioning and the limits of the example<a class="headerlink" href="#conditioning-and-the-limits-of-the-example" title="Link to this heading">#</a></h2>
 <p>A conditional denoiser receives additional information <span class="math notranslate nohighlight">\(c\)</span>, such as a class label or text representation, and estimates <span class="math notranslate nohighlight">\(\epsilon_\theta(x_t,t,c)\)</span>. Guidance methods modify the reverse direction to favor a condition, which can change the diversity–fidelity tradeoff. They do not establish that a requested scientific or factual property is true.</p>
 <p>Our one-dimensional example explains noising, denoising, and sampling. It does not reproduce the architecture, latent compression, data scale, or perceptual evaluation of an image-generation system. The statistical questions remain: what distribution is modeled, what is conditioned on, and how is the generated distribution evaluated?</p>
-<section id="coding-and-experiment-practice-diagnose-score-error-by-noise-level">
-<h3>Coding and experiment practice · Diagnose score error by noise level<a class="headerlink" href="#coding-and-experiment-practice-diagnose-score-error-by-noise-level" title="Link to this heading">#</a></h3>
-<p><strong>Task.</strong> Evaluate the learned score against the available exact mixture score at three prespecified diffusion times. Report mean squared score error separately at each time.</p>
-<p><strong>Submission.</strong> Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.</p>
+<section id="coding-and-experiment-practice-diagnose-score-error-at-several-noise-levels">
+<h3>Coding and experiment practice · Diagnose score error at several noise levels<a class="headerlink" href="#coding-and-experiment-practice-diagnose-score-error-at-several-noise-levels" title="Link to this heading">#</a></h3>
+<p><strong>1. Predict before running.</strong> The mathematical times 1, 26 and 80 correspond to which zero-based Python indices?</p>
+<p><strong>2. Implement and check.</strong> Implement an exact score function taking both observations and a time index. Use fresh noisy observations with a separate evaluation seed; keep errors separate by time. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
-<details class="course-code-fold"><summary>Code</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">score_mse</span><span class="p">(</span><span class="n">learned</span><span class="p">,</span> <span class="n">exact</span><span class="p">):</span>
-    <span class="k">assert</span> <span class="n">learned</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">exact</span><span class="o">.</span><span class="n">shape</span>
-    <span class="k">return</span> <span class="o">...</span>
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">mixture_score</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">time_index</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">alpha_bar</span><span class="p">[</span><span class="n">time_index</span><span class="p">])</span>
+    <span class="n">means</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">])</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">variance</span> <span class="o">=</span> <span class="mf">0.35</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">a</span>
+    <span class="n">log_weights</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">means</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">variance</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">log_weights</span> <span class="o">-</span> <span class="n">log_weights</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="n">weights</span> <span class="o">/=</span> <span class="n">weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">weights</span> <span class="o">*</span> <span class="p">(</span><span class="n">means</span><span class="o">-</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">variance</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">score_mse</span><span class="p">(</span><span class="n">learned</span><span class="p">,</span> <span class="n">exact</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">learned</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">exact</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Scores must have the same observation and coordinate axes'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">learned</span> <span class="o">-</span> <span class="n">exact</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="k">assert</span> <span class="n">score_mse</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.</span><span class="p">],</span> <span class="p">[</span><span class="mf">3.</span><span class="p">]]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.</span><span class="p">]]))</span> <span class="o">==</span> <span class="mf">2.5</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">mixture_score</span><span class="p">([[</span><span class="mf">0.</span><span class="p">]],</span> <span class="mi">25</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
 </details></div>
-<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-<span class="sd-summary-text">Hint and acceptance checks</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">Return the mean of <code class="docutils literal notranslate"><span class="pre">(learned-exact)**2</span></code>. Generate fresh noisy evaluation observations independently of optimizer draws. Do not average unweighted across noise levels and then claim uniform quality: score scale changes with time. Plot both functions and identify where discrepancies occur.</p>
 </div>
-</details></section>
+</div>
+<p>The first check has hand-computable squared errors 1 and 4, whose mean is 2.5. The second uses symmetry: the score at the mixture center is zero. Only after these fixtures pass do we compare a learned function with the oracle. In the next loop, <code class="docutils literal notranslate"><span class="pre">torch.full</span></code> repeats one time index for every observation, and <code class="docutils literal notranslate"><span class="pre">float32</span></code> matches the fitted network’s weights.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">eval_rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">808</span><span class="p">)</span>
+<span class="n">score_rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">time_index</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">79</span><span class="p">]:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">alpha_bar</span><span class="p">[</span><span class="n">time_index</span><span class="p">])</span>
+    <span class="n">clean</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">eval_rng</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mf">0.35</span> <span class="o">*</span> <span class="n">eval_rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">noisy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">clean</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">eval_rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">clean</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">noisy</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">estimated</span> <span class="o">=</span> <span class="o">-</span><span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">),),</span> <span class="n">time_index</span><span class="p">))</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">exact</span> <span class="o">=</span> <span class="n">mixture_score</span><span class="p">(</span><span class="n">noisy</span><span class="p">,</span> <span class="n">time_index</span><span class="p">)</span>
+    <span class="n">score_rows</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">time_index</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">score_mse</span><span class="p">(</span><span class="n">estimated</span><span class="p">,</span> <span class="n">exact</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Mathematical time / fresh-observation score MSE:'</span><span class="p">,</span> <span class="n">score_rows</span><span class="p">)</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Mathematical time / fresh-observation score MSE: [(1, 140.60047555691824), (26, 0.0699698781523468), (80, 0.005006345819402146)]
+</pre></div>
+</div>
+</div>
+</div>
+<p>The two mixture components have equal prior weights and equal variance at each time, so the omitted normalization constants cancel in the responsibilities. <code class="docutils literal notranslate"><span class="pre">reshape(-1,</span> <span class="pre">1)</span></code> prevents an unintended outer difference between vectors. The evaluation sample is independent of optimizer draws.</p>
+<p><strong>3. Extend one factor.</strong> Plot learned and exact scores at the same three times. Identify whether errors occur between modes or in the tails. Do not infer uniform quality from a single average across times with different score scales.</p>
+<p><strong>Submission and rubric.</strong> Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.</p>
+</section>
 </section>
 <section id="exercises">
 <h2>8.6 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
@@ -788,7 +832,7 @@ q(x_{t-1}\mid x_t,x_0)=N(\widetilde\mu_t(x_t,x_0),\widetilde\beta_t I),
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditioning-and-the-limits-of-the-example">8.5 · Conditioning and the limits of the example</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-diagnose-score-error-by-noise-level">Coding and experiment practice · Diagnose score error by noise level</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-and-experiment-practice-diagnose-score-error-at-several-noise-levels">Coding and experiment practice · Diagnose score error at several noise levels</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercises">8.6 · Exercises</a></li>

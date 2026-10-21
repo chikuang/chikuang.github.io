@@ -192,6 +192,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../appendices/a-python-pytorch.html">Appendix A · Python and PyTorch, one operation at a time</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../appendices/b-real-llm-systems.html">Appendix B · A real local LLM, RAG, and tool-using agent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices/c-guided-live-labs.html">Appendix C · Four guided live notebooks</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Supplement</span></p>
 <ul class="nav bd-sidenav">
@@ -362,6 +363,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#check-automatic-differentiation-on-a-known-answer">2.3 · Check automatic differentiation on a known answer</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulate-a-nonlinear-problem-and-split-first">2.4 · Simulate a nonlinear problem and split first</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-training-loop-you-can-inspect">2.5 · A training loop you can inspect</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#walk-one-batch-through-all-five-operations">Walk one batch through all five operations</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#optimization-and-checkpoint-selection-are-different-operations">Optimization and checkpoint selection are different operations</a></li>
 </ul>
 </li>
@@ -388,7 +390,7 @@
 <h1>2 · Python and neural network foundations<a class="headerlink" href="#python-and-neural-network-foundations" title="Link to this heading">#</a></h1>
 <p><strong>Question.</strong> What changes when a regression model learns its own nonlinear features?</p>
 <p><a class="reference external" href="https://chikuang.github.io/teaching/genai/notebooks/02-python-neural-networks.ipynb">Download the executed notebook</a> · <a class="reference internal" href="../python-workflow.html"><span class="std std-doc">Python setup</span></a></p>
-<p><strong>Python support:</strong> <a class="reference internal" href="../appendices/a-python-pytorch.html"><span class="std std-doc">Appendix A</span></a> explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s <strong>Show all code</strong> control while working through the lab.</p>
+<p><strong>Python support:</strong> First complete <a class="reference internal" href="../appendices/a-python-pytorch.html#a-5-tensors-and-one-derivative"><span class="std std-ref">A.5: tensors</span></a>, <a class="reference internal" href="../appendices/a-python-pytorch.html#a-6-what-a-model-class-means"><span class="std std-ref">A.6: classes</span></a>, and <a class="reference internal" href="../appendices/a-python-pytorch.html#a-7-perform-one-update-then-build-a-loop"><span class="std std-ref">A.7: one update</span></a>. Do not postpone these until Chapter 5. Use <strong>Show all code</strong> while working.</p>
 <p>A neural network is a parameterized function fitted by an optimization procedure. Its hidden layers are learned basis expansions. This chapter starts with array operations, connects logistic regression to a small network, and makes the training loop visible. We will compare both models on the same simulated classification problem, using a validation set to select a checkpoint and a separate test set for final evaluation.</p>
 <p><strong>Prerequisites:</strong> Chapter 1, matrix multiplication, likelihood, and differentiation. <strong>Outcomes:</strong> read tensor shapes; check a gradient; implement minibatch training; distinguish optimization error from generalization error. All cells run on a CPU using NumPy, Matplotlib, and PyTorch. Run them in order.</p>
 <section id="pipeline-and-framework">
@@ -589,6 +591,49 @@ Training class proportion: 0.491
 <section id="a-training-loop-you-can-inspect">
 <h2>2.5 · A training loop you can inspect<a class="headerlink" href="#a-training-loop-you-can-inspect" title="Link to this heading">#</a></h2>
 <p>One epoch visits all training observations. A minibatch supplies a noisy gradient estimate. We shuffle the training indices each epoch, evaluate validation loss without gradients, and save the parameters with the lowest validation loss. <code class="docutils literal notranslate"><span class="pre">state_dict()</span></code> contains model parameters; copying its tensors prevents later training from changing the saved checkpoint.</p>
+<section id="walk-one-batch-through-all-five-operations">
+<h3>Walk one batch through all five operations<a class="headerlink" href="#walk-one-batch-through-all-five-operations" title="Link to this heading">#</a></h3>
+<p>The following cell uses two observations and a separate logistic model with zero weights. It does not change the later training/validation/test split. Predict <code class="docutils literal notranslate"><span class="pre">batch_logits</span></code>, then identify which line first changes the weights.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="course-code-fold-wrapper docutils container">
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">batch_x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
+<span class="n">batch_y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
+<span class="n">walk_model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">walk_model</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
+<span class="n">walk_optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span><span class="n">walk_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+<span class="n">walk_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+<span class="n">batch_logits</span> <span class="o">=</span> <span class="n">walk_model</span><span class="p">(</span><span class="n">batch_x</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">batch_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span><span class="n">batch_logits</span><span class="p">,</span> <span class="n">batch_y</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Shapes:'</span><span class="p">,</span> <span class="n">batch_x</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">batch_logits</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">batch_y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Before:'</span><span class="p">,</span> <span class="n">walk_model</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="s1">'loss:'</span><span class="p">,</span> <span class="n">batch_loss</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+<span class="n">batch_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Derivative:'</span><span class="p">,</span> <span class="n">walk_model</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+<span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">walk_model</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">grad</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="o">-</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">]]))</span>
+<span class="n">walk_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">walk_model</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mf">0.05</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.05</span><span class="p">]]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'After:'</span><span class="p">,</span> <span class="n">walk_model</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">2026</span><span class="p">)</span>  <span class="c1"># Give the full experiment its declared initialization seed.</span>
+</pre></div>
+</div>
+</details></div>
+</div>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Shapes: torch.Size([2, 2]) torch.Size([2]) torch.Size([2])
+Before: [[0.0, 0.0]] loss: 0.6931471824645996
+Derivative: [[-0.25, 0.25]]
+After: [[0.05000000074505806, -0.05000000074505806]]
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;torch._C.Generator at 0x10ee6ddd0&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">nn.Linear(2,</span> <span class="pre">1)</span></code> maps two covariates to one logit; its output is <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">1)</span></code>. <code class="docutils literal notranslate"><span class="pre">squeeze(-1)</span></code> removes only the final singleton axis so it matches the two labels. The mean-loss gradient divides by two. <code class="docutils literal notranslate"><span class="pre">backward()</span></code> fills <code class="docutils literal notranslate"><span class="pre">.grad</span></code>; only <code class="docutils literal notranslate"><span class="pre">step()</span></code> updates parameters. <code class="docutils literal notranslate"><span class="pre">detach()</span></code> creates a tensor view outside the differentiation graph for inspection; it is not a parameter update.</p>
+<p>The longer <code class="docutils literal notranslate"><span class="pre">fit</span></code> function below repeats this same cycle. Its added responsibilities are shuffling rows, evaluating validation loss, and copying the best parameter snapshot. Read these as separate responsibilities: optimization changes weights, validation chooses which weights to retain, and the test set evaluates the final choice.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
@@ -641,6 +686,7 @@ Training class proportion: 0.491
 </div>
 </div>
 <p>The optimizer controls how parameters move, not what the statistical target is. Weight decay penalizes large parameters; hidden-layer width controls representational capacity; the epoch budget controls how long we optimize. These are different choices. A decreasing training loss with a rising validation loss is evidence that further optimization is harming validation performance, not evidence that gradient descent has stopped working.</p>
+</section>
 <section id="optimization-and-checkpoint-selection-are-different-operations">
 <h3>Optimization and checkpoint selection are different operations<a class="headerlink" href="#optimization-and-checkpoint-selection-are-different-operations" title="Link to this heading">#</a></h3>
 <p>For a minibatch index set <span class="math notranslate nohighlight">\(\mathcal B_k\)</span>, a plain stochastic-gradient step would be</p>
@@ -739,21 +785,47 @@ Radius basis: test log loss=0.266, accuracy=0.876
 <p>A useful development test is to overfit a tiny training subset deliberately. If a flexible network cannot fit a handful of examples, investigate the implementation before collecting more data. This is a debugging experiment, not evidence of generalization.</p>
 <section id="coding-and-experiment-practice-verify-the-gradient-before-fitting">
 <h3>Coding and experiment practice · Verify the gradient before fitting<a class="headerlink" href="#coding-and-experiment-practice-verify-the-gradient-before-fitting" title="Link to this heading">#</a></h3>
-<p><strong>Task.</strong> Implement mean logistic loss and its analytic gradient using NumPy. Compare the gradient with centered finite differences in each coordinate on a five-observation example.</p>
-<p><strong>Submission.</strong> Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.</p>
+<p><strong>1. Predict before running.</strong> For a positive label with a predicted probability below one, what is the sign of the derivative with respect to its logit?</p>
+<p><strong>2. Implement and check.</strong> Implement mean logistic loss and a gradient with the same shape as <code class="docutils literal notranslate"><span class="pre">beta</span></code>. Use five observations, a nonzero vector, and centered finite differences. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
 <div class="course-code-fold-wrapper docutils container">
-<details class="course-code-fold"><summary>Code</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">logistic_loss_gradient</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">beta</span><span class="p">):</span>
-    <span class="c1"># Return scalar mean loss and a gradient with beta.shape.</span>
-    <span class="k">return</span> <span class="o">...</span><span class="p">,</span> <span class="o">...</span>
+<details class="course-code-fold"><summary>Code</summary><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">logistic_loss_gradient</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">beta</span><span class="p">):</span>
+    <span class="n">eta</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">beta</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">eta</span><span class="p">))</span>  <span class="c1"># Moderate logits in this fixture.</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logaddexp</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">eta</span><span class="p">)</span> <span class="o">-</span> <span class="n">y</span> <span class="o">*</span> <span class="n">eta</span><span class="p">)</span>
+    <span class="n">gradient</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">loss</span><span class="p">),</span> <span class="n">gradient</span>
+
+<span class="n">fixture_X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]])</span>
+<span class="n">fixture_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">])</span>
+<span class="n">fixture_beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.4</span><span class="p">])</span>
+<span class="n">value</span><span class="p">,</span> <span class="n">analytic</span> <span class="o">=</span> <span class="n">logistic_loss_gradient</span><span class="p">(</span><span class="n">fixture_X</span><span class="p">,</span> <span class="n">fixture_y</span><span class="p">,</span> <span class="n">fixture_beta</span><span class="p">)</span>
+<span class="n">finite</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">fixture_beta</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fixture_beta</span><span class="p">)):</span>
+    <span class="n">delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">fixture_beta</span><span class="p">)</span>
+    <span class="n">delta</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-5</span>
+    <span class="n">plus</span> <span class="o">=</span> <span class="n">logistic_loss_gradient</span><span class="p">(</span><span class="n">fixture_X</span><span class="p">,</span> <span class="n">fixture_y</span><span class="p">,</span> <span class="n">fixture_beta</span> <span class="o">+</span> <span class="n">delta</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">minus</span> <span class="o">=</span> <span class="n">logistic_loss_gradient</span><span class="p">(</span><span class="n">fixture_X</span><span class="p">,</span> <span class="n">fixture_y</span><span class="p">,</span> <span class="n">fixture_beta</span> <span class="o">-</span> <span class="n">delta</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">finite</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">plus</span> <span class="o">-</span> <span class="n">minus</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2e-5</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">analytic</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">fixture_beta</span><span class="o">.</span><span class="n">shape</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">analytic</span><span class="p">,</span> <span class="n">finite</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Analytic / finite difference:'</span><span class="p">,</span> <span class="n">analytic</span><span class="p">,</span> <span class="n">finite</span><span class="p">)</span>
 </pre></div>
 </div>
 </details></div>
-<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
-<summary class="sd-summary-title sd-card-header">
-<span class="sd-summary-text">Hint and acceptance checks</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">Use <code class="docutils literal notranslate"><span class="pre">np.logaddexp(0,</span> <span class="pre">X</span> <span class="pre">&#64;</span> <span class="pre">beta)</span> <span class="pre">-</span> <span class="pre">y*(X</span> <span class="pre">&#64;</span> <span class="pre">beta)</span></code> for losses and <code class="docutils literal notranslate"><span class="pre">X.T</span> <span class="pre">&#64;</span> <span class="pre">(sigmoid(X</span> <span class="pre">&#64;</span> <span class="pre">beta)-y)</span> <span class="pre">/</span> <span class="pre">len(y)</span></code> for the gradient. Use a moderate coefficient vector, finite-difference step 1e-5, and <code class="docutils literal notranslate"><span class="pre">np.allclose</span></code> with an explicitly stated tolerance. Test a nonzero vector; checking only zero coefficients can miss errors.</p>
 </div>
-</details></section>
+<div class="cell_output docutils container">
+<p class="course-output-label">Output</p>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Analytic / finite difference: [-0.1        -0.54736058] [-0.1        -0.54736058]
+</pre></div>
+</div>
+</div>
+</div>
+<p>Each <code class="docutils literal notranslate"><span class="pre">delta</span></code> changes only one coefficient. Dividing by twice the step implements a centered derivative. Checking only zero coefficients can conceal errors, so this fixture deliberately uses nonzero coefficients.</p>
+<p><strong>3. Extend one factor.</strong> Change one label, then repeat the comparison. Include the loss and both gradients in your table. This checks differentiation of the specified loss, not generalization of a fitted model.</p>
+<p><strong>Submission and rubric.</strong> Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.</p>
+</section>
 </section>
 <section id="exercises">
 <h2>2.8 · Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
@@ -839,6 +911,7 @@ Radius basis: test log loss=0.266, accuracy=0.876
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#check-automatic-differentiation-on-a-known-answer">2.3 · Check automatic differentiation on a known answer</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulate-a-nonlinear-problem-and-split-first">2.4 · Simulate a nonlinear problem and split first</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-training-loop-you-can-inspect">2.5 · A training loop you can inspect</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#walk-one-batch-through-all-five-operations">Walk one batch through all five operations</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#optimization-and-checkpoint-selection-are-different-operations">Optimization and checkpoint selection are different operations</a></li>
 </ul>
 </li>

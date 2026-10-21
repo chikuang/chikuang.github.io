@@ -12,7 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/13-agent-reliability.ipynb)
 
-**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+**Python support:** Read [A.9: JSON and validation](../appendices/a-python-pytorch.md#a9--structured-requests-validation-and-errors) and [A.11: local modules and kernels](../appendices/a-python-pytorch.md#a11--files-local-modules-and-a-fresh-notebook-kernel) before the implementation. Use **Show all code** while working.
+
 
 A successful demonstration does not measure reliability. We need repeated tasks, failures with known causes, and a comparison that accounts for additional calls. This chapter constructs a controlled simulator: a cached answer, a one-pass tool workflow, and a bounded retry policy solve the same mean-estimation requests. These are programmed policies, not measured LLM agents. Their role is to teach experimental design before introducing an expensive or opaque policy.
 
@@ -91,6 +92,13 @@ print('Range of timeout probabilities:', failure_probability.min().round(2),
 
 Common random streams make a policy's first call encounter the same failure as another policy's first call. Later attempts have their own observations. This creates a paired experiment rather than confounding the comparison with unrelated random failures. All failure rates and stale-data shifts are chosen for illustration.
 
+| Attempt limit | Cache off | Cache on |
+|:--|:--|:--|
+| 1 | One pass `(1, False)` | One pass plus cache `(1, True)` |
+| 3 | Retry up to 3 `(3, False)` | Retry plus cache `(3, True)` |
+
+`Cache only = (0, True)` is outside this table. Here "no retry" means one initial attempt, not zero attempts. A malformed payload ends the run without fallback; cache is used only after the allowed timeout attempts are exhausted. This rule is fixed in all four cells.
+
 ## 13.3 · Compare policy interventions
 
 The retry policy retries timeouts up to a call budget. It stops on a malformed payload because a data-contract violation is not assumed transient. The optional cache fallback is an explicit ablation: it may answer more often while using stale information.
@@ -112,6 +120,7 @@ def run_policy(task, replicate, budget, use_cache=False):
     return {'value': None, 'status': 'budget_exhausted', 'calls': len(trace), 'trace': trace}
 
 configurations = {'Cache only': (0, True), 'One pass': (1, False),
+                  'One pass plus cache': (1, True),
                   'Retry up to 3': (3, False), 'Retry plus cache': (3, True)}
 results = {}
 for name, (budget, fallback) in configurations.items():
@@ -159,13 +168,13 @@ print('Task-cluster bootstrap interval:', np.quantile(bootstrap, [0.025, 0.975])
 names = list(configurations)
 success = [np.mean([r['success'] for r in results[name]]) for name in names]
 calls = [np.mean([r['calls'] for r in results[name]]) for name in names]
-fig, axes = plt.subplots(1, 2, figsize=(9, 3.5))
+fig, axes = plt.subplots(1, 2, figsize=(10, 4.2))
 axes[0].bar(names, success, color='#a2006e')
 axes[1].bar(names, calls, color='#fed34c', edgecolor='#705600')
 axes[0].set(ylabel='Success fraction', ylim=(0, 1))
 axes[1].set(ylabel='Mean tool calls')
 for ax in axes:
-    ax.tick_params(axis='x', rotation=25)
+    ax.tick_params(axis='x', rotation=35)
 plt.tight_layout()
 plt.show()
 ```
@@ -232,27 +241,44 @@ $$
 \Delta_{AB}=(\mu_{11}-\mu_{01})-(\mu_{10}-\mu_{00}).
 $$
 
-It asks whether the effect of A changes when B is enabled. Estimate all four conditions on the same tasks and resample the paired task-level contrasts. A positive interaction is scale-dependent and does not establish that either factor improves every task. The current retry/cache comparison illustrates ablations; a complete two-factor experiment would add every required combination before estimating this contrast.
+It asks whether the effect of A changes when B is enabled. Estimate all four conditions on the same tasks and resample the paired task-level contrasts. A positive interaction is scale-dependent and does not establish that either factor improves every task. The experiment now includes all four one/three-call by cache-off/on conditions. The zero-call Cache only condition is an additional baseline and never enters the factorial contrast. The practice below computes paired task contrasts for success and calls.
 
 Do not repeatedly inspect test outcomes, change the policy, and continue calling the same set “held out.” Use a development suite for repairs and a locked evaluation suite for final reporting. Record the number of policy variants considered, since selection among many noisy estimates creates optimism.
 
 Prompt injection tests should include untrusted documents and tool messages that request unauthorized behavior. Score whether the execution boundary rejects invalid actions, not merely whether the final response sounds cautious. The harmless adversarial-note experiment in Chapter 12 is one deterministic unit test, not a comprehensive security evaluation.
 
 
-### Coding and experiment practice · Complete a factorial ablation
+### Coding and experiment practice · Complete the factorial contrast
 
-**Task.** Add the missing retry/cache combination to the reliability experiment. Define a two-by-two table of mean task success and mean calls, then calculate the interaction contrast.
+**1. Predict before running.** Why is zero-call Cache only not the cache-enabled cell of a one-call versus three-call experiment?
 
-**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+**2. Implement and check.** Use the four explicitly named one/three-call × cache-off/on conditions. Keep the zero-call cache baseline outside the factorial contrast. Calculate success and call interactions within each task before resampling tasks. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
 
-```python
-def interaction(no_retry_no_cache, retry_only, cache_only, both):
-    return ...
+```{code-cell} python
+def interaction(one_no_cache, three_no_cache, one_cache, three_cache):
+    return three_cache - three_no_cache - one_cache + one_no_cache
+
+assert np.isclose(interaction(0.4, 0.6, 0.5, 0.9), 0.2)
+factor_names = ['One pass', 'Retry up to 3', 'One pass plus cache', 'Retry plus cache']
+for metric in ['success', 'calls']:
+    by_task = []
+    for name in factor_names:
+        matrix = np.array([row[metric] for row in results[name]], dtype=float).reshape(n_tasks, repeats)
+        by_task.append(matrix.mean(axis=1))
+        print(metric, name, round(float(matrix.mean()), 4))
+    task_contrasts = interaction(*by_task)
+    task_ids = np.random.default_rng(1313).integers(n_tasks, size=(2000, n_tasks))
+    uncertainty = task_contrasts[task_ids].mean(axis=1)
+    print(metric, 'interaction:', round(float(task_contrasts.mean()), 4),
+          'task-bootstrap interval:', np.quantile(uncertainty, [0.025, 0.975]).round(4))
 ```
 
-:::{dropdown} Hint and acceptance checks
-Return `both - retry_only - cache_only + no_retry_no_cache`. Compute within-task contrasts before task-level uncertainty estimation. Hold the task set and retry budget fixed. A positive success interaction is not necessarily a positive utility interaction after costs.
-:::
+Each row of the reshaped matrix is one task and each column one repeated trajectory. Compute the paired contrast before sampling rows. The resulting intervals concern this simulator and task sampling scheme; they do not include uncertainty about whether the simulator resembles an application.
+
+**3. Extend one factor.** Change stale-cache prevalence on a fresh development simulation while holding all four intervention settings fixed. Report both success and cost interactions. A positive success interaction need not imply a positive utility interaction.
+
+**Submission and rubric.** Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.
+
 
 ### Continue with the implemented system
 

@@ -12,7 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/12-agents.ipynb)
 
-**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+**Python support:** Read [A.9: JSON and validation](../appendices/a-python-pytorch.md#a9--structured-requests-validation-and-errors) and [A.11: local modules and kernels](../appendices/a-python-pytorch.md#a11--files-local-modules-and-a-fresh-notebook-kernel) before the implementation. Use **Show all code** while working.
+
 
 An agent repeatedly observes, selects an action, and updates its state. A language model can propose the actions, but a separate program must decide which actions are valid and execute them. We will build that loop using two narrow tools and a transparent rule-based policy. This isolates the mechanics without an API dependency. The policy is explicitly **not** an LLM; Appendix B performs the real-model replacement experiment, while the validation and execution boundary stays in place.
 
@@ -268,7 +269,7 @@ This test succeeds because the policy is programmed to ignore the note for actio
 
 Working memory stores the current task's observations. Persistent memory stores information across tasks and introduces questions about staleness, relevance, and privacy. More memory can supply useful evidence or repeat an old mistake. A memory ablation should compare the same tasks and budget with and without the memory feature.
 
-To replace the rule policy, provide a language model with the user request, the tool schemas, and the observable history. Require a proposal in the same action/finish structure. Parse it, validate it, and pass only valid actions to the dispatcher. Count malformed outputs and repair attempts as part of the evaluation rather than discarding them. Keep the deterministic policy as a baseline for tasks with a known workflow.
+To replace the rule policy, provide a language model with the user request, the tool schemas, and the observable history. Use the explicit migration below before connecting the shared live proposal schema; keep the resulting schema fixed across policies. Parse it, validate it, and pass only valid actions to the dispatcher. Count malformed outputs and repair attempts as part of the evaluation rather than discarding them. Keep the deterministic policy as a baseline for tasks with a known workflow.
 
 :::{admonition} Example 12.4 · A memory summary can lose the task state
 :class: course-example
@@ -282,28 +283,67 @@ To replace the rule policy, provide a language model with the user request, the 
 :::
 
 
-### Coding and experiment practice · Validate a real model proposal
+### Migrate the teaching loop to the shared live interface
 
-**Task.** Run the Appendix B agent. Add an unknown tool, an extra argument, a summarize-before-lookup action, and a fabricated finish value to the validator tests.
+The early loop makes state transitions visible with a nested `kind/action` proposal and a numeric list. Before introducing an LLM, strengthen the contract and use the same implementation for programmed and LLM policies:
 
-**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+| Boundary | Early mechanics example | Shared live implementation |
+|:--|:--|:--|
+| Proposal | `kind` plus nested `action` or finish fields | Always `tool` and `arguments` |
+| Summarize input | Proposed `values` and `statistic` | Observed `dataset` and `statistic` |
+| Provenance | Rule copies the lookup values | Executor stores values; model cannot replace them |
+| Finish | Rule emits its answer | Value must match a computed result |
+| Unknown name | Stops on lookup error | Optional registry `resolve`, then new lookup |
+| Trace | Tool actions only | Every decision, including errors and finish |
 
-```python
-def rejected(call):
-    try:
-        call()
-    except (ValueError, TypeError):
-        return True
-    return False
+The shared `execute` function in `labs/llm_lab.py` enforces lookup-before-summarize; `labs/guided_systems.py` adds the registry and decision loop. The practice below and [live lab 3](../appendices/c-guided-live-labs.md#c3--observe-a-decision-change-after-failure) use that same loop. These are explicit interface changes, so do not paste the old nested proposal into the new runner.
+
+Read a policy step as: receive visible history, propose one object, parse it, validate its allowed action and arguments, execute within budget, append the resulting observation. The next decision sees errors as well as successes. The executor cannot check the full natural-language intent merely by validating the action schema; evaluate that separately.
+
+### Coding and experiment practice · Follow a shared contract through a failed lookup
+
+**1. Predict before running.** What new information must a policy obtain after a lookup returns an unknown-name error?
+
+**2. Implement and check.** Run the current shared executor with a fixed workflow and a programmed recovery policy. These are explicit deterministic baselines. Live lab 3 passes the real LLM through the same runner. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
+
+```{code-cell} python
+import os
+import sys
+from pathlib import Path
+course_root = Path(os.environ.get('GENAI_COURSE_ROOT', Path.cwd()))
+sys.path.insert(0, str(course_root))
+from labs.guided_systems import run_decisions, rule_policy, dispatch as shared_dispatch
+
+branch_question = 'Look up spring_pilot and report its median.'
+fixed_branch = run_decisions(rule_policy('spring_pilot', 'median'), branch_question)
+recovered = run_decisions(rule_policy('spring_pilot', 'median', recover=True), branch_question)
+assert fixed_branch['status'] == 'abstained'
+assert recovered['answer'] == 1.5
+assert recovered['result']['dataset'] == 'pilot_b'
+assert recovered['decisions'] == 5 and recovered['tool_calls'] == 4
+for row in recovered['trace']:
+    print(row['decision'], row['action']['tool'], row['status'])
+unknown_alias = run_decisions(rule_policy('missing_pilot', 'median', recover=True), 'Unknown alias')
+assert unknown_alias['status'] == 'abstained'
+state = {'observed': {}, 'results': []}
+try:
+    shared_dispatch({'tool': 'summarize', 'arguments': {'dataset': 'pilot_b', 'statistic': 'median'}}, state)
+except ValueError:
+    print('Summarize-before-lookup rejected.')
+else:
+    raise AssertionError('Unobserved data were accepted')
 ```
 
-:::{dropdown} Hint and acceptance checks
-Each invalid proposal must be rejected before any unauthorized operation. A finish value must match a computed result, but a correct number can still describe the wrong dataset or statistic; evaluate intent separately. Record failures, do not silently replace the model policy by the rule baseline.
-:::
+Keep this notebook in the cloned repository, or set `GENAI_COURSE_ROOT`, as explained in A.11. The alias is resolved by a registry tool. A policy cannot authorize invented numerical values; summarization reads the stored observation. The baseline is given structured intent, so its comparison isolates action sequencing rather than natural-language interpretation.
+
+**3. Extend one factor.** Run live lab 3 and compare the actual model trace. Add an extra argument, unknown tool and fabricated finish. Require rejection before a result is accepted. Report action decisions and tool attempts separately, including failed attempts.
+
+**Submission and rubric.** Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.
+
 
 ### Continue with the implemented system
 
-[Appendix B, B.5](../appendices/b-real-llm-systems.md) replaces the rule policy with a real instruction model. Compare direct answers, an LLM parser plus fixed workflow, and an LLM-selected action loop. Raw proposals, validation failures, tool observations, and budget exhaustion are preserved. This is the executable model-policy extension introduced above.
+[Live lab 3](../appendices/c-guided-live-labs.md#c3--observe-a-decision-change-after-failure) provides the guided real-model extension; Appendix B, B.5 retains the earlier comparison. Compare direct answers, an LLM parser plus fixed workflow, and an LLM-selected action loop. Raw proposals, validation failures, tool observations, and budget exhaustion are preserved. This is the executable model-policy extension introduced above.
 
 ## 12.7 · Exercises
 

@@ -12,7 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/09-adaptation-alignment.ipynb)
 
-**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+**Python support:** Review [A.5–A.7: tensors, classes and updates](../appendices/a-python-pytorch.md#a5--tensors-and-one-derivative). These chapters form the optional generative-model/adaptation branch after Chapter 6. Use **Show all code** while working.
+
 
 Adaptation can change the conditioning information, some parameters, or all parameters. Preference learning adds another distinction: observations now describe comparisons between responses rather than necessarily providing a uniquely correct response. We will fit a low-rank update to a synthetic regression problem and then fit a small preference policy whose objective can be inspected directly.
 
@@ -260,20 +261,40 @@ Keep separate evaluations for task quality, instruction compliance, factual supp
 Record the base model, adaptation data, frozen parameters, trainable parameters, optimizer, checkpoint rule, and evaluation split. Prevent task-family leakage where paraphrases of the same underlying question appear in both training and testing. A comparison against an untuned baseline is informative only if the baseline receives an appropriate prompt and comparable evidence.
 
 
-### Coding and experiment practice · Check a low-rank update
+### Coding and experiment practice · Compare low-rank and full updates
 
-**Task.** Generate small A and B matrices, compute their product, and check its rank and trainable parameter count. Compare with a full matrix update under equal data and a declared optimization budget.
+**1. Predict before running.** For input width 12, output width 8 and rank 2, how many trainable entries are there? Does rank two constrain the full adapted weight?
 
-**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+**2. Implement and check.** Check rank and parameter count, then refit the low-rank and full update on identical data with 450 optimizer steps each. Keep rank choice separate from final test reporting. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
 
-```python
-def lora_parameter_count(d_in, d_out, rank):
-    return ...
+```{code-cell} python
+def lora_parameter_count(d_in, d_out, update_rank):
+    return update_rank * (d_in + d_out)
+
+assert lora_parameter_count(12, 8, 2) == 40
+fixture_A = torch.tensor([[1.], [2.], [3.]])
+fixture_B = torch.tensor([[1., -1.]])
+assert torch.linalg.matrix_rank(fixture_A @ fixture_B, atol=1e-6) == 1
+comparison_rows = []
+for seed in [91, 92, 93]:
+    for constrained in [False, True]:
+        torch.manual_seed(seed)
+        delta, train_error, test_error = fit_update(constrained)
+        count = lora_parameter_count(din, dout, rank) if constrained else din*dout
+        comparison_rows.append((seed, constrained, count, train_error, test_error))
+        if constrained:
+            assert torch.linalg.matrix_rank(delta, atol=1e-4) <= rank
+print('Seed / low rank / parameters / train MSE / test MSE')
+for row in comparison_rows:
+    print(row)
 ```
 
-:::{dropdown} Hint and acceptance checks
-Return `rank * (d_in + d_out)`. Check the numerical rank of `A @ B` is at most rank, using a declared tolerance. This constrains the update, not the rank of the original weight matrix plus update. The synthetic low-rank truth favors this constraint, so state that assumption in the comparison.
-:::
+`fit_update` uses the fixed training and test arrays defined above, creates a fresh optimizer, and performs the same declared number of steps. The seeds vary initialization, not training datasets; these repetitions cannot measure dataset-sampling uncertainty. The rank restriction applies to the update, not `W0 + update`.
+
+**3. Extend one factor.** On a new development experiment change the generating update from rank two to full rank. Keep data size, noise and optimization budgets fixed. Declare which setting favors the structural assumption. This numerical experiment is a bridge to LoRA, not a claim that a pretrained LLM was fine-tuned.
+
+**Submission and rubric.** Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.
+
 
 ## 9.7 · Exercises
 

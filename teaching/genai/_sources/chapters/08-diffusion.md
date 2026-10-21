@@ -12,7 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/08-diffusion.ipynb)
 
-**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+**Python support:** Review [A.5–A.7: tensors, classes and updates](../appendices/a-python-pytorch.md#a5--tensors-and-one-derivative). These chapters form the optional generative-model/adaptation branch after Chapter 6. Use **Show all code** while working.
+
 
 Diffusion models train a reverse process for a known noising mechanism. We will fit a one-dimensional denoiser to a two-component Gaussian mixture, then run an explicit reverse chain. The example is small enough that we can also calculate the true noisy density's score and compare it with the learned function.
 
@@ -278,21 +279,55 @@ A conditional denoiser receives additional information $c$, such as a class labe
 Our one-dimensional example explains noising, denoising, and sampling. It does not reproduce the architecture, latent compression, data scale, or perceptual evaluation of an image-generation system. The statistical questions remain: what distribution is modeled, what is conditioned on, and how is the generated distribution evaluated?
 
 
-### Coding and experiment practice · Diagnose score error by noise level
+### Coding and experiment practice · Diagnose score error at several noise levels
 
-**Task.** Evaluate the learned score against the available exact mixture score at three prespecified diffusion times. Report mean squared score error separately at each time.
+**1. Predict before running.** The mathematical times 1, 26 and 80 correspond to which zero-based Python indices?
 
-**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+**2. Implement and check.** Implement an exact score function taking both observations and a time index. Use fresh noisy observations with a separate evaluation seed; keep errors separate by time. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
 
-```python
+```{code-cell} python
+def mixture_score(x, time_index):
+    x = np.asarray(x).reshape(-1, 1)
+    a = float(alpha_bar[time_index])
+    means = np.array([-2., 2.]) * np.sqrt(a)
+    variance = 0.35**2 * a + 1 - a
+    log_weights = -0.5 * (x - means)**2 / variance
+    weights = np.exp(log_weights - log_weights.max(1, keepdims=True))
+    weights /= weights.sum(1, keepdims=True)
+    return (weights * (means-x) / variance).sum(1, keepdims=True)
+
 def score_mse(learned, exact):
-    assert learned.shape == exact.shape
-    return ...
+    if learned.shape != exact.shape:
+        raise ValueError('Scores must have the same observation and coordinate axes')
+    return float(np.mean((learned - exact)**2))
+
+assert score_mse(np.array([[1.], [3.]]), np.array([[0.], [1.]])) == 2.5
+assert np.allclose(mixture_score([[0.]], 25), 0)
 ```
 
-:::{dropdown} Hint and acceptance checks
-Return the mean of `(learned-exact)**2`. Generate fresh noisy evaluation observations independently of optimizer draws. Do not average unweighted across noise levels and then claim uniform quality: score scale changes with time. Plot both functions and identify where discrepancies occur.
-:::
+The first check has hand-computable squared errors 1 and 4, whose mean is 2.5. The second uses symmetry: the score at the mixture center is zero. Only after these fixtures pass do we compare a learned function with the oracle. In the next loop, `torch.full` repeats one time index for every observation, and `float32` matches the fitted network's weights.
+
+```{code-cell} python
+eval_rng = np.random.default_rng(808)
+score_rows = []
+for time_index in [0, 25, 79]:
+    a = float(alpha_bar[time_index])
+    clean = 2 * eval_rng.choice([-1., 1.], size=(1000, 1)) + 0.35 * eval_rng.normal(size=(1000, 1))
+    noisy = np.sqrt(a) * clean + np.sqrt(1-a) * eval_rng.normal(size=clean.shape)
+    inputs = torch.tensor(noisy, dtype=torch.float32)
+    with torch.no_grad():
+        estimated = -model(inputs, torch.full((len(inputs),), time_index)).numpy() / np.sqrt(1-a)
+    exact = mixture_score(noisy, time_index)
+    score_rows.append((time_index+1, score_mse(estimated, exact)))
+print('Mathematical time / fresh-observation score MSE:', score_rows)
+```
+
+The two mixture components have equal prior weights and equal variance at each time, so the omitted normalization constants cancel in the responsibilities. `reshape(-1, 1)` prevents an unintended outer difference between vectors. The evaluation sample is independent of optimizer draws.
+
+**3. Extend one factor.** Plot learned and exact scores at the same three times. Identify whether errors occur between modes or in the tails. Do not infer uniform quality from a single average across times with different score scales.
+
+**Submission and rubric.** Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.
+
 
 ## 8.6 · Exercises
 

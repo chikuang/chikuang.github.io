@@ -12,7 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/14-capstone.ipynb)
 
-**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+**Python support:** Read [A.9: JSON and validation](../appendices/a-python-pytorch.md#a9--structured-requests-validation-and-errors) and [A.11: local modules and kernels](../appendices/a-python-pytorch.md#a11--files-local-modules-and-a-fresh-notebook-kernel) before the implementation. Use **Show all code** while working.
+
 
 This chapter completes a worked project: a bounded simulation assistant that investigates the coverage of an approximate confidence interval. It receives a structured request, runs an approved simulation, and returns an evidence-based report with Monte Carlo uncertainty. We compare it with a nominal-coverage baseline on scenarios excluded from development.
 
@@ -291,6 +292,12 @@ For normal scenarios the reference is exact, so only the $\theta(1-\theta)/R$ te
 
 [Appendix B, B.6](../appendices/b-real-llm-systems.md) now implements this extension with a real model. It records natural-language translation, bounded simulation, generated reporting, and rejection of unsupported requests. Inspect both successful and failed traces before extending the task set.
 
+### A first complete live milestone
+
+[Live lab 4](../appendices/c-guided-live-labs.md#c4--finish-a-bounded-workflow-before-adding-generated-prose) runs the local LLM to interpret each request, validates it, calls the numerical coverage tool, and produces a declared deterministic report. This is a complete bounded workflow with an actual LLM component. It retains interpretation errors and schema failures, including the unsupported-family case, rather than switching to a correct request behind the scenes.
+
+The two supported scenarios in the recorded run complete successfully. Inspect the parsed family and sample size before looking at the coverage estimate. The flat live-tool output carries the same fields as this chapter's nested request/result object. The separate LLM-written reporting experiment below remains an additional component to evaluate; the template is never silently substituted for a failed generated report.
+
 ## 14.6 · Add a generative component as an ablation
 
 A bounded LLM extension can translate a natural-language question into `Request` and produce a narrative from the resulting JSON. Evaluate these stages separately:
@@ -341,21 +348,39 @@ A final project report should state the question and task population, describe t
 For this worked example, a supported conclusion is narrow: the assistant executes a bounded coverage simulation and reports its numerical output faithfully. Any advantage over the nominal baseline is conditional on the evaluated scenarios and simulation budget. The lab has not demonstrated general natural-language planning or safe autonomous statistical analysis.
 
 
-### Coding and experiment practice · Validate the whole request-to-report chain
+### Coding and experiment practice · Verify request, computation and report separately
 
-**Task.** Use Appendix B to compare the natural-language request, parsed family and sample size, tool result, and reported estimate. Include an unsupported distribution and a deliberately mistranslated request.
+**1. Predict before running.** Can a correct normal-family simulation be a failed response to an exponential-family request?
 
-**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+**2. Implement and check.** Compare structured report fields with tool evidence at a declared three-decimal precision, then separately compare interpreted intent with the intended task. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
 
-```python
-def numeric_fields_match(report, tool_result):
-    # Require matching family, n, and estimate with a declared precision.
-    return ...
+```{code-cell} python
+def numeric_fields_match(report, tool_result, digits=3):
+    request = tool_result['request']
+    return (report.get('family') == request['family']
+            and type(report.get('n')) is int and report['n'] == request['n']
+            and type(report.get('estimate')) in (int, float)
+            and np.isfinite(report['estimate'])
+            and round(report['estimate'], digits) == round(tool_result['estimate'], digits))
+
+fixture_tool = {'request': {'family': 'normal', 'n': 12}, 'estimate': 0.91234}
+fixture_report = {'family': 'normal', 'n': 12, 'estimate': 0.912}
+assert numeric_fields_match(fixture_report, fixture_tool)
+assert not numeric_fields_match(dict(fixture_report, n=True), fixture_tool)
+assert not numeric_fields_match(dict(fixture_report, estimate=0.95), fixture_tool)
+intended = {'family': 'exponential', 'n': 12}
+intent_matches = fixture_tool['request'] == intended
+assert not intent_matches  # Correct arithmetic cannot repair the wrong task.
+print('Numeric faithfulness:', numeric_fields_match(fixture_report, fixture_tool))
+print('Original request preserved:', intent_matches)
 ```
 
-:::{dropdown} Hint and acceptance checks
-Compare family and n exactly, and the estimate at the declared display precision. Then separately check the parsed request against the original intended task. Numerical faithfulness cannot repair a mistranslation. Verify normal-family tool output against the analytic reference and inspect narrative claims manually.
-:::
+This fixture isolates a numeric reporting rule. It does not judge the prose, and it deliberately shows that the intent check can fail while the numeric check passes. The live workflow in Appendix C uses the same distinction with actual model interpretations.
+
+**3. Extend one factor.** Complete live lab 4, including its unsupported family. Then compare a separately labeled LLM-written report with the deterministic report from identical tool evidence. Require correct interpretation, numerical agreement and statistically supported narrative for full success; retain each stage failure.
+
+**Submission and rubric.** Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.
+
 
 ## 14.8 · Exercises
 

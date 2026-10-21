@@ -12,7 +12,8 @@ kernelspec:
 
 [Download the executed notebook](https://chikuang.github.io/teaching/genai/notebooks/11-evaluation-uncertainty.ipynb)
 
-**Python support:** [Appendix A](../appendices/a-python-pytorch.md) explains syntax, shapes, classes, gradients, and validation in small executable steps. Use the page’s **Show all code** control while working through the lab.
+**Python support:** Read [A.9: JSON and validation](../appendices/a-python-pytorch.md#a9--structured-requests-validation-and-errors) and [A.11: local modules and kernels](../appendices/a-python-pytorch.md#a11--files-local-modules-and-a-fresh-notebook-kernel) before the implementation. Use **Show all code** while working.
+
 
 An evaluation begins with a target population and a loss, not with a leaderboard. We will compare paired system outcomes, estimate uncertainty by resampling questions, examine calibration and abstention, and construct finite-label conformal prediction sets. All numerical outcomes in this chapter are simulated; they illustrate statistical procedures rather than measure any commercial or pretrained model.
 
@@ -273,22 +274,41 @@ A set of finite class labels is not a set of all semantically correct free-text 
 :::
 
 
-### Coding and experiment practice · Preserve pairing
+### Coding and experiment practice · Preserve pairing and numeric meaning
 
-**Task.** Implement a paired bootstrap of question-level score differences. Use a synthetic example containing both gains and losses, then inspect the small real-model table from Appendix B.
+**1. Predict before running.** For A=[True, False, True] and B=[False, True, True], what signed differences represent losses and gains?
 
-**Submission.** Keep your implementation, a check of the stated invariant, and three sentences distinguishing what the result demonstrates from what it cannot establish. The skeleton below is intentionally incomplete; it is not an automatically executed example.
+**2. Implement and check.** Convert Boolean scores to floating-point numbers before subtraction. Validate paired, nonempty one-dimensional inputs, then return a vector of bootstrap mean differences. Try your own implementation before expanding the reference code below. Replace the reference function body with your version and rerun the acceptance checks in a fresh kernel.
 
-```python
+```{code-cell} python
 def paired_bootstrap(a, b, seed=11, draws=2000):
+    a, b = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
+    if a.ndim != 1 or a.shape != b.shape or len(a) == 0:
+        raise ValueError('Use nonempty paired one-dimensional score vectors')
+    if not np.isfinite(a).all() or not np.isfinite(b).all():
+        raise ValueError('Scores must be finite')
+    difference = b - a
     rng = np.random.default_rng(seed)
-    # Resample indices of complete pairs, not systems independently.
-    return ...
+    indices = rng.integers(len(a), size=(draws, len(a)))
+    return difference[indices].mean(axis=1)
+
+fixture_a = np.array([True, False, True])
+fixture_b = np.array([False, True, True])
+assert np.array_equal(fixture_b.astype(float)-fixture_a.astype(float), [-1., 1., 0.])
+assert np.all(paired_bootstrap(fixture_a, fixture_a) == 0)
+bootstrap_fixture = paired_bootstrap(fixture_a, fixture_b)
+assert bootstrap_fixture.shape == (2000,)
+assert np.isfinite(bootstrap_fixture).all()
+print('Signed paired differences:', fixture_b.astype(float)-fixture_a.astype(float))
+print('Fixture bootstrap range:', bootstrap_fixture.min(), bootstrap_fixture.max())
 ```
 
-:::{dropdown} Hint and acceptance checks
-Set `difference = np.asarray(b)-np.asarray(a)`, sample an index array of shape `(draws, len(a))`, and average indexed differences along axis 1. Verify identical a and b give zero in every draw. The handful of authored Appendix B tasks do not justify population confidence claims; expand the sampling design before using inferential intervals.
-:::
+NumPy does not support Boolean subtraction; exclusive-or would erase the sign and therefore answer the wrong question. Each sampled index retains a whole A/B pair. The three-case fixture verifies mechanics only; it does not justify a useful population confidence interval.
+
+**3. Extend one factor.** Apply the function to the chapter synthetic experiment containing gains and losses. For real outputs, first specify the task population and sampling unit. The few authored live-lab cases support descriptive comparisons, not population intervals. Repeated generations of one question remain one task cluster.
+
+**Submission and rubric.** Submit the function and its checks, the requested comparison table, and three sentences naming the target, interpreting the result, and limiting the claim. Passing a deterministic fixture verifies the stated calculation; a favorable stochastic result is not required. Retain unexpected results and diagnose them rather than changing seeds until a preferred ranking appears.
+
 
 ### Continue with the implemented system
 
