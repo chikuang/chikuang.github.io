@@ -417,7 +417,7 @@ window.Quarto = {
   <li><a href="#sec-ch6-leverage" id="toc-sec-ch6-leverage" class="nav-link" data-scroll-target="#sec-ch6-leverage"><span class="header-section-number">6.2</span> High leverage: unusual predictor values</a></li>
   <li><a href="#sec-ch6-outliers" id="toc-sec-ch6-outliers" class="nav-link" data-scroll-target="#sec-ch6-outliers"><span class="header-section-number">6.3</span> Outliers: unusual responses given the predictors</a></li>
   <li><a href="#sec-ch6-cook" id="toc-sec-ch6-cook" class="nav-link" data-scroll-target="#sec-ch6-cook"><span class="header-section-number">6.4</span> Influence: changes in estimates and Cook’s distance</a></li>
-  <li><a href="#sec-ch6-investigate" id="toc-sec-ch6-investigate" class="nav-link" data-scroll-target="#sec-ch6-investigate"><span class="header-section-number">6.5</span> Investigate a flag and report the sensitivity</a></li>
+  <li><a href="#sec-ch6-investigate" id="toc-sec-ch6-investigate" class="nav-link" data-scroll-target="#sec-ch6-investigate"><span class="header-section-number">6.5</span> Decide what is unusual, influential, and worth investigating</a></li>
   <li><a href="#sec-ch6-summary" id="toc-sec-ch6-summary" class="nav-link" data-scroll-target="#sec-ch6-summary"><span class="header-section-number">6.6</span> Summary</a></li>
   <li><a href="#sec-ch6-practice" id="toc-sec-ch6-practice" class="nav-link" data-scroll-target="#sec-ch6-practice"><span class="header-section-number">6.7</span> Practice Problems</a></li>
   </ul>
@@ -482,7 +482,7 @@ window.Quarto = {
 <p><span class="theorem-title"><strong>Example 6.1 (Three Points, Three Different Stories)</strong></span> <strong>Look at the lines first.</strong> Every panel starts with the same six green observations, whose fitted line is <span class="math inline">\(\hat y=2+x\)</span>. We add <strong>one orange point at a time</strong>. The dashed gray line omits that point; the solid purple line includes it. Compare the point’s vertical position, its horizontal position, and how much the line moves.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-ch6-influence-stories" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Three panels compare a dashed baseline line with a solid line after adding one point. A adds (3.5, 10.5) near the predictor center and shifts the line upward. B adds (10, 12) on the baseline line and the lines coincide. C adds (10, 4), pulling the right side of the line downward.">
+<div id="fig-ch6-influence-stories" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Three panels compare a dashed baseline line with a solid line after adding one point. A adds (3.5, 10.5) near the predictor center and shifts the line upward. B adds (10, 12) on the baseline line and the lines coincide. C adds (10, 4), pulling the right side of the line downward." data-fig-pos="H">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ch6-influence-stories-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="06_files/figure-html/fig-ch6-influence-stories-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Three panels compare a dashed baseline line with a solid line after adding one point. A adds (3.5, 10.5) near the predictor center and shifts the line upward. B adds (10, 12) on the baseline line and the lines coincide. C adds (10, 4), pulling the right side of the line downward." width="672">
@@ -828,34 +828,50 @@ U_i=\frac{(\nu-1)s_{(-i)}^2}{\sigma^2}\sim\chi^2_{\nu-1}.
 \]</span></p>
 <p>The internal residual <span class="math inline">\(r_i\)</span> uses the full-fit <span class="math inline">\(s\)</span>, which shares the contribution from observation <span class="math inline">\(i\)</span> with its numerator. This independence argument does not apply to <span class="math inline">\(r_i\)</span>; its bound <span class="math inline">\(|r_i|\le\sqrt{\nu}\)</span> also rules out an exact t distribution, whose support is unbounded.</p>
 </div>
-<p><strong>Compare the same three added points.</strong></p>
+<p><strong>Compare the same three added points.</strong> Each row uses its own augmented fit. The <span class="math inline">\(s\)</span> column uses all seven observations; <span class="math inline">\(s_{(-i)}\)</span> comes from refitting after removing that row’s added point. The last column is the externally studentized residual.</p>
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 19%">
+<col style="width: 8%">
+<col style="width: 14%">
+<col style="width: 24%">
+<col style="width: 23%">
+</colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: center;">Point</th>
-<th style="text-align: center;">Residual</th>
-<th style="text-align: center;">Standardized</th>
-<th style="text-align: center;">Externally studentized</th>
+<th style="text-align: center;">Residual <span class="math inline">\(e_i\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(s\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(s_{(-i)}\)</span></th>
+<th style="text-align: center;">Standardized <span class="math inline">\(r_i\)</span></th>
+<th style="text-align: center;">Studentized <span class="math inline">\(t_i\)</span></th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td style="text-align: center;">A</td>
 <td style="text-align: center;">4.286</td>
+<td style="text-align: center;">2.078</td>
+<td style="text-align: center;">0.200</td>
 <td style="text-align: center;">2.228</td>
 <td style="text-align: center;">23.146</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">B</td>
 <td style="text-align: center;">0.000</td>
+<td style="text-align: center;">0.179</td>
+<td style="text-align: center;">0.200</td>
 <td style="text-align: center;">0.000</td>
 <td style="text-align: center;">0.000</td>
 </tr>
 <tr class="odd">
 <td style="text-align: center;">C</td>
 <td style="text-align: center;">-2.234</td>
+<td style="text-align: center;">1.899</td>
+<td style="text-align: center;">0.200</td>
 <td style="text-align: center;">-2.226</td>
 <td style="text-align: center;">-21.138</td>
 </tr>
@@ -949,29 +965,34 @@ r_i^2=\frac{e_i^2}{s^2(1-h_{ii})}.
 </div>
 </section>
 <section id="sec-ch6-investigate" class="level2" data-number="6.5">
-<h2 data-number="6.5" class="anchored" data-anchor-id="sec-ch6-investigate"><span class="header-section-number">6.5</span> Investigate a flag and report the sensitivity</h2>
-<p>A diagnostic flag starts an investigation. It is not an instruction to remove a row.</p>
-<ol type="1">
-<li><strong>Check the observation.</strong> Verify units, transcription, measurement conditions, and whether it belongs to the population being studied. Correct a confirmed error from the original record when possible.</li>
-<li><strong>Read the three measures together.</strong> Use the residual to assess the response discrepancy, leverage to assess predictor position, and Cook’s distance to assess the change in fit.</li>
-<li><strong>Refit the same model with and without the point.</strong> Compare the coefficients, uncertainty, and predictions that answer the scientific question. Keep both results available.</li>
-<li><strong>Investigate the model as well as the data.</strong> A valid observation may reveal an omitted group, an inadequate mean function, or a different error pattern. Several unusual points can also mask one another in single-case diagnostics.</li>
-<li><strong>Report what changes and why.</strong> Explain any exclusion using evidence. If a valid point materially changes the conclusion, report that sensitivity rather than silently choosing the more convenient fit.</li>
-</ol>
-<div class="callout callout-style-default callout-important callout-titled" title="Investigate a flag; do not delete by a cutoff">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>Investigate a flag; do not delete by a cutoff
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Values such as <span class="math inline">\(|t_i|&gt;2\)</span>, <span class="math inline">\(h_{ii}&gt;2p/n\)</span>, or <span class="math inline">\(D_i&gt;4/n\)</span> are rough <strong>screening guides</strong>, not universal tests or deletion rules. Check units, transcription, measurement conditions, and omitted structure; a valid unusual observation may be scientifically valuable. Compare fits and relevant predictions with and without a flagged case, and explain any exclusion. Inspect related groups of observations too: several unusual cases can mask one another in single-case diagnostics.</p>
-</div>
-</div>
-<p>For the small example, a concrete report is: “Adding C changes the estimated slope from 1.000 to 0.170 and the fitted mean at <span class="math inline">\(x=6\)</span> from 8.000 to 5.553. C has high leverage and Cook’s distance 6.395. This fit is sensitive to C; whether C should be corrected or excluded requires information about how it was observed.”</p>
+<h2 data-number="6.5" class="anchored" data-anchor-id="sec-ch6-investigate"><span class="header-section-number">6.5</span> Decide what is unusual, influential, and worth investigating</h2>
+<p>Make two separate judgments: <strong>is the response unusual under the model, and does the observation materially affect the fitted result?</strong> A point can satisfy both. A diagnostic flag tells us what to investigate; it does not by itself tell us to remove the observation.</p>
+<p><strong>1. Use a criterion that matches the question.</strong></p>
+<ul>
+<li><strong>Response outlier:</strong> inspect the externally studentized residual <span class="math inline">\(t_i\)</span> from <a href="#sec-ch6-outliers">Section 6.3</a>. A large <span class="math inline">\(|t_i|\)</span> indicates an unusual response given the predictors and model. The familiar <span class="math inline">\(|t_i|&gt;2\)</span> rule is only a rough screen; use the t-based rule below when making a formal outlier assessment.</li>
+<li><strong>High leverage:</strong> compare <span class="math inline">\(h_{ii}\)</span> with the average <span class="math inline">\(p/n\)</span>. The rule <span class="math inline">\(h_{ii}&gt;2p/n\)</span> flags unusual predictor positions for inspection. It does not establish a response outlier or actual influence.</li>
+<li><strong>Possible influence:</strong> inspect Cook’s distances and flag values that stand out, with <span class="math inline">\(D_i&gt;4/n\)</span> as one rough screening guide. <strong>Confirm the practical importance by comparing fits with and without the point.</strong> There is no universal significance cutoff for Cook’s distance, and a value below <span class="math inline">\(4/n\)</span> does not establish that a point is harmless.</li>
+</ul>
+<p><strong>A formal outlier check under the normal linear model.</strong> Let <span class="math inline">\(d=n-p-1\)</span> and let <span class="math inline">\(t_{d,q}\)</span> denote the <span class="math inline">\(q\)</span> quantile of the t distribution with <span class="math inline">\(d\)</span> degrees of freedom. Under the fixed, correctly specified normal model in <a href="#deriv-ch6-student-t">Section 6.3</a>, a two-sided level-<span class="math inline">\(\alpha\)</span> check for <strong>one pre-specified observation</strong> uses <span class="math inline">\(|t_i|&gt;t_{d,1-\alpha/2}\)</span>. If all <span class="math inline">\(n\)</span> observations are inspected, use a multiplicity adjustment. A Bonferroni rule controlling the probability of at least one false flag at at most <span class="math inline">\(\alpha\)</span> under the model is</p>
+<p><span class="math display">\[
+|t_i|&gt;t_{d,\,1-\alpha/(2n)}.
+\]</span></p>
+<p>Equivalently, compute the two-sided t p-value and multiply it by <span class="math inline">\(n\)</span>, capped at 1. This is the approach used by <a href="https://rdrr.io/cran/car/man/outlierTest.html"><code>car::outlierTest()</code></a>. Rejection is evidence of a response outlier <strong>relative to the specified model</strong>, not proof of a data error. Failure to reject does not prove that the observation is ordinary; poor model fit and multiple unusual points can hide one another.</p>
+<p><strong>Apply the rules to A, B, and C.</strong> Within each separate augmented dataset, <span class="math inline">\(n=7\)</span>, <span class="math inline">\(p=2\)</span>, and <span class="math inline">\(d=4\)</span>. At <span class="math inline">\(\alpha=0.05\)</span>, the pre-specified-point cutoff is 2.776, whereas inspecting all seven points gives a Bonferroni cutoff of <strong>5.068</strong>. The leverage and Cook screening values happen to be the same here: <span class="math inline">\(2p/n=4/n=\)</span> 0.571.</p>
+<ul>
+<li><strong>A is a response outlier with ordinary leverage.</strong> Its <span class="math inline">\(|t_A|=23.146\)</span> exceeds 5.068, while <span class="math inline">\(h_{AA}=0.143\)</span> is not high. Its <span class="math inline">\(D_A=0.414\)</span> does not cross the Cook screen, but <a href="#sec-ch6-influence">Section 6.1</a> shows changes in the intercept and noise estimate. Report those effects; do not conclude that A has no impact merely because it does not cross that screen.</li>
+<li><strong>B has high leverage but is not a response outlier and does not change the fitted mean.</strong> Its <span class="math inline">\(h_{BB}=0.721\)</span> is high, but <span class="math inline">\(t_B=0\)</span> and <span class="math inline">\(D_B=0\)</span>. It still affects precision. If its measurements and membership in the target population are valid, its high leverage alone is no reason to exclude it.</li>
+<li><strong>C is both a response outlier and influential, with high leverage.</strong> Its <span class="math inline">\(|t_C|=21.138\)</span> exceeds 5.068, <span class="math inline">\(h_{CC}=0.721\)</span>, and <span class="math inline">\(D_C=6.395\)</span>. Omitting C changes the slope from 0.170 back to 1.000 and the fitted mean at <span class="math inline">\(x=6\)</span> from 5.553 back to 8.000. The observed change in the fit confirms the influence suggested by Cook’s distance.</li>
+</ul>
+<p><strong>2. Quantify influence for the question being answered.</strong> Refit the same model with and without each flagged point. Compare the relevant coefficients, standard errors or confidence intervals, and predictions at the same predictor values. State the size of the change in the original units and whether it alters a scientific conclusion or decision. A small effect on one slope does not imply a small effect on every coefficient, prediction, or uncertainty estimate. Single-case deletion can also miss the joint effect of several unusual observations.</p>
+<p><strong>3. Decide what to do using evidence about the data and model.</strong></p>
+<ul>
+<li><strong>Confirmed recording or measurement error:</strong> correct it from the original record, then refit and repeat the diagnostics. If it cannot be recovered and is unusable, document the data-quality reason for excluding it.</li>
+<li><strong>Observation outside the intended population or study protocol:</strong> apply the same justified eligibility rule to every observation, and report the exclusion. Do not invent a rule because a result is inconvenient.</li>
+<li><strong>Valid but unusual observation:</strong> retain it in the main analysis. If it materially changes the result, also report the analysis without it as a sensitivity check and explain the difference. A small p-value or large Cook’s distance alone is not a reason to delete valid data.</li>
+<li><strong>Valid observations exposing an inadequate model:</strong> investigate the mean function, error pattern, and omitted structure. Revise the model when scientifically justified and repeat the diagnostics; <a href="./07.html">Chapter 7</a> develops transformations and model terms. Do not try to repair a systematic model problem by removing individual rows.</li>
+</ul>
+<p><strong>4. Report the decision and the sensitivity.</strong> For example: “C has externally studentized residual <span class="math inline">\(-21.138\)</span> and Cook’s distance 6.395. With C, the slope is 0.170 and the fitted mean at <span class="math inline">\(x=6\)</span> is 5.553; without C, they are 1.000 and 8.000. If the record is verified as valid and eligible, we retain C and report both fits because the conclusion is sensitive to it.” State what was checked, what was retained, corrected, or excluded, and why.</p>
 </section>
 <section id="sec-ch6-summary" class="level2" data-number="6.6">
 <h2 data-number="6.6" class="anchored" data-anchor-id="sec-ch6-summary"><span class="header-section-number">6.6</span> Summary</h2>
@@ -1011,7 +1032,7 @@ r_i^2=\frac{e_i^2}{s^2(1-h_{ii})}.
 </tr>
 </tbody>
 </table>
-<p>Use <strong>all three questions</strong>, then investigate the data and report sensitivity. <a href="./07.html">Chapter 7</a> considers how to change the functional form and select model terms when developing a regression model.</p>
+<p>Follow <a href="#sec-ch6-investigate">Section 6.5</a>: <strong>screen, verify the data, compare fits, act on evidence, and report sensitivity</strong>. Outlier evidence concerns the response under the model; influence concerns changes in the fitted result. <a href="./07.html">Chapter 7</a> considers how to revise the functional form and select model terms.</p>
 </section>
 <section id="sec-ch6-practice" class="level2" data-number="6.7">
 <h2 data-number="6.7" class="anchored" data-anchor-id="sec-ch6-practice"><span class="header-section-number">6.7</span> Practice Problems</h2>
