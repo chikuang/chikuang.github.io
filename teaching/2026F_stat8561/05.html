@@ -485,23 +485,37 @@ window.Quarto = {
 </div>
 <section id="sec-ch5-adjusted" class="level2" data-number="5.1">
 <h2 data-number="5.1" class="anchored" data-anchor-id="sec-ch5-adjusted"><span class="header-section-number">5.1</span> Multiple regression and adjusted interpretation</h2>
-<div id="def-ch5-adjusted-coefficient" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 5.1 (Adjusted Regression Coefficient)</strong></span> For the additive mean model <span class="math inline">\(\mu(\mathbf x)=\mathbb E(Y\mid\mathbf x)=\beta_0+\sum_{\ell=1}^k\beta_\ell x_\ell\)</span>, choose <span class="math inline">\(j\in\{1,\ldots,k\}\)</span>. Then <span class="math inline">\(\beta_j\)</span> is the mean-response difference for a one-unit increase in <span class="math inline">\(x_j\)</span>, <strong>holding the other predictors fixed</strong>:</p>
+<p><a href="./04.html#def-regression-parameter-meaning">Chapter 4</a> used an additive model with two predictors. We now make the word <strong>additive</strong> explicit and connect the mean function to the matrix notation from Chapters 1–2.</p>
+<div id="def-ch5-additive-linear-mean" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 5.1 (Additive Linear Mean Model)</strong></span> At predictor values <span class="math inline">\((x_1,\ldots,x_k)\)</span>, let <span class="math inline">\(\mu(x_1,\ldots,x_k)\)</span> denote the <strong>mean response</strong> at that predictor profile. An additive linear mean model specifies</p>
 <p><span class="math display">\[
-\mu(x_1,\ldots,x_j+1,\ldots,x_k)
--\mu(x_1,\ldots,x_j,\ldots,x_k)=\beta_j.
+\mu(x_1,\ldots,x_k)=\beta_0+\beta_1x_1+\cdots+\beta_kx_k.
 \]</span></p>
-<p><strong>Why does the difference equal the coefficient?</strong> With the other predictors fixed, <span class="math inline">\(C_j=\beta_0+\sum_{\ell\ne j}\beta_\ell x_\ell\)</span> is the same in both means. Thus the one-unit mean difference is</p>
-<p><span class="math display">\[
-\Delta_j
-=\bigl[C_j+\beta_j(x_j+1)\bigr]
--\bigl[C_j+\beta_jx_j\bigr]
-=\beta_j.
-\]</span></p>
-<p>The intercept and all unchanged predictor contributions cancel, leaving <span class="math inline">\(\beta_j[(x_j+1)-x_j]=\beta_j\)</span>. A change of <span class="math inline">\(h\)</span> units gives the mean difference <span class="math inline">\(h\beta_j\)</span> in this additive model.</p>
-<p>The intercept is the mean at <span class="math inline">\(\mathbf x=\mathbf 0\)</span>; see <a href="./04.html#def-regression-parameter-meaning">Chapter 4’s coefficient interpretation</a>.</p>
+<p><strong>Additive</strong> means that the intercept and the separate predictor contributions are added together. There are no interaction terms, such as <span class="math inline">\(\beta_{12}x_1x_2\)</span>: the contribution associated with changing one predictor does not depend on the values of the others. <strong>Linear</strong> means that each contribution here has the form <span class="math inline">\(\beta_jx_j\)</span>.</p>
 </div>
-<p><strong>Design matrix and parameter count.</strong> For <span class="math inline">\(n\)</span> observations and <span class="math inline">\(k\)</span> predictor columns, the model has one intercept column and <span class="math inline">\(k\)</span> predictor columns:</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Additivity concerns the mean function">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Additivity concerns the mean function
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Predictors may be correlated; additivity does <strong>not</strong> require their independence. More generally, a mean of the form <span class="math inline">\(\beta_0+\sum_j f_j(x_j)\)</span> is additive even when the separate functions are curved. Here we use <span class="math inline">\(f_j(x_j)=\beta_jx_j\)</span>. An interaction term couples predictors and changes this additive structure; Section 5.4 develops that extension.</p>
+</div>
+</div>
+<p><strong>Connection with the earlier notation.</strong> As in Chapters 1–2, first treat predictor values as fixed. For observation <span class="math inline">\(i\)</span>, write <span class="math inline">\(\mu_i=\mu(x_{i1},\ldots,x_{ik})\)</span> and</p>
+<p><span class="math display">\[
+Y_i=\mu_i+\varepsilon_i,
+\qquad
+\mu_i=\beta_0+\sum_{j=1}^k\beta_jx_{ij}
+=\mathbf x_i^\top\boldsymbol\beta,
+\qquad \mathbb E(\varepsilon_i)=0.
+\]</span></p>
+<p>Following <a href="./02_LSE.html">Chapter 2</a>, <span class="math inline">\(\mathbf x_i=(1,x_{i1},\ldots,x_{ik})\)</span> is the <strong>column vector including the intercept entry</strong>. Its transpose <span class="math inline">\(\mathbf x_i^\top=(1\;x_{i1}\;\cdots\;x_{ik})\)</span> is row <span class="math inline">\(i\)</span> of the design matrix. Thus <span class="math inline">\(\mu_i\)</span> is the systematic mean part, while <span class="math inline">\(\varepsilon_i\)</span> is the individual deviation from it.</p>
+<p><strong>Design matrix and parameter count.</strong> Stacking these rows gives the familiar matrix form:</p>
 <p><span class="math display">\[
 \mathbf X=
 \begin{pmatrix}
@@ -514,7 +528,24 @@ window.Quarto = {
 \boldsymbol\beta=(\beta_0,\beta_1,\ldots,\beta_k),
 \qquad p=k+1.
 \]</span></p>
-<p>We assume full column rank, so <span class="math inline">\(\operatorname{rank}(\mathbf X)=p\)</span>. Here <span class="math inline">\(k\)</span> counts <strong>predictor columns</strong>, not necessarily named variables: a factor or interaction can contribute several columns. In the tree model below, height and diameter give <span class="math inline">\(k=2\)</span> and <span class="math inline">\(p=3\)</span>.</p>
+<p>The mean vector is <span class="math inline">\(\boldsymbol\mu=(\mu_1,\ldots,\mu_n)=\mathbb E(\mathbf Y)=\mathbf X\boldsymbol\beta\)</span>, so <span class="math inline">\(\mathbf Y=\boldsymbol\mu+\boldsymbol\varepsilon=\mathbf X\boldsymbol\beta+\boldsymbol\varepsilon\)</span>. This is the same model as before, now written to show what each mean contains. If predictors are random, use the conditional statements <span class="math inline">\(\mathbb E(\mathbf Y\mid\mathbf X)=\mathbf X\boldsymbol\beta\)</span> and <span class="math inline">\(\mathbb E(\boldsymbol\varepsilon\mid\mathbf X)=\mathbf0\)</span>.</p>
+<p>We assume full column rank, so <span class="math inline">\(\operatorname{rank}(\mathbf X)=p\)</span>. Here <span class="math inline">\(k\)</span> counts <strong>predictor columns</strong>, not necessarily named variables: a factor can contribute several indicator columns. The tree model below has height and diameter, giving <span class="math inline">\(k=2\)</span> and <span class="math inline">\(p=3\)</span>. Later, adding interaction columns preserves the matrix form but changes the additive mean structure.</p>
+<div id="def-ch5-adjusted-coefficient" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 5.2 (Adjusted Regression Coefficient)</strong></span> In the additive linear mean model of <a href="#def-ch5-additive-linear-mean" class="quarto-xref">Definition&nbsp;<span>5.1</span></a>, choose <span class="math inline">\(j\in\{1,\ldots,k\}\)</span>. Then <span class="math inline">\(\beta_j\)</span> is the mean-response difference for a one-unit increase in <span class="math inline">\(x_j\)</span>, <strong>holding the other predictors fixed</strong>:</p>
+<p><span class="math display">\[
+\mu(x_1,\ldots,x_j+1,\ldots,x_k)
+-\mu(x_1,\ldots,x_j,\ldots,x_k)=\beta_j.
+\]</span></p>
+<p><strong>Why does the difference equal the coefficient?</strong> With the other predictors fixed, <span class="math inline">\(C_j=\beta_0+\sum_{\ell\ne j}\beta_\ell x_\ell\)</span> is the same in both means. Thus the one-unit mean difference is</p>
+<p><span class="math display">\[
+\Delta_j
+=\bigl[C_j+\beta_j(x_j+1)\bigr]
+-\bigl[C_j+\beta_jx_j\bigr]
+=\beta_j.
+\]</span></p>
+<p>The intercept and all unchanged predictor contributions cancel, leaving <span class="math inline">\(\beta_j[(x_j+1)-x_j]=\beta_j\)</span>. A change of <span class="math inline">\(h\)</span> units gives the mean difference <span class="math inline">\(h\beta_j\)</span> in this additive model.</p>
+<p>The intercept is the mean when <span class="math inline">\(x_1=\cdots=x_k=0\)</span>; see <a href="./04.html#def-regression-parameter-meaning">Chapter 4’s coefficient interpretation</a>.</p>
+</div>
 <div id="exm-ch5-tree-adjustment" class="theorem example">
 <p><span class="theorem-title"><strong>Example 5.1 (The Same Height Measurement, Two Comparisons)</strong></span> Return to the <a href="./04.html#exm-timber-volume">31 black cherry trees</a>. Compare the height coefficient with and without adjustment for diameter. As before, <code>Girth</code> records diameter in inches; <code>Height</code> is in feet and <code>Volume</code> in cubic feet.</p>
 <div class="cell">
@@ -586,7 +617,7 @@ Figure&nbsp;5.1: Dashed: height-only fit. Solid: adjusted mean at diameter 13 in
 <h2 data-number="5.2" class="anchored" data-anchor-id="sec-ch5-factor-coding"><span class="header-section-number">5.2</span> Categorical predictors are columns of a design matrix</h2>
 <p>Group labels have no numerical spacing. Coding unordered groups A, B, and C as 1, 2, and 3 and fitting one slope would impose equally spaced means.</p>
 <div id="def-ch5-treatment-coding" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 5.2 (Reference-Group Indicator Coding)</strong></span> For <span class="math inline">\(g\)</span> groups, use an intercept and <span class="math inline">\(g-1\)</span> indicators. With A as reference, define <span class="math inline">\(D_{Bi}=\mathbb 1\{G_i=\mathrm B\}\)</span> and <span class="math inline">\(D_{Ci}=\mathbb 1\{G_i=\mathrm C\}\)</span>. Then</p>
+<p><span class="theorem-title"><strong>Definition 5.3 (Reference-Group Indicator Coding)</strong></span> For <span class="math inline">\(g\)</span> groups, use an intercept and <span class="math inline">\(g-1\)</span> indicators. With A as reference, define <span class="math inline">\(D_{Bi}=\mathbb 1\{G_i=\mathrm B\}\)</span> and <span class="math inline">\(D_{Ci}=\mathbb 1\{G_i=\mathrm C\}\)</span>. Then</p>
 <p><span class="math display">\[
 \mathbb E(Y_i\mid G_i)=\beta_0+\beta_BD_{Bi}+\beta_CD_{Ci}.
 \]</span></p>
@@ -793,7 +824,7 @@ Figure&nbsp;5.2: Each cell represents 10 animals. Compare doses across a row and
 </div>
 <p>Both methods have 10 animals at each dose, allowing comparisons at the same observed dose.</p>
 <div id="def-ch5-additive-model" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 5.3 (Additive Continuous-by-Group Model)</strong></span> Let <span class="math inline">\(x\)</span> be dose, <span class="math inline">\(x_c=x-1\)</span>, and <span class="math inline">\(z=\mathbb 1\{\mathrm{OJ}\}\)</span>. The additive model is</p>
+<p><span class="theorem-title"><strong>Definition 5.4 (Additive Continuous-by-Group Model)</strong></span> Let <span class="math inline">\(x\)</span> be dose, <span class="math inline">\(x_c=x-1\)</span>, and <span class="math inline">\(z=\mathbb 1\{\mathrm{OJ}\}\)</span>. The additive model is</p>
 <p><span class="math display">\[
 \mu(x,z)=\beta_0+\beta_xx_c+\beta_gz.
 \]</span></p>
@@ -835,7 +866,7 @@ Figure&nbsp;5.2: Each cell represents 10 animals. Compare doses across a row and
 <section id="sec-ch5-interaction" class="level2" data-number="5.4">
 <h2 data-number="5.4" class="anchored" data-anchor-id="sec-ch5-interaction"><span class="header-section-number">5.4</span> Interactions and conditional comparisons</h2>
 <div id="def-ch5-interaction" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 5.4 (Continuous-by-Group Interaction)</strong></span> Add the product column <span class="math inline">\(x_cz\)</span>:</p>
+<p><span class="theorem-title"><strong>Definition 5.5 (Continuous-by-Group Interaction)</strong></span> Add the product column <span class="math inline">\(x_cz\)</span>:</p>
 <p><span class="math display">\[
 \mu(x,z)=\beta_0+\beta_xx_c+\beta_gz+\beta_{xg}x_cz.
 \]</span></p>
