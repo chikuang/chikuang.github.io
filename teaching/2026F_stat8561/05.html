@@ -1064,63 +1064,29 @@ Figure&nbsp;5.2: Each cell represents 10 animals. Compare doses across a row and
 </figcaption>
 </figure>
 </div>
-<div id="ch5-centering-dose" class="callout callout-style-default callout-note callout-titled" title="Why define centered dose as x_c = x - 1?">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Why define centered dose as x_c = x - 1?
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>We choose <strong>1 mg/day as a reference dose</strong> and let <span class="math inline">\(x_c=x-1\)</span> measure the difference from it, in mg/day:</p>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th style="text-align: center;">Actual dose <span class="math inline">\(x\)</span></th>
-<th style="text-align: center;">Centered dose <span class="math inline">\(x_c\)</span></th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;">0.5</td>
-<td style="text-align: center;">-0.5</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">1</td>
-<td style="text-align: center;">0</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">2</td>
-<td style="text-align: center;">1</td>
-</tr>
-</tbody>
-</table>
-<p>Thus <span class="math inline">\(x_c=0\)</span> means <strong>1 mg/day</strong>, and <span class="math inline">\(x_c=-0.5\)</span> means 0.5 mg/day, not a negative administered dose. A one-unit change in <span class="math inline">\(x_c\)</span> is still a one-mg/day change in <span class="math inline">\(x\)</span>; we shift the origin without changing the units.</p>
-<p><strong>Why choose 1?</strong> Both methods were observed at 1 mg/day, whereas zero dose was not observed. Using this reference lets the intercept describe a mean within the observed dose range instead of a mean extrapolated to zero dose. Another scientifically useful reference, such as 0.5 or 2 mg/day, could also be used; centering is optional, and the reference need not be the sample mean.</p>
-<p>With an intercept and the corresponding model terms retained, centering changes coefficient meanings but leaves fitted values, residuals, and SSE unchanged. In the additive model below only the intercept changes; <a href="#sec-ch5-interaction">Section 5.4</a> explains why a group coefficient also changes when there is an interaction.</p>
-</div>
-</div>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>ch5_tooth <span class="ot">&lt;-</span> datasets<span class="sc">::</span>ToothGrowth</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>ch5_tooth<span class="sc">$</span>supp <span class="ot">&lt;-</span> <span class="fu">factor</span>(ch5_tooth<span class="sc">$</span>supp, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"VC"</span>, <span class="st">"OJ"</span>))</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>ch5_tooth<span class="sc">$</span>dose_c <span class="ot">&lt;-</span> ch5_tooth<span class="sc">$</span>dose <span class="sc">-</span> <span class="dv">1</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>ch5_tooth<span class="sc">$</span>dose_f <span class="ot">&lt;-</span> <span class="fu">factor</span>(ch5_tooth<span class="sc">$</span>dose, <span class="at">levels =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">2</span>))</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ch5_tooth<span class="sc">$</span>supp) <span class="ot">&lt;-</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">contr.treatment</span>(<span class="fu">levels</span>(ch5_tooth<span class="sc">$</span>supp), <span class="at">base =</span> <span class="dv">1</span>)</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ch5_tooth<span class="sc">$</span>dose_f) <span class="ot">&lt;-</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">contr.treatment</span>(<span class="fu">levels</span>(ch5_tooth<span class="sc">$</span>dose_f), <span class="at">base =</span> <span class="dv">1</span>)</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="sc">!</span><span class="fu">anyNA</span>(ch5_tooth))</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>ch5_cell_summary <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  len <span class="sc">~</span> supp <span class="sc">+</span> dose, <span class="at">data =</span> ch5_tooth,</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">FUN =</span> <span class="cf">function</span>(y) <span class="fu">c</span>(<span class="at">n =</span> <span class="fu">length</span>(y), <span class="at">mean =</span> <span class="fu">mean</span>(y)))</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>ch5_summary_table <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(ch5_cell_summary[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>],</span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>                                 ch5_cell_summary<span class="sc">$</span>len)</span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(ch5_summary_table, <span class="at">digits =</span> <span class="dv">2</span>,</span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Method"</span>, <span class="st">"Dose (mg/day)"</span>, <span class="st">"n"</span>, <span class="st">"Mean length"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>ch5_tooth<span class="sc">$</span>dose_f <span class="ot">&lt;-</span> <span class="fu">factor</span>(ch5_tooth<span class="sc">$</span>dose, <span class="at">levels =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">2</span>))</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ch5_tooth<span class="sc">$</span>supp) <span class="ot">&lt;-</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">contr.treatment</span>(<span class="fu">levels</span>(ch5_tooth<span class="sc">$</span>supp), <span class="at">base =</span> <span class="dv">1</span>)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ch5_tooth<span class="sc">$</span>dose_f) <span class="ot">&lt;-</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">contr.treatment</span>(<span class="fu">levels</span>(ch5_tooth<span class="sc">$</span>dose_f), <span class="at">base =</span> <span class="dv">1</span>)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="sc">!</span><span class="fu">anyNA</span>(ch5_tooth))</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>ch5_cell_summary <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  len <span class="sc">~</span> supp <span class="sc">+</span> dose, <span class="at">data =</span> ch5_tooth,</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">FUN =</span> <span class="cf">function</span>(y) <span class="fu">c</span>(<span class="at">n =</span> <span class="fu">length</span>(y), <span class="at">mean =</span> <span class="fu">mean</span>(y)))</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>ch5_summary_table <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(ch5_cell_summary[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>],</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>                                 ch5_cell_summary<span class="sc">$</span>len)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(ch5_summary_table, <span class="at">digits =</span> <span class="dv">2</span>,</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Method"</span>, <span class="st">"Dose (mg/day)"</span>, <span class="st">"n"</span>, <span class="st">"Mean length"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1174,6 +1140,50 @@ Figure&nbsp;5.2: Each cell represents 10 animals. Compare doses across a row and
 </div>
 </div>
 <p>Both methods have 10 animals at each dose, allowing comparisons at the same observed dose.</p>
+<div id="ch5-centering-dose" class="callout callout-style-default callout-note callout-titled" title="Why define centered dose as $x_c = x - 1$?">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Why define centered dose as <span class="math inline">\(x_c = x - 1\)</span>?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>We choose <strong>1 mg/day as a reference dose</strong> and let <span class="math inline">\(x_c=x-1\)</span> measure the difference from it, in mg/day:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Actual dose <span class="math inline">\(x\)</span></th>
+<th style="text-align: center;">Centered dose <span class="math inline">\(x_c\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">0.5</td>
+<td style="text-align: center;">-0.5</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">1</td>
+</tr>
+</tbody>
+</table>
+<p>Thus <span class="math inline">\(x_c=0\)</span> means <strong>1 mg/day</strong>, and <span class="math inline">\(x_c=-0.5\)</span> means 0.5 mg/day, not a negative administered dose. A one-unit change in <span class="math inline">\(x_c\)</span> is still a one-mg/day change in <span class="math inline">\(x\)</span>; we shift the origin without changing the units.</p>
+<p><strong>Why choose 1?</strong> Both methods were observed at 1 mg/day, whereas zero dose was not observed. Using this reference lets the intercept describe a mean within the observed dose range instead of a mean extrapolated to zero dose. Another scientifically useful reference, such as 0.5 or 2 mg/day, could also be used; centering is optional, and the reference need not be the sample mean.</p>
+<p>With an intercept and the corresponding model terms retained, centering changes coefficient meanings but leaves fitted values, residuals, and SSE unchanged. In the additive model below only the intercept changes; <a href="#sec-ch5-interaction">Section 5.4</a> explains why a group coefficient also changes when there is an interaction.</p>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>ch5_tooth<span class="sc">$</span>dose_c <span class="ot">&lt;-</span> ch5_tooth<span class="sc">$</span>dose <span class="sc">-</span> <span class="dv">1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
 <div id="def-ch5-additive-model" class="theorem definition">
 <p><span class="theorem-title"><strong>Definition 5.4 (Additive Continuous-by-Group Model)</strong></span> Let <span class="math inline">\(x\)</span> be dose, <span class="math inline">\(x_c=x-1\)</span>, and <span class="math inline">\(z=\mathbb 1\{\mathrm{OJ}\}\)</span>. The additive model is</p>
 <p><span class="math display">\[
@@ -1205,7 +1215,7 @@ Figure&nbsp;5.2: Each cell represents 10 animals. Compare doses across a row and
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_add <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_c <span class="sc">+</span> supp, <span class="at">data =</span> ch5_tooth)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_add <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_c <span class="sc">+</span> supp, <span class="at">data =</span> ch5_tooth)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>The fitted mean is</p>
@@ -1213,18 +1223,87 @@ Figure&nbsp;5.2: Each cell represents 10 animals. Compare doses across a row and
 \widehat\mu(x,z)=15.336+9.764(x-1)+3.700z.
 \]</span></p>
 <p>At a fixed method, a one-mg/day increase corresponds to <strong>9.764</strong> more units of fitted mean length. At a fixed dose, OJ exceeds VC by <strong>3.700</strong> units. This model imposes a straight-line dose response and the same slope for both methods.</p>
+<div id="ch5-additive-fitted">
+<p><strong>Fitted values at the observed doses.</strong> For animal <span class="math inline">\(i\)</span>, the fitted value is <span class="math inline">\(\hat y_i=\widehat\mu(x_i,z_i)\)</span>. Animals with the same method and dose receive the same fitted value, although their observed lengths can differ. Compare the observed cell means with predictions from the fitted parallel lines:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>ch5_additive_fitted <span class="ot">&lt;-</span> ch5_summary_table[<span class="fu">c</span>(<span class="st">"supp"</span>, <span class="st">"dose"</span>, <span class="st">"mean"</span>)]</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>ch5_additive_fitted<span class="sc">$</span>supp <span class="ot">&lt;-</span> <span class="fu">factor</span>(ch5_additive_fitted<span class="sc">$</span>supp,</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"VC"</span>, <span class="st">"OJ"</span>))</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>ch5_additive_fitted<span class="sc">$</span>dose_c <span class="ot">&lt;-</span> ch5_additive_fitted<span class="sc">$</span>dose <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>ch5_additive_fitted<span class="sc">$</span>fitted <span class="ot">&lt;-</span> <span class="fu">predict</span>(</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  ch5_fit_add, <span class="at">newdata =</span> ch5_additive_fitted)</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  ch5_additive_fitted[<span class="fu">c</span>(<span class="st">"supp"</span>, <span class="st">"dose"</span>, <span class="st">"mean"</span>, <span class="st">"fitted"</span>)],</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Method"</span>, <span class="st">"Dose (mg/day)"</span>, <span class="st">"Observed mean"</span>, <span class="st">"Fitted value"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Method</th>
+<th style="text-align: right;">Dose (mg/day)</th>
+<th style="text-align: right;">Observed mean</th>
+<th style="text-align: right;">Fitted value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">VC</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">7.98</td>
+<td style="text-align: right;">10.45</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">OJ</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">13.23</td>
+<td style="text-align: right;">14.15</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">VC</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">16.77</td>
+<td style="text-align: right;">15.34</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">OJ</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">22.70</td>
+<td style="text-align: right;">19.04</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">VC</td>
+<td style="text-align: right;">2.0</td>
+<td style="text-align: right;">26.14</td>
+<td style="text-align: right;">25.10</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">OJ</td>
+<td style="text-align: right;">2.0</td>
+<td style="text-align: right;">26.06</td>
+<td style="text-align: right;">28.80</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The fitted OJ-minus-VC difference is 3.70 at every dose. Fitted values need not equal the observed cell means: the additive model fits all six cells using two parallel straight lines.</p>
+</div>
 <p><strong>Read the new zero point in the additive model.</strong> At <span class="math inline">\(x=1\)</span>, we have <span class="math inline">\(x_c=0\)</span>, so the VC mean is <span class="math inline">\(\beta_0\)</span> and the OJ mean is <span class="math inline">\(\beta_0+\beta_g\)</span>. The constant OJ-minus-VC difference is still <span class="math inline">\(\beta_g\)</span> at every dose. If we instead use uncentered <span class="math inline">\(x\)</span>, the intercept is the VC mean at <span class="math inline">\(x=0\)</span>, namely <span class="math inline">\(\beta_0-\beta_x\)</span>.</p>
 <p>Compare the same fit in R using the two dose variables:</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_add_raw <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose <span class="sc">+</span> supp, <span class="at">data =</span> ch5_tooth)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Term =</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"VC dose slope"</span>, <span class="st">"OJ coefficient"</span>),</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Using_dose =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch5_fit_add_raw)),</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Using_centered_dose =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch5_fit_add))),</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">4</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Term"</span>, <span class="st">"Using dose"</span>, <span class="st">"Using dose - 1"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_add_raw <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose <span class="sc">+</span> supp, <span class="at">data =</span> ch5_tooth)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Term =</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"VC dose slope"</span>, <span class="st">"OJ coefficient"</span>),</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Using_dose =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch5_fit_add_raw)),</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Using_centered_dose =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch5_fit_add))),</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">4</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Term"</span>, <span class="st">"Using dose"</span>, <span class="st">"Using dose - 1"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1256,7 +1335,7 @@ Figure&nbsp;5.2: Each cell represents 10 animals. Compare doses across a row and
 </div>
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">all.equal</span>(<span class="fu">fitted</span>(ch5_fit_add_raw), <span class="fu">fitted</span>(ch5_fit_add))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">all.equal</span>(<span class="fu">fitted</span>(ch5_fit_add_raw), <span class="fu">fitted</span>(ch5_fit_add))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] TRUE</code></pre>
@@ -1266,6 +1345,9 @@ Figure&nbsp;5.2: Each cell represents 10 animals. Compare doses across a row and
 </section>
 <section id="sec-ch5-interaction" class="level2" data-number="5.4">
 <h2 data-number="5.4" class="anchored" data-anchor-id="sec-ch5-interaction"><span class="header-section-number">5.4</span> Interactions and conditional comparisons</h2>
+<p><strong>Why consider an interaction?</strong> The additive model in <a href="#sec-ch5-additive">Section 5.3</a> assumes that increasing dose has the same effect for VC and OJ. Its fitted lines are parallel, so its OJ-minus-VC difference must stay at 3.70 for every dose. That is a restriction imposed by the model.</p>
+<p>The observed mean differences are 5.25 at 0.5 mg/day, 5.93 at 1 mg/day, and -0.08 at 2 mg/day. These sample differences can vary because of random error, but they motivate a question: <strong>does the dose slope depend on the delivery method?</strong> Equivalently, does the OJ-minus-VC mean difference change with dose?</p>
+<p>Adding <span class="math inline">\(x_cz\)</span> lets the two groups have different slopes. For VC (<span class="math inline">\(z=0\)</span>), the term is zero; for OJ (<span class="math inline">\(z=1\)</span>), it adds <span class="math inline">\(\beta_{xg}\)</span> to the dose slope. Thus <span class="math inline">\(\beta_{xg}=0\)</span> recovers the additive model, while a nonzero interaction allows the group difference to vary linearly with dose. Comparing the models evaluates whether the data support this extra flexibility; unequal sample differences alone do not establish an interaction. Both models still assume straight lines within each group.</p>
 <div id="def-ch5-interaction" class="theorem definition">
 <p><span class="theorem-title"><strong>Definition 5.5 (Continuous-by-Group Interaction)</strong></span> Add the product column <span class="math inline">\(x_cz\)</span>:</p>
 <p><span class="math display">\[
@@ -1327,12 +1409,12 @@ Figure&nbsp;5.2: Each cell represents 10 animals. Compare doses across a row and
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>ch5_profiles <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">dose_c =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>                            <span class="at">supp =</span> <span class="fu">c</span>(<span class="st">"VC"</span>, <span class="st">"OJ"</span>))</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>ch5_profiles<span class="sc">$</span>supp <span class="ot">&lt;-</span> <span class="fu">factor</span>(ch5_profiles<span class="sc">$</span>supp, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"VC"</span>, <span class="st">"OJ"</span>))</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ch5_profiles<span class="sc">$</span>supp) <span class="ot">&lt;-</span> <span class="fu">contr.treatment</span>(<span class="fu">levels</span>(ch5_profiles<span class="sc">$</span>supp), <span class="at">base =</span> <span class="dv">1</span>)</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">model.matrix</span>(<span class="sc">~</span> dose_c <span class="sc">*</span> supp, <span class="at">data =</span> ch5_profiles),</span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>ch5_profiles <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">dose_c =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>                            <span class="at">supp =</span> <span class="fu">c</span>(<span class="st">"VC"</span>, <span class="st">"OJ"</span>))</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>ch5_profiles<span class="sc">$</span>supp <span class="ot">&lt;-</span> <span class="fu">factor</span>(ch5_profiles<span class="sc">$</span>supp, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"VC"</span>, <span class="st">"OJ"</span>))</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ch5_profiles<span class="sc">$</span>supp) <span class="ot">&lt;-</span> <span class="fu">contr.treatment</span>(<span class="fu">levels</span>(ch5_profiles<span class="sc">$</span>supp), <span class="at">base =</span> <span class="dv">1</span>)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">model.matrix</span>(<span class="sc">~</span> dose_c <span class="sc">*</span> supp, <span class="at">data =</span> ch5_profiles),</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1388,7 +1470,7 @@ Figure&nbsp;5.2: Each cell represents 10 animals. Compare doses across a row and
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_int <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_c <span class="sc">*</span> supp, <span class="at">data =</span> ch5_tooth)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_int <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_c <span class="sc">*</span> supp, <span class="at">data =</span> ch5_tooth)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>The fitted mean is</p>
@@ -1400,14 +1482,14 @@ Figure&nbsp;5.2: Each cell represents 10 animals. Compare doses across a row and
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_int_raw <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose <span class="sc">*</span> supp, <span class="at">data =</span> ch5_tooth)</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Term =</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"VC dose slope"</span>, <span class="st">"OJ coefficient"</span>,</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>           <span class="st">"Slope difference"</span>),</span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Using_dose =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch5_fit_int_raw)),</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Using_centered_dose =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch5_fit_int))),</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">4</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Term"</span>, <span class="st">"Using dose"</span>, <span class="st">"Using dose - 1"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_int_raw <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose <span class="sc">*</span> supp, <span class="at">data =</span> ch5_tooth)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Term =</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"VC dose slope"</span>, <span class="st">"OJ coefficient"</span>,</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>           <span class="st">"Slope difference"</span>),</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Using_dose =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch5_fit_int_raw)),</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Using_centered_dose =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch5_fit_int))),</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">4</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Term"</span>, <span class="st">"Using dose"</span>, <span class="st">"Using dose - 1"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1444,14 +1526,14 @@ Figure&nbsp;5.2: Each cell represents 10 animals. Compare doses across a row and
 </div>
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">all.equal</span>(<span class="fu">fitted</span>(ch5_fit_int_raw), <span class="fu">fitted</span>(ch5_fit_int))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">all.equal</span>(<span class="fu">fitted</span>(ch5_fit_int_raw), <span class="fu">fitted</span>(ch5_fit_int))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] TRUE</code></pre>
 </div>
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">all.equal</span>(<span class="fu">deviance</span>(ch5_fit_int_raw), <span class="fu">deviance</span>(ch5_fit_int))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">all.equal</span>(<span class="fu">deviance</span>(ch5_fit_int_raw), <span class="fu">deviance</span>(ch5_fit_int))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] TRUE</code></pre>
@@ -1536,21 +1618,21 @@ Figure&nbsp;5.3: The same observations fitted with parallel lines (additive) or 
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_dose <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_c, <span class="at">data =</span> ch5_tooth)</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>ch5_fit_cells <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_f <span class="sc">*</span> supp, <span class="at">data =</span> ch5_tooth)</span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>ch5_tests <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Equal slopes"</span> <span class="ot">=</span> <span class="fu">anova</span>(ch5_fit_add, ch5_fit_int),</span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Identical lines"</span> <span class="ot">=</span> <span class="fu">anova</span>(ch5_fit_dose, ch5_fit_int),</span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Straight-line means"</span> <span class="ot">=</span> <span class="fu">anova</span>(ch5_fit_int, ch5_fit_cells))</span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>ch5_test_results <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">names</span>(ch5_tests), <span class="cf">function</span>(name) {</span>
-<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>  a <span class="ot">&lt;-</span> ch5_tests[[name]]</span>
-<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">Comparison =</span> name,</span>
-<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">df =</span> <span class="fu">sprintf</span>(<span class="st">"(%d, %d)"</span>, a<span class="sc">$</span>Df[<span class="dv">2</span>], a<span class="sc">$</span>Res.Df[<span class="dv">2</span>]),</span>
-<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">F =</span> <span class="fu">round</span>(a<span class="sc">$</span>F[<span class="dv">2</span>], <span class="dv">3</span>),</span>
-<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_value =</span> <span class="fu">format.pval</span>(a<span class="sc">$</span><span class="st">`</span><span class="at">Pr(&gt;F)</span><span class="st">`</span>[<span class="dv">2</span>], <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">eps =</span> <span class="fl">0.0001</span>))</span>
-<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>}))</span>
-<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(ch5_test_results, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>             <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Comparison"</span>, <span class="st">"F degrees of freedom"</span>, <span class="st">"F"</span>, <span class="st">"p-value"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_dose <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_c, <span class="at">data =</span> ch5_tooth)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>ch5_fit_cells <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_f <span class="sc">*</span> supp, <span class="at">data =</span> ch5_tooth)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>ch5_tests <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Equal slopes"</span> <span class="ot">=</span> <span class="fu">anova</span>(ch5_fit_add, ch5_fit_int),</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Identical lines"</span> <span class="ot">=</span> <span class="fu">anova</span>(ch5_fit_dose, ch5_fit_int),</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Straight-line means"</span> <span class="ot">=</span> <span class="fu">anova</span>(ch5_fit_int, ch5_fit_cells))</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>ch5_test_results <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">names</span>(ch5_tests), <span class="cf">function</span>(name) {</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>  a <span class="ot">&lt;-</span> ch5_tests[[name]]</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">Comparison =</span> name,</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">df =</span> <span class="fu">sprintf</span>(<span class="st">"(%d, %d)"</span>, a<span class="sc">$</span>Df[<span class="dv">2</span>], a<span class="sc">$</span>Res.Df[<span class="dv">2</span>]),</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">F =</span> <span class="fu">round</span>(a<span class="sc">$</span>F[<span class="dv">2</span>], <span class="dv">3</span>),</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_value =</span> <span class="fu">format.pval</span>(a<span class="sc">$</span><span class="st">`</span><span class="at">Pr(&gt;F)</span><span class="st">`</span>[<span class="dv">2</span>], <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">eps =</span> <span class="fl">0.0001</span>))</span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>}))</span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(ch5_test_results, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>             <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Comparison"</span>, <span class="st">"F degrees of freedom"</span>, <span class="st">"F"</span>, <span class="st">"p-value"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1603,12 +1685,83 @@ Figure&nbsp;5.4: Points show the six observed method-dose means; lines show the 
 </section>
 <section id="summary" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="summary">Summary</h2>
-<ul>
-<li>State what is held fixed when interpreting a slope.</li>
-<li>A <span class="math inline">\(g\)</span>-level factor uses <span class="math inline">\(g-1\)</span> indicators with an intercept; the reference group determines the coefficient meanings.</li>
-<li>An additive model gives parallel lines; an interaction allows the group difference to vary with dose.</li>
-<li>Equal slopes, identical lines, and straight-line shape are different restrictions. Choose the model comparison to match the question.</li>
-</ul>
+<p><strong>Start with the question you want the model to answer.</strong> Use the following guide; <code>x</code> is numeric, <code>w</code> denotes other predictors, <code>group</code> is a factor, and <code>dose_f</code> treats the three doses as categories.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">When the question is …</th>
+<th style="text-align: left;">Use …</th>
+<th style="text-align: left;">What the model estimates or assumes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">How does the response vary with <code>x</code> overall?</td>
+<td style="text-align: left;"><code>y ~ x</code></td>
+<td style="text-align: left;">An unadjusted association; other predictors are allowed to vary with <code>x</code>. See <a href="#sec-ch5-adjusted">Section 5.1</a>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">How does the response vary with <code>x</code> at the same values of specified other predictors?</td>
+<td style="text-align: left;"><code>y ~ x + w</code></td>
+<td style="text-align: left;">An adjusted slope, holding <code>w</code> fixed; this additive form assumes no interaction with <code>w</code>. See <a href="#sec-ch5-adjusted">Section 5.1</a>.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">What are the means of several groups, with no continuous predictor?</td>
+<td style="text-align: left;"><code>y ~ group</code></td>
+<td style="text-align: left;">Group means; choose the coefficient coding as described below. See <a href="#sec-ch5-factor-coding">Section 5.2</a>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Can two groups share one straight-line dose slope, with a constant gap?</td>
+<td style="text-align: left;"><code>len ~ dose_c + supp</code></td>
+<td style="text-align: left;">Parallel lines; the group coefficient is the same-dose OJ-minus-VC difference at every dose. See <a href="#sec-ch5-additive">Section 5.3</a>.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Could the straight-line dose slope differ between groups?</td>
+<td style="text-align: left;"><code>len ~ dose_c * supp</code></td>
+<td style="text-align: left;">Separate slopes; the group difference can change linearly with dose. See <a href="#sec-ch5-interaction">Section 5.4</a>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Do we want separate means at the observed doses, without imposing straight lines?</td>
+<td style="text-align: left;"><code>len ~ dose_f * supp</code></td>
+<td style="text-align: left;">Six method-dose means; no rule for interpolation to unobserved doses. See <a href="#sec-ch5-comparisons">Section 5.5</a>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Choose coding to make the desired quantities easy to read.</strong> For the group-only model, use an intercept with reference-group coding when comparisons with a control or baseline are the focus: the intercept is the reference mean, and other coefficients are differences from it. Use no intercept with all group indicators when reporting each group’s mean directly is the focus. These choices give the same fitted values and SSE; their individual coefficient tests concern different null hypotheses. An intercept plus all group indicators is redundant. See <a href="#sec-ch5-factor-coding">Section 5.2</a>.</p>
+<p><strong>Center at the value where you want to interpret the intercept and group comparison.</strong> Define <span class="math inline">\(x_c=x-c\)</span> when a scientifically meaningful reference <span class="math inline">\(c\)</span> is more useful than zero; here <span class="math inline">\(c=1\)</span> mg/day is observed in both groups. In the additive model, the intercept becomes the VC mean at <span class="math inline">\(c\)</span>, while the constant group gap stays unchanged. With an interaction, the group coefficient becomes the OJ-minus-VC difference specifically at <span class="math inline">\(c\)</span>; at another dose use <span class="math inline">\(\Delta(x)=\beta_g+\beta_{xg}(x-c)\)</span>. Centering changes the reference point, not the fitted lines. See <a href="#sec-ch5-additive">Section 5.3</a> and <a href="#sec-ch5-interaction">Section 5.4</a>.</p>
+<p><strong>Match the model comparison to the restriction.</strong> The <a href="./04.html#thm-partial-f">partial F test in Chapter 4</a> compares nested models fitted to the same observations, under the stated linear-model assumptions:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">To assess …</th>
+<th style="text-align: left;">Compare reduced versus full models</th>
+<th style="text-align: left;">Null hypothesis</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">A common slope for both methods</td>
+<td style="text-align: left;"><code>dose_c + supp</code> versus <code>dose_c * supp</code></td>
+<td style="text-align: left;"><span class="math inline">\(\beta_{xg}=0\)</span>: remove the slope difference only.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">One identical line for both methods</td>
+<td style="text-align: left;"><code>dose_c</code> versus <code>dose_c * supp</code></td>
+<td style="text-align: left;"><span class="math inline">\(\beta_g=\beta_{xg}=0\)</span>: remove both group differences.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Straight-line mean functions at the three observed doses</td>
+<td style="text-align: left;"><code>dose_c * supp</code> versus <code>dose_f * supp</code></td>
+<td style="text-align: left;">The six cell means lie on two straight lines.</td>
+</tr>
+</tbody>
+</table>
+<p>Rejecting equal slopes does not establish that straight lines fit well. For these <code>ToothGrowth</code> data, <a href="#sec-ch5-comparisons">Section 5.5</a> finds evidence against both equal slopes and straight-line shape. Use the six-cell model as the starting point for comparisons at the three observed doses, then form the desired <a href="./App_I-contrasts.html#sec-ch6-tooth">contrasts</a>. The additive and interaction fits remain useful for understanding how coefficients encode assumptions; adjusted associations alone do not establish causation.</p>
 </section>
 <section id="sec-ch5-practice" class="level2" data-number="5.6">
 <h2 data-number="5.6" class="anchored" data-anchor-id="sec-ch5-practice"><span class="header-section-number">5.6</span> Practice Problems</h2>
