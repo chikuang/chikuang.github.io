@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.10.19">
+<meta name="generator" content="quarto-1.10.18">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -79,7 +79,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-de3257830c0d0a37460d18c755b5b021.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -385,9 +385,9 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
 
   <ul>
-  <li><a href="#sec-ch6-linearity" id="toc-sec-ch6-linearity" class="nav-link active" data-scroll-target="#sec-ch6-linearity"><span class="header-section-number">6.1</span> A curved relationship can still be a linear model</a></li>
-  <li><a href="#sec-ch6-transform-procedure" id="toc-sec-ch6-transform-procedure" class="nav-link" data-scroll-target="#sec-ch6-transform-procedure"><span class="header-section-number">6.2</span> Choose a transformation, fit, and check again</a></li>
-  <li><a href="#sec-ch6-influence" id="toc-sec-ch6-influence" class="nav-link" data-scroll-target="#sec-ch6-influence"><span class="header-section-number">6.3</span> Check unusual observations before selecting variables</a></li>
+  <li><a href="#sec-ch6-influence" id="toc-sec-ch6-influence" class="nav-link active" data-scroll-target="#sec-ch6-influence"><span class="header-section-number">6.1</span> Outliers, leverage, and influential observations</a></li>
+  <li><a href="#sec-ch6-linearity" id="toc-sec-ch6-linearity" class="nav-link" data-scroll-target="#sec-ch6-linearity"><span class="header-section-number">6.2</span> A curved relationship can still be a linear model</a></li>
+  <li><a href="#sec-ch6-transform-procedure" id="toc-sec-ch6-transform-procedure" class="nav-link" data-scroll-target="#sec-ch6-transform-procedure"><span class="header-section-number">6.3</span> Choose a transformation, fit, and check again</a></li>
   <li><a href="#sec-ch6-selection" id="toc-sec-ch6-selection" class="nav-link" data-scroll-target="#sec-ch6-selection"><span class="header-section-number">6.4</span> From candidate terms to variable selection</a></li>
   <li><a href="#sec-ch6-regularization" id="toc-sec-ch6-regularization" class="nav-link" data-scroll-target="#sec-ch6-regularization"><span class="header-section-number">6.5</span> Shrinkage: ridge, lasso, and elastic net</a></li>
   <li><a href="#sec-ch6-validation" id="toc-sec-ch6-validation" class="nav-link" data-scroll-target="#sec-ch6-validation"><span class="header-section-number">6.6</span> Evaluate the complete procedure</a></li>
@@ -418,38 +418,123 @@ window.Quarto = {
 </header>
 
 
-<p><a href="./05.html">Chapter 5</a> built models from predictors, groups, and interactions. Its final example also showed that straight lines can miss the pattern. We now ask <strong>which functions of the predictors to use, and which terms to retain</strong>. We first fit and check a plausible functional form, then examine whether unusual observations drive it, and finally select terms. A transformation changes the model representation; diagnostics assess its adequacy and sensitivity; selection decides which terms remain.</p>
+<p><a href="./05.html">Chapter 5</a> built models from predictors, groups, and interactions. Its final example also showed that straight lines can miss the pattern. We now ask <strong>which functions of the predictors to use, and which terms to retain</strong>. We begin by distinguishing outliers, leverage, and influence, and use Cook’s distance to assess whether individual observations drive a fit. We then study transformations and recheck the revised model before selecting terms. Diagnostics assess model adequacy and sensitivity; transformations change the model representation; selection decides which terms remain.</p>
 <blockquote class="blockquote">
 <p><strong>Learning Objectives</strong></p>
 <p>By the end of this chapter, students should be able to:</p>
 <ul>
+<li>distinguish outliers, high leverage, and influence, and use Cook’s distance for a sensitivity check;</li>
 <li>distinguish a curved relationship from a model nonlinear in its parameters;</li>
 <li>choose, fit, and check a suitable transformation;</li>
 <li>interpret predictions after transforming the response;</li>
-<li>distinguish outliers, high leverage, and influence, and use Cook’s distance for a sensitivity check;</li>
 <li>carry out forward selection, backward elimination, and stepwise selection;</li>
 <li>explain ridge and lasso, and choose a penalty using cross-validation;</li>
 <li>separate model development from final prediction assessment.</li>
 </ul>
 </blockquote>
-<div class="callout callout-style-default callout-note callout-titled" title="Recap of the Linear Model">
+<div id="ch6-prerequisite-recap" class="callout callout-style-default callout-note callout-titled" title="Quick Recap: What We Will Use">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Recap of the Linear Model
+<span class="screen-reader-only">Note</span>Quick Recap: What We Will Use
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>We keep <a href="./02_LSE.html#sec-lse">Chapter 2’s least-squares machinery</a>, <a href="./03_OLS_inference.html">Chapter 3’s inference for a specified model</a>, and <a href="./04.html#thm-partial-f">Chapter 4’s nested-model comparisons</a>. <a href="./05.html#sec-ch5-factor-coding">Chapter 5</a> supplies the rules for factor coding and interactions. Here we change the model specification; we do not rederive OLS or the F test.</p>
+<p>Let <span class="math inline">\(n\)</span> be the number of observations and <span class="math inline">\(p\)</span> the number of coefficient columns, <strong>including the intercept when present</strong>. For the formulas below, assume <span class="math inline">\(\mathbf X\)</span> has full column rank and <span class="math inline">\(n&gt;p\)</span>.</p>
+<ul>
+<li><p><strong>Model and design matrix — <a href="./01_matrix_representation.html#the-linear-regression-model">Chapter 1</a>.</strong> Write <span class="math inline">\(\mathbf Y=\mathbf X\boldsymbol\beta+\boldsymbol\varepsilon\)</span>, with mean <span class="math inline">\(\boldsymbol\mu=\mathbf X\boldsymbol\beta\)</span> and <span class="math inline">\(\mathbb E(\boldsymbol\varepsilon\mid\mathbf X)=\mathbf0\)</span>. Each row describes one observation; each column multiplies one coefficient. Count columns, not variable names. Changing the columns changes the set of mean patterns the model can represent.</p></li>
+<li><p><strong>OLS, fitted values, and residuals — <a href="./02_LSE.html#sec-lse">Chapter 2</a>.</strong> OLS minimizes <span class="math inline">\(\mathrm{SSE}=\mathbf e^\top\mathbf e\)</span>:</p>
+<p><span class="math display">\[
+\hat{\boldsymbol\beta}=(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\mathbf Y,
+\qquad
+\hat{\mathbf Y}=\mathbf H\mathbf Y,
+\qquad
+\mathbf e=(\mathbf I-\mathbf H)\mathbf Y.
+\]</span></p>
+<p>The <a href="./02_LSE.html#the-hat-matrix">hat matrix</a> is <span class="math inline">\(\mathbf H=\mathbf X(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\)</span>, and <span class="math inline">\(\mathbf X^\top\mathbf e=\mathbf0\)</span>. Residuals are observed deviations from the fitted mean; they are not the unobserved errors <span class="math inline">\(\boldsymbol\varepsilon\)</span>.</p></li>
+<li><p><strong>Assumptions and uncertainty — <a href="./03_OLS_inference.html#def-normal-linear-model">Chapter 3</a>.</strong> The normal model assumes <span class="math inline">\(\boldsymbol\varepsilon\mid\mathbf X\sim N(\mathbf0,\sigma^2\mathbf I)\)</span>: a correct mean, independent normal errors, and constant variance. OLS itself does not require normality, but our exact <span class="math inline">\(t\)</span> and <span class="math inline">\(F\)</span> inference uses it. Estimate <span class="math inline">\(\sigma^2\)</span> by <span class="math inline">\(s^2=\mathrm{SSE}/(n-p)\)</span>; estimated coefficient covariance is <span class="math inline">\(s^2(\mathbf X^\top\mathbf X)^{-1}\)</span>. Nearly dependent columns can make coefficient estimates unstable. These inference results concern a specified model.</p></li>
+<li><p><strong>Model comparison and fit — <a href="./04.html#thm-partial-f">Chapter 4</a>.</strong> For nested reduced and full models fitted to the <strong>same observations and response</strong>, test the added terms jointly using</p>
+<p><span class="math display">\[
+F=\frac{(\mathrm{SSE}_R-\mathrm{SSE}_F)/(p_F-p_R)}{\mathrm{SSE}_F/(n-p_F)}
+\quad\text{with null degrees of freedom }(p_F-p_R,\ n-p_F).
+\]</span></p>
+<p>Adding columns cannot increase SSE; with an intercept, training <span class="math inline">\(R^2\)</span> cannot decrease. <a href="./04.html#def-adjusted-r-squared">Adjusted <span class="math inline">\(R^2\)</span></a> penalizes model size and can decrease. Neither fit summary alone measures prediction performance on new observations.</p></li>
+<li><p><strong>Coefficient meanings and model structure — <a href="./05.html#summary">Chapter 5</a>.</strong> An additive slope compares means while holding other predictors fixed. A <span class="math inline">\(g\)</span>-level factor uses an intercept plus <span class="math inline">\(g-1\)</span> indicators, or all <span class="math inline">\(g\)</span> indicators without an intercept. An interaction makes a predictor’s contribution depend on another predictor; retain its lower-order terms. Centering or changing the reference group changes coefficient meanings but preserves fitted values when the equivalent model is retained.</p></li>
+</ul>
 </div>
 </div>
-<p><strong>Motivation: measuring tree volume.</strong> Measuring a standing tree’s diameter and height is easier than measuring its timber volume. The trees from <a href="./05.html#exm-ch5-tree-adjustment">Chapter 5</a> suggest a physical starting point: volume is roughly proportional to cross-sectional area times height, so a power relationship such as <span class="math inline">\(V\approx aD^bH^c\)</span> may be more natural than an additive straight-line model. The exponents are to be estimated, not fixed by the cylinder analogy. <a href="https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/trees.html">Data documentation</a>.</p>
-<section id="sec-ch6-linearity" class="level2" data-number="6.1">
-<h2 data-number="6.1" class="anchored" data-anchor-id="sec-ch6-linearity"><span class="header-section-number">6.1</span> A curved relationship can still be a linear model</h2>
+<section id="sec-ch6-influence" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="sec-ch6-influence"><span class="header-section-number">6.1</span> Outliers, leverage, and influential observations</h2>
+<p>Start with a fitted model and ask: <strong>does an unusual observation substantially change what we conclude?</strong> A response far from its fitted mean, an unusual predictor value, and a point that moves the fitted line describe different features. Distinguishing them helps us decide what to inspect before changing the model or selecting variables. A pattern shared by many observations and a fit pulled by one unusual point call for different investigations.</p>
+<div id="def-ch6-outlier-leverage-influence" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 6.1 (Outlier, Leverage, and Influence)</strong></span> &nbsp;</p>
+<ul>
+<li>A <strong>response outlier</strong> has an unusual response <em>given its predictor values and the specified model</em>. A large volume alone does not make a large tree an outlier.</li>
+<li>A <strong>high-leverage observation</strong> has an unusual configuration of predictor values. Its leverage is <span class="math inline">\(h_{ii}\)</span>, diagonal entry <span class="math inline">\(i\)</span> of the <a href="./02_LSE.html#the-hat-matrix">hat matrix from Chapter 2</a>, <span class="math inline">\(\mathbf H=\mathbf X(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\)</span>. Leverage depends on <span class="math inline">\(\mathbf X\)</span>, not on the observed responses.</li>
+<li>An <strong>influential observation</strong> changes the fitted coefficients or predictions substantially when omitted. Influence concerns the sensitivity of the analysis, rather than unusualness alone.</li>
+</ul>
+</div>
+<p><strong>Put residuals on a comparable scale.</strong> Use <span class="math inline">\(p\)</span> for the number of coefficients <strong>including the intercept</strong>, and <span class="math inline">\(s^2=\mathrm{SSE}/(n-p)\)</span>. Under the model with <span class="math inline">\(\operatorname{Var}(\boldsymbol\varepsilon\mid\mathbf X)=\sigma^2\mathbf I\)</span>, the residual geometry from <a href="./02_LSE.html#def-residual-maker-matrix">Chapter 2</a> gives</p>
+<p><span class="math display">\[
+\operatorname{Var}(e_i\mid\mathbf X)=\sigma^2(1-h_{ii}),
+\qquad r_i=\frac{e_i}{s\sqrt{1-h_{ii}}}.
+\]</span></p>
+<p>The <strong>standardized residual</strong> <span class="math inline">\(r_i\)</span> accounts for unequal residual variances; it does not make residuals independent. A high-leverage point can pull the fit toward itself, leaving a deceptively small raw residual. For outlier assessment, the <strong>externally studentized residual</strong> <span class="math inline">\(t_i=e_i/\{s_{(-i)}\sqrt{1-h_{ii}}\}\)</span> instead uses the residual standard deviation estimated <em>without</em> observation <span class="math inline">\(i\)</span>, so that observation does not inflate its own variance estimate. The deleted variance estimate requires <span class="math inline">\(n-p-1&gt;0\)</span>. R provides <code>rstandard(fit)</code> and <code>rstudent(fit)</code>, respectively. <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/influence.measures.html">R diagnostic documentation</a>.</p>
+<p>Since <span class="math inline">\(\sum_i h_{ii}=p\)</span>, average leverage is <span class="math inline">\(p/n\)</span>. This gives context for judging an unusually large <span class="math inline">\(h_{ii}\)</span>; leverage measures the <strong>potential</strong> to influence a fit, not the realized change.</p>
+<div id="def-ch6-cook" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 6.2 (Cook’s Distance)</strong></span> Let <span class="math inline">\(\hat{\boldsymbol\beta}_{(-i)}\)</span> be the OLS estimate after omitting observation <span class="math inline">\(i\)</span>, and let <span class="math inline">\(\hat Y_{j(-i)}=\mathbf x_j^\top\hat{\boldsymbol\beta}_{(-i)}\)</span> be its prediction at <strong>each of the original <span class="math inline">\(n\)</span> predictor rows</strong>, including row <span class="math inline">\(i\)</span>. Cook’s distance is</p>
+<p><span class="math display">\[
+D_i=\frac{\sum_{j=1}^n(\hat Y_j-\hat Y_{j(-i)})^2}{p s^2}
+=\frac{e_i^2}{p s^2}\frac{h_{ii}}{(1-h_{ii})^2}
+=\frac{r_i^2}{p}\frac{h_{ii}}{1-h_{ii}}.
+\]</span></p>
+<p>Here <span class="math inline">\(s^2\)</span> comes from the full fit. These formulas apply to ordinary unweighted least squares with full column rank and positive residual degrees of freedom; the deleted fit must also be estimable (<span class="math inline">\(h_{ii}&lt;1\)</span>).</p>
+</div>
+<p><strong>Read the two parts.</strong> The first expression asks how much the <em>whole fitted mean vector</em> moves after deletion, measured relative to the noise scale and model size. The last combines response discrepancy (<span class="math inline">\(r_i^2\)</span>) with leverage (<span class="math inline">\(h_{ii}/(1-h_{ii})\)</span>). Thus the largest residual need not produce the largest Cook’s distance. <span class="math inline">\(D_i\)</span> is dimensionless; it is not a p-value. <a href="https://doi.org/10.1080/00401706.1977.10489493">Cook’s original article</a>.</p>
+<div id="exm-ch6-three-points" class="theorem example">
+<p><span class="theorem-title"><strong>Example 6.1 (Three Points, Three Different Stories)</strong></span> Each panel starts with the same 12 observations and adds one orange point. The dashed line omits that point; the solid line includes it. Compare <strong>vertical discrepancy</strong>, <strong>horizontal position</strong>, and <strong>movement of the line</strong> separately.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ch6-influence-stories" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Three side-by-side scatterplots compare fitted lines including and omitting an orange point: an outlying response near the center, a far-right point on the baseline line, and a far-right point below that line. The third point rotates the line most.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ch6-influence-stories-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="06_files/figure-html/fig-ch6-influence-stories-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Three side-by-side scatterplots compare fitted lines including and omitting an orange point: an outlying response near the center, a far-right point on the baseline line, and a far-right point below that line. The third point rotates the line most." width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch6-influence-stories-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6.1: The same baseline data appear in each panel. A has a large residual but less influence than C. B has high leverage and essentially zero Cook’s distance. C strongly rotates the fit. Annotations describe the orange point; p = 2.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="exr-ch6-influence" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 6.1 (Which Point Moves the Fit More?)</strong></span> In a model with <span class="math inline">\(p=2\)</span>, point A has <span class="math inline">\(r_A=3\)</span> and <span class="math inline">\(h_{AA}=0.05\)</span>; point B has <span class="math inline">\(r_B=1\)</span> and <span class="math inline">\(h_{BB}=0.50\)</span>. Compute their Cook’s distances. Which point is more influential by this measure? Does either number establish a data error?</p>
+</div>
+<div id="sol-ch6-influence" class="proof solution">
+<p><span class="proof-title"><em>Solution 6.1</em>. </span><span class="math inline">\(D_A=(9/2)(0.05/0.95)\approx0.237\)</span>, while <span class="math inline">\(D_B=(1/2)(0.50/0.50)=0.50\)</span>. B has greater influence despite its smaller standardized residual. Neither value establishes an error or justifies deletion; inspect the observations and the scientific consequences of the changed fit.</p>
+</div>
+<div class="callout callout-style-default callout-important callout-titled" title="Investigate a flag; do not delete by a cutoff">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Investigate a flag; do not delete by a cutoff
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Values such as <span class="math inline">\(|t_i|&gt;2\)</span>, <span class="math inline">\(h_{ii}&gt;2p/n\)</span>, or <span class="math inline">\(D_i&gt;4/n\)</span> are rough <strong>screening guides</strong>, not universal tests or deletion rules. Check units, transcription, measurement conditions, and omitted structure; a valid unusual observation may be scientifically valuable. Compare fits and relevant predictions with and without a flagged case, and explain any exclusion. Inspect related groups of observations too: several unusual cases can mask one another in single-case diagnostics.</p>
+</div>
+</div>
+<p>Next, ask whether the mean pattern needs a different functional form. Investigating individual observations and checking the overall shape are complementary steps.</p>
+</section>
+<section id="sec-ch6-linearity" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="sec-ch6-linearity"><span class="header-section-number">6.2</span> A curved relationship can still be a linear model</h2>
 <div id="def-ch6-linear-parameters" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 6.1 (Linear in the Parameters)</strong></span> A regression model is linear in its parameters when it can be written as <span class="math inline">\(Y_i=\beta_0+\sum_{j=1}^d\beta_j h_j(\mathbf x_i)+\varepsilon_i\)</span>, where the functions <span class="math inline">\(h_j\)</span> are specified independently of the unknown coefficients. The design row is <span class="math inline">\((1\;h_1(\mathbf x_i)\;\cdots\;h_d(\mathbf x_i))\)</span>; the response need not be a straight-line function of the original predictors.</p>
+<p><span class="theorem-title"><strong>Definition 6.3 (Linear in the Parameters)</strong></span> A regression model is linear in its parameters when it can be written as <span class="math inline">\(Y_i=\beta_0+\sum_{j=1}^d\beta_j h_j(\mathbf x_i)+\varepsilon_i\)</span>, where the functions <span class="math inline">\(h_j\)</span> are specified independently of the unknown coefficients. The design row is <span class="math inline">\((1\;h_1(\mathbf x_i)\;\cdots\;h_d(\mathbf x_i))\)</span>; the response need not be a straight-line function of the original predictors.</p>
 </div>
 <table class="caption-top table">
 <colgroup>
@@ -502,7 +587,7 @@ window.Quarto = {
 </div>
 </div>
 <div id="exr-ch6-linear" class="theorem exercise">
-<p><span class="theorem-title"><strong>Exercise 6.1 (Linear in Which Sense?)</strong></span> Which can be fitted by <code>lm()</code> using known predictor columns?</p>
+<p><span class="theorem-title"><strong>Exercise 6.2 (Linear in Which Sense?)</strong></span> Which can be fitted by <code>lm()</code> using known predictor columns?</p>
 <ol type="1">
 <li><span class="math inline">\(Y=\beta_0+\beta_1\sqrt{x}+\varepsilon\)</span>, with <span class="math inline">\(x\geq0\)</span>.</li>
 <li><span class="math inline">\(Y=\beta_0+\beta_1x^{\beta_2}+\varepsilon\)</span>, with unknown <span class="math inline">\(\beta_2\)</span>.</li>
@@ -510,11 +595,12 @@ window.Quarto = {
 </ol>
 </div>
 <div id="sol-ch6-linear" class="proof solution">
-<p><span class="proof-title"><em>Solution 6.1</em>. </span>Models 1 and 3 are linear in their coefficients. Model 2 has an unknown exponent inside the predictor function; ordinary <code>lm()</code> cannot estimate all three coefficients as written. Model 3 models the conditional mean of <span class="math inline">\(\log Y\)</span>, not directly the conditional mean of <span class="math inline">\(Y\)</span>.</p>
+<p><span class="proof-title"><em>Solution 6.2</em>. </span>Models 1 and 3 are linear in their coefficients. Model 2 has an unknown exponent inside the predictor function; ordinary <code>lm()</code> cannot estimate all three coefficients as written. Model 3 models the conditional mean of <span class="math inline">\(\log Y\)</span>, not directly the conditional mean of <span class="math inline">\(Y\)</span>.</p>
 </div>
 </section>
-<section id="sec-ch6-transform-procedure" class="level2" data-number="6.2">
-<h2 data-number="6.2" class="anchored" data-anchor-id="sec-ch6-transform-procedure"><span class="header-section-number">6.2</span> Choose a transformation, fit, and check again</h2>
+<section id="sec-ch6-transform-procedure" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="sec-ch6-transform-procedure"><span class="header-section-number">6.3</span> Choose a transformation, fit, and check again</h2>
+<p><strong>Motivation: measuring tree volume.</strong> Measuring a standing tree’s diameter and height is easier than measuring its timber volume. The trees from <a href="./05.html#exm-ch5-tree-adjustment">Chapter 5</a> suggest a physical starting point: volume is roughly proportional to cross-sectional area times height, so a power relationship such as <span class="math inline">\(V\approx aD^bH^c\)</span> may be more natural than an additive straight-line model. The exponents are to be estimated, not fixed by the cylinder analogy. <a href="https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/trees.html">Data documentation</a>.</p>
 <p><strong>A practical procedure.</strong></p>
 <ol type="1">
 <li><strong>State the goal and inspect the data.</strong> Identify the response units, positive/zero values, measurement process, and a scientifically plausible shape. For prediction, reserve test observations before exploring relationships.</li>
@@ -524,7 +610,7 @@ window.Quarto = {
 <li><strong>Interpret and validate.</strong> Explain the new coefficients, back-transform appropriately, and compare predictions on a common scale. If choices are learned from data, repeat that learning within training folds.</li>
 </ol>
 <div id="exm-ch6-tree-power" class="theorem example">
-<p><span class="theorem-title"><strong>Example 6.1 (From Tree Geometry to a Log-Linear Model)</strong></span> For the 31 trees, consider</p>
+<p><span class="theorem-title"><strong>Example 6.2 (From Tree Geometry to a Log-Linear Model)</strong></span> For the 31 trees, consider</p>
 <p><span class="math display">\[
 V_i=aD_i^{b}H_i^{c}\exp(\varepsilon_i)
 \quad\Longrightarrow\quad
@@ -535,12 +621,11 @@ V_i=aD_i^{b}H_i^{c}\exp(\varepsilon_i)
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>ch6_trees <span class="ot">&lt;-</span> <span class="fu">transform</span>(datasets<span class="sc">::</span>trees, <span class="at">Diameter =</span> Girth)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>ch6_raw <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Diameter <span class="sc">+</span> Height, <span class="at">data =</span> ch6_trees)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>ch6_log <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Volume) <span class="sc">~</span> <span class="fu">log</span>(Diameter) <span class="sc">+</span> <span class="fu">log</span>(Height), <span class="at">data =</span> ch6_trees)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Term =</span> <span class="fu">names</span>(<span class="fu">coef</span>(ch6_log)),</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimate =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch6_log))), <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>ch6_trees <span class="ot">&lt;-</span> <span class="fu">transform</span>(datasets<span class="sc">::</span>trees, <span class="at">Diameter =</span> Girth)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>ch6_raw <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Diameter <span class="sc">+</span> Height, <span class="at">data =</span> ch6_trees)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>ch6_log <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Volume) <span class="sc">~</span> <span class="fu">log</span>(Diameter) <span class="sc">+</span> <span class="fu">log</span>(Height), <span class="at">data =</span> ch6_trees)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Term =</span> <span class="fu">names</span>(<span class="fu">coef</span>(ch6_log)),</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimate =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch6_log))), <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -575,7 +660,7 @@ V_i=aD_i^{b}H_i^{c}\exp(\varepsilon_i)
 <img src="06_files/figure-html/fig-ch6-tree-scales-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Side-by-side plots show volume versus diameter on the original scale and log volume versus log diameter. A purple straight line is fitted separately in each panel." width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch6-tree-scales-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.1: The same 31 trees on two scales, each with a simple least-squares line using diameter alone. The log-log view motivates a power relationship; the fitted multiple regression above also adjusts for height. This plot does not establish that the transformed model is adequate.
+Figure&nbsp;6.2: The same 31 trees on two scales, each with a simple least-squares line using diameter alone. The log-log view motivates a power relationship; the fitted multiple regression above also adjusts for height. This plot does not establish that the transformed model is adequate.
 </figcaption>
 </figure>
 </div>
@@ -590,7 +675,7 @@ Figure&nbsp;6.1: The same 31 trees on two scales, each with a simple least-squar
 <img src="06_files/figure-html/fig-ch6-tree-residuals-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Two panels compare standardized residuals versus fitted values for the original and log-response tree models, with zero reference lines and smooth trend lines." width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch6-tree-residuals-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.2: Standardized residuals from the additive original-scale model and the log-log model, both using diameter and height. The smooth orange line helps reveal remaining mean structure. Inspect each pattern; their fitted-value scales differ, so raw SSE or R-squared values across response scales would not be a fair comparison.
+Figure&nbsp;6.3: Standardized residuals from the additive original-scale model and the log-log model, both using diameter and height. The smooth orange line helps reveal remaining mean structure. Inspect each pattern; their fitted-value scales differ, so raw SSE or R-squared values across response scales would not be a fair comparison.
 </figcaption>
 </figure>
 </div>
@@ -599,7 +684,7 @@ Figure&nbsp;6.2: Standardized residuals from the additive original-scale model a
 <p>The log model is a candidate to examine, not a guaranteed cure. Both panels still deserve scrutiny. With only 31 observations, a large search over powers and interactions would be hard to justify.</p>
 </div>
 <div id="def-ch6-lognormal" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 6.2 (Back-Transformation Under Lognormal Errors)</strong></span> If <span class="math inline">\(\log Y=\eta(\mathbf x)+\varepsilon\)</span> with <span class="math inline">\(\varepsilon\mid\mathbf x\sim N(0,\sigma^2)\)</span>, then</p>
+<p><span class="theorem-title"><strong>Definition 6.4 (Back-Transformation Under Lognormal Errors)</strong></span> If <span class="math inline">\(\log Y=\eta(\mathbf x)+\varepsilon\)</span> with <span class="math inline">\(\varepsilon\mid\mathbf x\sim N(0,\sigma^2)\)</span>, then</p>
 <p><span class="math display">\[
 \operatorname{Median}(Y\mid\mathbf x)=\exp\{\eta(\mathbf x)\},
 \qquad
@@ -652,63 +737,12 @@ Figure&nbsp;6.2: Standardized residuals from the additive original-scale model a
 </div>
 </div>
 <div id="exr-ch6-back-transform" class="theorem exercise">
-<p><span class="theorem-title"><strong>Exercise 6.2 (What Does Exponentiating Predict?)</strong></span> Suppose <span class="math inline">\(\log Y=2+0.4x+\varepsilon\)</span>, with <span class="math inline">\(\varepsilon\sim N(0,0.25)\)</span>. At <span class="math inline">\(x=0\)</span>, give the conditional median and mean of <span class="math inline">\(Y\)</span>. Does increasing <span class="math inline">\(x\)</span> by one add 0.4 units to the original-scale mean?</p>
+<p><span class="theorem-title"><strong>Exercise 6.3 (What Does Exponentiating Predict?)</strong></span> Suppose <span class="math inline">\(\log Y=2+0.4x+\varepsilon\)</span>, with <span class="math inline">\(\varepsilon\sim N(0,0.25)\)</span>. At <span class="math inline">\(x=0\)</span>, give the conditional median and mean of <span class="math inline">\(Y\)</span>. Does increasing <span class="math inline">\(x\)</span> by one add 0.4 units to the original-scale mean?</p>
 </div>
 <div id="sol-ch6-back-transform" class="proof solution">
-<p><span class="proof-title"><em>Solution 6.2</em>. </span>The median is <span class="math inline">\(e^2\approx7.39\)</span> and the mean is <span class="math inline">\(e^{2+0.25/2}\approx8.37\)</span>. A one-unit increase in <span class="math inline">\(x\)</span> multiplies both by <span class="math inline">\(e^{0.4}\approx1.49\)</span> because the log-error variance is constant. It does not add 0.4 response units.</p>
+<p><span class="proof-title"><em>Solution 6.3</em>. </span>The median is <span class="math inline">\(e^2\approx7.39\)</span> and the mean is <span class="math inline">\(e^{2+0.25/2}\approx8.37\)</span>. A one-unit increase in <span class="math inline">\(x\)</span> multiplies both by <span class="math inline">\(e^{0.4}\approx1.49\)</span> because the log-error variance is constant. It does not add 0.4 response units.</p>
 </div>
-</section>
-<section id="sec-ch6-influence" class="level2" data-number="6.3">
-<h2 data-number="6.3" class="anchored" data-anchor-id="sec-ch6-influence"><span class="header-section-number">6.3</span> Check unusual observations before selecting variables</h2>
-<p>The residual plots above ask whether a pattern remains <strong>across the data</strong>. A different question is whether <strong>one observation</strong> drives the fitted relationship. A curve supported by many observations and a line pulled by one unusual tree call for different investigations. Check both baseline and revised models. Transforming the response changes residuals; changing predictor columns can also change leverage.</p>
-<div id="def-ch6-outlier-leverage-influence" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 6.3 (Outlier, Leverage, and Influence)</strong></span> &nbsp;</p>
-<ul>
-<li>A <strong>response outlier</strong> has an unusual response <em>given its predictor values and the specified model</em>. A large volume alone does not make a large tree an outlier.</li>
-<li>A <strong>high-leverage observation</strong> has an unusual configuration of predictor values. Its leverage is <span class="math inline">\(h_{ii}\)</span>, diagonal entry <span class="math inline">\(i\)</span> of the <a href="./02_LSE.html#the-hat-matrix">hat matrix from Chapter 2</a>, <span class="math inline">\(\mathbf H=\mathbf X(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\)</span>. Leverage depends on <span class="math inline">\(\mathbf X\)</span>, not on the observed responses.</li>
-<li>An <strong>influential observation</strong> changes the fitted coefficients or predictions substantially when omitted. Influence concerns the sensitivity of the analysis, rather than unusualness alone.</li>
-</ul>
-</div>
-<p><strong>Put residuals on a comparable scale.</strong> Use <span class="math inline">\(p\)</span> for the number of coefficients <strong>including the intercept</strong>, and <span class="math inline">\(s^2=\mathrm{SSE}/(n-p)\)</span>. Under the model with <span class="math inline">\(\operatorname{Var}(\boldsymbol\varepsilon\mid\mathbf X)=\sigma^2\mathbf I\)</span>, the residual geometry from <a href="./02_LSE.html#def-residual-maker-matrix">Chapter 2</a> gives</p>
-<p><span class="math display">\[
-\operatorname{Var}(e_i\mid\mathbf X)=\sigma^2(1-h_{ii}),
-\qquad r_i=\frac{e_i}{s\sqrt{1-h_{ii}}}.
-\]</span></p>
-<p>The <strong>standardized residual</strong> <span class="math inline">\(r_i\)</span> accounts for unequal residual variances; it does not make residuals independent. A high-leverage point can pull the fit toward itself, leaving a deceptively small raw residual. For outlier assessment, the <strong>externally studentized residual</strong> <span class="math inline">\(t_i=e_i/\{s_{(-i)}\sqrt{1-h_{ii}}\}\)</span> instead uses the residual standard deviation estimated <em>without</em> observation <span class="math inline">\(i\)</span>, so that observation does not inflate its own variance estimate. The deleted variance estimate requires <span class="math inline">\(n-p-1&gt;0\)</span>. R provides <code>rstandard(fit)</code> and <code>rstudent(fit)</code>, respectively. <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/influence.measures.html">R diagnostic documentation</a>.</p>
-<p>Since <span class="math inline">\(\sum_i h_{ii}=p\)</span>, average leverage is <span class="math inline">\(p/n\)</span>. This gives context for judging an unusually large <span class="math inline">\(h_{ii}\)</span>; leverage measures the <strong>potential</strong> to influence a fit, not the realized change.</p>
-<div id="def-ch6-cook" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 6.4 (Cook’s Distance)</strong></span> Let <span class="math inline">\(\hat{\boldsymbol\beta}_{(-i)}\)</span> be the OLS estimate after omitting observation <span class="math inline">\(i\)</span>, and let <span class="math inline">\(\hat Y_{j(-i)}=\mathbf x_j^\top\hat{\boldsymbol\beta}_{(-i)}\)</span> be its prediction at <strong>each of the original <span class="math inline">\(n\)</span> predictor rows</strong>, including row <span class="math inline">\(i\)</span>. Cook’s distance is</p>
-<p><span class="math display">\[
-D_i=\frac{\sum_{j=1}^n(\hat Y_j-\hat Y_{j(-i)})^2}{p s^2}
-=\frac{e_i^2}{p s^2}\frac{h_{ii}}{(1-h_{ii})^2}
-=\frac{r_i^2}{p}\frac{h_{ii}}{1-h_{ii}}.
-\]</span></p>
-<p>Here <span class="math inline">\(s^2\)</span> comes from the full fit. These formulas apply to ordinary unweighted least squares with full column rank and positive residual degrees of freedom; the deleted fit must also be estimable (<span class="math inline">\(h_{ii}&lt;1\)</span>).</p>
-</div>
-<p><strong>Read the two parts.</strong> The first expression asks how much the <em>whole fitted mean vector</em> moves after deletion, measured relative to the noise scale and model size. The last combines response discrepancy (<span class="math inline">\(r_i^2\)</span>) with leverage (<span class="math inline">\(h_{ii}/(1-h_{ii})\)</span>). Thus the largest residual need not produce the largest Cook’s distance. <span class="math inline">\(D_i\)</span> is dimensionless; it is not a p-value. <a href="https://doi.org/10.1080/00401706.1977.10489493">Cook’s original article</a>.</p>
-<div id="exm-ch6-three-points" class="theorem example">
-<p><span class="theorem-title"><strong>Example 6.2 (Three Points, Three Different Stories)</strong></span> Each panel starts with the same 12 observations and adds one orange point. The dashed line omits that point; the solid line includes it. Compare <strong>vertical discrepancy</strong>, <strong>horizontal position</strong>, and <strong>movement of the line</strong> separately.</p>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-ch6-influence-stories" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Three side-by-side scatterplots compare fitted lines including and omitting an orange point: an outlying response near the center, a far-right point on the baseline line, and a far-right point below that line. The third point rotates the line most.">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-ch6-influence-stories-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="06_files/figure-html/fig-ch6-influence-stories-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Three side-by-side scatterplots compare fitted lines including and omitting an orange point: an outlying response near the center, a far-right point on the baseline line, and a far-right point below that line. The third point rotates the line most." width="672">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch6-influence-stories-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.3: The same baseline data appear in each panel. A has a large residual but less influence than C. B has high leverage and essentially zero Cook’s distance. C strongly rotates the fit. Annotations describe the orange point; p = 2.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div id="exr-ch6-influence" class="theorem exercise">
-<p><span class="theorem-title"><strong>Exercise 6.3 (Which Point Moves the Fit More?)</strong></span> In a model with <span class="math inline">\(p=2\)</span>, point A has <span class="math inline">\(r_A=3\)</span> and <span class="math inline">\(h_{AA}=0.05\)</span>; point B has <span class="math inline">\(r_B=1\)</span> and <span class="math inline">\(h_{BB}=0.50\)</span>. Compute their Cook’s distances. Which point is more influential by this measure? Does either number establish a data error?</p>
-</div>
-<div id="sol-ch6-influence" class="proof solution">
-<p><span class="proof-title"><em>Solution 6.3</em>. </span><span class="math inline">\(D_A=(9/2)(0.05/0.95)\approx0.237\)</span>, while <span class="math inline">\(D_B=(1/2)(0.50/0.50)=0.50\)</span>. B has greater influence despite its smaller standardized residual. Neither value establishes an error or justifies deletion; inspect the observations and the scientific consequences of the changed fit.</p>
-</div>
+<p><strong>Recheck influence after transforming.</strong> A new response scale changes residuals, and new predictor columns can change leverage. Apply the diagnostics from <a href="#sec-ch6-influence">Section 6.1</a> to the fitted log model as well.</p>
 <div id="exm-ch6-tree-influence" class="theorem example">
 <p><span class="theorem-title"><strong>Example 6.3 (Does One Tree Drive the Power Relationship?)</strong></span> Return to the log-volume model. A wrongly recorded diameter could distort a timber prediction rule, but an accurately measured unusual tree may reveal where the rule needs improvement. First identify observations worth inspecting:</p>
 <div class="cell">
@@ -811,20 +845,7 @@ Figure&nbsp;6.4: Cook’s distances for the log-volume model. Labels mark the th
 </div>
 <p>Tree <strong>18</strong> has <span class="math inline">\(D_i\approx0.224\)</span>. Omitting it changes the diameter exponent from <strong>1.983 to 1.958</strong>, and the height exponent from <strong>1.117 to 1.261</strong>. The estimated height contribution is more sensitive here; influence can matter differently for different scientific questions. This calculation supplies no evidence of a recording error. Report the sensitivity and investigate the measurement before deciding how to handle it.</p>
 </div>
-<div class="callout callout-style-default callout-important callout-titled" title="Investigate a flag; do not delete by a cutoff">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>Investigate a flag; do not delete by a cutoff
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Values such as <span class="math inline">\(|t_i|&gt;2\)</span>, <span class="math inline">\(h_{ii}&gt;2p/n\)</span>, or <span class="math inline">\(D_i&gt;4/n\)</span> are rough <strong>screening guides</strong>, not universal tests or deletion rules. Check units, transcription, measurement conditions, and omitted structure; a valid unusual observation may be scientifically valuable. Compare fits and relevant predictions with and without a flagged case, and explain any exclusion. Inspect related groups of observations too: several unusual cases can mask one another in single-case diagnostics.</p>
-</div>
-</div>
-<p><strong>Why this comes before selection.</strong> One influential observation can make a predictor appear useful or change which term a search retains. Resolve data-quality questions and inspect model form first, then assess whether the selection is stable. Recheck the final selected model as well. Ridge and lasso still use squared-error loss here; shrinkage is not an automatic remedy for outliers. For prediction assessment, all outcome-driven diagnostic and model-development decisions belong within training data, not the held-out test set.</p>
+<p><strong>Why recheck before selection?</strong> One influential observation can make a predictor appear useful or change which term a search retains. Resolve data-quality questions and inspect model form first, then assess whether the selection is stable. Recheck the final selected model as well. Ridge and lasso still use squared-error loss here; shrinkage is not an automatic remedy for outliers. For prediction assessment, all outcome-driven diagnostic and model-development decisions belong within training data, not the held-out test set.</p>
 </section>
 <section id="sec-ch6-selection" class="level2" data-number="6.4">
 <h2 data-number="6.4" class="anchored" data-anchor-id="sec-ch6-selection"><span class="header-section-number">6.4</span> From candidate terms to variable selection</h2>
@@ -1193,9 +1214,9 @@ Figure&nbsp;6.6: Five-fold CV within the sensor training set. Bars show plus or 
 <section id="summary" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="summary">Summary</h2>
 <ul>
+<li>Outliers concern the response given predictors; leverage concerns predictor configuration; Cook’s distance measures the change in the fit after deleting one observation. Investigate flags and report sensitivity.</li>
 <li>A linear model is linear in its coefficients; transformed predictors can describe curved relationships.</li>
 <li>Choose a transformation for a stated reason, refit, inspect residuals, and interpret the new response scale.</li>
-<li>Outliers concern the response given predictors; leverage concerns predictor configuration; Cook’s distance measures the change in the fit after deleting one observation. Investigate flags and report sensitivity.</li>
 <li>Forward, backward, and stepwise searches use a candidate set and a stopping rule; they need not find the globally best subset.</li>
 <li>Ridge shrinks; lasso can also select. Scale predictors and tune penalties within training data.</li>
 <li>Compare predictions on the same observations and response scale. Keep the entire development procedure out of final test outcomes.</li>
