@@ -468,6 +468,119 @@ F=\frac{(\mathrm{SSE}_R-\mathrm{SSE}_F)/(p_F-p_R)}{\mathrm{SSE}_F/(n-p_F)}
 <section id="sec-ch6-influence" class="level2" data-number="6.1">
 <h2 data-number="6.1" class="anchored" data-anchor-id="sec-ch6-influence"><span class="header-section-number">6.1</span> Outliers, leverage, and influential observations</h2>
 <p>Start with a fitted model and ask: <strong>does an unusual observation substantially change what we conclude?</strong> A response far from its fitted mean, an unusual predictor value, and a point that moves the fitted line describe different features. Distinguishing them helps us decide what to inspect before changing the model or selecting variables. A pattern shared by many observations and a fit pulled by one unusual point call for different investigations.</p>
+<div id="exm-ch6-three-points" class="theorem example">
+<p><span class="theorem-title"><strong>Example 6.1 (Three Points, Three Different Stories)</strong></span> <strong>Look at the lines first.</strong> Every panel starts with the same six green observations, whose fitted line is <span class="math inline">\(\hat y=2+x\)</span>. We add <strong>one orange point at a time</strong>. The dashed gray line omits that point; the solid purple line includes it. Compare the point’s vertical position, its horizontal position, and how much the line moves.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ch6-influence-stories" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Three panels compare a dashed baseline line with a solid line after adding one point. A adds (3.5, 10.5) near the predictor center and shifts the line upward. B adds (10, 12) on the baseline line and the lines coincide. C adds (10, 4), pulling the right side of the line downward.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ch6-influence-stories-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="06_files/figure-html/fig-ch6-influence-stories-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Three panels compare a dashed baseline line with a solid line after adding one point. A adds (3.5, 10.5) near the predictor center and shifts the line upward. B adds (10, 12) on the baseline line and the lines coincide. C adds (10, 4), pulling the right side of the line downward." width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch6-influence-stories-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6.1: The same six baseline observations appear in every panel. A shifts the line upward without changing its slope. B lies far to the right but leaves the line unchanged. C is equally far to the right and pulls the line downward, sharply reducing its slope.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li><strong>A: unusual response, ordinary predictor value.</strong> At <span class="math inline">\(x=3.5\)</span>, the original line predicts 5.5, but the orange response is 10.5. This point is near the center of the predictor values and far above the line. It mainly shifts the line upward.</li>
+<li><strong>B: high leverage without a change in the fitted line.</strong> The new <span class="math inline">\(x=10\)</span> lies beyond the original range of 1 to 6. Its response, 12, lies exactly on the extension of the original line. The point has the potential to pull the fit, but here the two lines coincide.</li>
+<li><strong>C: high leverage with a large change in the fitted line.</strong> The predictor is again <span class="math inline">\(x=10\)</span>, but the response is 4 instead of 12. The point pulls down the right side of the line, substantially reducing the estimated slope.</li>
+</ul>
+<p>These descriptions can overlap. C is also a high-leverage point; its <strong>actual effect on the fit</strong> makes it influential. A also affects the fit, even though its effect on the slope differs from C’s.</p>
+<p><strong>Now put numbers on the changes.</strong> The six baseline observations are:</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Variable</th>
+<th style="text-align: center;">Obs. 1</th>
+<th style="text-align: center;">Obs. 2</th>
+<th style="text-align: center;">Obs. 3</th>
+<th style="text-align: center;">Obs. 4</th>
+<th style="text-align: center;">Obs. 5</th>
+<th style="text-align: center;">Obs. 6</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">x</td>
+<td style="text-align: center;">1.0</td>
+<td style="text-align: center;">2.0</td>
+<td style="text-align: center;">3.0</td>
+<td style="text-align: center;">4.0</td>
+<td style="text-align: center;">5.0</td>
+<td style="text-align: center;">6.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">y</td>
+<td style="text-align: center;">2.8</td>
+<td style="text-align: center;">4.2</td>
+<td style="text-align: center;">5.0</td>
+<td style="text-align: center;">6.0</td>
+<td style="text-align: center;">7.2</td>
+<td style="text-align: center;">7.8</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Fit <code>lm(y ~ x)</code> to the baseline data, then add A, B, or C separately. The table reports the intercept, slope, fitted mean at <span class="math inline">\(x=6\)</span>, and residual standard deviation <span class="math inline">\(s\)</span>. Removing the orange point from any of the three augmented datasets returns the baseline fit.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Fit</th>
+<th style="text-align: center;">Intercept</th>
+<th style="text-align: center;">Slope</th>
+<th style="text-align: center;">Fitted mean at 6</th>
+<th style="text-align: center;">Residual SD</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Baseline</td>
+<td style="text-align: center;">2.000</td>
+<td style="text-align: center;">1.000</td>
+<td style="text-align: center;">8.000</td>
+<td style="text-align: center;">0.200</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Baseline + A</td>
+<td style="text-align: center;">2.714</td>
+<td style="text-align: center;">1.000</td>
+<td style="text-align: center;">8.714</td>
+<td style="text-align: center;">2.078</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Baseline + B</td>
+<td style="text-align: center;">2.000</td>
+<td style="text-align: center;">1.000</td>
+<td style="text-align: center;">8.000</td>
+<td style="text-align: center;">0.179</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Baseline + C</td>
+<td style="text-align: center;">4.532</td>
+<td style="text-align: center;">0.170</td>
+<td style="text-align: center;">5.553</td>
+<td style="text-align: center;">1.899</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<ul>
+<li><strong>A changes the intercept and the noise estimate.</strong> The intercept rises from 2.000 to 2.714, while the slope stays at 1.000. Here <span class="math inline">\(x=3.5\)</span> is the baseline mean of <span class="math inline">\(x\)</span>, so this added point does not change the slope. The residual SD rises from 0.200 to 2.078: an outlying response can inflate estimated noise even when the slope is unchanged.</li>
+<li><strong>B leaves both coefficient estimates unchanged.</strong> The fitted mean at <span class="math inline">\(x=6\)</span> remains 8.000. High leverage alone does not imply that a point changes the estimated line; it can still affect the precision of the estimates.</li>
+<li><strong>C changes the estimated relationship.</strong> The slope falls from 1.000 to 0.170 and the intercept rises to 4.532. The fitted mean at <span class="math inline">\(x=6\)</span> falls from 8.000 to 5.553. This is a substantial change in a prediction within the original predictor range, not just at the distant added point.</li>
+</ul>
+</div>
+<p>The plots and coefficient comparisons motivate the following definitions. We then quantify the movement of the fitted line with Cook’s distance.</p>
 <div id="def-ch6-outlier-leverage-influence" class="theorem definition">
 <p><span class="theorem-title"><strong>Definition 6.1 (Outlier, Leverage, and Influence)</strong></span> &nbsp;</p>
 <ul>
@@ -493,23 +606,42 @@ D_i=\frac{\sum_{j=1}^n(\hat Y_j-\hat Y_{j(-i)})^2}{p s^2}
 <p>Here <span class="math inline">\(s^2\)</span> comes from the full fit. These formulas apply to ordinary unweighted least squares with full column rank and positive residual degrees of freedom; the deleted fit must also be estimable (<span class="math inline">\(h_{ii}&lt;1\)</span>).</p>
 </div>
 <p><strong>Read the two parts.</strong> The first expression asks how much the <em>whole fitted mean vector</em> moves after deletion, measured relative to the noise scale and model size. The last combines response discrepancy (<span class="math inline">\(r_i^2\)</span>) with leverage (<span class="math inline">\(h_{ii}/(1-h_{ii})\)</span>). Thus the largest residual need not produce the largest Cook’s distance. <span class="math inline">\(D_i\)</span> is dimensionless; it is not a p-value. <a href="https://doi.org/10.1080/00401706.1977.10489493">Cook’s original article</a>.</p>
-<div id="exm-ch6-three-points" class="theorem example">
-<p><span class="theorem-title"><strong>Example 6.1 (Three Points, Three Different Stories)</strong></span> Each panel starts with the same 12 observations and adds one orange point. The dashed line omits that point; the solid line includes it. Compare <strong>vertical discrepancy</strong>, <strong>horizontal position</strong>, and <strong>movement of the line</strong> separately.</p>
+<p><strong>Apply Cook’s distance to the same three points.</strong> In each augmented fit, <span class="math inline">\(n=7\)</span> and <span class="math inline">\(p=2\)</span>. The diagnostics for its orange point are:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-ch6-influence-stories" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Three side-by-side scatterplots compare fitted lines including and omitting an orange point: an outlying response near the center, a far-right point on the baseline line, and a far-right point below that line. The third point rotates the line most.">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-ch6-influence-stories-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="06_files/figure-html/fig-ch6-influence-stories-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Three side-by-side scatterplots compare fitted lines including and omitting an orange point: an outlying response near the center, a far-right point on the baseline line, and a far-right point below that line. The third point rotates the line most." width="672">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Point</th>
+<th style="text-align: center;">Leverage</th>
+<th style="text-align: center;">Standardized residual</th>
+<th style="text-align: center;">Cook’s distance</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">A</td>
+<td style="text-align: center;">0.143</td>
+<td style="text-align: center;">2.228</td>
+<td style="text-align: center;">0.414</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">B</td>
+<td style="text-align: center;">0.721</td>
+<td style="text-align: center;">0.000</td>
+<td style="text-align: center;">0.000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">C</td>
+<td style="text-align: center;">0.721</td>
+<td style="text-align: center;">-2.226</td>
+<td style="text-align: center;">6.395</td>
+</tr>
+</tbody>
+</table>
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch6-influence-stories-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.1: The same baseline data appear in each panel. A has a large residual but less influence than C. B has high leverage and essentially zero Cook’s distance. C strongly rotates the fit. Annotations describe the orange point; p = 2.
-</figcaption>
-</figure>
 </div>
-</div>
-</div>
-</div>
+<p>A and C have almost the same absolute standardized residual, but C has much higher leverage and a much larger Cook’s distance: 6.395 versus 0.414. B has the same leverage as C, yet its zero residual gives zero Cook’s distance. These numbers quantify what the plots and coefficient table already showed: <strong>influence depends on both the response discrepancy and the predictor position</strong>.</p>
 <div id="exr-ch6-influence" class="theorem exercise">
 <p><span class="theorem-title"><strong>Exercise 6.1 (Which Point Moves the Fit More?)</strong></span> In a model with <span class="math inline">\(p=2\)</span>, point A has <span class="math inline">\(r_A=3\)</span> and <span class="math inline">\(h_{AA}=0.05\)</span>; point B has <span class="math inline">\(r_B=1\)</span> and <span class="math inline">\(h_{BB}=0.50\)</span>. Compute their Cook’s distances. Which point is more influential by this measure? Does either number establish a data error?</p>
 </div>
