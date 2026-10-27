@@ -465,8 +465,35 @@ window.Quarto = {
 <section id="sec-ch5-adjusted" class="level2" data-number="5.1">
 <h2 data-number="5.1" class="anchored" data-anchor-id="sec-ch5-adjusted"><span class="header-section-number">5.1</span> Multiple regression and adjusted interpretation</h2>
 <div id="def-ch5-adjusted-coefficient" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 5.1 (Adjusted Regression Coefficient)</strong></span> For the additive mean model <span class="math inline">\(\mu(\mathbf x)=\beta_0+\sum_{j=1}^k\beta_jx_j\)</span>, <span class="math inline">\(\beta_j\)</span> is the mean-response difference for a one-unit increase in <span class="math inline">\(x_j\)</span>, <strong>holding the other predictors fixed</strong>. The intercept is the mean at <span class="math inline">\(\mathbf x=\mathbf 0\)</span>; see <a href="./04.html#def-regression-parameter-meaning">Chapter 4’s coefficient interpretation</a>.</p>
+<p><span class="theorem-title"><strong>Definition 5.1 (Adjusted Regression Coefficient)</strong></span> For the additive mean model <span class="math inline">\(\mu(\mathbf x)=\mathbb E(Y\mid\mathbf x)=\beta_0+\sum_{j=1}^k\beta_jx_j\)</span>, <span class="math inline">\(\beta_j\)</span> is the mean-response difference for a one-unit increase in <span class="math inline">\(x_j\)</span>, <strong>holding the other predictors fixed</strong>:</p>
+<p><span class="math display">\[
+\mu(x_1,\ldots,x_j+1,\ldots,x_k)
+-\mu(x_1,\ldots,x_j,\ldots,x_k)=\beta_j.
+\]</span></p>
+<p><strong>Why does the difference equal the coefficient?</strong> Choose any predictor <span class="math inline">\(x_a\)</span>, where <span class="math inline">\(a\in\{1,\ldots,k\}\)</span>. With the other predictors fixed, <span class="math inline">\(C_a=\beta_0+\sum_{\ell\ne a}\beta_\ell x_\ell\)</span> is the same in both means. Thus the one-unit mean difference is</p>
+<p><span class="math display">\[
+\Delta_a
+=\bigl[C_a+\beta_a(x_a+1)\bigr]
+-\bigl[C_a+\beta_ax_a\bigr]
+=\beta_a.
+\]</span></p>
+<p>The intercept and all unchanged predictor contributions cancel, leaving <span class="math inline">\(\beta_a[(x_a+1)-x_a]=\beta_a\)</span>. Taking <span class="math inline">\(a=j\)</span> gives the formula above; a change of <span class="math inline">\(h\)</span> units gives the mean difference <span class="math inline">\(h\beta_a\)</span> in this additive model.</p>
+<p>The intercept is the mean at <span class="math inline">\(\mathbf x=\mathbf 0\)</span>; see <a href="./04.html#def-regression-parameter-meaning">Chapter 4’s coefficient interpretation</a>.</p>
 </div>
+<p><strong>Design matrix and parameter count.</strong> For <span class="math inline">\(n\)</span> observations and <span class="math inline">\(k\)</span> predictor columns, the model has one intercept column and <span class="math inline">\(k\)</span> predictor columns:</p>
+<p><span class="math display">\[
+\mathbf X=
+\begin{pmatrix}
+1&amp;x_{11}&amp;\cdots&amp;x_{1k}\\
+\vdots&amp;\vdots&amp;&amp;\vdots\\
+1&amp;x_{n1}&amp;\cdots&amp;x_{nk}
+\end{pmatrix}
+\in\mathbb R^{n\times(k+1)},
+\qquad
+\boldsymbol\beta=(\beta_0,\beta_1,\ldots,\beta_k),
+\qquad p=k+1.
+\]</span></p>
+<p>We assume full column rank, so <span class="math inline">\(\operatorname{rank}(\mathbf X)=p\)</span>. Here <span class="math inline">\(k\)</span> counts <strong>predictor columns</strong>, not necessarily named variables: a factor or interaction can contribute several columns. In the tree model below, height and diameter give <span class="math inline">\(k=2\)</span> and <span class="math inline">\(p=3\)</span>.</p>
 <div id="exm-ch5-tree-adjustment" class="theorem example">
 <p><span class="theorem-title"><strong>Example 5.1 (The Same Height Measurement, Two Comparisons)</strong></span> Return to the <a href="./04.html#exm-timber-volume">31 black cherry trees</a>. Compare the height coefficient with and without adjustment for diameter. As before, <code>Girth</code> records diameter in inches; <code>Height</code> is in feet and <code>Volume</code> in cubic feet.</p>
 <div class="cell">
@@ -510,7 +537,7 @@ window.Quarto = {
 <p>The height-only slope is <strong>1.543</strong> cubic feet per foot. After adjustment, it is <strong>0.339</strong>: among trees of the same diameter, a one-foot height difference corresponds to 0.339 more cubic feet of fitted mean volume.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-ch5-adjustment" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Timber volume against height, with tree diameter encoded by color. A steep dashed unadjusted line has slope 1.543; a shallower solid line at diameter 13 inches has slope 0.339. Both line meanings appear in the legend." data-fig-pos="H">
+<div id="fig-ch5-adjustment" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Timber volume against height, with tree diameter encoded by color. A steep dashed unadjusted line has slope 1.543; a shallower solid line at diameter 13 inches has slope 0.339. Both line meanings appear in the legend.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ch5-adjustment-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05_files/figure-html/fig-ch5-adjustment-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Timber volume against height, with tree diameter encoded by color. A steep dashed unadjusted line has slope 1.543; a shallower solid line at diameter 13 inches has slope 0.339. Both line meanings appear in the legend." width="672">
@@ -662,7 +689,7 @@ Figure&nbsp;5.1: Dashed: height-only fit. Solid: adjusted mean at diameter 13 in
 <h2 data-number="5.3" class="anchored" data-anchor-id="sec-ch5-additive"><span class="header-section-number">5.3</span> A continuous predictor and a group indicator</h2>
 <p>R’s <a href="https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/ToothGrowth.html"><code>ToothGrowth</code> data</a> record odontoblast length in 60 guinea pigs. Each animal received vitamin C at 0.5, 1, or 2 mg/day, delivered as orange juice (<code>OJ</code>) or ascorbic acid (<code>VC</code>).</p>
 <p><strong>Question.</strong> How does the mean response vary with dose, and is the OJ-minus-VC mean difference the same at every dose?</p>
-<div id="fig-ch5-toothgrowth-overview" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A two-by-three grid of cute guinea pigs: orange juice (OJ) and ascorbic acid (VC) at vitamin C doses 0.5, 1, and 2 mg/day, with 10 animals in each cell. The recorded response is odontoblast length. Compare doses within a method and methods at each dose." data-fig-pos="H">
+<div id="fig-ch5-toothgrowth-overview" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="A two-by-three grid of cute guinea pigs: orange juice (OJ) and ascorbic acid (VC) at vitamin C doses 0.5, 1, and 2 mg/day, with 10 animals in each cell. The recorded response is odontoblast length. Compare doses within a method and methods at each dose.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ch5-toothgrowth-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="illustrations/ch5-toothgrowth-overview.png" class="img-fluid figure-img" style="width:100.0%" data-fig-pos="H" alt="A two-by-three grid of cute guinea pigs: orange juice (OJ) and ascorbic acid (VC) at vitamin C doses 0.5, 1, and 2 mg/day, with 10 animals in each cell. The recorded response is odontoblast length. Compare doses within a method and methods at each dose.">
@@ -898,7 +925,7 @@ Figure&nbsp;5.2: Each cell represents 10 animals. Compare doses across a row and
 <p>The VC slope is <strong>11.716</strong>; the OJ slope is <strong>7.811</strong>, using unrounded estimates. Their fitted mean difference is about <strong>4.351</strong> at 1 mg/day and <strong>0.446</strong> at 2 mg/day. The negative interaction means the gap decreases with dose, while both slopes remain positive.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-ch5-parallel-versus-interaction" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two panels show length against vitamin C dose for VC and OJ. The additive fit has parallel lines; the interaction fit has a steeper VC line. Both panels display the same individual observations." data-fig-pos="H">
+<div id="fig-ch5-parallel-versus-interaction" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Two panels show length against vitamin C dose for VC and OJ. The additive fit has parallel lines; the interaction fit has a steeper VC line. Both panels display the same individual observations.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ch5-parallel-versus-interaction-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05_files/figure-html/fig-ch5-parallel-versus-interaction-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Two panels show length against vitamin C dose for VC and OJ. The additive fit has parallel lines; the interaction fit has a steeper VC line. Both panels display the same individual observations." width="672">
@@ -1026,7 +1053,7 @@ Figure&nbsp;5.3: The same observations fitted with parallel lines (additive) or 
 <p>At the 5% level, the two-line analysis rejects both equal slopes and identical lines. However, the last comparison also rejects the straight-line restriction. The plot shows the departure: the means at 1 mg/day lie above the fitted lines. Thus the lines illustrate coefficient interpretation, but the <strong>six-cell model</strong> is a better starting point for <a href="./App_I-contrasts.html#sec-ch6-tooth">dose-specific comparisons</a>. Chapter 6 takes up the broader question: <a href="./06.html">how can we revise the functional form and choose model terms?</a></p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-ch5-dose-shape" class="quarto-float quarto-figure quarto-figure-center anchored" alt="For each delivery method, three cell means are plotted against dose and compared with its fitted straight line. The means at 1 mg/day lie above the fitted lines." data-fig-pos="H">
+<div id="fig-ch5-dose-shape" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="For each delivery method, three cell means are plotted against dose and compared with its fitted straight line. The means at 1 mg/day lie above the fitted lines.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ch5-dose-shape-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05_files/figure-html/fig-ch5-dose-shape-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="For each delivery method, three cell means are plotted against dose and compared with its fitted straight line. The means at 1 mg/day lie above the fitted lines." width="624">
