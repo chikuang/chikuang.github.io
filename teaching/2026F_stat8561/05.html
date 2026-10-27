@@ -6,7 +6,6 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-10-26">
 
 <title>5&nbsp; Multiple Regression and Categorical Predictors – STAT8561 - Linear Statistical Analysis I</title>
 <style>
@@ -398,9 +397,8 @@ window.Quarto = {
   <li><a href="#sec-ch5-additive" id="toc-sec-ch5-additive" class="nav-link" data-scroll-target="#sec-ch5-additive"><span class="header-section-number">5.3</span> A continuous predictor and a group indicator</a></li>
   <li><a href="#sec-ch5-interaction" id="toc-sec-ch5-interaction" class="nav-link" data-scroll-target="#sec-ch5-interaction"><span class="header-section-number">5.4</span> Interactions and conditional comparisons</a></li>
   <li><a href="#sec-ch5-comparisons" id="toc-sec-ch5-comparisons" class="nav-link" data-scroll-target="#sec-ch5-comparisons"><span class="header-section-number">5.5</span> Match the hypothesis to the model comparison</a></li>
-  <li><a href="#sec-ch5-coding-checks" id="toc-sec-ch5-coding-checks" class="nav-link" data-scroll-target="#sec-ch5-coding-checks"><span class="header-section-number">5.6</span> Coding checks and the bridge to contrasts</a></li>
-  <li><a href="#sec-ch5-practice" id="toc-sec-ch5-practice" class="nav-link" data-scroll-target="#sec-ch5-practice"><span class="header-section-number">5.7</span> Concept checks and practice</a></li>
-  <li><a href="#summary-recap" id="toc-summary-recap" class="nav-link" data-scroll-target="#summary-recap">Summary / Recap</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
+  <li><a href="#sec-ch5-practice" id="toc-sec-ch5-practice" class="nav-link" data-scroll-target="#sec-ch5-practice"><span class="header-section-number">5.6</span> Practice Problems</a></li>
   </ul>
 </nav>
     </div>
@@ -417,12 +415,6 @@ window.Quarto = {
 <div class="quarto-title-meta">
 
     
-    <div>
-    <div class="quarto-title-meta-heading">Published</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date">October 26, 2026</p>
-    </div>
-  </div>
   
     
   </div>
@@ -432,67 +424,39 @@ window.Quarto = {
 </header>
 
 
-<p><a href="./04.html">Chapter 4</a> asked whether additional columns of a design matrix improve a model. This chapter asks what those columns mean. We connect a scientific comparison to a mean function, construct the corresponding design matrix, and interpret the fitted coefficients.</p>
+<p><a href="./04.html">Chapter 4</a> compared models. Here we learn to <strong>build and interpret</strong> them when predictors include groups and interactions.</p>
 <blockquote class="blockquote">
 <p><strong>Learning Objectives</strong></p>
 <p>By the end of this chapter, students should be able to:</p>
 <ul>
-<li>distinguish a marginal association from an adjusted association;</li>
-<li>translate a factor into indicator columns and identify the reference group;</li>
-<li>count model parameters and recognize redundant columns;</li>
-<li>write group-specific mean functions for additive and interaction models;</li>
-<li>explain how centering and reference coding change coefficient meanings;</li>
-<li>match a scientific question to a nested-model comparison;</li>
-<li>use <code>model.matrix()</code>, <code>lm()</code>, and predictions to check an interpretation.</li>
+<li>compare unadjusted and adjusted associations;</li>
+<li>code a factor and count its design-matrix columns;</li>
+<li>interpret additive and interaction models;</li>
+<li>explain how centering and reference groups affect coefficient meanings;</li>
+<li>choose a model comparison for a scientific question and check it in R.</li>
 </ul>
 </blockquote>
-<p><strong>Reading.</strong> Read the sections on multiple regression, qualitative predictors, and interaction terms in Montgomery, Peck, and Vining <span class="citation" data-cites="montgomery:2021:book">(<a href="references.html#ref-montgomery:2021:book" role="doc-biblioref">Montgomery et al. 2021</a>)</span> and Seber and Lee <span class="citation" data-cites="seber:2003:book">(<a href="references.html#ref-seber:2003:book" role="doc-biblioref">Seber and Lee 2003</a>)</span>. The R examples use built-in datasets and require no additional data downloads.</p>
-<div class="callout callout-style-default callout-note callout-titled" title="Two class meetings, one modelling workflow">
+<p><strong>Reading.</strong> Multiple regression, qualitative predictors, and interactions in Montgomery, Peck, and Vining <span class="citation" data-cites="montgomery:2021:book">(<a href="references.html#ref-montgomery:2021:book" role="doc-biblioref">Montgomery et al. 2021</a>)</span> and Seber and Lee <span class="citation" data-cites="seber:2003:book">(<a href="references.html#ref-seber:2003:book" role="doc-biblioref">Seber and Lee 2003</a>)</span>.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recall from Chapters 1–4">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Two class meetings, one modelling workflow
+<span class="screen-reader-only">Note</span>Recall from Chapters 1–4
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>In the first meeting, focus on adjusted interpretation, indicator coding, and additive models. In the second, study interactions and the equal-slopes versus identical-lines comparisons. Use the code and additional coding checks for practice. Chapter 6 continues the same ToothGrowth application with estimates and confidence intervals for selected comparisons; an integration meeting provides time to consolidate these ideas.</p>
-<p>Our workflow is <strong>question → mean function → design matrix → interpretation → comparison</strong>. The least squares and inference tools remain those from Chapters 2–4.</p>
+<p>We reuse the <a href="./01_matrix_representation.html">design-matrix notation</a>, <a href="./02_LSE.html#sec-lse">least squares</a>, <a href="./03_OLS_inference.html#def-normal-linear-model">normal-model assumptions for inference</a>, and <a href="./04.html#thm-partial-f">partial F test</a>. Here <span class="math inline">\(p\)</span> counts independent columns, including the intercept. As in Chapter 4, coefficient interpretations concern mean responses; an association alone does not establish causation.</p>
 </div>
 </div>
 <section id="sec-ch5-adjusted" class="level2" data-number="5.1">
 <h2 data-number="5.1" class="anchored" data-anchor-id="sec-ch5-adjusted"><span class="header-section-number">5.1</span> Multiple regression and adjusted interpretation</h2>
-<p>For <span class="math inline">\(k\)</span> continuous predictors, an additive mean model is</p>
-<p><span class="math display">\[
-\mu(\mathbf x_i)=\mathbb E(Y_i\mid\mathbf x_i)
-=\beta_0+\sum_{j=1}^{k}\beta_j x_{ij},
-\qquad Y_i=\mu(\mathbf x_i)+\varepsilon_i.
-\]</span></p>
-<p>With an intercept and no redundant columns, <span class="math inline">\(p=k+1\)</span>. Throughout this course, <strong><span class="math inline">\(p\)</span> counts columns of the design matrix, including the intercept</strong>. A factor or an interaction can contribute several columns, so the number of named variables need not equal the number of parameters.</p>
-<p>The design matrix is</p>
-<p><span class="math display">\[
-\mathbf X=
-\begin{pmatrix}
-1&amp;x_{11}&amp;\cdots&amp;x_{1k}\\
-1&amp;x_{21}&amp;\cdots&amp;x_{2k}\\
-\vdots&amp;\vdots&amp;&amp;\vdots\\
-1&amp;x_{n1}&amp;\cdots&amp;x_{nk}
-\end{pmatrix}.
-\]</span></p>
-<p>Full column rank gives the familiar estimator <span class="math inline">\((\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\mathbf Y\)</span>. Least squares itself does not require normal errors. For the exact <span class="math inline">\(t\)</span> and <span class="math inline">\(F\)</span> procedures in this chapter, we use the normal linear model from <a href="./03_OLS_inference.html">Chapter 3</a>: fixed full-rank <span class="math inline">\(\mathbf X\)</span> and independent <span class="math inline">\(N(0,\sigma^2)\)</span> errors.</p>
 <div id="def-ch5-adjusted-coefficient" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 5.1 (Adjusted Regression Coefficient)</strong></span> In an additive linear mean model, <span class="math inline">\(\beta_j\)</span> is the difference in mean response associated with a one-unit increase in <span class="math inline">\(x_j\)</span>, <strong>holding the other predictors fixed</strong>:</p>
-<p><span class="math display">\[
-\mu(x_1,\ldots,x_j+1,\ldots,x_k)
--\mu(x_1,\ldots,x_j,\ldots,x_k)=\beta_j.
-\]</span></p>
-<p>The intercept is the mean response when <span class="math inline">\(x_1=\cdots=x_k=0\)</span>. It may describe a useful baseline, or a point outside the range supported by the data.</p>
-<p>A useful interpretation states the response, its units, the predictor change, and the variables held fixed. For example: “At the same diameter, a one-foot increase in height is associated with an estimated 0.339-cubic-foot increase in mean volume.” The adjustment set is part of the statement.</p>
+<p><span class="theorem-title"><strong>Definition 5.1 (Adjusted Regression Coefficient)</strong></span> For the additive mean model <span class="math inline">\(\mu(\mathbf x)=\beta_0+\sum_{j=1}^k\beta_jx_j\)</span>, <span class="math inline">\(\beta_j\)</span> is the mean-response difference for a one-unit increase in <span class="math inline">\(x_j\)</span>, <strong>holding the other predictors fixed</strong>. The intercept is the mean at <span class="math inline">\(\mathbf x=\mathbf 0\)</span>; see <a href="./04.html#def-regression-parameter-meaning">Chapter 4’s coefficient interpretation</a>.</p>
 </div>
-<p><strong>Why an added predictor can change a coefficient.</strong> A simple regression of <span class="math inline">\(Y\)</span> on <span class="math inline">\(x_1\)</span> compares observations with different <span class="math inline">\(x_1\)</span> values while leaving their other characteristics unadjusted. A regression on both <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> describes the association with <span class="math inline">\(x_1\)</span> at fixed <span class="math inline">\(x_2\)</span>. If <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> vary together, these are different comparisons. Neither slope should be interpreted without naming its model.</p>
 <div id="exm-ch5-tree-adjustment" class="theorem example">
-<p><span class="theorem-title"><strong>Example 5.1 (The Same Height Measurement, Two Comparisons)</strong></span> Return to the 31 black cherry trees from Chapter 4. <code>Volume</code> is timber volume in cubic feet, <code>Height</code> is height in feet, and R’s variable <code>Girth</code> actually records diameter in inches. Each row is one tree. We rename that variable <code>Diameter</code>. <a href="https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/trees.html">Dataset documentation</a>.</p>
+<p><span class="theorem-title"><strong>Example 5.1 (The Same Height Measurement, Two Comparisons)</strong></span> Return to the <a href="./04.html#exm-timber-volume">31 black cherry trees</a>. Compare the height coefficient with and without adjustment for diameter. As before, <code>Girth</code> records diameter in inches; <code>Height</code> is in feet and <code>Volume</code> in cubic feet.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
@@ -531,51 +495,22 @@ window.Quarto = {
 </table>
 </div>
 </div>
-<p>The unadjusted height coefficient is about <strong>1.543</strong> cubic feet per foot. The adjusted coefficient is about <strong>0.339</strong>: among trees of the same diameter, one additional foot of height is associated with 0.339 more cubic feet of fitted mean volume. The fitted multiple regression equation is</p>
-<p><span class="math display">\[
-\widehat{\mathrm{Volume}}
-=-57.988+0.339\,\mathrm{Height}+4.708\,\mathrm{Diameter}.
-\]</span></p>
-<p><strong>Which comparison does each slope describe?</strong> In the plot, use the point colors to inspect how diameter varies with height, then compare the two fitted lines.</p>
+<p>The height-only slope is <strong>1.543</strong> cubic feet per foot. After adjustment, it is <strong>0.339</strong>: among trees of the same diameter, a one-foot height difference corresponds to 0.339 more cubic feet of fitted mean volume.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-ch5-adjustment" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Timber volume against height, with tree diameter encoded by color. A steep dashed unadjusted line has slope 1.543; a shallower solid line at diameter 13 inches has slope 0.339. Both line meanings appear in the legend." data-fig-pos="H">
+<div id="fig-ch5-adjustment" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Timber volume against height, with tree diameter encoded by color. A steep dashed unadjusted line has slope 1.543; a shallower solid line at diameter 13 inches has slope 0.339. Both line meanings appear in the legend.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ch5-adjustment-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05_files/figure-html/fig-ch5-adjustment-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Timber volume against height, with tree diameter encoded by color. A steep dashed unadjusted line has slope 1.543; a shallower solid line at diameter 13 inches has slope 0.339. Both line meanings appear in the legend." width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch5-adjustment-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5.1: The same 31 trees, with color indicating diameter. The dashed height-only line follows the unadjusted association. The solid line is the multiple-regression mean at a fixed diameter of 13 inches. The points have different diameters, so their vertical distances from that fixed-diameter line are not the multiple-regression residuals.
+Figure&nbsp;5.1: Dashed: height-only fit. Solid: adjusted mean at diameter 13 inches. Color shows observed diameter; distances to the solid line are not residuals because the trees have different diameters.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>These slopes answer different questions. The multiple-regression height coefficient is also the coefficient tested when Chapter 4 compared the diameter-only model with the diameter-plus-height model.</p>
-<p><strong>Why can the height estimate change?</strong> For same-data OLS fits with intercepts and full column rank, write the reduced coefficients as <span class="math inline">\(\hat\alpha_0,\hat\alpha_1\)</span> and the full coefficients as <span class="math inline">\(\hat\beta_0,\hat\beta_1,\hat\beta_2\)</span>. Let <span class="math inline">\(\hat\delta_1\)</span> be the slope from an auxiliary regression of <span class="math inline">\(x_2\)</span> on <span class="math inline">\(x_1\)</span>. The normal equations from <a href="./02_LSE.html#sec-lse">Chapter 2</a> imply the exact sample identity</p>
-<p><span class="math display">\[
-\boxed{\hat\alpha_1=\hat\beta_1+\hat\beta_2\hat\delta_1.}
-\]</span></p>
-<p>Here <span class="math inline">\(x_1\)</span> is height and <span class="math inline">\(x_2\)</span> is diameter. The diameter-on-height slope is about <span class="math inline">\(0.25575\)</span> inches per foot, so</p>
-<p><span class="math display">\[
-1.54335\approx0.33925+4.70816(0.25575).
-\]</span></p>
-<p>Taller trees in this sample also tend to have larger diameters. The height-only fit incorporates that accompanying diameter variation; the adjusted height coefficient describes a comparison at fixed diameter. The smaller adjusted estimate is not by itself evidence that height is unimportant or that either fit is a calculation error.</p>
-<p>The two fitted slopes are equal if <span class="math inline">\(\hat\beta_2\hat\delta_1=0\)</span>. For example, centered orthogonality of <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> gives <span class="math inline">\(\hat\delta_1=0\)</span>. Adding a predictor therefore need not change the numerical slope, even though the stated adjustment differs. This identity concerns fitted OLS coefficients and does not require normal errors.</p>
-</div>
-<div class="callout callout-style-default callout-important callout-titled" title="Adjustment, overlap, and causal interpretation">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>Adjustment, overlap, and causal interpretation
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>“Holding diameter fixed” describes a comparison in the mean model; it does not mean an experiment made the same tree taller. An adjusted association is not automatically causal. A causal interpretation needs a defensible design and additional assumptions.</p>
-<p>Also inspect which predictor combinations occur. If two predictors nearly move together, the data provide little information about changing one while holding the other fixed. Exact linear dependence causes rank deficiency; strong but imperfect dependence can inflate coefficient uncertainty. Detailed diagnostics come later.</p>
-</div>
+<p>Taller trees in this sample also tend to have larger diameters. The height-only slope includes that accompanying variation; the adjusted slope compares heights at fixed diameter. The two slopes answer different questions.</p>
 </div>
 <div id="exr-ch5-adjusted-interpretation" class="theorem exercise">
 <p><span class="theorem-title"><strong>Exercise 5.1 (In Class: Interpret 0.339)</strong></span> Which interpretation matches the adjusted height coefficient?</p>
@@ -589,14 +524,9 @@ Figure&nbsp;5.1: The same 31 trees, with color indicating diameter. The dashed h
 </section>
 <section id="sec-ch5-factor-coding" class="level2" data-number="5.2">
 <h2 data-number="5.2" class="anchored" data-anchor-id="sec-ch5-factor-coding"><span class="header-section-number">5.2</span> Categorical predictors are columns of a design matrix</h2>
-<p>A categorical variable records group membership. Its labels do not supply numerical distances. Coding three unordered groups as 1, 2, and 3 and fitting one slope would impose equally spaced means; that is a modelling restriction, not a neutral relabeling.</p>
+<p>Group labels have no numerical spacing. Coding unordered groups A, B, and C as 1, 2, and 3 and fitting one slope would impose equally spaced means.</p>
 <div id="def-ch5-treatment-coding" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 5.2 (Reference-Group Indicator Coding)</strong></span> For a factor with <span class="math inline">\(g\)</span> observed levels, choose one reference level. With an intercept, use <span class="math inline">\(g-1\)</span> indicators for the remaining levels. For levels A, B, and C with A as reference, let</p>
-<p><span class="math display">\[
-D_{Bi}=\mathbb 1\{G_i=\mathrm B\},\qquad
-D_{Ci}=\mathbb 1\{G_i=\mathrm C\}.
-\]</span></p>
-<p>Then</p>
+<p><span class="theorem-title"><strong>Definition 5.2 (Reference-Group Indicator Coding)</strong></span> For <span class="math inline">\(g\)</span> groups, use an intercept and <span class="math inline">\(g-1\)</span> indicators. With A as reference, define <span class="math inline">\(D_{Bi}=\mathbb 1\{G_i=\mathrm B\}\)</span> and <span class="math inline">\(D_{Ci}=\mathbb 1\{G_i=\mathrm C\}\)</span>. Then</p>
 <p><span class="math display">\[
 \mathbb E(Y_i\mid G_i)=\beta_0+\beta_BD_{Bi}+\beta_CD_{Ci}.
 \]</span></p>
@@ -626,25 +556,16 @@ D_{Ci}=\mathbb 1\{G_i=\mathrm C\}.
 </tr>
 </tbody>
 </table>
-<p>Thus <span class="math inline">\(\beta_B=\mu_B-\mu_A\)</span> and <span class="math inline">\(\beta_C=\mu_C-\mu_A\)</span>. A comparison of B with C is <span class="math inline">\(\beta_B-\beta_C\)</span>, not either coefficient alone.</p>
+<p>Thus <span class="math inline">\(\beta_B=\mu_B-\mu_A\)</span>, <span class="math inline">\(\beta_C=\mu_C-\mu_A\)</span>, and the B-minus-C difference is <span class="math inline">\(\beta_B-\beta_C\)</span>.</p>
 </div>
-<p>For two observations from each group, ordered A, A, B, B, C, C,</p>
-<p><span class="math display">\[
-\mathbf X=
-\begin{pmatrix}
-1&amp;0&amp;0\\1&amp;0&amp;0\\1&amp;1&amp;0\\1&amp;1&amp;0\\1&amp;0&amp;1\\1&amp;0&amp;1
-\end{pmatrix},\qquad p=3.
-\]</span></p>
+<p>Use <code>model.matrix()</code> to check the coding:</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ch5_groups <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">group =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>), <span class="at">each =</span> <span class="dv">2</span>),</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>)))</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ch5_groups<span class="sc">$</span>group) <span class="ot">&lt;-</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">contr.treatment</span>(<span class="fu">levels</span>(ch5_groups<span class="sc">$</span>group), <span class="at">base =</span> <span class="dv">1</span>)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">model.matrix</span>(<span class="sc">~</span> group, <span class="at">data =</span> ch5_groups),</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ch5_groups <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">group =</span> <span class="fu">factor</span>(<span class="fu">c</span>(<span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>)))</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ch5_groups<span class="sc">$</span>group) <span class="ot">&lt;-</span> <span class="fu">contr.treatment</span>(<span class="fu">levels</span>(ch5_groups<span class="sc">$</span>group), <span class="at">base =</span> <span class="dv">1</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">model.matrix</span>(<span class="sc">~</span> group, <span class="at">data =</span> ch5_groups),</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -663,25 +584,10 @@ D_{Ci}=\mathbb 1\{G_i=\mathrm C\}.
 </tr>
 <tr class="even">
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr class="even">
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
@@ -690,15 +596,19 @@ D_{Ci}=\mathbb 1\{G_i=\mathrm C\}.
 </table>
 </div>
 </div>
-<p><strong>Why not use all indicators with an intercept?</strong> For every observation,</p>
-<p><span class="math display">\[
-D_{Ai}+D_{Bi}+D_{Ci}=1.
-\]</span></p>
-<p>The intercept column is therefore the sum of the three indicator columns. Four written coefficients would represent only three independent columns. One alternative is to remove the intercept and use all three indicators:</p>
-<p><span class="math display">\[
-\mathbb E(Y_i\mid G_i)=\mu_AD_{Ai}+\mu_BD_{Bi}+\mu_CD_{Ci}.
-\]</span></p>
-<p>This <strong>cell-means parameterization</strong> describes the same set of mean vectors. In R it is <code>y ~ 0 + group</code>. Removing the intercept here does not force the group means to zero; the indicator columns already span the constant vector.</p>
+<div class="callout callout-style-default callout-important callout-titled" title="Avoid a redundant indicator">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Avoid a redundant indicator
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Since <span class="math inline">\(D_A+D_B+D_C=1\)</span>, all three indicators plus an intercept are linearly dependent. Alternatively, <code>y ~ 0 + group</code> uses three indicators without an intercept and estimates the three group means directly.</p>
+</div>
+</div>
 <div id="exm-ch5-reference-change" class="theorem example">
 <p><span class="theorem-title"><strong>Example 5.2 (Different Coefficients, the Same Group Means)</strong></span> Suppose the fitted means for A, B, and C are 18, 22, and 19.</p>
 <table class="caption-top table">
@@ -718,11 +628,11 @@ D_{Ai}+D_{Bi}+D_{Ci}=1.
 <tr class="even">
 <td style="text-align: center;">B</td>
 <td style="text-align: center;">22</td>
-<td style="text-align: center;">A minus B: −4; C minus B: −3</td>
+<td style="text-align: center;">A minus B: -4; C minus B: -3</td>
 </tr>
 </tbody>
 </table>
-<p>Changing the reference changes the coordinate system for the same fitted means. It does not change fitted values, residuals, SSE, or model rank. A coefficient test can nevertheless change because its named comparison has changed: B versus A is a different null hypothesis from C versus B.</p>
+<p>Changing the reference changes the coefficient meanings, but preserves fitted means, residuals, and SSE. An individual coefficient test now addresses a different comparison.</p>
 </div>
 <div id="exr-ch5-rank" class="theorem exercise">
 <p><span class="theorem-title"><strong>Exercise 5.2 (In Class: Count Columns, Not Variable Names)</strong></span> A model contains an intercept, two continuous predictors, and one four-level factor using reference coding. Assume all columns are independent and <span class="math inline">\(n=40\)</span>.</p>
@@ -738,15 +648,15 @@ D_{Ai}+D_{Bi}+D_{Ci}=1.
 </section>
 <section id="sec-ch5-additive" class="level2" data-number="5.3">
 <h2 data-number="5.3" class="anchored" data-anchor-id="sec-ch5-additive"><span class="header-section-number">5.3</span> A continuous predictor and a group indicator</h2>
-<p>We now follow one dataset through several models. R’s <code>ToothGrowth</code> data record an odontoblast-length response from 60 guinea pigs. The predictors are vitamin C dose (0.5, 1, or 2 mg/day) and delivery method: orange juice (<code>OJ</code>) or ascorbic acid (<code>VC</code>). Each row is one animal. <a href="https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/ToothGrowth.html">Dataset documentation</a>.</p>
-<p><strong>Question.</strong> How does the mean response vary with dose, and is the OJ-minus-VC mean difference the same at every dose? We first describe fitted associations. The dataset documentation alone is not a complete account of randomization or of all conditions needed for a causal conclusion.</p>
-<div id="fig-ch5-toothgrowth-overview" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A two-by-three grid of cute guinea pigs: orange juice (OJ) and ascorbic acid (VC) at vitamin C doses 0.5, 1, and 2 mg/day, with 10 animals in each cell. The recorded response is odontoblast length. Compare doses within a method and methods at each dose." data-fig-pos="H">
+<p>R’s <a href="https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/ToothGrowth.html"><code>ToothGrowth</code> data</a> record odontoblast length in 60 guinea pigs. Each animal received vitamin C at 0.5, 1, or 2 mg/day, delivered as orange juice (<code>OJ</code>) or ascorbic acid (<code>VC</code>).</p>
+<p><strong>Question.</strong> How does the mean response vary with dose, and is the OJ-minus-VC mean difference the same at every dose?</p>
+<div id="fig-ch5-toothgrowth-overview" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="A two-by-three grid of cute guinea pigs: orange juice (OJ) and ascorbic acid (VC) at vitamin C doses 0.5, 1, and 2 mg/day, with 10 animals in each cell. The recorded response is odontoblast length. Compare doses within a method and methods at each dose.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ch5-toothgrowth-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="illustrations/ch5-toothgrowth-overview.png" class="img-fluid figure-img" style="width:100.0%" data-fig-pos="H" alt="A two-by-three grid of cute guinea pigs: orange juice (OJ) and ascorbic acid (VC) at vitamin C doses 0.5, 1, and 2 mg/day, with 10 animals in each cell. The recorded response is odontoblast length. Compare doses within a method and methods at each dose.">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch5-toothgrowth-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5.2: Each cell represents 10 animals receiving the indicated method and dose. Read across a row to compare doses within one method; compare OJ with VC within a column, then repeat across columns to ask whether the mean gap changes with dose. The guinea pigs are schematic, not observed responses.
+Figure&nbsp;5.2: Each cell represents 10 animals. Compare doses across a row and OJ versus VC within each column. Does the mean gap change across columns? This is a schematic, not observed outcomes.
 </figcaption>
 </figure>
 </div>
@@ -821,11 +731,11 @@ Figure&nbsp;5.2: Each cell represents 10 animals receiving the indicated method 
 </table>
 </div>
 </div>
-<p>Both delivery methods are observed at each of the three doses, with 10 animals per combination. This gives overlap for comparing methods at those doses. It does not supply observations at every dose between them or outside the observed range.</p>
+<p>Both methods have 10 animals at each dose, allowing comparisons at the same observed dose.</p>
 <div id="def-ch5-additive-model" class="theorem definition">
 <p><span class="theorem-title"><strong>Definition 5.3 (Additive Continuous-by-Group Model)</strong></span> Let <span class="math inline">\(x\)</span> be dose, <span class="math inline">\(x_c=x-1\)</span>, and <span class="math inline">\(z=\mathbb 1\{\mathrm{OJ}\}\)</span>. The additive model is</p>
 <p><span class="math display">\[
-\mu(x,z)=\beta_0+\beta_x x_c+\beta_g z.
+\mu(x,z)=\beta_0+\beta_xx_c+\beta_gz.
 \]</span></p>
 <table class="caption-top table">
 <thead>
@@ -848,113 +758,27 @@ Figure&nbsp;5.2: Each cell represents 10 animals receiving the indicated method 
 </tr>
 </tbody>
 </table>
-<p>The two lines are parallel, and <span class="math inline">\(\mu(x,1)-\mu(x,0)=\beta_g\)</span> at every dose. The intercept is the VC mean at <strong>1 mg/day</strong>, because that is where <span class="math inline">\(x_c=0\)</span>.</p>
+<p>The lines are parallel, with constant OJ-minus-VC difference <span class="math inline">\(\beta_g\)</span>. Centering dose at 1 makes <span class="math inline">\(\beta_0\)</span> the VC mean at <strong>1 mg/day</strong>. The design row is <span class="math inline">\((1\;x_c\;z)\)</span>, so <span class="math inline">\(p=3\)</span> when full rank.</p>
 </div>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_add <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_c <span class="sc">+</span> supp, <span class="at">data =</span> ch5_tooth)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">coef</span>(<span class="fu">summary</span>(ch5_fit_add))[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], <span class="at">digits =</span> <span class="dv">3</span>,</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Estimate"</span>, <span class="st">"Standard error"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_add <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_c <span class="sc">+</span> supp, <span class="at">data =</span> ch5_tooth)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<thead>
-<tr class="header">
-<th style="text-align: left;"></th>
-<th style="text-align: right;">Estimate</th>
-<th style="text-align: right;">Standard error</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">(Intercept)</td>
-<td style="text-align: right;">15.336</td>
-<td style="text-align: right;">0.787</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">dose_c</td>
-<td style="text-align: right;">9.764</td>
-<td style="text-align: right;">0.877</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">suppOJ</td>
-<td style="text-align: right;">3.700</td>
-<td style="text-align: right;">1.094</td>
-</tr>
-</tbody>
-</table>
 </div>
-</div>
-<p>The fitted equation is</p>
+<p>The fitted mean is</p>
 <p><span class="math display">\[
 \widehat\mu(x,z)=15.336+9.764(x-1)+3.700z.
 \]</span></p>
-<p>At a fixed delivery method, a one-mg/day dose increase is associated with 9.764 more units of fitted mean length under this linear model. At a fixed dose, the fitted OJ mean exceeds the VC mean by 3.700 units. Neither statement says that every individual response follows its fitted mean exactly.</p>
-<p><strong>Read the design matrix.</strong> There are three columns: intercept, centered dose, and the OJ indicator. The table below shows one row for each predictor combination; the full matrix repeats each combination for 10 animals.</p>
-<div class="cell">
-<details class="code-fold">
-<summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ch5_profiles <span class="ot">&lt;-</span> <span class="fu">unique</span>(ch5_tooth[, <span class="fu">c</span>(<span class="st">"dose_c"</span>, <span class="st">"supp"</span>)])</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>ch5_profile_order <span class="ot">&lt;-</span> <span class="fu">order</span>(ch5_profiles<span class="sc">$</span>supp, ch5_profiles<span class="sc">$</span>dose_c)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>ch5_profiles <span class="ot">&lt;-</span> ch5_profiles[ch5_profile_order, ]</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">model.matrix</span>(<span class="sc">~</span> dose_c <span class="sc">+</span> supp, <span class="at">data =</span> ch5_profiles),</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<thead>
-<tr class="header">
-<th style="text-align: right;">(Intercept)</th>
-<th style="text-align: right;">dose_c</th>
-<th style="text-align: right;">suppOJ</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">-0.5</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0.0</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">-0.5</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0.0</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1.0</td>
-<td style="text-align: right;">1</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>With full rank, this model has <span class="math inline">\(p=3\)</span> and <span class="math inline">\(60-3=57\)</span> residual degrees of freedom. Using numeric dose imposes a straight-line mean within each method; treating the same three doses as a factor permits a separate mean at each dose. We will compare those assumptions below.</p>
+<p>At a fixed method, a one-mg/day increase corresponds to <strong>9.764</strong> more units of fitted mean length. At a fixed dose, OJ exceeds VC by <strong>3.700</strong> units. This model imposes a straight-line dose response and the same slope for both methods.</p>
 </section>
 <section id="sec-ch5-interaction" class="level2" data-number="5.4">
 <h2 data-number="5.4" class="anchored" data-anchor-id="sec-ch5-interaction"><span class="header-section-number">5.4</span> Interactions and conditional comparisons</h2>
 <div id="def-ch5-interaction" class="theorem definition">
 <p><span class="theorem-title"><strong>Definition 5.4 (Continuous-by-Group Interaction)</strong></span> Add the product column <span class="math inline">\(x_cz\)</span>:</p>
 <p><span class="math display">\[
-\mu(x,z)=\beta_0+\beta_x x_c+\beta_gz+\beta_{xg}x_cz.
+\mu(x,z)=\beta_0+\beta_xx_c+\beta_gz+\beta_{xg}x_cz.
 \]</span></p>
-<p>The design row is <span class="math inline">\((1\;x_c\;z\;x_cz)\)</span>, so this two-group model has four parameters when full rank.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 33%">
@@ -981,374 +805,22 @@ Figure&nbsp;5.2: Each cell represents 10 animals receiving the indicated method 
 </tr>
 </tbody>
 </table>
-<p>The group difference at dose <span class="math inline">\(x\)</span> is</p>
+<p>The OJ-minus-VC mean difference now depends on dose:</p>
 <p><span class="math display">\[
-\boxed{\Delta(x)=\mu(x,1)-\mu(x,0)=\beta_g+\beta_{xg}(x-1).}
+\boxed{\Delta(x)=\beta_g+\beta_{xg}(x-1).}
 \]</span></p>
-<p>Thus <span class="math inline">\(\beta_g\)</span> is the group difference at 1 mg/day, and <span class="math inline">\(\beta_{xg}\)</span> is the OJ-minus-VC difference in slopes. An interaction means that one comparison depends on another predictor.</p>
+<p>Here <span class="math inline">\(\beta_g\)</span> is the difference at 1 mg/day, and <span class="math inline">\(\beta_{xg}\)</span> is the difference in slopes. The design row is <span class="math inline">\((1\;x_c\;z\;x_cz)\)</span>, giving <span class="math inline">\(p=4\)</span> when full rank.</p>
 </div>
+<p>In R, <code>dose_c * supp</code> expands to <code>dose_c + supp + dose_c:supp</code>. The last design column is zero for VC and equals centered dose for OJ:</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_int <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_c <span class="sc">*</span> supp, <span class="at">data =</span> ch5_tooth)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">coef</span>(<span class="fu">summary</span>(ch5_fit_int))[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], <span class="at">digits =</span> <span class="dv">3</span>,</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Estimate"</span>, <span class="st">"Standard error"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<thead>
-<tr class="header">
-<th style="text-align: left;"></th>
-<th style="text-align: right;">Estimate</th>
-<th style="text-align: right;">Standard error</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">(Intercept)</td>
-<td style="text-align: right;">15.011</td>
-<td style="text-align: right;">0.772</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">dose_c</td>
-<td style="text-align: right;">11.716</td>
-<td style="text-align: right;">1.195</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">suppOJ</td>
-<td style="text-align: right;">4.351</td>
-<td style="text-align: right;">1.091</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">dose_c:suppOJ</td>
-<td style="text-align: right;">-3.904</td>
-<td style="text-align: right;">1.691</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>R expands <code>dose_c * supp</code> into <code>dose_c + supp + dose_c:supp</code>; <code>:</code> denotes the interaction term. See the <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/formula.html">R formula documentation</a>. The fitted equation is</p>
-<p><span class="math display">\[
-\widehat\mu(x,z)=15.011+11.716(x-1)+4.351z-3.904(x-1)z.
-\]</span></p>
-<p>The VC slope is about 11.716, and the OJ slope is <span class="math inline">\(\hat\beta_x+\hat\beta_{xg}\approx7.811\)</span>, using the unrounded estimates. The OJ-minus-VC difference is about 4.351 at 1 mg/day and 0.446 at 2 mg/day. A negative interaction coefficient means that the group difference decreases as dose increases; it does not mean that the OJ dose slope is negative.</p>
-<div class="callout callout-style-default callout-note callout-titled" title="The same coefficient label can describe a different comparison">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>The same coefficient label can describe a different comparison
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Read each coefficient within its own model. OLS fits the additive and interaction equations separately, so their coefficient estimates need not agree.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 17%">
-<col style="width: 41%">
-<col style="width: 41%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: center;">Coefficient</th>
-<th style="text-align: left;">Additive model</th>
-<th style="text-align: left;">Interaction model</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;"><span class="math inline">\(\beta_0\)</span></td>
-<td style="text-align: left;">VC mean at 1 mg/day.</td>
-<td style="text-align: left;">VC mean at 1 mg/day.</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;"><span class="math inline">\(\beta_x\)</span></td>
-<td style="text-align: left;">Common dose slope for both methods.</td>
-<td style="text-align: left;">Dose slope for VC only.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;"><span class="math inline">\(\beta_g\)</span></td>
-<td style="text-align: left;">OJ-minus-VC difference at every dose.</td>
-<td style="text-align: left;">OJ-minus-VC difference at 1 mg/day.</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;"><span class="math inline">\(\beta_{xg}\)</span></td>
-<td style="text-align: left;">Fixed at zero.</td>
-<td style="text-align: left;">OJ-minus-VC difference in slopes.</td>
-</tr>
-</tbody>
-</table>
-<p>Thus 9.764 is a common slope for both methods, whereas 11.716 is the VC slope. Similarly, 3.700 is a constant group difference, whereas 4.351 is the group difference specifically at 1 mg/day. The intercept retains the same baseline interpretation, but its estimate can still change because the fitted lines are re-estimated under different constraints. Setting the population interaction coefficient to zero recovers the additive model; it does not force the two separate sample fits to have identical remaining estimates.</p>
-</div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-ch5-parallel-versus-interaction" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two panels show length against vitamin C dose for VC and OJ. The additive fit has parallel lines; the interaction fit has a steeper VC line. Both panels display the same individual observations.">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-ch5-parallel-versus-interaction-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="05_files/figure-html/fig-ch5-parallel-versus-interaction-1.png" class="img-fluid figure-img" alt="Two panels show length against vitamin C dose for VC and OJ. The additive fit has parallel lines; the interaction fit has a steeper VC line. Both panels display the same individual observations." width="672">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch5-parallel-versus-interaction-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5.3: Additive and interaction fits to the same observations. Horizontal jitter separates overlapping points for display only; both models use the original doses. The additive model imposes parallel lines. The interaction model permits different slopes, while still requiring each method’s mean to be linear in dose.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<p><strong>Centering changes the baseline, not the fitted model.</strong> Start with the uncentered expression <span class="math inline">\(b_0+b_xx+b_gz+b_{xg}xz\)</span>. Substitute <span class="math inline">\(x=x_c+c\)</span> to obtain</p>
-<p><span class="math display">\[
-(b_0+cb_x)+b_xx_c+(b_g+cb_{xg})z+b_{xg}x_cz.
-\]</span></p>
-<p>Centering at <span class="math inline">\(c\)</span> changes the intercept to the reference-group mean at <span class="math inline">\(c\)</span> and the group coefficient to the difference at <span class="math inline">\(c\)</span>. The group-specific slopes, fitted means, residuals, and SSE stay the same when all the corresponding terms are retained.</p>
-<div class="cell">
-<details class="code-fold">
-<summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_uncentered <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose <span class="sc">*</span> supp, <span class="at">data =</span> ch5_tooth)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Parameterization =</span> <span class="fu">c</span>(<span class="st">"Raw dose (baseline: 0)"</span>,</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                       <span class="st">"Centered dose (baseline: 1)"</span>),</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Group_coefficient =</span> <span class="fu">c</span>(<span class="fu">coef</span>(ch5_fit_uncentered)[<span class="st">"suppOJ"</span>],</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>                         <span class="fu">coef</span>(ch5_fit_int)[<span class="st">"suppOJ"</span>])), <span class="at">digits =</span> <span class="dv">3</span>,</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Parameterization"</span>, <span class="st">"OJ coefficient"</span>),</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<thead>
-<tr class="header">
-<th style="text-align: left;">Parameterization</th>
-<th style="text-align: right;">OJ coefficient</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Raw dose (baseline: 0)</td>
-<td style="text-align: right;">8.255</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Centered dose (baseline: 1)</td>
-<td style="text-align: right;">4.351</td>
-</tr>
-</tbody>
-</table>
-</div>
-<details class="code-fold">
-<summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">isTRUE</span>(<span class="fu">all.equal</span>(<span class="fu">unname</span>(<span class="fu">fitted</span>(ch5_fit_uncentered)),</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                          <span class="fu">unname</span>(<span class="fu">fitted</span>(ch5_fit_int)))))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-</div>
-<p>Zero dose was not observed. Centering at an observed dose gives the group coefficient a more directly supported meaning. It does not establish linearity or create additional observations.</p>
-<div class="callout callout-style-default callout-important callout-titled" title="Keep the lower-order terms when interpreting an interaction">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>Keep the lower-order terms when interpreting an interaction
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>A model such as <code>dose_c * supp</code> includes both main effects and their interaction. Do not remove a main effect merely because its coefficient has a large p-value in the interaction model. That coefficient concerns a particular baseline, and dropping it imposes a constraint that can depend on the choice of center or reference group. Start with the scientific restriction you intend to test.</p>
-</div>
-</div>
-<p><strong>Other interactions.</strong> For two continuous predictors, <span class="math inline">\(\mu=\beta_0+\beta_1x_1+\beta_2x_2+\beta_{12}x_1x_2\)</span> has slope <span class="math inline">\(\beta_1+\beta_{12}x_2\)</span> in <span class="math inline">\(x_1\)</span>. For two factors with <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> levels and all cells observed, reference coding uses <span class="math inline">\((a-1)(b-1)\)</span> interaction columns. With all main effects, there are <span class="math inline">\(1+(a-1)+(b-1)+(a-1)(b-1)=ab\)</span> parameters, one mean per cell. The same principle applies: a comparison varies with another predictor.</p>
-<div id="exr-ch5-interaction-interpretation" class="theorem exercise">
-<p><span class="theorem-title"><strong>Exercise 5.3 (In Class: Which Difference Is Six?)</strong></span> Suppose <span class="math inline">\(x_c=x-1\)</span> and <span class="math inline">\(\widehat\mu=10+2x_c+6z-x_cz\)</span>.</p>
-<ol type="1">
-<li>What is the slope for <span class="math inline">\(z=1\)</span>?</li>
-<li>At which original <span class="math inline">\(x\)</span> value is the group difference 6?</li>
-<li>What is the group difference at <span class="math inline">\(x=3\)</span>?</li>
-</ol>
-</div>
-<div id="sol-ch5-interaction-interpretation" class="proof solution">
-<p><span class="proof-title"><em>Solution 5.3</em>. </span>The slope for <span class="math inline">\(z=1\)</span> is <span class="math inline">\(2-1=1\)</span>. The group difference is 6 at <span class="math inline">\(x=1\)</span>, where <span class="math inline">\(x_c=0\)</span>. At <span class="math inline">\(x=3\)</span>, <span class="math inline">\(x_c=2\)</span> and the difference is <span class="math inline">\(6-2=4\)</span>.</p>
-</div>
-</section>
-<section id="sec-ch5-comparisons" class="level2" data-number="5.5">
-<h2 data-number="5.5" class="anchored" data-anchor-id="sec-ch5-comparisons"><span class="header-section-number">5.5</span> Match the hypothesis to the model comparison</h2>
-<p>The <a href="./04.html#thm-partial-f">partial F test from Chapter 4</a> compares nested mean spaces on the <strong>same observations</strong>:</p>
-<p><span class="math display">\[
-F=\frac{(\mathrm{SSE}_R-\mathrm{SSE}_F)/(p_F-p_R)}
-        {\mathrm{SSE}_F/(n-p_F)}.
-\]</span></p>
-<p>Under the reduced model and the stated normal, constant-variance error assumptions, the reference distribution is <span class="math inline">\(F_{p_F-p_R,n-p_F}\)</span>. These comparisons answer different questions:</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 39%">
-<col style="width: 24%">
-<col style="width: 24%">
-<col style="width: 11%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Question</th>
-<th>Reduced model</th>
-<th>Full model</th>
-<th style="text-align: center;">Numerator df</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Are the dose slopes equal?</td>
-<td><code>dose_c + supp</code></td>
-<td><code>dose_c * supp</code></td>
-<td style="text-align: center;">1</td>
-</tr>
-<tr class="even">
-<td>Are the two entire dose lines identical?</td>
-<td><code>dose_c</code></td>
-<td><code>dose_c * supp</code></td>
-<td style="text-align: center;">2</td>
-</tr>
-<tr class="odd">
-<td>Is a straight line within each method adequate at the observed doses?</td>
-<td><code>dose_c * supp</code></td>
-<td><code>dose_f * supp</code></td>
-<td style="text-align: center;">2</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Equal slopes.</strong> The additive model sets <span class="math inline">\(\beta_{xg}=0\)</span>. Comparing it with the interaction model tests whether the OJ-minus-VC difference is constant across dose under the two-line framework.</p>
-<div class="cell">
-<details class="code-fold">
-<summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(ch5_fit_add, ch5_fit_int)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>Analysis of Variance Table
-
-Model 1: len ~ dose_c + supp
-Model 2: len ~ dose_c * supp
-  Res.Df     RSS Df Sum of Sq      F  Pr(&gt;F)  
-1     57 1022.56                              
-2     56  933.63  1     88.92 5.3335 0.02463 *
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
-</div>
-</div>
-<p>The comparison has 1 numerator and 56 denominator degrees of freedom, with <span class="math inline">\(F\approx5.334\)</span> and <span class="math inline">\(p\approx0.0246\)</span>. Under the model assumptions, this is evidence against equal slopes. It is not a test that the two groups have identical means at every dose.</p>
-<p><strong>Identical lines.</strong> For the two lines to coincide, both <span class="math inline">\(\beta_g=0\)</span> and <span class="math inline">\(\beta_{xg}=0\)</span> must hold. A single p-value for <code>suppOJ</code> tests only the difference at the centering dose. Test the two restrictions together instead:</p>
-<div class="cell">
-<details class="code-fold">
-<summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_dose <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_c, <span class="at">data =</span> ch5_tooth)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(ch5_fit_dose, ch5_fit_int)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>Analysis of Variance Table
-
-Model 1: len ~ dose_c
-Model 2: len ~ dose_c * supp
-  Res.Df     RSS Df Sum of Sq      F   Pr(&gt;F)    
-1     58 1227.91                                 
-2     56  933.63  2    294.27 8.8253 0.000466 ***
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
-</div>
-</div>
-<p><strong>Check the straight-line restriction.</strong> Dose takes three numerical values; the two-line model constrains each group’s three fitted means to lie on a line. A factor-dose-by-method model estimates all six cell means:</p>
-<div class="cell">
-<details class="code-fold">
-<summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_cells <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_f <span class="sc">*</span> supp, <span class="at">data =</span> ch5_tooth)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>ch5_fits <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">Additive =</span> ch5_fit_add, <span class="at">Interaction =</span> ch5_fit_int,</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>                 <span class="st">`</span><span class="at">Six cell means</span><span class="st">`</span> <span class="ot">=</span> ch5_fit_cells)</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Model =</span> <span class="fu">names</span>(ch5_fits),</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">p =</span> <span class="fu">vapply</span>(ch5_fits, <span class="cf">function</span>(fit) fit<span class="sc">$</span>rank, <span class="fu">numeric</span>(<span class="dv">1</span>)),</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Residual_df =</span> <span class="fu">vapply</span>(ch5_fits, df.residual, <span class="fu">numeric</span>(<span class="dv">1</span>)),</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">SSE =</span> <span class="fu">vapply</span>(ch5_fits, deviance, <span class="fu">numeric</span>(<span class="dv">1</span>))),</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Model"</span>, <span class="st">"p"</span>, <span class="st">"Residual df"</span>, <span class="st">"SSE"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<thead>
-<tr class="header">
-<th style="text-align: left;">Model</th>
-<th style="text-align: right;">p</th>
-<th style="text-align: right;">Residual df</th>
-<th style="text-align: right;">SSE</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Additive</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">57</td>
-<td style="text-align: right;">1022.56</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Interaction</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">56</td>
-<td style="text-align: right;">933.63</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Six cell means</td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">54</td>
-<td style="text-align: right;">712.11</td>
-</tr>
-</tbody>
-</table>
-</div>
-<details class="code-fold">
-<summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(ch5_fit_int, ch5_fit_cells)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>Analysis of Variance Table
-
-Model 1: len ~ dose_c * supp
-Model 2: len ~ dose_f * supp
-  Res.Df    RSS Df Sum of Sq      F    Pr(&gt;F)    
-1     56 933.63                                  
-2     54 712.11  2    221.53 8.3994 0.0006667 ***
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
-</div>
-</div>
-<p>The six-cell model has <span class="math inline">\(p=6\)</span> and 54 residual degrees of freedom. The comparison adds two independent directions, one departure from a straight line for each method’s three means. Here <span class="math inline">\(F\approx8.399\)</span> and <span class="math inline">\(p\approx0.000667\)</span> provide evidence against the straight-line restriction under the common-variance normal model. The fitted lines were useful for learning coefficient interpretation; this check shows why their shape should not be accepted automatically for these data.</p>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-ch5-dose-shape" class="quarto-float quarto-figure quarto-figure-center anchored" alt="For each delivery method, three cell means are plotted against dose and compared with its fitted straight line. The means at 1 mg/day lie above the fitted lines.">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-ch5-dose-shape-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="05_files/figure-html/fig-ch5-dose-shape-1.png" class="img-fluid figure-img" alt="For each delivery method, three cell means are plotted against dose and compared with its fitted straight line. The means at 1 mg/day lie above the fitted lines." width="624">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch5-dose-shape-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5.4: Cell means and the two-line fit. Points are the observed mean responses at each method-dose combination. The six-cell model reproduces these means; the straight lines impose additional restrictions. No observations outside 0.5–2 mg/day are shown.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<div class="callout callout-style-default callout-note callout-titled" title="A factor is a block of columns">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>A factor is a block of columns
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>The three-level <code>dose_f</code> main effect uses two columns. The <code>dose_f:supp</code> interaction uses two more. A scientific test concerning an entire factor or interaction may therefore require a joint test, rather than selecting one printed coefficient p-value. Always count independent restrictions and use the full model’s residual degrees of freedom.</p>
-</div>
-</div>
-</section>
-<section id="sec-ch5-coding-checks" class="level2" data-number="5.6">
-<h2 data-number="5.6" class="anchored" data-anchor-id="sec-ch5-coding-checks"><span class="header-section-number">5.6</span> Coding checks and the bridge to contrasts</h2>
-<p>R’s <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/model.matrix.html"><code>model.matrix()</code></a> reveals the columns created by a formula. Use it to connect the software coefficients to your written mean model.</p>
-<div class="cell">
-<details class="code-fold">
-<summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">model.matrix</span>(<span class="sc">~</span> dose_c <span class="sc">*</span> supp, <span class="at">data =</span> ch5_profiles),</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>             <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ch5_profiles <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">dose_c =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                            <span class="at">supp =</span> <span class="fu">c</span>(<span class="st">"VC"</span>, <span class="st">"OJ"</span>))</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>ch5_profiles<span class="sc">$</span>supp <span class="ot">&lt;-</span> <span class="fu">factor</span>(ch5_profiles<span class="sc">$</span>supp, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"VC"</span>, <span class="st">"OJ"</span>))</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ch5_profiles<span class="sc">$</span>supp) <span class="ot">&lt;-</span> <span class="fu">contr.treatment</span>(<span class="fu">levels</span>(ch5_profiles<span class="sc">$</span>supp), <span class="at">base =</span> <span class="dv">1</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">model.matrix</span>(<span class="sc">~</span> dose_c <span class="sc">*</span> supp, <span class="at">data =</span> ch5_profiles),</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1401,154 +873,188 @@ Figure&nbsp;5.4: Cell means and the two-line fit. Points are the observed mean r
 </table>
 </div>
 </div>
-<p>The last column is the product of centered dose and the OJ indicator. It is zero for every VC observation; it changes the OJ slope relative to VC.</p>
-<p><strong>Verify a reference change.</strong> Refit with OJ as the reference while retaining the same model terms and observations:</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>ch5_relevel <span class="ot">&lt;-</span> ch5_tooth</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>ch5_relevel<span class="sc">$</span>supp <span class="ot">&lt;-</span> <span class="fu">relevel</span>(ch5_relevel<span class="sc">$</span>supp, <span class="at">ref =</span> <span class="st">"OJ"</span>)</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(ch5_relevel<span class="sc">$</span>supp) <span class="ot">&lt;-</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">contr.treatment</span>(<span class="fu">levels</span>(ch5_relevel<span class="sc">$</span>supp), <span class="at">base =</span> <span class="dv">1</span>)</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>ch5_fit_ojref <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_c <span class="sc">*</span> supp, <span class="at">data =</span> ch5_relevel)</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Reference =</span> <span class="fu">c</span>(<span class="st">"VC"</span>, <span class="st">"OJ"</span>),</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">Intercept =</span> <span class="fu">c</span>(<span class="fu">coef</span>(ch5_fit_int)[<span class="dv">1</span>], <span class="fu">coef</span>(ch5_fit_ojref)[<span class="dv">1</span>]),</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Dose_slope =</span> <span class="fu">c</span>(<span class="fu">coef</span>(ch5_fit_int)[<span class="dv">2</span>], <span class="fu">coef</span>(ch5_fit_ojref)[<span class="dv">2</span>]),</span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">SSE =</span> <span class="fu">c</span>(<span class="fu">deviance</span>(ch5_fit_int), <span class="fu">deviance</span>(ch5_fit_ojref))),</span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_int <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_c <span class="sc">*</span> supp, <span class="at">data =</span> ch5_tooth)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>The fitted mean is</p>
+<p><span class="math display">\[
+\widehat\mu(x,z)=15.011+11.716(x-1)+4.351z-3.904(x-1)z.
+\]</span></p>
+<p>The VC slope is <strong>11.716</strong>; the OJ slope is <strong>7.811</strong>, using unrounded estimates. Their fitted mean difference is about <strong>4.351</strong> at 1 mg/day and <strong>0.446</strong> at 2 mg/day. The negative interaction means the gap decreases with dose, while both slopes remain positive.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ch5-parallel-versus-interaction" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Two panels show length against vitamin C dose for VC and OJ. The additive fit has parallel lines; the interaction fit has a steeper VC line. Both panels display the same individual observations.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ch5-parallel-versus-interaction-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="05_files/figure-html/fig-ch5-parallel-versus-interaction-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Two panels show length against vitamin C dose for VC and OJ. The additive fit has parallel lines; the interaction fit has a steeper VC line. Both panels display the same individual observations." width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch5-parallel-versus-interaction-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.3: The same observations fitted with parallel lines (additive) or separate slopes (interaction). Horizontal jitter is for display only; both models use the original doses.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Changing the baseline.</strong> Centering at dose <span class="math inline">\(c\)</span> makes the group coefficient the difference at <span class="math inline">\(c\)</span>; choosing OJ as reference makes the dose coefficient the OJ slope. With all model terms retained, these recodings preserve fitted values and SSE. We use 1 mg/day because it was observed; zero dose was not.</p>
+<div class="callout callout-style-default callout-important callout-titled" title="Keep the lower-order terms">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Keep the lower-order terms
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Retain <code>dose_c</code> and <code>supp</code> when interpreting <code>dose_c:supp</code>. Dropping a main effect imposes a baseline-dependent restriction; its individual p-value is not a reason to remove it automatically.</p>
+</div>
+</div>
+<div id="exr-ch5-interaction-interpretation" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 5.3 (In Class: Which Difference Is Six?)</strong></span> Suppose <span class="math inline">\(x_c=x-1\)</span> and <span class="math inline">\(\widehat\mu=10+2x_c+6z-x_cz\)</span>.</p>
+<ol type="1">
+<li>What is the slope for <span class="math inline">\(z=1\)</span>?</li>
+<li>At which original <span class="math inline">\(x\)</span> value is the group difference 6?</li>
+<li>What is the group difference at <span class="math inline">\(x=3\)</span>?</li>
+</ol>
+</div>
+<div id="sol-ch5-interaction-interpretation" class="proof solution">
+<p><span class="proof-title"><em>Solution 5.3</em>. </span>The slope for <span class="math inline">\(z=1\)</span> is <span class="math inline">\(2-1=1\)</span>. The group difference is 6 at <span class="math inline">\(x=1\)</span>, where <span class="math inline">\(x_c=0\)</span>. At <span class="math inline">\(x=3\)</span>, <span class="math inline">\(x_c=2\)</span> and the difference is <span class="math inline">\(6-2=4\)</span>.</p>
+</div>
+</section>
+<section id="sec-ch5-comparisons" class="level2" data-number="5.5">
+<h2 data-number="5.5" class="anchored" data-anchor-id="sec-ch5-comparisons"><span class="header-section-number">5.5</span> Match the hypothesis to the model comparison</h2>
+<p>Apply the <a href="./04.html#thm-partial-f">partial F test from Chapter 4</a>, using the same observations and the normal-model assumptions from the recap. The new task is to choose the restriction:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 42%">
+<col style="width: 28%">
+<col style="width: 28%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Question</th>
+<th style="text-align: left;">Reduced model</th>
+<th style="text-align: left;">Full model</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Equal slopes: <span class="math inline">\(\beta_{xg}=0\)</span>?</td>
+<td style="text-align: left;"><code>dose_c + supp</code></td>
+<td style="text-align: left;"><code>dose_c * supp</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Identical lines: <span class="math inline">\(\beta_g=\beta_{xg}=0\)</span>?</td>
+<td style="text-align: left;"><code>dose_c</code></td>
+<td style="text-align: left;"><code>dose_c * supp</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Straight-line means within each method?</td>
+<td style="text-align: left;"><code>dose_c * supp</code></td>
+<td style="text-align: left;"><code>dose_f * supp</code></td>
+</tr>
+</tbody>
+</table>
+<p>The first test removes only the slope difference; the second removes both the slope and intercept differences. For the third, treating dose as a factor permits <strong>six separate method-dose means</strong> (<span class="math inline">\(p=6\)</span>), rather than two straight lines (<span class="math inline">\(p=4\)</span>).</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ch5_fit_dose <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_c, <span class="at">data =</span> ch5_tooth)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ch5_fit_cells <span class="ot">&lt;-</span> <span class="fu">lm</span>(len <span class="sc">~</span> dose_f <span class="sc">*</span> supp, <span class="at">data =</span> ch5_tooth)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>ch5_tests <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Equal slopes"</span> <span class="ot">=</span> <span class="fu">anova</span>(ch5_fit_add, ch5_fit_int),</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Identical lines"</span> <span class="ot">=</span> <span class="fu">anova</span>(ch5_fit_dose, ch5_fit_int),</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Straight-line means"</span> <span class="ot">=</span> <span class="fu">anova</span>(ch5_fit_int, ch5_fit_cells))</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>ch5_test_results <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">names</span>(ch5_tests), <span class="cf">function</span>(name) {</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  a <span class="ot">&lt;-</span> ch5_tests[[name]]</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">Comparison =</span> name,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">df =</span> <span class="fu">sprintf</span>(<span class="st">"(%d, %d)"</span>, a<span class="sc">$</span>Df[<span class="dv">2</span>], a<span class="sc">$</span>Res.Df[<span class="dv">2</span>]),</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">F =</span> <span class="fu">round</span>(a<span class="sc">$</span>F[<span class="dv">2</span>], <span class="dv">3</span>),</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_value =</span> <span class="fu">format.pval</span>(a<span class="sc">$</span><span class="st">`</span><span class="at">Pr(&gt;F)</span><span class="st">`</span>[<span class="dv">2</span>], <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">eps =</span> <span class="fl">0.0001</span>))</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>}))</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(ch5_test_results, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>             <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Comparison"</span>, <span class="st">"F degrees of freedom"</span>, <span class="st">"F"</span>, <span class="st">"p-value"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th style="text-align: left;">Reference</th>
-<th style="text-align: right;">Intercept</th>
-<th style="text-align: right;">Dose_slope</th>
-<th style="text-align: right;">SSE</th>
+<th style="text-align: left;">Comparison</th>
+<th style="text-align: left;">F degrees of freedom</th>
+<th style="text-align: right;">F</th>
+<th style="text-align: left;">p-value</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">VC</td>
-<td style="text-align: right;">15.011</td>
-<td style="text-align: right;">11.716</td>
-<td style="text-align: right;">933.635</td>
+<td style="text-align: left;">Equal slopes</td>
+<td style="text-align: left;">(1, 56)</td>
+<td style="text-align: right;">5.333</td>
+<td style="text-align: left;">0.0246</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">OJ</td>
-<td style="text-align: right;">19.361</td>
-<td style="text-align: right;">7.811</td>
-<td style="text-align: right;">933.635</td>
+<td style="text-align: left;">Identical lines</td>
+<td style="text-align: left;">(2, 56)</td>
+<td style="text-align: right;">8.825</td>
+<td style="text-align: left;">0.000466</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Straight-line means</td>
+<td style="text-align: left;">(2, 54)</td>
+<td style="text-align: right;">8.399</td>
+<td style="text-align: left;">0.000667</td>
 </tr>
 </tbody>
 </table>
 </div>
-<details class="code-fold">
-<summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">isTRUE</span>(<span class="fu">all.equal</span>(<span class="fu">unname</span>(<span class="fu">fitted</span>(ch5_fit_int)),</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>                          <span class="fu">unname</span>(<span class="fu">fitted</span>(ch5_fit_ojref)))))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
 </div>
-<p>The intercept now describes OJ at 1 mg/day, and the dose coefficient is the OJ slope. The fitted values and SSE agree with the VC-reference fit because the two design matrices span the same column space.</p>
-<p><strong>Express a comparison before calculating it.</strong> In the VC-reference interaction model, order the coefficient vector as <span class="math inline">\((\beta_0,\beta_x,\beta_g,\beta_{xg})\)</span>. The OJ-minus-VC comparison at dose <span class="math inline">\(x_0\)</span> is</p>
-<p><span class="math display">\[
-\Delta(x_0)=\mathbf{l}^\top\boldsymbol\beta,
-\qquad \mathbf{l}=(0,0,1,x_0-1).
-\]</span></p>
-<p>Here the comma-separated tuple denotes a column vector, as in Chapter 4. At <span class="math inline">\(x_0=1\)</span>, the comparison is <span class="math inline">\(\beta_g\)</span>; at <span class="math inline">\(x_0=2\)</span>, it is <span class="math inline">\(\beta_g+\beta_{xg}\)</span>. The linear-combination machinery from Chapter 3 therefore applies. Its standard error uses the full coefficient covariance matrix, including the covariance between the group and interaction estimates. Chapter 6 develops these comparisons, coding invariance, and the distinction between one comparison and a family of comparisons.</p>
+<p>At the 5% level, the two-line analysis rejects both equal slopes and identical lines. However, the last comparison also rejects the straight-line restriction. The plot shows the departure: the means at 1 mg/day lie above the fitted lines. Thus the lines illustrate coefficient interpretation, but the <strong>six-cell model</strong> is a better starting point for the dose-specific comparisons in Chapter 6.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ch5-dose-shape" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="For each delivery method, three cell means are plotted against dose and compared with its fitted straight line. The means at 1 mg/day lie above the fitted lines.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ch5-dose-shape-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="05_files/figure-html/fig-ch5-dose-shape-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="For each delivery method, three cell means are plotted against dose and compared with its fitted straight line. The means at 1 mg/day lie above the fitted lines." width="624">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch5-dose-shape-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.4: Points show the six observed method-dose means; lines show the interaction fit. A factor-dose model reproduces each point, while straight lines cannot.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
 </section>
-<section id="sec-ch5-practice" class="level2" data-number="5.7">
-<h2 data-number="5.7" class="anchored" data-anchor-id="sec-ch5-practice"><span class="header-section-number">5.7</span> Concept checks and practice</h2>
+<section id="summary" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="summary">Summary</h2>
+<ul>
+<li>State what is held fixed when interpreting a slope.</li>
+<li>A <span class="math inline">\(g\)</span>-level factor uses <span class="math inline">\(g-1\)</span> indicators with an intercept; the reference group determines the coefficient meanings.</li>
+<li>An additive model gives parallel lines; an interaction allows the group difference to vary with dose.</li>
+<li>Equal slopes, identical lines, and straight-line shape are different restrictions. Choose the model comparison to match the question.</li>
+</ul>
+</section>
+<section id="sec-ch5-practice" class="level2" data-number="5.6">
+<h2 data-number="5.6" class="anchored" data-anchor-id="sec-ch5-practice"><span class="header-section-number">5.6</span> Practice Problems</h2>
 <div id="exr-ch5-concept-checks" class="theorem exercise">
-<p><span class="theorem-title"><strong>Exercise 5.4 (Concept Check: Choose or Mark True/False)</strong></span> &nbsp;</p>
+<p><span class="theorem-title"><strong>Exercise 5.4 (Concept Check: True or False?)</strong></span> &nbsp;</p>
 <ol type="1">
-<li><strong>T/F.</strong> A multiple-regression coefficient always has the same interpretation as the slope in a simple regression using that predictor alone.</li>
-<li><strong>Multiple choice.</strong> With an intercept, a three-level factor normally contributes <strong>(A)</strong> one, <strong>(B)</strong> two, or <strong>(C)</strong> three independent indicator columns.</li>
-<li><strong>T/F.</strong> Reversing the reference category, while preserving the same model space, changes fitted values and SSE.</li>
-<li><strong>Multiple choice.</strong> In a binary-group interaction model centered at <span class="math inline">\(x=1\)</span>, the group coefficient compares the groups <strong>(A)</strong> at every <span class="math inline">\(x\)</span>, <strong>(B)</strong> at <span class="math inline">\(x=0\)</span>, or <strong>(C)</strong> at <span class="math inline">\(x=1\)</span>.</li>
-<li><strong>T/F.</strong> A negative interaction coefficient implies a negative slope in the non-reference group.</li>
-<li><strong>Multiple choice.</strong> Testing identical lines requires <strong>(A)</strong> the interaction coefficient alone, <strong>(B)</strong> the group and interaction coefficients jointly, or <strong>(C)</strong> the intercept alone to be zero.</li>
-<li><strong>T/F.</strong> Replacing numeric dose by a three-level factor merely renames the coefficients and must preserve the fitted means.</li>
-<li><strong>T/F.</strong> Failing to reject equal slopes proves that the two population slopes are exactly equal.</li>
-<li><strong>T/F.</strong> If the added predictor’s population coefficient is zero, fitting the unrestricted larger model must leave the other estimated coefficients unchanged in every sample.</li>
-<li><strong>Multiple choice.</strong> In the same-data OLS identity above, suppose <span class="math inline">\(\hat\beta_1=-1\)</span>, <span class="math inline">\(\hat\beta_2=2\)</span>, and <span class="math inline">\(\hat\delta_1=3\)</span>. The reduced-model slope is <strong>(A)</strong> <span class="math inline">\(-1\)</span>, <strong>(B)</strong> <span class="math inline">\(5\)</span>, or <strong>(C)</strong> <span class="math inline">\(-7\)</span>.</li>
-<li><strong>T/F.</strong> Two models whose intercepts describe the same reference group at the same predictor value must give the same estimated intercept.</li>
+<li>With an intercept, a three-level factor contributes two independent indicator columns when all levels are observed.</li>
+<li>Changing the reference group changes the fitted means and SSE.</li>
+<li>A negative interaction coefficient implies a negative slope in the non-reference group.</li>
+<li>Replacing numeric dose by a three-level factor must preserve the fitted means.</li>
 </ol>
 </div>
 <div id="sol-ch5-concept-checks" class="proof solution">
 <p><span class="proof-title"><em>Solution 5.4</em>. </span></p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 11%">
-<col style="width: 14%">
-<col style="width: 73%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: center;">Item</th>
-<th style="text-align: center;">Answer</th>
-<th>Reason</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;">1</td>
-<td style="text-align: center;">F</td>
-<td>Adjustment changes the comparison.</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">2</td>
-<td style="text-align: center;">B</td>
-<td>One level serves as the reference.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">3</td>
-<td style="text-align: center;">F</td>
-<td>The fitted mean space is unchanged.</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">4</td>
-<td style="text-align: center;">C</td>
-<td>The group coefficient is evaluated at centered dose zero.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">5</td>
-<td style="text-align: center;">F</td>
-<td>Add the interaction coefficient to the reference-group slope.</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">6</td>
-<td style="text-align: center;">B</td>
-<td>Both intercept difference and slope difference must vanish.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">7</td>
-<td style="text-align: center;">F</td>
-<td>A factor can relax the straight-line restriction.</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">8</td>
-<td style="text-align: center;">F</td>
-<td>Non-rejection is not proof of equality.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">9</td>
-<td style="text-align: center;">F</td>
-<td>The restriction concerns population parameters; the unrestricted fit can estimate a nonzero added coefficient and re-estimate the others.</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">10</td>
-<td style="text-align: center;">B</td>
-<td><span class="math inline">\(-1+2(3)=5\)</span>. An unadjusted and an adjusted slope can even have opposite signs.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">11</td>
-<td style="text-align: center;">F</td>
-<td>The same baseline comparison can receive different estimates under different model constraints.</td>
-</tr>
-</tbody>
-</table>
+<ol type="1">
+<li><strong>True.</strong> One level is the reference.</li>
+<li><strong>False.</strong> The same mean model is represented with different coefficients.</li>
+<li><strong>False.</strong> The non-reference slope is the main slope plus the interaction coefficient.</li>
+<li><strong>False.</strong> Factor coding can relax the straight-line restriction.</li>
+</ol>
 </div>
 <div id="exr-ch5-model-comparison-practice" class="theorem exercise">
 <p><span class="theorem-title"><strong>Exercise 5.5 (Practice: State the Restrictions and Degrees of Freedom)</strong></span> Consider <span class="math inline">\(n=48\)</span> observations, a binary group <span class="math inline">\(z\)</span>, and a continuous predictor <span class="math inline">\(x\)</span>. Assume the relevant design matrices have full rank and the normal-model assumptions hold. The full model is <span class="math inline">\(\mu=\beta_0+\beta_xx+\beta_gz+\beta_{xg}xz\)</span>.</p>
@@ -1568,17 +1074,6 @@ Figure&nbsp;5.4: Cell means and the two-line fit. Points are the observed mean r
 <li><span class="math inline">\(F=\{(500-440)/1\}/(440/44)=6\)</span>.</li>
 </ol>
 </div>
-</section>
-<section id="summary-recap" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="summary-recap">Summary / Recap</h2>
-<ul>
-<li>Interpret a coefficient through the mean function and the comparison it holds fixed; an adjusted association is not automatically causal.</li>
-<li>A factor with <span class="math inline">\(k\)</span> levels contributes <span class="math inline">\(k-1\)</span> indicator columns alongside an intercept. Its coefficients depend on the reference level.</li>
-<li>An interaction makes a group difference or slope depend on another predictor. State the predictor value for every conditional comparison.</li>
-<li>Equal slopes and identical regression lines impose different restrictions. Compare the corresponding nested models on the same observations.</li>
-<li>Centering or releveling can preserve the mean space and fitted values. Replacing dose-specific cell means with a straight-line model changes the mean space.</li>
-</ul>
-<p>Next, Chapter 6 estimates the dose-specific ToothGrowth comparisons and their uncertainty.</p>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
