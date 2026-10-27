@@ -75,6 +75,63 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<style>
+details.derivation { margin: 1.1rem 0; }
+details.derivation > summary {
+  width: fit-content;
+  max-width: 100%;
+  padding: .5rem .85rem;
+  border: 1px solid #d8c5ef;
+  border-radius: .45rem;
+  background: #f1e8fb;
+  color: #4e2879;
+  font-weight: 600;
+  cursor: pointer;
+}
+details.derivation > summary:hover { background: #e7d8f6; }
+details.derivation > summary:focus-visible {
+  outline: 3px solid #7d53ac;
+  outline-offset: 3px;
+}
+.derivation-body { padding-top: .85rem; }
+@media print {
+  details.derivation > .derivation-body { display: block !important; }
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll("div.derivation").forEach(function (source) {
+    const heading = source.querySelector(":scope > p:first-child");
+    if (!heading) return;
+    const title = heading.textContent.trim().replace(/^Derivation:\s*/i, "");
+    const details = document.createElement("details");
+    details.className = "derivation";
+    details.id = source.id;
+    const summary = document.createElement("summary");
+    const body = document.createElement("div");
+    body.className = "derivation-body";
+    heading.remove();
+    while (source.firstChild) body.appendChild(source.firstChild);
+    function updateLabel() {
+      summary.textContent = (details.open ? "Hide derivation: " : "Show derivation: ") + title;
+    }
+    updateLabel();
+    details.addEventListener("toggle", updateLabel);
+    details.append(summary, body);
+    source.replaceWith(details);
+  });
+  function revealLinkedDerivation() {
+    let id;
+    try { id = decodeURIComponent(window.location.hash.slice(1)); }
+    catch (_) { return; }
+    const target = document.getElementById(id);
+    const details = target && target.closest("details.derivation");
+    if (details) details.open = true;
+  }
+  revealLinkedDerivation();
+  window.addEventListener("hashchange", revealLinkedDerivation);
+});
+</script>
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
@@ -537,7 +594,7 @@ Figure&nbsp;6.1: The same six baseline observations appear in every panel. A shi
 <div id="def-ch6-outlier-leverage-influence" class="theorem definition">
 <p><span class="theorem-title"><strong>Definition 6.1 (Outlier, Leverage, and Influence)</strong></span> &nbsp;</p>
 <ul>
-<li>A <strong>response outlier</strong> has an unusual response <em>given its predictor values and the specified model</em>. A large volume alone does not make a large tree an outlier.</li>
+<li>A <strong>response outlier</strong> has an unusual response <em>given its predictor values and the specified model</em>. An extreme response value alone does not make an observation a response outlier.</li>
 <li>A <strong>high-leverage observation</strong> has an unusual configuration of predictor values. Leverage concerns the predictors jointly and does not depend on the observed responses. It measures the potential to pull the fit.</li>
 <li>An <strong>influential observation</strong> changes the fitted coefficients or predictions substantially when omitted. Influence concerns the sensitivity of the analysis, rather than unusualness alone.</li>
 </ul>
@@ -582,23 +639,196 @@ h_{ii}=\frac1n+\frac{(x_i-\bar x)^2}{\sum_j(x_j-\bar x)^2}.
 </div>
 <p>For A, <span class="math inline">\(x=3.5\)</span> remains the predictor mean, so its leverage is <span class="math inline">\(1/7=0.143\)</span>. B and C have the <strong>same predictor rows</strong>, so both have leverage 0.721 even though their responses are different. B leaves the estimated line unchanged; C changes it substantially. Thus high leverage indicates <strong>potential influence</strong>, not a conclusion that the fit has changed.</p>
 <p>Because <span class="math inline">\(\sum_i h_{ii}=p\)</span>, average leverage is <span class="math inline">\(p/n\)</span>. In this example, <span class="math inline">\(p=2\)</span> and <span class="math inline">\(n=7\)</span>, so the average is <span class="math inline">\(2/7=0.286\)</span>. Comparing a value with <span class="math inline">\(2p/n\)</span> is a rough screening rule, not a test or a reason to delete an observation. R returns leverages with <code>hatvalues(fit)</code>.</p>
+<div id="deriv-ch6-leverage" class="derivation">
+<p><strong>Derivation: leverage and its average</strong></p>
+<p><strong>1. Center the predictor without changing the fitted model.</strong> Set <span class="math inline">\(z_i=x_i-\bar x\)</span>, <span class="math inline">\(\mathbf z=(z_1,\ldots,z_n)^\top\)</span>, and <span class="math inline">\(S_{xx}=\sum_i z_i^2&gt;0\)</span>. The columns of <span class="math inline">\(\mathbf Z=(\mathbf1,\mathbf z)\)</span> span the same space as <span class="math inline">\((\mathbf1,\mathbf x)\)</span>, so they give the same hat matrix. Since <span class="math inline">\(\mathbf1^\top\mathbf z=0\)</span>,</p>
+<p><span class="math display">\[
+\mathbf Z^\top\mathbf Z=
+\begin{pmatrix}n&amp;0\\0&amp;S_{xx}\end{pmatrix},
+\qquad
+\mathbf H=\mathbf Z(\mathbf Z^\top\mathbf Z)^{-1}\mathbf Z^\top
+=\frac{\mathbf1\mathbf1^\top}{n}+\frac{\mathbf z\mathbf z^\top}{S_{xx}}.
+\]</span></p>
+<p><strong>2. Read diagonal entry <span class="math inline">\(i\)</span>.</strong> It is</p>
+<p><span class="math display">\[
+h_{ii}=\frac1n+\frac{z_i^2}{S_{xx}}
+=\frac1n+\frac{(x_i-\bar x)^2}{\sum_j(x_j-\bar x)^2}.
+\]</span></p>
+<p><strong>3. Sum the leverages in a general full-rank model.</strong> By the cyclic property of the trace,</p>
+<p><span class="math display">\[
+\sum_i h_{ii}=\operatorname{tr}(\mathbf H)
+=\operatorname{tr}\!\left[(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\mathbf X\right]
+=\operatorname{tr}(\mathbf I_p)=p.
+\]</span></p>
+<p>Thus average leverage is <span class="math inline">\(p/n\)</span>. This uses the <a href="./02_LSE.html#the-hat-matrix">projection matrix from Chapter 2</a>, not the responses.</p>
+</div>
 <p>A well-measured high-leverage observation can be useful: under an appropriate model it can provide information about the slope. In B, the slope estimate stays at 1.000 while its estimated standard error falls from 0.048 to 0.024. Whether the model is credible at that distant predictor value still needs scientific judgment.</p>
 </section>
 <section id="sec-ch6-outliers" class="level2" data-number="6.3">
 <h2 data-number="6.3" class="anchored" data-anchor-id="sec-ch6-outliers"><span class="header-section-number">6.3</span> Outliers: unusual responses given the predictors</h2>
 <p>An outlier is unusual <strong>relative to the mean predicted by the specified model</strong>. B has the largest response in the example, 12, yet it lies on the fitted line and has zero residual. A’s response is smaller, 10.5, but is far above the expected response near <span class="math inline">\(x=3.5\)</span>. Looking only at the distribution of <span class="math inline">\(Y\)</span> would miss this distinction.</p>
-<p><strong>Put residuals on a comparable scale.</strong> From the <a href="./02_LSE.html#def-residual-maker-matrix">residual geometry in Chapter 2</a>,</p>
+<p><strong>First fix the notation.</strong> Let <span class="math inline">\(e_i=Y_i-\hat Y_i\)</span> be the raw residual from the full fit, <span class="math inline">\(h_{ii}\)</span> its leverage, and <span class="math inline">\(\nu=n-p\)</span> its residual degrees of freedom. Under the mean model and constant error variance,</p>
 <p><span class="math display">\[
-\operatorname{Var}(e_i\mid\mathbf X)=\sigma^2(1-h_{ii}),
-\qquad
+\operatorname{Var}(e_i\mid\mathbf X)=\sigma^2(1-h_{ii}).
+\]</span></p>
+<p>Different observations therefore have different residual variances. Both residuals below account for this using <span class="math inline">\(\sqrt{1-h_{ii}}\)</span>; they differ in <strong>how the unknown error standard deviation <span class="math inline">\(\sigma\)</span> is estimated</strong>. Assume <span class="math inline">\(h_{ii}&lt;1\)</span> and positive estimated error variance.</p>
+<div id="def-ch6-standardized-residual" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 6.2 (Standardized Residual (Internally Studentized))</strong></span> Estimate the error variance using <strong>all <span class="math inline">\(n\)</span> observations</strong>:</p>
+<p><span class="math display">\[
+s^2=\frac{\mathrm{SSE}}{n-p}
+=\frac{\sum_{j=1}^n e_j^2}{n-p}.
+\]</span></p>
+<p>The standardized residual is</p>
+<p><span class="math display">\[
 r_i=\frac{e_i}{s\sqrt{1-h_{ii}}}.
 \]</span></p>
-<p>The standardized residual <span class="math inline">\(r_i\)</span> accounts for unequal residual variances; it does not make residuals independent. A high-leverage point can pull the fitted line toward itself and leave a small raw residual, so raw residual size alone can be misleading.</p>
-<p><strong>Keep the point from inflating its own noise estimate.</strong> The externally studentized residual uses the residual standard deviation from the fit without observation <span class="math inline">\(i\)</span>:</p>
+<p>Observation <span class="math inline">\(i\)</span> helps determine both the fitted line and <span class="math inline">\(s\)</span>. An unusual response can inflate <span class="math inline">\(s\)</span> and make its own scaled residual appear less extreme. This residual is also called <strong>internally studentized</strong>. In R, use <code>rstandard(fit)</code> with its default settings.</p>
+</div>
+<div id="def-ch6-studentized-residual" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 6.3 (Externally Studentized Residual (Studentized Deleted Residual))</strong></span> Refit the <strong>same model after removing observation <span class="math inline">\(i\)</span></strong>, giving <span class="math inline">\(\hat{\boldsymbol\beta}_{(-i)}\)</span>. Estimate the error variance from the remaining <span class="math inline">\(n-1\)</span> observations:</p>
+<p><span class="math display">\[
+s_{(-i)}^2=\frac{\mathrm{SSE}_{(-i)}}{n-p-1},
+\qquad
+\mathrm{SSE}_{(-i)}=\sum_{j\ne i}
+\left(Y_j-\mathbf x_j^\top\hat{\boldsymbol\beta}_{(-i)}\right)^2.
+\]</span></p>
+<p>The externally studentized residual is</p>
 <p><span class="math display">\[
 t_i=\frac{e_i}{s_{(-i)}\sqrt{1-h_{ii}}}.
 \]</span></p>
-<p>The numerator and leverage come from the full fit; only the noise estimate is replaced by <span class="math inline">\(s_{(-i)}\)</span>. The deleted fit must be estimable and have positive residual degrees of freedom, <span class="math inline">\(n-p-1&gt;0\)</span>. R provides <code>rstandard(fit)</code> and <code>rstudent(fit)</code>. <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/influence.measures.html">R diagnostic documentation</a>.</p>
+<p>Here <strong><span class="math inline">\(e_i\)</span> and <span class="math inline">\(h_{ii}\)</span> still come from the full fit</strong>; only the error-scale estimate is replaced. The deleted fit must retain rank <span class="math inline">\(p\)</span>, with <span class="math inline">\(n-p-1&gt;0\)</span> and <span class="math inline">\(s_{(-i)}&gt;0\)</span>. In R, use <code>rstudent(fit)</code>.</p>
+</div>
+<p>In this chapter, <strong>standardized</strong> means internally studentized, and <strong>studentized</strong> by itself means externally studentized, matching these two <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/influence.measures.html">R diagnostic functions</a>. Other texts may use <em>studentized</em> for either type; check which variance estimate appears in the denominator.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Feature</th>
+<th style="text-align: center;">Standardized <span class="math inline">\(r_i\)</span></th>
+<th style="text-align: center;">Externally studentized <span class="math inline">\(t_i\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Numerator and leverage</td>
+<td style="text-align: center;">Full-fit <span class="math inline">\(e_i\)</span>, <span class="math inline">\(h_{ii}\)</span></td>
+<td style="text-align: center;">Same full-fit <span class="math inline">\(e_i\)</span>, <span class="math inline">\(h_{ii}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Error-scale estimate</td>
+<td style="text-align: center;"><span class="math inline">\(s\)</span>, using all observations</td>
+<td style="text-align: center;"><span class="math inline">\(s_{(-i)}\)</span>, refitting without <span class="math inline">\(i\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Error degrees of freedom</td>
+<td style="text-align: center;"><span class="math inline">\(n-p\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(n-p-1\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Main use</td>
+<td style="text-align: center;">Compare residual sizes on a common scale</td>
+<td style="text-align: center;">Assess a response without letting it inflate its own noise estimate</td>
+</tr>
+</tbody>
+</table>
+<p>Neither scaling makes residuals independent. With independent normal errors and a correctly specified, fixed model, each pre-specified <span class="math inline">\(t_i\)</span> has a <span class="math inline">\(t_{n-p-1}\)</span> distribution; <span class="math inline">\(r_i\)</span> does <strong>not</strong> have that exact t distribution. Checking many points also requires accounting for multiple comparisons.</p>
+<div id="deriv-ch6-residual-variance" class="derivation">
+<p><strong>Derivation: why divide by the square root of one minus leverage?</strong></p>
+<p><strong>1. Express the residual vector using the errors.</strong> From the <a href="./02_LSE.html#def-residual-maker-matrix">residual maker in Chapter 2</a>, <span class="math inline">\(\mathbf M=\mathbf I-\mathbf H\)</span> is symmetric and idempotent, and <span class="math inline">\(\mathbf M\mathbf X=\mathbf0\)</span>. Therefore</p>
+<p><span class="math display">\[
+\mathbf e=\mathbf M\mathbf Y
+=\mathbf M(\mathbf X\boldsymbol\beta+\boldsymbol\varepsilon)
+=\mathbf M\boldsymbol\varepsilon.
+\]</span></p>
+<p><strong>2. Compute its covariance.</strong> Under <span class="math inline">\(\operatorname{Var}(\boldsymbol\varepsilon\mid\mathbf X)=\sigma^2\mathbf I\)</span>,</p>
+<p><span class="math display">\[
+\operatorname{Var}(\mathbf e\mid\mathbf X)
+=\mathbf M(\sigma^2\mathbf I)\mathbf M^\top
+=\sigma^2\mathbf M^2
+=\sigma^2(\mathbf I-\mathbf H).
+\]</span></p>
+<p>The <span class="math inline">\(i\)</span>th diagonal entry is <span class="math inline">\(\sigma^2(1-h_{ii})\)</span>, so the true standard deviation of <span class="math inline">\(e_i\)</span> is <span class="math inline">\(\sigma\sqrt{1-h_{ii}}\)</span>. Replacing <span class="math inline">\(\sigma\)</span> with <span class="math inline">\(s\)</span> gives <span class="math inline">\(r_i\)</span>; replacing it with <span class="math inline">\(s_{(-i)}\)</span> gives <span class="math inline">\(t_i\)</span>.</p>
+<p><strong>3. Keep variance scaling separate from independence.</strong> For <span class="math inline">\(i\ne j\)</span>, <span class="math inline">\(\operatorname{Cov}(e_i,e_j\mid\mathbf X)=-\sigma^2 h_{ij}\)</span>, generally nonzero. Dividing residuals by estimated scales does not remove their shared dependence on the fitted model. A high-leverage point has a smaller raw-residual variance, which is why raw residuals alone are not comparable.</p>
+</div>
+<div id="deriv-ch6-deletion" class="derivation">
+<p><strong>Derivation: deleting one observation and relating the two residuals</strong></p>
+<p><strong>1. Find the coefficient change.</strong> Write <span class="math inline">\(\mathbf A=\mathbf X^\top\mathbf X\)</span> and let <span class="math inline">\(\mathbf x_i\)</span> be the column vector whose transpose is row <span class="math inline">\(i\)</span>. The full and deleted normal equations are</p>
+<p><span class="math display">\[
+\mathbf A\hat{\boldsymbol\beta}=\mathbf X^\top\mathbf Y,
+\qquad
+(\mathbf A-\mathbf x_i\mathbf x_i^\top)\hat{\boldsymbol\beta}_{(-i)}
+=\mathbf X^\top\mathbf Y-\mathbf x_iY_i.
+\]</span></p>
+<p>For <span class="math inline">\(\boldsymbol\delta_i=\hat{\boldsymbol\beta}-\hat{\boldsymbol\beta}_{(-i)}\)</span>, subtracting gives</p>
+<p><span class="math display">\[
+(\mathbf A-\mathbf x_i\mathbf x_i^\top)\boldsymbol\delta_i=\mathbf x_i e_i.
+\]</span></p>
+<p>Since <span class="math inline">\(h_{ii}=\mathbf x_i^\top\mathbf A^{-1}\mathbf x_i\)</span>, <span class="math inline">\((\mathbf A-\mathbf x_i\mathbf x_i^\top)\mathbf A^{-1}\mathbf x_i=(1-h_{ii})\mathbf x_i\)</span>. When the deleted fit is estimable, this identifies the solution:</p>
+<p><span class="math display">\[
+\boldsymbol\delta_i=\frac{\mathbf A^{-1}\mathbf x_i e_i}{1-h_{ii}}.
+\]</span></p>
+<p><strong>2. Distinguish a deleted residual from a full-fit residual.</strong> Predict the omitted response from the deleted fit:</p>
+<p><span class="math display">\[
+d_i=Y_i-\mathbf x_i^\top\hat{\boldsymbol\beta}_{(-i)}
+=e_i+\mathbf x_i^\top\boldsymbol\delta_i
+=\frac{e_i}{1-h_{ii}}.
+\]</span></p>
+<p>Thus <span class="math inline">\(d_i\)</span> is not the numerator <span class="math inline">\(e_i\)</span> in the displayed definition of <span class="math inline">\(t_i\)</span>.</p>
+<p><strong>3. Recalculate the residual sum of squares.</strong> At all original rows, the deleted-fit residual vector is <span class="math inline">\(\mathbf e+\mathbf X\boldsymbol\delta_i\)</span>. Remove its <span class="math inline">\(i\)</span>th squared component <span class="math inline">\(d_i^2\)</span> and use <span class="math inline">\(\mathbf X^\top\mathbf e=\mathbf0\)</span>:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathrm{SSE}_{(-i)}
+&amp;=\|\mathbf e+\mathbf X\boldsymbol\delta_i\|^2-d_i^2\\
+&amp;=\mathrm{SSE}+\boldsymbol\delta_i^\top\mathbf A\boldsymbol\delta_i-d_i^2\\
+&amp;=\mathrm{SSE}+\frac{e_i^2h_{ii}}{(1-h_{ii})^2}
+-\frac{e_i^2}{(1-h_{ii})^2}\\
+&amp;=\mathrm{SSE}-\frac{e_i^2}{1-h_{ii}}.
+\end{aligned}
+\]</span></p>
+<p>It is <strong>not</strong> simply <span class="math inline">\(\mathrm{SSE}-e_i^2\)</span>: refitting changes the other residuals too.</p>
+<p><strong>4. Relate the two scales and residuals.</strong> With <span class="math inline">\(\nu=n-p\)</span>, <span class="math inline">\(\mathrm{SSE}=\nu s^2\)</span>, and <span class="math inline">\(r_i^2=e_i^2/[s^2(1-h_{ii})]\)</span>,</p>
+<p><span class="math display">\[
+s_{(-i)}^2=s^2\frac{\nu-r_i^2}{\nu-1},
+\qquad
+t_i=r_i\frac{s}{s_{(-i)}}
+=r_i\sqrt{\frac{\nu-1}{\nu-r_i^2}}.
+\]</span></p>
+<p>For positive deleted-fit variance, <span class="math inline">\(r_i^2&lt;\nu\)</span>. A very unusual point can make <span class="math inline">\(r_i\)</span> approach its finite bound while <span class="math inline">\(t_i\)</span> becomes much larger. The two values have the same sign, but need not have similar magnitudes; <span class="math inline">\(|t_i|\)</span> is not always larger than <span class="math inline">\(|r_i|\)</span>.</p>
+</div>
+<div id="deriv-ch6-student-t" class="derivation">
+<p><strong>Derivation: why the externally studentized residual has a t distribution</strong></p>
+<p>Assume <span class="math inline">\(\boldsymbol\varepsilon\mid\mathbf X\sim N_n(\mathbf0,\sigma^2\mathbf I)\)</span> and fix the model and index <span class="math inline">\(i\)</span> in advance. Use the <a href="./03_OLS_inference.html">normal-theory OLS results in Chapter 3</a> on the deleted dataset.</p>
+<p><strong>1. Standardize the deleted prediction error.</strong> Because <span class="math inline">\(Y_i\)</span> is independent of the observations used to fit <span class="math inline">\(\hat{\boldsymbol\beta}_{(-i)}\)</span>,</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbb E(d_i\mid\mathbf X)&amp;=0,\\
+\operatorname{Var}(d_i\mid\mathbf X)
+&amp;=\sigma^2\!\left[1+\mathbf x_i^\top
+(\mathbf A-\mathbf x_i\mathbf x_i^\top)^{-1}\mathbf x_i\right]\\
+&amp;=\sigma^2\!\left(1+\frac{h_{ii}}{1-h_{ii}}\right)
+=\frac{\sigma^2}{1-h_{ii}}.
+\end{aligned}
+\]</span></p>
+<p>The inverse identity follows from step 1 of the <a href="#deriv-ch6-deletion">deletion derivation</a>. As a linear combination of normal observations, <span class="math inline">\(Z_i=d_i\sqrt{1-h_{ii}}/\sigma\sim N(0,1)\)</span>.</p>
+<p><strong>2. Use an independent variance estimate.</strong> The deleted fit has <span class="math inline">\(n-1-p=\nu-1\)</span> residual degrees of freedom, so</p>
+<p><span class="math display">\[
+U_i=\frac{(\nu-1)s_{(-i)}^2}{\sigma^2}\sim\chi^2_{\nu-1}.
+\]</span></p>
+<p>Under normality, the deleted-fit coefficient estimate is independent of its SSE. Also, the held-out <span class="math inline">\(Y_i\)</span> is independent of that entire deleted dataset. Hence <span class="math inline">\(d_i\)</span>, and therefore <span class="math inline">\(Z_i\)</span>, is independent of <span class="math inline">\(U_i\)</span>.</p>
+<p><strong>3. Form the t ratio.</strong> By the definition of the t distribution,</p>
+<p><span class="math display">\[
+\frac{Z_i}{\sqrt{U_i/(\nu-1)}}
+=\frac{d_i\sqrt{1-h_{ii}}}{s_{(-i)}}
+=\frac{e_i}{s_{(-i)}\sqrt{1-h_{ii}}}
+=t_i\sim t_{\nu-1}.
+\]</span></p>
+<p>The internal residual <span class="math inline">\(r_i\)</span> uses the full-fit <span class="math inline">\(s\)</span>, which shares the contribution from observation <span class="math inline">\(i\)</span> with its numerator. This independence argument does not apply to <span class="math inline">\(r_i\)</span>; its bound <span class="math inline">\(|r_i|\le\sqrt{\nu}\)</span> also rules out an exact t distribution, whose support is unbounded.</p>
+</div>
+<p><strong>Compare the same three added points.</strong></p>
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -633,14 +863,14 @@ t_i=\frac{e_i}{s_{(-i)}\sqrt{1-h_{ii}}}.
 </table>
 </div>
 </div>
-<p>For A and C, the full fit’s residual SD is much larger than the baseline value 0.200, as the coefficient table in <a href="#sec-ch6-influence">Section 6.1</a> showed. Removing either added point returns those six baseline observations and their small noise estimate. This explains the much larger externally studentized residuals. These values flag a response discrepancy under the model; they do not establish a recording error.</p>
+<p>For A, the full-fit residual SD is <span class="math inline">\(s=2.078\)</span>, but deleting A gives <span class="math inline">\(s_{(-A)}=0.200\)</span>. The same full-fit residual and leverage therefore produce <span class="math inline">\(r_A=2.228\)</span> and <span class="math inline">\(t_A=23.146\)</span>. A was inflating the noise estimate used to assess itself. For C the scales are 1.899 and 0.200, with the same effect. Deleting either point returns the six baseline observations from <a href="#sec-ch6-influence">Section 6.1</a>. B has zero residual, so both scaled residuals are zero regardless of the different scales. These diagnostics identify a response discrepancy under the model; they do not establish a recording error.</p>
 <p>A and C have similar absolute standardized residuals, yet C changes the slope much more. <strong>Outlyingness and influence answer different questions.</strong></p>
 </section>
 <section id="sec-ch6-cook" class="level2" data-number="6.4">
 <h2 data-number="6.4" class="anchored" data-anchor-id="sec-ch6-cook"><span class="header-section-number">6.4</span> Influence: changes in estimates and Cook’s distance</h2>
 <p>Influence asks <strong>how much the fitted result changes when an observation is omitted</strong>. Compare the same model on the remaining observations: changes in the slope, intercept, or scientifically relevant prediction describe what that observation was doing. Cook’s distance summarizes movement of the fitted mean vector using both the residual and leverage.</p>
 <div id="def-ch6-cook" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 6.2 (Cook’s Distance)</strong></span> Let <span class="math inline">\(\hat{\boldsymbol\beta}_{(-i)}\)</span> be the OLS estimate after omitting observation <span class="math inline">\(i\)</span>, and let <span class="math inline">\(\hat Y_{j(-i)}=\mathbf x_j^\top\hat{\boldsymbol\beta}_{(-i)}\)</span> be its prediction at <strong>each of the original <span class="math inline">\(n\)</span> predictor rows</strong>, including row <span class="math inline">\(i\)</span>. Cook’s distance is</p>
+<p><span class="theorem-title"><strong>Definition 6.4 (Cook’s Distance)</strong></span> Let <span class="math inline">\(\hat{\boldsymbol\beta}_{(-i)}\)</span> be the OLS estimate after omitting observation <span class="math inline">\(i\)</span>, and let <span class="math inline">\(\hat Y_{j(-i)}=\mathbf x_j^\top\hat{\boldsymbol\beta}_{(-i)}\)</span> be its prediction at <strong>each of the original <span class="math inline">\(n\)</span> predictor rows</strong>, including row <span class="math inline">\(i\)</span>. Cook’s distance is</p>
 <p><span class="math display">\[
 D_i=\frac{\sum_{j=1}^n(\hat Y_j-\hat Y_{j(-i)})^2}{p s^2}
 =\frac{e_i^2}{p s^2}\frac{h_{ii}}{(1-h_{ii})^2}
@@ -649,6 +879,32 @@ D_i=\frac{\sum_{j=1}^n(\hat Y_j-\hat Y_{j(-i)})^2}{p s^2}
 <p>Here <span class="math inline">\(s^2\)</span> comes from the full fit. These formulas apply to ordinary unweighted least squares with full column rank and positive residual degrees of freedom; the deleted fit must also be estimable (<span class="math inline">\(h_{ii}&lt;1\)</span>).</p>
 </div>
 <p><strong>Read the two parts.</strong> The first expression asks how much the <em>whole fitted mean vector</em> moves after deletion, measured relative to the noise scale and model size. The last combines response discrepancy (<span class="math inline">\(r_i^2\)</span>) with leverage (<span class="math inline">\(h_{ii}/(1-h_{ii})\)</span>). Thus the largest residual need not produce the largest Cook’s distance. <span class="math inline">\(D_i\)</span> is dimensionless; it is not a p-value. <a href="https://doi.org/10.1080/00401706.1977.10489493">Cook’s original article</a>.</p>
+<div id="deriv-ch6-cook" class="derivation">
+<p><strong>Derivation: the equivalent formulas for Cook’s distance</strong></p>
+<p><strong>1. Express movement of the fitted means through the coefficient change.</strong> Use <span class="math inline">\(\boldsymbol\delta_i=\hat{\boldsymbol\beta}-\hat{\boldsymbol\beta}_{(-i)}\)</span> from the <a href="#deriv-ch6-deletion">deletion derivation in Section 6.3</a>. Predictions are evaluated at <strong>all <span class="math inline">\(n\)</span> original rows</strong>, so</p>
+<p><span class="math display">\[
+\sum_{j=1}^n(\hat Y_j-\hat Y_{j(-i)})^2
+=\|\mathbf X\boldsymbol\delta_i\|^2
+=\boldsymbol\delta_i^\top\mathbf A\boldsymbol\delta_i.
+\]</span></p>
+<p><strong>2. Substitute the deleted-coefficient identity.</strong> With <span class="math inline">\(\mathbf A=\mathbf X^\top\mathbf X\)</span>,</p>
+<p><span class="math display">\[
+\begin{aligned}
+\boldsymbol\delta_i^\top\mathbf A\boldsymbol\delta_i
+&amp;=\frac{e_i^2}{(1-h_{ii})^2}
+\mathbf x_i^\top\mathbf A^{-1}\mathbf A\mathbf A^{-1}\mathbf x_i\\
+&amp;=\frac{e_i^2h_{ii}}{(1-h_{ii})^2}.
+\end{aligned}
+\]</span></p>
+<p><strong>3. Scale the change and rewrite using <span class="math inline">\(r_i\)</span>.</strong> Dividing by <span class="math inline">\(ps^2\)</span> gives</p>
+<p><span class="math display">\[
+D_i=\frac{e_i^2}{ps^2}\frac{h_{ii}}{(1-h_{ii})^2}
+=\frac{r_i^2}{p}\frac{h_{ii}}{1-h_{ii}},
+\qquad
+r_i^2=\frac{e_i^2}{s^2(1-h_{ii})}.
+\]</span></p>
+<p>Cook’s distance uses the <strong>full-fit</strong> noise scale <span class="math inline">\(s\)</span>, so this expression uses the internally studentized <span class="math inline">\(r_i\)</span>. Substituting the externally studentized <span class="math inline">\(t_i\)</span> into the same expression would not give Cook’s distance. The algebra does not require normal errors; the variance model supplies the interpretation of the scaling.</p>
+</div>
 <p><strong>Apply Cook’s distance to the same three points.</strong> In each augmented fit, <span class="math inline">\(n=7\)</span> and <span class="math inline">\(p=2\)</span>. The diagnostics for its orange point are:</p>
 <div class="cell">
 <div class="cell-output-display">
