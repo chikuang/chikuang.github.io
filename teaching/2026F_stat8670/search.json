@@ -1417,5 +1417,75 @@
       "Project",
       "Presentation"
     ]
+  },
+  {
+    "objectID": "06-cross-validation.html",
+    "href": "06-cross-validation.html",
+    "title": "6  Cross Validation",
+    "section": "",
+    "text": "6.1 Prediction on New Observations\nMonte Carlo simulation generates inputs from a specified model. Cross-validation (CV) reuses observed data to ask a different question: how well will a fitting method predict new observations? We use CV to compare models and choose their complexity.\nFor regression, we want the average squared prediction error on independent new observations from the same population.\nTraining error uses the observations that fitted the model. It is usually optimistic: the model has already used their outcomes to choose its coefficients. To assess prediction, evaluate observations left out of fitting.\nFor \\(m\\) held-out observations, calculate\n\\[\n\\operatorname{MSE}=\\frac1m\\sum_{i=1}^m(y_i-\\widehat y_i)^2.\n\\]\nFor classification, we could instead average \\(\\mathbf{1}\\{y_i\\ne\\widehat y_i\\}\\) to estimate the misclassification rate. Choose the loss before comparing models.\nFigure 6.1: Training fits the coefficients; validation chooses the model; a separate test set assesses the chosen procedure. CV rotates the training and validation roles within the development data.\nA single training/validation split is simple, but its result depends on which observations were held out. CV spreads validation across several subsets. A final test set remains separate from this model-selection process.",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Cross Validation</span>"
+    ]
+  },
+  {
+    "objectID": "06-cross-validation.html#sec-cv-example",
+    "href": "06-cross-validation.html#sec-cv-example",
+    "title": "6  Cross Validation",
+    "section": "6.2 One Example: Choose a Polynomial Degree",
+    "text": "6.2 One Example: Choose a Polynomial Degree\nWe compare polynomial regressions\n\\[\n\\widehat f_d(x)=\\widehat\\beta_0+\\widehat\\beta_1x+\\cdots+\\widehat\\beta_dx^d,\n\\qquad d\\in\\{1,\\ldots,8\\}.\n\\]\nThe degree \\(d\\) is a hyperparameter: it specifies the model’s flexibility. Fitting estimates the coefficients for a chosen degree; CV helps choose the degree.\nGenerate one illustrative data set with a quadratic mean and random noise. Reserve 40 observations for the final test; use 80 for development. All observations are generated independently, so these disjoint groups are independent samples.\n\nset.seed(8670)\nx &lt;- runif(120, -2, 2)\ndat &lt;- data.frame(x, y = 1 + 2 * x - x^2 + rnorm(120, sd = 0.7))\ndevelopment &lt;- dat[1:80, ]\ntest &lt;- dat[81:120, ]\n\n\n\n\n\n\n\n\n\nFigure 6.2: The same development observations are fitted three ways. The dashed curve is the known simulation mean, shown only to explain the example. CV uses held-out outcomes to compare degrees.\n\n\n\n\n\nA rigid model may miss the mean pattern (bias). A very flexible model can react strongly to the particular sample (variance) and fit noise. For nested least-squares models, training MSE cannot increase when we add polynomial terms. Error on new observations can increase. CV checks this prediction tradeoff without knowing the true mean.",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Cross Validation</span>"
+    ]
+  },
+  {
+    "objectID": "06-cross-validation.html#sec-cv-kfold",
+    "href": "06-cross-validation.html#sec-cv-kfold",
+    "title": "6  Cross Validation",
+    "section": "6.3 How K-Fold CV Works",
+    "text": "6.3 How K-Fold CV Works\nSplit the \\(n\\) development observations into \\(K\\) roughly equal folds. Each fold serves once as validation data; the other \\(K-1\\) folds supply the training data. Every observation receives a prediction from a model fitted without that observation.\n\n\n\n\n\n\n\n\nFigure 6.3: In 5-fold CV, each row is a fresh model fit. Pink is held out; mint is used for training. With 80 observations, each fit trains on 64 and predicts the remaining 16.\n\n\n\n\n\n\n\nChoose the candidate models and the loss. Randomly assign the development observations to \\(K\\) folds; use the same folds for every candidate.\nFor each candidate, and for each fold \\(k\\), fit a fresh model on all folds except \\(k\\).\nPredict the outcomes in fold \\(k\\) and store their losses. Repeat until every observation has one held-out prediction.\nAverage all \\(n\\) held-out losses to obtain that candidate’s CV error. Select the candidate with the smallest error.\n\n\nLet \\(S_k\\) contain the indices in fold \\(k\\), and let \\(\\widehat f_d^{(-k)}\\) be the degree-\\(d\\) model fitted without that fold. Then\n\\[\n\\operatorname{CV}(d)\n=\\frac1n\\sum_{k=1}^K\\sum_{i\\in S_k}\n\\left(y_i-\\widehat f_d^{(-k)}(x_i)\\right)^2.\n\\]\nWhat is averaged? The squared errors of the held-out predictions. If a held-out outcome is 3 and its prediction is 2.5, it contributes \\((3-2.5)^2=0.25\\). With \\(n=80\\), sum all 80 such errors and divide by 80. Equal-sized folds also allow averaging their MSEs; unequal folds require weights \\(|S_k|/n\\).",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Cross Validation</span>"
+    ]
+  },
+  {
+    "objectID": "06-cross-validation.html#sec-cv-select",
+    "href": "06-cross-validation.html#sec-cv-select",
+    "title": "6  Cross Validation",
+    "section": "6.4 Select, Refit, and Test",
+    "text": "6.4 Select, Refit, and Test\nprediction[fold == k] stores the held-out predictions. poly(x, d) uses a numerically stable basis for a degree-\\(d\\) polynomial.\n\nK &lt;- 5\nfold &lt;- sample(rep(1:K, length.out = nrow(development)))\ndegrees &lt;- 1:8\ncv_mse &lt;- numeric(length(degrees))\nfor (d in degrees) {\n  prediction &lt;- numeric(nrow(development))\n  for (k in 1:K) {\n    fit &lt;- lm(y ~ poly(x, d), data = development[fold != k, ])\n    prediction[fold == k] &lt;- predict(fit, development[fold == k, ])\n  }\n  cv_mse[d] &lt;- mean((development$y - prediction)^2)\n}\nbest_degree &lt;- degrees[which.min(cv_mse)]\n\n\n\n\n\n\n\n\n\nFigure 6.4: Training error keeps falling, while CV reaches its minimum at degree 2. The right panel enlarges degrees 2-8; its vertical scale differs from the left panel. Both curves use the same development data; only CV predictions exclude the scored observations.\n\n\n\n\n\nCV selects degree 2, with MSE 0.562. We now refit that degree on all 80 development observations, then use the 40 reserved test observations once:\n\nfinal_fit &lt;- lm(y ~ poly(x, best_degree), data = development)\ntest_prediction &lt;- predict(final_fit, newdata = test)\nc(degree = best_degree, test_MSE = mean((test$y - test_prediction)^2))\n#&gt;   degree test_MSE \n#&gt; 2.000000 0.413982\n\nThe test MSE estimates prediction error for this final fit. It need not equal the CV MSE: CV used smaller training sets and different held-out observations. Also, the smallest CV error was selected from several candidates, so it can be optimistic as a final performance report. Keep the test set out of model selection.",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Cross Validation</span>"
+    ]
+  },
+  {
+    "objectID": "06-cross-validation.html#sec-cv-choices",
+    "href": "06-cross-validation.html#sec-cv-choices",
+    "title": "6  Cross Validation",
+    "section": "6.5 Choose Folds and Avoid Leakage",
+    "text": "6.5 Choose Folds and Avoid Leakage\n5-fold or 10-fold CV is a useful starting point for independent observations. Each fit uses a fraction \\((K-1)/K\\) of the development data. Leave-one-out CV (LOOCV) sets \\(K=n\\): fit on \\(n-1\\) observations and predict the remaining one, repeating for every observation.\nLarger \\(K\\) reduces the training-size difference from the final fit but requires more fits. It does not guarantee a less variable CV estimate. A repeated-CV illustration is in Supplementary.\nTwo practical details determine whether the comparison is fair:\n\nFit the whole procedure inside each training fold. Learn imputation, scaling, or feature selection using that fold’s training observations, then apply those choices to its validation observations. Using validation outcomes to select features before CV leaks information.\nSplit according to the prediction task. Keep repeated observations from the same person together when predicting new people. For future prediction, train on the past and validate on later times; randomly shuffling time points can use future information.",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Cross Validation</span>"
+    ]
+  },
+  {
+    "objectID": "06-cross-validation.html#sec-cv-summary",
+    "href": "06-cross-validation.html#sec-cv-summary",
+    "title": "6  Cross Validation",
+    "section": "6.6 Summary",
+    "text": "6.6 Summary\nCross-validation estimates how a fitting procedure predicts observations excluded from training. It helps choose a model or hyperparameter when the population prediction error cannot be calculated directly. Its score measures predictive performance for the chosen loss and a comparable population; it does not establish that the model is the true data-generating mechanism.\nThe workflow is: define the prediction task and loss, hold out a test set, compare candidates by CV, refit the selected candidate, and assess it on the test set. Use the same folds for all candidates, and keep all data-dependent fitting inside the training folds.\n\n\n\n\n\n\n\n\n\nMethod\nTraining / validation per fit\nFits per candidate\nMain consideration\n\n\n\n\nOne split\nOne training set / one holdout\n1\nFast; sensitive to the split\n\n\n\\(K\\)-fold CV\n\\(K-1\\) folds / one fold\n\\(K\\)\nEvery observation is held out once\n\n\nLOOCV\n\\(n-1\\) observations / one\n\\(n\\)\nNearly full training size; often costly\n\n\nRepeated \\(K\\)-fold (optional)\nRepeat the fold assignment\n\\(RK\\)\nChecks sensitivity to partitioning\n\n\n\nHere \\(n\\) is the development sample size and \\(R\\) is the number of repetitions. The separate final test set is not one of the CV folds.",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Cross Validation</span>"
+    ]
+  },
+  {
+    "objectID": "06-cross-validation.html#sec-cv-supplement",
+    "href": "06-cross-validation.html#sec-cv-supplement",
+    "title": "6  Cross Validation",
+    "section": "6.7 Supplementary",
+    "text": "6.7 Supplementary\nOptional reading:\n\nJames, Witten, Hastie, and Tibshirani (2021), An Introduction to Statistical Learning, 2nd edition. Chapter 5, especially Section 5.1 and the R lab, develops validation, LOOCV, and \\(K\\)-fold CV.\nHastie, Tibshirani, and Friedman (2009), The Elements of Statistical Learning, 2nd edition. Sections 7.2-7.3 discuss bias and variance; Section 7.10 covers CV and why every model-building step belongs inside validation.\n2025 STAT 8670 lecture: additional models and the ironslag example.\n\n\n6.7.1 Repeated CV (optional)\n\n\n\n\n\n\n\n\nFigure 6.5: Ten new 5-fold partitions of the same development data give slightly different CV curves. Only degrees 2-8 are shown to make nearby candidates visible. Thin curves are individual partitions; the thick curve is their average. No test observations are used.\n\n\n\n\n\nRepeating CV checks sensitivity to the fold assignment; it does not create new observations. Here several degrees have similar scores. A tiny improvement in one partition is weak evidence for a more complex model. The repeated curves describe split sensitivity, not independent experiments or a confidence interval.",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Cross Validation</span>"
+    ]
   }
 ]
