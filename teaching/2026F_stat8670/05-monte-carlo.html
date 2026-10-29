@@ -748,7 +748,7 @@ Figure&nbsp;5.4: The legend identifies sampled heights, their mean, and the targ
 \theta=\mathbb{E}[g(X)],\qquad
 \widehat\theta=\overline Y=\frac1N\sum_{i=1}^N Y_i.
 \]</span></p>
-<p>Our example uses <span class="math inline">\(X=U\sim\operatorname{Uniform}(0,1)\)</span> and <span class="math inline">\(g(u)=e^u\)</span>, so <span class="math inline">\(\theta=e-1\)</span>. Fresh draws change both the outputs and their average.</p>
+<p>Our example uses <span class="math inline">\(X=U\sim\operatorname{Uniform}(0,1)\)</span> and <span class="math inline">\(g(u)=e^u\)</span>, so <span class="math inline">\(\theta=e-1\)</span>.</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div id="fig-mc-variation" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Individual exp(U) values spread from 1 to e, while averages of 100 outputs cluster near e minus one.">
@@ -763,18 +763,44 @@ Figure&nbsp;5.5: Left: 400 individual outputs. Right: 400 independent runs, each
 </div>
 </div>
 </div>
-<p>The population variance <span class="math inline">\(\operatorname{Var}(Y)=\sigma_Y^2\)</span> describes output spread. From one run, estimate it using</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 75%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Quantity</th>
+<th style="text-align: left;">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(s_X\)</span></td>
+<td style="text-align: left;">Sample SD of inputs: <code>sd(x)</code> estimates <span class="math inline">\(\sqrt{\operatorname{Var}(X)}\)</span>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\operatorname{Var}(Y)=\sigma_Y^2\)</span></td>
+<td style="text-align: left;">Population variance of one output.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(s_Y\)</span></td>
+<td style="text-align: left;">Sample SD of outputs: <code>sd(y)</code> estimates <span class="math inline">\(\sigma_Y\)</span>; its square <code>var(y)</code> estimates <span class="math inline">\(\operatorname{Var}(Y)\)</span>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MCSE</td>
+<td style="text-align: left;">SD of the estimated mean <span class="math inline">\(\overline Y\)</span> across runs.</td>
+</tr>
+</tbody>
+</table>
+<p>For independent outputs with finite variance,</p>
 <p><span class="math display">\[
-s_Y^2=\frac{1}{N-1}\sum_{i=1}^N(Y_i-\overline Y)^2,
-\qquad s_Y=\sqrt{s_Y^2}.
-\]</span></p>
-<p>R’s <code>var(y)</code> is <span class="math inline">\(s_Y^2\)</span>; <code>sd(y)</code> is <span class="math inline">\(s_Y\)</span>. <strong>MCSE</strong> is the SD of the average across runs. For independent outputs with finite variance,</p>
-<p><span class="math display">\[
-\operatorname{Var}(\overline Y)=\frac{\sigma_Y^2}{N},
+\operatorname{MCSE}=\sqrt{\operatorname{Var}(\overline Y)}
+=\sqrt{\frac{\operatorname{Var}(Y)}{N}},
 \qquad
-\widehat{\operatorname{MCSE}}=\sqrt{\frac{s_Y^2}{N}}=\frac{s_Y}{\sqrt N}.
+\widehat{\operatorname{MCSE}}=\frac{s_Y}{\sqrt N}.
 \]</span></p>
-<p>The subscript matters: <span class="math inline">\(s_X\)</span> measures input spread; <span class="math inline">\(s_Y\)</span> measures output spread. Use <span class="math inline">\(s_Y/\sqrt N\)</span> for <span class="math inline">\(\mathbb{E}[g(X)]\)</span>, or <span class="math inline">\(s_X/\sqrt N\)</span> when averaging <span class="math inline">\(X\)</span> itself.</p>
+<p><strong>To assess simulation precision, report the estimate and estimated MCSE.</strong> Use <span class="math inline">\(s_Y\)</span> to describe individual outputs. Use <span class="math inline">\(s_X/\sqrt N\)</span> only when averaging <span class="math inline">\(X\)</span>; here we average <span class="math inline">\(e^U\)</span>.</p>
 <div class="callout-algorithm" title="Plain Monte Carlo">
 <ol type="1">
 <li>Specify the input distribution <span class="math inline">\(P\)</span>, output function <span class="math inline">\(g\)</span>, and sample size <span class="math inline">\(N\)</span>.</li>
@@ -788,12 +814,12 @@ s_Y^2=\frac{1}{N-1}\sum_{i=1}^N(Y_i-\overline Y)^2,
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">runif</span>(N)</span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">exp</span>(u)</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">estimate =</span> <span class="fu">mean</span>(y), <span class="at">var_Y =</span> <span class="fu">var</span>(y), <span class="at">s_Y =</span> <span class="fu">sd</span>(y),</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">MCSE =</span> <span class="fu">sd</span>(y) <span class="sc">/</span> <span class="fu">sqrt</span>(N))</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    estimate       var_Y         s_Y        MCSE </span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1.726713868 0.244172888 0.494138531 0.004941385</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">estimate =</span> <span class="fu">mean</span>(y), <span class="at">s_X =</span> <span class="fu">sd</span>(u), <span class="at">var_Y =</span> <span class="fu">var</span>(y),</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">s_Y =</span> <span class="fu">sd</span>(y), <span class="at">MCSE =</span> <span class="fu">sd</span>(y) <span class="sc">/</span> <span class="fu">sqrt</span>(N))</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    estimate         s_X       var_Y         s_Y        MCSE </span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1.726713868 0.289668030 0.244172888 0.494138531 0.004941385</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>For large <span class="math inline">\(N\)</span>, an approximate 95% Monte Carlo interval is <span class="math inline">\(\overline Y\pm1.96\,s_Y/\sqrt N\)</span>. It describes simulation error with the model held fixed. Halving MCSE requires about four times as many draws; it does not reduce the spread of individual outputs.</p>
+<p>Here <span class="math inline">\(s_Y\approx0.494\)</span> describes output spread; MCSE <span class="math inline">\(\approx0.00494\)</span> describes precision of the mean. For large <span class="math inline">\(N\)</span>, an approximate 95% Monte Carlo interval is <span class="math inline">\(\overline Y\pm1.96\,\widehat{\operatorname{MCSE}}\)</span>. Four times as many draws halve MCSE; the population variance <span class="math inline">\(\operatorname{Var}(Y)\)</span> stays unchanged.</p>
 </section>
 <section id="sec-mc-efficiency" class="level2" data-number="5.4">
 <h2 data-number="5.4" class="anchored" data-anchor-id="sec-mc-efficiency"><span class="header-section-number">5.4</span> Variance Reduction</h2>
