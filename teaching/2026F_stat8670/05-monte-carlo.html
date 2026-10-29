@@ -348,8 +348,17 @@ window.Quarto = {
   </ul></li>
   <li><a href="#sec-mc-error" id="toc-sec-mc-error" class="nav-link" data-scroll-target="#sec-mc-error"><span class="header-section-number">5.3</span> Monte Carlo Standard Error</a></li>
   <li><a href="#sec-mc-efficiency" id="toc-sec-mc-efficiency" class="nav-link" data-scroll-target="#sec-mc-efficiency"><span class="header-section-number">5.4</span> Variance Reduction</a></li>
-  <li><a href="#sec-mc-antithetic" id="toc-sec-mc-antithetic" class="nav-link" data-scroll-target="#sec-mc-antithetic"><span class="header-section-number">5.5</span> Antithetic Variables</a></li>
-  <li><a href="#sec-mc-control" id="toc-sec-mc-control" class="nav-link" data-scroll-target="#sec-mc-control"><span class="header-section-number">5.6</span> Control Variates</a></li>
+  <li><a href="#sec-mc-antithetic" id="toc-sec-mc-antithetic" class="nav-link" data-scroll-target="#sec-mc-antithetic"><span class="header-section-number">5.5</span> Antithetic Variables</a>
+  <ul class="collapse">
+  <li><a href="#why-are-both-inputs-uniform" id="toc-why-are-both-inputs-uniform" class="nav-link" data-scroll-target="#why-are-both-inputs-uniform"><span class="header-section-number">5.5.1</span> Why are both inputs uniform?</a></li>
+  <li><a href="#what-values-do-we-average" id="toc-what-values-do-we-average" class="nav-link" data-scroll-target="#what-values-do-we-average"><span class="header-section-number">5.5.2</span> What values do we average?</a></li>
+  <li><a href="#why-does-pairing-reduce-variance" id="toc-why-does-pairing-reduce-variance" class="nav-link" data-scroll-target="#why-does-pairing-reduce-variance"><span class="header-section-number">5.5.3</span> Why does pairing reduce variance?</a></li>
+  </ul></li>
+  <li><a href="#sec-mc-control" id="toc-sec-mc-control" class="nav-link" data-scroll-target="#sec-mc-control"><span class="header-section-number">5.6</span> Control Variates</a>
+  <ul class="collapse">
+  <li><a href="#how-do-we-choose-the-coefficient" id="toc-how-do-we-choose-the-coefficient" class="nav-link" data-scroll-target="#how-do-we-choose-the-coefficient"><span class="header-section-number">5.6.1</span> How do we choose the coefficient?</a></li>
+  <li><a href="#calculate-c-for-our-example" id="toc-calculate-c-for-our-example" class="nav-link" data-scroll-target="#calculate-c-for-our-example"><span class="header-section-number">5.6.2</span> Calculate c for our example</a></li>
+  </ul></li>
   <li><a href="#sec-mc-summary" id="toc-sec-mc-summary" class="nav-link" data-scroll-target="#sec-mc-summary"><span class="header-section-number">5.7</span> Summary</a></li>
   <li><a href="#sec-mc-supplement" id="toc-sec-mc-supplement" class="nav-link" data-scroll-target="#sec-mc-supplement"><span class="header-section-number">5.8</span> Supplementary</a></li>
   </ul>
@@ -732,10 +741,10 @@ Figure&nbsp;5.4: The legend identifies sampled heights, their mean, and the targ
 <p><span class="math display">\[
 \theta=\mathbb{E}[e^U]=e-1,\qquad U\sim\operatorname{Uniform}(0,1).
 \]</span></p>
-<p>Fresh random inputs give different outputs <span class="math inline">\(Y_i=e^{U_i}\)</span> and a different average <span class="math inline">\(\widehat\theta=\overline Y\)</span>. The figure separates the variation of one output from the variation of an average.</p>
+<p>For each independent input <span class="math inline">\(U_i\)</span>, calculate one output <span class="math inline">\(Y_i=e^{U_i}\)</span>. The values being averaged are <span class="math inline">\(Y_1,\ldots,Y_N\)</span>, and the estimate is <span class="math inline">\(\widehat\theta=\overline Y=N^{-1}\sum_{i=1}^N Y_i\)</span>. Fresh inputs change both the individual outputs and their average.</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
-<div id="fig-mc-variation" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Individual exp(U) values spread from 1 to e, while averages of 100 outputs cluster near e minus one.">
+<div id="fig-mc-variation" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Individual exp(U) values spread from 1 to e, while averages of 100 outputs cluster near e minus one." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-variation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05-monte-carlo_files/figure-html/fig-mc-variation-1.png?v=10f996cd358e" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Individual exp(U) values spread from 1 to e, while averages of 100 outputs cluster near e minus one." width="1296">
@@ -747,35 +756,64 @@ Figure&nbsp;5.5: Left: 400 individual outputs. Right: 400 independent runs, each
 </div>
 </div>
 </div>
-<p>The <strong>standard deviation</strong> <span class="math inline">\(s_Y\)</span> describes the spread of individual outputs. The <strong>Monte Carlo standard error (MCSE)</strong> estimates the standard deviation of their average across runs. From one run of <span class="math inline">\(N\)</span> independent outputs with finite variance,</p>
+<p>The <strong>standard deviation</strong> <span class="math inline">\(s_Y\)</span> describes the spread of individual outputs. The <strong>Monte Carlo standard error (MCSE)</strong> estimates the standard deviation of their average across runs. Independence gives</p>
 <p><span class="math display">\[
+\operatorname{Var}(\overline Y)=\frac{\operatorname{Var}(Y)}{N},
+\qquad
 \widehat{\operatorname{MCSE}}=\frac{s_Y}{\sqrt N}.
 \]</span></p>
+<p>We estimate the unknown variance of <span class="math inline">\(Y\)</span> with the sample variance <span class="math inline">\(s_Y^2\)</span>, so MCSE can be calculated from a single run.</p>
+<div class="callout-algorithm" title="Plain Monte Carlo">
+<ol type="1">
+<li>Choose <span class="math inline">\(N\)</span> and draw <span class="math inline">\(U_1,\ldots,U_N\)</span> independently from <span class="math inline">\(\operatorname{Uniform}(0,1)\)</span>.</li>
+<li>Calculate <span class="math inline">\(Y_i=e^{U_i}\)</span> for each draw.</li>
+<li>Average these <span class="math inline">\(N\)</span> outputs: <span class="math inline">\(\widehat\theta=N^{-1}\sum_{i=1}^N Y_i\)</span>.</li>
+<li>Report <span class="math inline">\(\widehat\theta\)</span> and <span class="math inline">\(s_Y/\sqrt N\)</span>, using the same <span class="math inline">\(N\)</span> outputs to calculate <span class="math inline">\(s_Y\)</span>.</li>
+</ol>
+</div>
 <div class="cell" data-layout-align="center">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">runif</span>(N))</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">estimate =</span> <span class="fu">mean</span>(y), <span class="at">MCSE =</span> <span class="fu">sd</span>(y) <span class="sc">/</span> <span class="fu">sqrt</span>(N))</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    estimate        MCSE </span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1.726713868 0.004941385</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">runif</span>(N)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">exp</span>(u)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">estimate =</span> <span class="fu">mean</span>(y), <span class="at">MCSE =</span> <span class="fu">sd</span>(y) <span class="sc">/</span> <span class="fu">sqrt</span>(N))</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    estimate        MCSE </span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1.726713868 0.004941385</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>For large <span class="math inline">\(N\)</span>, an approximate 95% Monte Carlo interval is <span class="math inline">\(\overline Y\pm1.96\,s_Y/\sqrt N\)</span>. It describes simulation error with the model held fixed. Halving MCSE requires about four times as many draws; it does not reduce the spread of individual outputs.</p>
 </section>
 <section id="sec-mc-efficiency" class="level2" data-number="5.4">
 <h2 data-number="5.4" class="anchored" data-anchor-id="sec-mc-efficiency"><span class="header-section-number">5.4</span> Variance Reduction</h2>
-<p>Instead of increasing <span class="math inline">\(N\)</span>, we can average less variable quantities with the same expectation. <strong>Variance reduction</strong> changes how we construct the estimate while preserving its target. We compare methods using the same number of evaluations of <code>exp()</code>.</p>
+<p>Instead of increasing the sample size, we can change the <strong>values being averaged</strong>. If independent, identically distributed contributions <span class="math inline">\(W_1,\ldots,W_m\)</span> satisfy <span class="math inline">\(\mathbb{E}[W_j]=\theta\)</span>, then</p>
+<p><span class="math display">\[
+\mathbb{E}[\overline W]=\theta,
+\qquad
+\operatorname{Var}(\overline W)=\frac{\operatorname{Var}(W)}{m}.
+\]</span></p>
+<p><strong>Variance reduction</strong> constructs contributions with less variance while retaining the same expectation. We will replace <span class="math inline">\(e^U\)</span> by a pair average or an adjusted output. Since these constructions have different costs per contribution, we compare them at the same number of evaluations of <code>exp()</code>.</p>
 </section>
 <section id="sec-mc-antithetic" class="level2" data-number="5.5">
 <h2 data-number="5.5" class="anchored" data-anchor-id="sec-mc-antithetic"><span class="header-section-number">5.5</span> Antithetic Variables</h2>
-<p>Both <span class="math inline">\(U\)</span> and <span class="math inline">\(1-U\)</span> are uniform. Pair their outputs and average:</p>
+<section id="why-are-both-inputs-uniform" class="level3" data-number="5.5.1">
+<h3 data-number="5.5.1" class="anchored" data-anchor-id="why-are-both-inputs-uniform"><span class="header-section-number">5.5.1</span> Why are both inputs uniform?</h3>
+<p>Let <span class="math inline">\(V=1-U\)</span>. Reflecting <span class="math inline">\([0,1]\)</span> about its midpoint preserves interval lengths. More formally, for <span class="math inline">\(0\leq v\leq1\)</span>,</p>
+<p><span class="math display">\[
+P(V\leq v)=P(1-U\leq v)=P(U\geq1-v)=1-(1-v)=v.
+\]</span></p>
+<p>Together with support <span class="math inline">\([0,1]\)</span>, this is the CDF of <span class="math inline">\(\operatorname{Uniform}(0,1)\)</span>. Thus <span class="math inline">\(U\)</span> and <span class="math inline">\(V\)</span> have the same distribution, but they are <strong>dependent</strong>: once <span class="math inline">\(U\)</span> is known, <span class="math inline">\(V\)</span> is determined.</p>
+</section>
+<section id="what-values-do-we-average" class="level3" data-number="5.5.2">
+<h3 data-number="5.5.2" class="anchored" data-anchor-id="what-values-do-we-average"><span class="header-section-number">5.5.2</span> What values do we average?</h3>
+<p>One uniform draw produces two outputs, <span class="math inline">\(Y_k=e^{U_k}\)</span> and <span class="math inline">\(Y'_k=e^{1-U_k}\)</span>. First average within each pair, then average across pairs:</p>
 <p><span class="math display">\[
 A_k=\frac{e^{U_k}+e^{1-U_k}}{2},\qquad
 \widehat\theta_{\mathrm{anti}}=\frac1K\sum_{k=1}^K A_k.
 \]</span></p>
-<p>As <span class="math inline">\(U\)</span> increases, one output rises and the other falls. Their fluctuations partly cancel, so the pair average varies less. Since both outputs have mean <span class="math inline">\(\theta\)</span>, so does <span class="math inline">\(A_k\)</span>.</p>
+<p>For example, <span class="math inline">\(U_k=0.2\)</span> gives outputs 1.2214 and 2.2255, hence <span class="math inline">\(A_k=1.7235\)</span>. The final estimate averages the <span class="math inline">\(K\)</span> values <span class="math inline">\(A_1,\ldots,A_K\)</span>. Both outputs have mean <span class="math inline">\(\theta\)</span>, so <span class="math inline">\(\mathbb{E}[A_k]=(\theta+\theta)/2=\theta\)</span>.</p>
+<p>As <span class="math inline">\(U\)</span> increases, one output rises and the other falls. The figure shows how these fluctuations partly cancel.</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
-<div id="fig-mc-antithetic" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="The curves exp(U) and exp(1-U) slope in opposite directions; their pair average remains near the target.">
+<div id="fig-mc-antithetic" class="quarto-float quarto-figure quarto-figure-center anchored" alt="The curves exp(U) and exp(1-U) slope in opposite directions; their pair average remains near the target." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-antithetic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05-monte-carlo_files/figure-html/fig-mc-antithetic-1.png?v=c508b9a8a2c5" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="The curves exp(U) and exp(1-U) slope in opposite directions; their pair average remains near the target." width="1152">
@@ -787,7 +825,30 @@ Figure&nbsp;5.6: The two outputs move in opposite directions. Their pair average
 </div>
 </div>
 </div>
-<p>With <span class="math inline">\(K=5000\)</span> independent pairs, the cost is 10,000 evaluations. Calculate MCSE from the <strong>pair averages</strong>, because the two outputs within each pair are dependent.</p>
+</section>
+<section id="why-does-pairing-reduce-variance" class="level3" data-number="5.5.3">
+<h3 data-number="5.5.3" class="anchored" data-anchor-id="why-does-pairing-reduce-variance"><span class="header-section-number">5.5.3</span> Why does pairing reduce variance?</h3>
+<p>Write <span class="math inline">\(\sigma^2=\operatorname{Var}(Y)=\operatorname{Var}(Y')\)</span> and <span class="math inline">\(\gamma=\operatorname{Cov}(Y,Y')\)</span>. Then</p>
+<p><span class="math display">\[
+\operatorname{Var}(A)
+=\frac14\{\sigma^2+\sigma^2+2\gamma\}
+=\frac{\sigma^2+\gamma}{2}.
+\]</span></p>
+<p>Two independent outputs would give variance <span class="math inline">\(\sigma^2/2\)</span> for their average. A negative covariance therefore helps. In this example, <span class="math inline">\(YY'=e^Ue^{1-U}=e\)</span>, so</p>
+<p><span class="math display">\[
+\gamma=\mathbb{E}[YY']-\mathbb{E}[Y]\mathbb{E}[Y']
+=e-(e-1)^2\approx-0.2342&lt;0.
+\]</span></p>
+<p>With a budget of <span class="math inline">\(N=2K\)</span> evaluations, the antithetic estimator has variance <span class="math inline">\((\sigma^2+\gamma)/(2K)\)</span>, compared with <span class="math inline">\(\sigma^2/(2K)\)</span> for plain Monte Carlo. For a general function <span class="math inline">\(g\)</span>, reflection helps only if <span class="math inline">\(g(U)\)</span> and <span class="math inline">\(g(1-U)\)</span> have negative covariance; monotone <span class="math inline">\(g\)</span> gives nonpositive covariance.</p>
+<div class="callout-algorithm" title="Antithetic variables">
+<ol type="1">
+<li>Choose the number of pairs <span class="math inline">\(K\)</span> and draw <span class="math inline">\(U_1,\ldots,U_K\)</span> independently from <span class="math inline">\(\operatorname{Uniform}(0,1)\)</span>.</li>
+<li>For each <span class="math inline">\(U_k\)</span>, evaluate both <span class="math inline">\(e^{U_k}\)</span> and <span class="math inline">\(e^{1-U_k}\)</span>.</li>
+<li>Store their pair average <span class="math inline">\(A_k=(e^{U_k}+e^{1-U_k})/2\)</span>.</li>
+<li>Report <span class="math inline">\(\widehat\theta_{\mathrm{anti}}=K^{-1}\sum_{k=1}^K A_k\)</span> and MCSE <span class="math inline">\(s_A/\sqrt K\)</span>.</li>
+</ol>
+</div>
+<p>The independent units are the <strong><span class="math inline">\(K\)</span> pair averages</strong>, so both <code>sd()</code> and MCSE use <code>pair_y</code>. Here 5,000 pairs cost 10,000 evaluations.</p>
 <div class="cell" data-layout-align="center">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>K <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
@@ -797,83 +858,151 @@ Figure&nbsp;5.6: The two outputs move in opposite directions. Their pair average
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     estimate         MCSE </span></span>
 <span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1.7189273292 0.0008743739</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>At equal cost, pairing helps when the paired outputs have negative covariance. Reflection alone does not guarantee this for every function.</p>
+</section>
 </section>
 <section id="sec-mc-control" class="level2" data-number="5.6">
 <h2 data-number="5.6" class="anchored" data-anchor-id="sec-mc-control"><span class="header-section-number">5.6</span> Control Variates</h2>
-<p>A <strong>control variate</strong> is a variable related to the output whose mean is known. Here <span class="math inline">\(e^U\)</span> increases with <span class="math inline">\(U\)</span>, and <span class="math inline">\(\mathbb{E}[U]=0.5\)</span>. Use</p>
+<p>A <strong>control variate</strong> is a variable <span class="math inline">\(C\)</span> related to the output <span class="math inline">\(Y\)</span>, with a known mean <span class="math inline">\(\mu_C\)</span>. For a fixed coefficient <span class="math inline">\(c\)</span>, replace <span class="math inline">\(Y\)</span> by the adjusted value</p>
 <p><span class="math display">\[
-Z=e^U+c(U-0.5).
+Z=Y+c(C-\mu_C).
 \]</span></p>
-<p>For any fixed <span class="math inline">\(c\)</span>, the adjustment has mean zero, so <span class="math inline">\(\mathbb{E}[Z]=\theta\)</span>. We choose <span class="math inline">\(c=-1.7\)</span>: inputs above 0.5 receive a downward correction, and inputs below 0.5 receive an upward correction.</p>
+<p>Because <span class="math inline">\(\mathbb{E}[C-\mu_C]=0\)</span>, the adjustment preserves <span class="math inline">\(\mathbb{E}[Z]=\mathbb{E}[Y]=\theta\)</span>. We average the <strong>adjusted values</strong> <span class="math inline">\(Z_1,\ldots,Z_N\)</span>:</p>
+<p><span class="math display">\[
+\widehat\theta_{\mathrm{cv}}=\overline Z
+=\overline Y+c(\overline C-\mu_C).
+\]</span></p>
+<p>This corrects the original estimate using the difference between the simulated control mean <span class="math inline">\(\overline C\)</span> and its known mean <span class="math inline">\(\mu_C\)</span>.</p>
+<section id="how-do-we-choose-the-coefficient" class="level3" data-number="5.6.1">
+<h3 data-number="5.6.1" class="anchored" data-anchor-id="how-do-we-choose-the-coefficient"><span class="header-section-number">5.6.1</span> How do we choose the coefficient?</h3>
+<p>Choose <span class="math inline">\(c\)</span> to minimize the variance of <span class="math inline">\(Z\)</span>. Expanding the variance gives a quadratic in <span class="math inline">\(c\)</span>:</p>
+<p><span class="math display">\[
+\operatorname{Var}(Z)
+=\operatorname{Var}(Y)+c^2\operatorname{Var}(C)
++2c\operatorname{Cov}(Y,C).
+\]</span></p>
+<p>Differentiate and set the derivative to zero:</p>
+<p><span class="math display">\[
+2c\operatorname{Var}(C)+2\operatorname{Cov}(Y,C)=0
+\quad\Longrightarrow\quad
+c^*=-\frac{\operatorname{Cov}(Y,C)}{\operatorname{Var}(C)}.
+\]</span></p>
+<p>For <span class="math inline">\(\operatorname{Var}(C)&gt;0\)</span>, the quadratic opens upward, so this is its minimum. Substitution gives</p>
+<p><span class="math display">\[
+\operatorname{Var}(Z_{c^*})
+=\operatorname{Var}(Y)
+-\frac{\operatorname{Cov}(Y,C)^2}{\operatorname{Var}(C)}.
+\]</span></p>
+<p>A larger absolute correlation with <span class="math inline">\(Y\)</span> removes more variance; an uncorrelated control gives <span class="math inline">\(c^*=0\)</span>.</p>
+</section>
+<section id="calculate-c-for-our-example" class="level3" data-number="5.6.2">
+<h3 data-number="5.6.2" class="anchored" data-anchor-id="calculate-c-for-our-example"><span class="header-section-number">5.6.2</span> Calculate c for our example</h3>
+<p>Take <span class="math inline">\(Y=e^U\)</span> and <span class="math inline">\(C=U\)</span>. We know <span class="math inline">\(\mu_C=1/2\)</span> and <span class="math inline">\(\operatorname{Var}(U)=1/12\)</span>. To find the covariance, first use integration by parts:</p>
+<p><span class="math display">\[
+\mathbb{E}[Ue^U]=\int_0^1 ue^u\,du
+=\left[(u-1)e^u\right]_0^1=1.
+\]</span></p>
+<p>Therefore,</p>
+<p><span class="math display">\[
+\begin{aligned}
+\operatorname{Cov}(e^U,U)
+&amp;=1-\frac{e-1}{2}\approx0.140859,\\
+c^*&amp;=-\frac{1-(e-1)/2}{1/12}
+=6e-18\approx-1.690309.
+\end{aligned}
+\]</span></p>
+<p>The coefficient is negative because <span class="math inline">\(e^U\)</span> and <span class="math inline">\(U\)</span> move together. Inputs above 0.5 receive a downward correction; inputs below 0.5 receive an upward correction. For <span class="math inline">\(U=0.2\)</span>, the original output is <span class="math inline">\(e^{0.2}\approx1.2214\)</span>, and the adjusted value is <span class="math inline">\(Z\approx1.2214+(-1.6903)(0.2-0.5)=1.7285\)</span>.</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
-<div id="fig-mc-control" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="The original curve rises steeply. Arrows move low-input outputs upward and high-input outputs downward to a flatter adjusted curve.">
+<div id="fig-mc-control" class="quarto-float quarto-figure quarto-figure-center anchored" alt="The original curve rises steeply. Arrows move low-input outputs upward and high-input outputs downward to a flatter adjusted curve." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mc-control-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="05-monte-carlo_files/figure-html/fig-mc-control-1.png?v=3a14cfda9c60" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="The original curve rises steeply. Arrows move low-input outputs upward and high-input outputs downward to a flatter adjusted curve." width="1152">
+<img src="05-monte-carlo_files/figure-html/fig-mc-control-1.png?v=429670c882fa" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="The original curve rises steeply. Arrows move low-input outputs upward and high-input outputs downward to a flatter adjusted curve." width="1152">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mc-control-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5.7: Arrows show the correction from exp(U) to exp(U) - 1.7(U - 0.5). The adjusted curve is flatter; both curves have mean e - 1 (dashed line).
+Figure&nbsp;5.7: Arrows show the correction <span class="math inline">\(c^*(U - 0.5)\)</span>, with <span class="math inline">\(c^*=6e-18\approx-1.6903\)</span>. The adjusted curve is flatter; both curves have mean <span class="math inline">\(e-1\)</span> (dashed line).
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
+<div class="callout-algorithm" title="Control variates">
+<ol type="1">
+<li>Choose <span class="math inline">\(N\)</span>, the control <span class="math inline">\(C=U\)</span>, its known mean <span class="math inline">\(1/2\)</span>, and the fixed coefficient <span class="math inline">\(c=c^*\)</span> calculated above.</li>
+<li>Draw <span class="math inline">\(U_1,\ldots,U_N\)</span> independently from <span class="math inline">\(\operatorname{Uniform}(0,1)\)</span> and calculate <span class="math inline">\(Y_i=e^{U_i}\)</span>.</li>
+<li>Store each adjusted output <span class="math inline">\(Z_i=Y_i+c(U_i-1/2)\)</span>.</li>
+<li>Report <span class="math inline">\(\widehat\theta_{\mathrm{cv}}=N^{-1}\sum_{i=1}^N Z_i\)</span> and MCSE <span class="math inline">\(s_Z/\sqrt N\)</span>.</li>
+</ol>
+</div>
 <div class="cell" data-layout-align="center">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">runif</span>(N)</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>adjusted_y <span class="ot">&lt;-</span> <span class="fu">exp</span>(u) <span class="sc">-</span> <span class="fl">1.7</span> <span class="sc">*</span> (u <span class="sc">-</span> <span class="fl">0.5</span>)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">estimate =</span> <span class="fu">mean</span>(adjusted_y), <span class="at">MCSE =</span> <span class="fu">sd</span>(adjusted_y) <span class="sc">/</span> <span class="fu">sqrt</span>(N))</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    estimate        MCSE </span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1.718693272 0.000625505</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>c_star <span class="ot">&lt;-</span> <span class="sc">-</span>(<span class="dv">1</span> <span class="sc">-</span> (<span class="fu">exp</span>(<span class="dv">1</span>) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">/</span> <span class="dv">12</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>adjusted_y <span class="ot">&lt;-</span> <span class="fu">exp</span>(u) <span class="sc">+</span> c_star <span class="sc">*</span> (u <span class="sc">-</span> <span class="fl">0.5</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">estimate =</span> <span class="fu">mean</span>(adjusted_y), <span class="at">MCSE =</span> <span class="fu">sd</span>(adjusted_y) <span class="sc">/</span> <span class="fu">sqrt</span>(N))</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     estimate         MCSE </span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1.7187389937 0.0006251175</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Use the <strong>known mean</strong> 0.5. Replacing it with <code>mean(u)</code> makes the average correction zero and leaves the original estimate unchanged. The best coefficient is <span class="math inline">\(c^*=-\operatorname{Cov}(e^U,U)/\operatorname{Var}(U)\approx-1.6903\)</span>. If it must be estimated, use a separate pilot sample and keep it fixed for the main run.</p>
+<p>Use the <strong>known mean</strong> 0.5. Replacing it with <code>mean(u)</code> makes <span class="math inline">\(\overline C-\overline C=0\)</span> and leaves the original estimate unchanged. When the covariance is unknown, estimate <span class="math inline">\(c^*\)</span> from a separate pilot sample: divide the negative sample covariance of <span class="math inline">\(Y\)</span> and <span class="math inline">\(C\)</span> by the sample variance of <span class="math inline">\(C\)</span>. Keep that coefficient fixed for fresh main-run draws.</p>
+</section>
 </section>
 <section id="sec-mc-summary" class="level2" data-number="5.7">
 <h2 data-number="5.7" class="anchored" data-anchor-id="sec-mc-summary"><span class="header-section-number">5.7</span> Summary</h2>
+<p>Monte Carlo simulation shows what a specified probability model implies about uncertain outcomes. It can estimate <strong>average outputs, event probabilities, and integrals</strong> when direct calculation is difficult. In the shop example, average demand is 12, yet preparing 12 muffins leaves about a 42% chance of a shortage. Simulation quantifies that risk under the model’s assumptions.</p>
+<p>The calculation depends on the question:</p>
+<ul>
+<li><strong>Expected output:</strong> simulate inputs and average their outputs <span class="math inline">\(g(X_i)\)</span>.</li>
+<li><strong>Event probability:</strong> average indicators, with 1 for an occurrence and 0 otherwise.</li>
+<li><strong>Integral over <span class="math inline">\([a,b]\)</span>:</strong> draw uniformly and average <span class="math inline">\((b-a)g(X_i)\)</span>.</li>
+</ul>
+<p>Output variation describes differences among possible outcomes. <strong>MCSE describes uncertainty in the estimated average from a finite simulation.</strong> For independent contributions with finite variance, it decreases at rate <span class="math inline">\(1/\sqrt N\)</span>. More draws improve numerical precision; they do not remove real outcome variation or validate the model. A fixed seed reproduces a run but does not make it more accurate.</p>
+<p>For <span class="math inline">\(\theta=\mathbb{E}[e^U]\)</span>, plain Monte Carlo averages the original outputs. Antithetic variables pair outputs whose fluctuations offset each other. Control variates use a correlated variable with a known mean to adjust each output. The latter two methods preserve the target while reducing the variance of the values being averaged.</p>
 <p><span id="sec-mc-comparison"></span></p>
-<p>In these examples, all three methods use 10,000 evaluations of <code>exp()</code>. MCSE measures precision; closeness to <span class="math inline">\(e-1\)</span> in one run can be due to chance.</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 20%">
+<col style="width: 19%">
 <col style="width: 49%">
-<col style="width: 30%">
+<col style="width: 13%">
+<col style="width: 18%">
 </colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Method</th>
-<th style="text-align: left;">Values to average</th>
-<th style="text-align: left;">Estimated MCSE</th>
+<th style="text-align: left;">One value in the average</th>
+<th style="text-align: left;">Estimate</th>
+<th style="text-align: left;">MCSE</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">Plain Monte Carlo</td>
+<td style="text-align: left;">Plain MC</td>
 <td style="text-align: left;"><span class="math inline">\(Y_i=e^{U_i}\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\overline Y\)</span></td>
 <td style="text-align: left;"><span class="math inline">\(s_Y/\sqrt N\)</span></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Antithetic</td>
 <td style="text-align: left;"><span class="math inline">\(A_k=(e^{U_k}+e^{1-U_k})/2\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\overline A\)</span></td>
 <td style="text-align: left;"><span class="math inline">\(s_A/\sqrt K\)</span></td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Control variate</td>
-<td style="text-align: left;"><span class="math inline">\(Z_i=e^{U_i}-1.7(U_i-0.5)\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(Z_i=e^{U_i}+c^*(U_i-1/2)\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\overline Z\)</span></td>
 <td style="text-align: left;"><span class="math inline">\(s_Z/\sqrt N\)</span></td>
 </tr>
 </tbody>
 </table>
-<p><span class="math inline">\(N\)</span> counts independent draws; <span class="math inline">\(K=N/2\)</span> counts independent pairs.</p>
+<p>Compare methods at the same computational cost. Here each uses 10,000 evaluations of <code>exp()</code>: <span class="math inline">\(N=10{,}000\)</span> independent draws for plain MC and control variates, or <span class="math inline">\(K=5{,}000\)</span> independent pairs for antithetic variables. Compare MCSE, since closeness to <span class="math inline">\(e-1\)</span> in one run can be due to chance.</p>
 </section>
 <section id="sec-mc-supplement" class="level2" data-number="5.8">
 <h2 data-number="5.8" class="anchored" data-anchor-id="sec-mc-supplement"><span class="header-section-number">5.8</span> Supplementary</h2>
 <p>Optional reading; not on the exam:</p>
 <ul>
-<li><a href="https://chikuang.github.io/teaching/2025F_stat8670/04-monte-carlo.html#variance-and-efficiency">2025 notes: variance and efficiency</a>.</li>
-<li><a href="https://chikuang.github.io/teaching/2025F_stat8670/04-monte-carlo.html#antithetic-variables">2025 notes: antithetic variables</a> and <a href="https://chikuang.github.io/teaching/2025F_stat8670/04-monte-carlo.html#control-variates">control variates</a>.</li>
+<li>Art B. Owen (2013), <a href="https://artowen.su.domains/mc/"><em>Monte Carlo Theory, Methods and Examples</em></a>, available online. Read Chapter 2 for Monte Carlo estimation and error assessment; Chapter 8, Sections 8.2 and 8.9, for antithetic and control variates.</li>
+<li>Christian P. Robert and George Casella (2010), <a href="https://link.springer.com/book/10.1007/978-1-4419-1576-4"><em>Introducing Monte Carlo Methods with R</em></a>. Chapters 3 and 4 cover Monte Carlo integration and methods for controlling and accelerating convergence, with R examples.</li>
+<li><a href="https://chikuang.github.io/teaching/2025F_stat8670/04-monte-carlo.html#variance-and-efficiency">2025 course notes</a>: variance and efficiency, antithetic variables, and control variates.</li>
 <li><a href="https://github.com/chikuang/Teaching-Stat8670/blob/78f2316/05-monte-carlo.qmd">Detailed derivations, pilot estimation, and additional examples</a>: the earlier version of this chapter, under Supplementary.</li>
 </ul>
 
