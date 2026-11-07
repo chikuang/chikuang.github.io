@@ -341,14 +341,18 @@ window.Quarto = {
 
   <ul>
   <li><a href="#sec-cv-prediction" id="toc-sec-cv-prediction" class="nav-link active" data-scroll-target="#sec-cv-prediction"><span class="header-section-number">6.1</span> Prediction on New Observations</a></li>
-  <li><a href="#sec-cv-example" id="toc-sec-cv-example" class="nav-link" data-scroll-target="#sec-cv-example"><span class="header-section-number">6.2</span> One Example: Choose a Polynomial Degree</a></li>
-  <li><a href="#sec-cv-kfold" id="toc-sec-cv-kfold" class="nav-link" data-scroll-target="#sec-cv-kfold"><span class="header-section-number">6.3</span> How K-Fold CV Works</a></li>
-  <li><a href="#sec-cv-select" id="toc-sec-cv-select" class="nav-link" data-scroll-target="#sec-cv-select"><span class="header-section-number">6.4</span> Select, Refit, and Test</a></li>
-  <li><a href="#sec-cv-choices" id="toc-sec-cv-choices" class="nav-link" data-scroll-target="#sec-cv-choices"><span class="header-section-number">6.5</span> Choose Folds and Avoid Leakage</a></li>
-  <li><a href="#sec-cv-summary" id="toc-sec-cv-summary" class="nav-link" data-scroll-target="#sec-cv-summary"><span class="header-section-number">6.6</span> Summary</a></li>
-  <li><a href="#sec-cv-supplement" id="toc-sec-cv-supplement" class="nav-link" data-scroll-target="#sec-cv-supplement"><span class="header-section-number">6.7</span> Supplementary</a>
+  <li><a href="#sec-cv-example" id="toc-sec-cv-example" class="nav-link" data-scroll-target="#sec-cv-example"><span class="header-section-number">6.2</span> One Example: Choose a Polynomial Degree</a>
   <ul class="collapse">
-  <li><a href="#repeated-cv-optional" id="toc-repeated-cv-optional" class="nav-link" data-scroll-target="#repeated-cv-optional"><span class="header-section-number">6.7.1</span> Repeated CV (optional)</a></li>
+  <li><a href="#underfitting-and-overfitting" id="toc-underfitting-and-overfitting" class="nav-link" data-scroll-target="#underfitting-and-overfitting"><span class="header-section-number">6.2.1</span> Underfitting and Overfitting</a></li>
+  </ul></li>
+  <li><a href="#sec-cv-kfold" id="toc-sec-cv-kfold" class="nav-link" data-scroll-target="#sec-cv-kfold"><span class="header-section-number">6.3</span> How K-Fold CV Works</a></li>
+  <li><a href="#sec-cv-loocv" id="toc-sec-cv-loocv" class="nav-link" data-scroll-target="#sec-cv-loocv"><span class="header-section-number">6.4</span> Leave-One-Out CV (LOOCV)</a></li>
+  <li><a href="#sec-cv-select" id="toc-sec-cv-select" class="nav-link" data-scroll-target="#sec-cv-select"><span class="header-section-number">6.5</span> Select, Refit, and Test</a></li>
+  <li><a href="#sec-cv-choices" id="toc-sec-cv-choices" class="nav-link" data-scroll-target="#sec-cv-choices"><span class="header-section-number">6.6</span> Choose Folds and Avoid Leakage</a></li>
+  <li><a href="#sec-cv-summary" id="toc-sec-cv-summary" class="nav-link" data-scroll-target="#sec-cv-summary"><span class="header-section-number">6.7</span> Summary</a></li>
+  <li><a href="#sec-cv-supplement" id="toc-sec-cv-supplement" class="nav-link" data-scroll-target="#sec-cv-supplement"><span class="header-section-number">6.8</span> Supplementary</a>
+  <ul class="collapse">
+  <li><a href="#repeated-cv-optional" id="toc-repeated-cv-optional" class="nav-link" data-scroll-target="#repeated-cv-optional"><span class="header-section-number">6.8.1</span> Repeated CV (optional)</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -377,6 +381,7 @@ window.Quarto = {
 
 <!-- Simplified from the 2025 STAT 8670 Cross Validation lecture. All figures are generated below. -->
 <p>Monte Carlo simulation generates inputs from a specified model. <strong>Cross-validation (CV)</strong> reuses observed data to ask a different question: <strong>how well will a fitting method predict new observations?</strong> We use CV to compare models and choose their complexity.</p>
+<p>The main idea is <strong>fit on one part, predict the part left out, and average the prediction errors</strong>. We use one polynomial regression example throughout.</p>
 <section id="sec-cv-prediction" class="level2" data-number="6.1">
 <h2 data-number="6.1" class="anchored" data-anchor-id="sec-cv-prediction"><span class="header-section-number">6.1</span> Prediction on New Observations</h2>
 <p>For regression, we want the <strong>average squared prediction error on independent new observations</strong> from the same population.</p>
@@ -388,10 +393,10 @@ window.Quarto = {
 <p>For classification, we could instead average <span class="math inline">\(\mathbf{1}\{y_i\ne\widehat y_i\}\)</span> to estimate the misclassification rate. Choose the loss before comparing models.</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
-<div id="fig-cv-data-roles" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="A mint training card and pink validation card sit inside development data. A separate lavender test card is used after model selection.">
+<div id="fig-cv-data-roles" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A mint training card and pink validation card sit inside development data. A separate lavender test card is used after model selection." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-cv-data-roles-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="06-cross-validation_files/figure-html/fig-cv-data-roles-1.png?v=40daa50625c9" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="A mint training card and pink validation card sit inside development data. A separate lavender test card is used after model selection." width="1280">
+<img src="06-cross-validation_files/figure-html/fig-cv-data-roles-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="A mint training card and pink validation card sit inside development data. A separate lavender test card is used after model selection." width="1280">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cv-data-roles-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;6.1: Training fits the coefficients; validation chooses the model; a separate test set assesses the chosen procedure. CV rotates the training and validation roles within the development data.
@@ -409,7 +414,8 @@ Figure&nbsp;6.1: Training fits the coefficients; validation chooses the model; a
 \widehat f_d(x)=\widehat\beta_0+\widehat\beta_1x+\cdots+\widehat\beta_dx^d,
 \qquad d\in\{1,\ldots,8\}.
 \]</span></p>
-<p>The degree <span class="math inline">\(d\)</span> is a <strong>hyperparameter</strong>: it specifies the model’s flexibility. Fitting estimates the coefficients for a chosen degree; CV helps choose the degree.</p>
+<p>The degree <span class="math inline">\(d\)</span> is a <strong>hyperparameter</strong>: it specifies the model’s flexibility. The coefficients <span class="math inline">\(\beta_0,\ldots,\beta_d\)</span> are <strong>parameters</strong> estimated from training data after we fix <span class="math inline">\(d\)</span>. <strong>Hyperparameter tuning</strong> compares candidate settings using validation error. Here least squares estimates the coefficients; CV chooses the degree.</p>
+<p>Other hyperparameters include the ridge penalty <span class="math inline">\(\lambda\)</span> and the number of neighbors in <span class="math inline">\(k\)</span>-nearest neighbors. The number of CV folds <span class="math inline">\(K\)</span> controls the <strong>evaluation procedure</strong>, not the polynomial’s flexibility.</p>
 <p>Generate one illustrative data set with a quadratic mean and random noise. Reserve 40 observations for the final test; use 80 for development. All observations are generated independently, so these disjoint groups are independent samples.</p>
 <div class="cell" data-layout-align="center">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
@@ -420,29 +426,36 @@ Figure&nbsp;6.1: Training fits the coefficients; validation chooses the model; a
 </div>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
-<div id="fig-cv-model-flexibility" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Three panels show degree 1 missing the curvature, degree 2 following the quadratic mean, and degree 8 adding flexibility. All show the same observations and the true mean.">
+<div id="fig-cv-model-flexibility" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Three panels show degree 1 missing the curvature, degree 2 following the quadratic mean, and degree 8 adding flexibility. All show the same observations and the true mean." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-cv-model-flexibility-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="06-cross-validation_files/figure-html/fig-cv-model-flexibility-1.png?v=80bb43a46cc9" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Three panels show degree 1 missing the curvature, degree 2 following the quadratic mean, and degree 8 adding flexibility. All show the same observations and the true mean." width="1280">
+<img src="06-cross-validation_files/figure-html/fig-cv-model-flexibility-1.png?v=f1955f37589e" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Three panels show degree 1 missing the curvature, degree 2 following the quadratic mean, and degree 8 adding flexibility. All show the same observations and the true mean." width="1280">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cv-model-flexibility-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.2: The same development observations are fitted three ways. The dashed curve is the known simulation mean, shown only to explain the example. CV uses held-out outcomes to compare degrees.
+Figure&nbsp;6.2: Degree 1 underfits the curved pattern. Degree 2 follows it well. Degree 8 has more freedom to fit noise; held-out error tells us whether that flexibility helps. The dashed curve is the known simulation mean, not information available to CV.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>A rigid model may miss the mean pattern (<strong>bias</strong>). A very flexible model can react strongly to the particular sample (<strong>variance</strong>) and fit noise. For nested least-squares models, training MSE cannot increase when we add polynomial terms. Error on new observations can increase. CV checks this prediction tradeoff without knowing the true mean.</p>
+<section id="underfitting-and-overfitting" class="level3" data-number="6.2.1">
+<h3 data-number="6.2.1" class="anchored" data-anchor-id="underfitting-and-overfitting"><span class="header-section-number">6.2.1</span> Underfitting and Overfitting</h3>
+<p><strong>Underfitting:</strong> the model is too restrictive to capture the main pattern. A straight line misses the curvature here. Training and validation errors tend to be large relative to a suitable model. Increasing flexibility can help.</p>
+<p><strong>Overfitting:</strong> the model adapts to training-sample noise that does not generalize. A typical sign is training error falling while validation error increases. A high degree creates the possibility of overfitting; complexity alone does not prove it.</p>
+<p>A rigid model can have high <strong>bias</strong> (systematically miss the mean pattern). A flexible model can have high <strong>variance</strong> (change substantially with another training sample). We want enough flexibility to learn the pattern without fitting too much noise.</p>
+<p>For nested least-squares models, training MSE cannot increase when we add polynomial terms. <strong>Choosing by training MSE therefore favors the largest degree, even when prediction gets worse.</strong> CV compares held-out errors instead; see the error curves below.</p>
+</section>
 </section>
 <section id="sec-cv-kfold" class="level2" data-number="6.3">
 <h2 data-number="6.3" class="anchored" data-anchor-id="sec-cv-kfold"><span class="header-section-number">6.3</span> How K-Fold CV Works</h2>
 <p>Split the <span class="math inline">\(n\)</span> development observations into <span class="math inline">\(K\)</span> roughly equal <strong>folds</strong>. Each fold serves once as validation data; the other <span class="math inline">\(K-1\)</span> folds supply the training data. Every observation receives a prediction from a model fitted <strong>without that observation</strong>.</p>
+<p>For one fixed degree, 5-fold CV means <strong>five separate fits</strong>. Keep the degree fixed but estimate new coefficients each time. Each observation is used for validation once and training four times; it never serves both roles in the same fit.</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
-<div id="fig-cv-folds" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="A five-by-five grid has pink validation cells on the diagonal and mint training cells elsewhere, showing the held-out fold rotating across five fits.">
+<div id="fig-cv-folds" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A five-by-five grid has pink validation cells on the diagonal and mint training cells elsewhere, showing the held-out fold rotating across five fits." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-cv-folds-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="06-cross-validation_files/figure-html/fig-cv-folds-1.png?v=efd52b45d515" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="A five-by-five grid has pink validation cells on the diagonal and mint training cells elsewhere, showing the held-out fold rotating across five fits." width="1280">
+<img src="06-cross-validation_files/figure-html/fig-cv-folds-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="A five-by-five grid has pink validation cells on the diagonal and mint training cells elsewhere, showing the held-out fold rotating across five fits." width="1280">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cv-folds-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;6.3: In 5-fold CV, each row is a fresh model fit. Pink is held out; mint is used for training. With 80 observations, each fit trains on 64 and predicts the remaining 16.
@@ -467,8 +480,55 @@ Figure&nbsp;6.3: In 5-fold CV, each row is a fresh model fit. Pink is held out; 
 \]</span></p>
 <p><strong>What is averaged?</strong> The squared errors of the held-out predictions. If a held-out outcome is 3 and its prediction is 2.5, it contributes <span class="math inline">\((3-2.5)^2=0.25\)</span>. With <span class="math inline">\(n=80\)</span>, sum all 80 such errors and divide by 80. Equal-sized folds also allow averaging their MSEs; unequal folds require weights <span class="math inline">\(|S_k|/n\)</span>.</p>
 </section>
-<section id="sec-cv-select" class="level2" data-number="6.4">
-<h2 data-number="6.4" class="anchored" data-anchor-id="sec-cv-select"><span class="header-section-number">6.4</span> Select, Refit, and Test</h2>
+<section id="sec-cv-loocv" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="sec-cv-loocv"><span class="header-section-number">6.4</span> Leave-One-Out CV (LOOCV)</h2>
+<p>LOOCV is <strong><span class="math inline">\(K=n\)</span></strong>: each validation fold contains one observation. For a fixed degree <span class="math inline">\(d\)</span>, our 80 development observations give:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Fit</th>
+<th style="text-align: left;">Training observations</th>
+<th style="text-align: left;">Held-out prediction</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">All except observation 1</td>
+<td style="text-align: left;">Predict <span class="math inline">\(y_1\)</span> from <span class="math inline">\(x_1\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2</td>
+<td style="text-align: left;">All except observation 2</td>
+<td style="text-align: left;">Predict <span class="math inline">\(y_2\)</span> from <span class="math inline">\(x_2\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\vdots\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\vdots\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\vdots\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">80</td>
+<td style="text-align: left;">All except observation 80</td>
+<td style="text-align: left;">Predict <span class="math inline">\(y_{80}\)</span> from <span class="math inline">\(x_{80}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>Write <span class="math inline">\(\widehat f_d^{(-i)}\)</span> for the model <strong>refitted without observation <span class="math inline">\(i\)</span></strong>. Average its <span class="math inline">\(n\)</span> held-out squared errors:</p>
+<p><span class="math display">\[
+\operatorname{CV}_{\mathrm{LOO}}(d)
+=\frac1n\sum_{i=1}^n
+\left(y_i-\widehat f_d^{(-i)}(x_i)\right)^2.
+\]</span></p>
+<p>Each fit supplies <strong>one squared error</strong>, not a useful error estimate by itself. Predicting all observations with a model fitted to all <span class="math inline">\(n\)</span> would give training error, not LOOCV. Repeat the leave-one-out procedure for each candidate degree.</p>
+<p>LOOCV trains on almost all the data but usually costs more: 80 fits per degree here, versus 5 for 5-fold CV. For a deterministic fitting method, LOOCV has no random fold assignment. Its score still varies across new data sets; it is not automatically more accurate or less variable than 5-fold CV.</p>
+</section>
+<section id="sec-cv-select" class="level2" data-number="6.5">
+<h2 data-number="6.5" class="anchored" data-anchor-id="sec-cv-select"><span class="header-section-number">6.5</span> Select, Refit, and Test</h2>
+<p>Now <strong>tune <span class="math inline">\(d\)</span> using 5-fold CV</strong>: the outer loop tries degrees <span class="math inline">\(1,\ldots,8\)</span>; the inner loop computes a CV score for one fixed degree. Choose</p>
+<p><span class="math display">\[
+d^*=\arg\min_{d\in\{1,\ldots,8\}}\operatorname{CV}(d).
+\]</span></p>
 <p><code>prediction[fold == k]</code> stores the held-out predictions. <code>poly(x, d)</code> uses a numerically stable basis for a degree-<span class="math inline">\(d\)</span> polynomial.</p>
 <div class="cell" data-layout-align="center">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>K <span class="ot">&lt;-</span> <span class="dv">5</span></span>
@@ -487,10 +547,10 @@ Figure&nbsp;6.3: In 5-fold CV, each row is a fresh model fit. Pink is held out; 
 </div>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
-<div id="fig-cv-error-curves" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Training and CV errors are plotted against polynomial degree. CV is smallest at degree 2; a second panel shows the small increases in CV for more flexible models.">
+<div id="fig-cv-error-curves" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Training and CV errors are plotted against polynomial degree. CV is smallest at degree 2; a second panel shows the small increases in CV for more flexible models." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-cv-error-curves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="06-cross-validation_files/figure-html/fig-cv-error-curves-1.png?v=a875b385a10e" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Training and CV errors are plotted against polynomial degree. CV is smallest at degree 2; a second panel shows the small increases in CV for more flexible models." width="1280">
+<img src="06-cross-validation_files/figure-html/fig-cv-error-curves-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Training and CV errors are plotted against polynomial degree. CV is smallest at degree 2; a second panel shows the small increases in CV for more flexible models." width="1280">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cv-error-curves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;6.4: Training error keeps falling, while CV reaches its minimum at degree 2. The right panel enlarges degrees 2-8; its vertical scale differs from the left panel. Both curves use the same development data; only CV predictions exclude the scored observations.
@@ -507,20 +567,21 @@ Figure&nbsp;6.4: Training error keeps falling, while CV reaches its minimum at d
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   degree test_MSE </span></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2.000000 0.413982</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>The test MSE estimates prediction error for this final fit. It need not equal the CV MSE: CV used smaller training sets and different held-out observations. Also, the smallest CV error was selected from several candidates, so it can be optimistic as a final performance report. Keep the test set out of model selection.</p>
+<p>The final model is a <strong>new fit on all development data</strong>, not the best-scoring fold’s model. We use <span class="math inline">\(8\times5=40\)</span> CV fits and one final fit. We average held-out losses to choose the degree, not the five fitted models.</p>
+<p>The test MSE estimates prediction error for this final fit. It need not equal the CV MSE: CV used smaller training sets and different held-out observations. The minimum CV error can also be optimistic because we selected it from several candidates. <strong>If test error makes us change the degree, that set has become another validation set.</strong> Keep it out of model selection.</p>
 </section>
-<section id="sec-cv-choices" class="level2" data-number="6.5">
-<h2 data-number="6.5" class="anchored" data-anchor-id="sec-cv-choices"><span class="header-section-number">6.5</span> Choose Folds and Avoid Leakage</h2>
-<p><strong>5-fold or 10-fold CV</strong> is a useful starting point for independent observations. Each fit uses a fraction <span class="math inline">\((K-1)/K\)</span> of the development data. <strong>Leave-one-out CV (LOOCV)</strong> sets <span class="math inline">\(K=n\)</span>: fit on <span class="math inline">\(n-1\)</span> observations and predict the remaining one, repeating for every observation.</p>
-<p>Larger <span class="math inline">\(K\)</span> reduces the training-size difference from the final fit but requires more fits. It does not guarantee a less variable CV estimate. A repeated-CV illustration is in <a href="#sec-cv-supplement">Supplementary</a>.</p>
+<section id="sec-cv-choices" class="level2" data-number="6.6">
+<h2 data-number="6.6" class="anchored" data-anchor-id="sec-cv-choices"><span class="header-section-number">6.6</span> Choose Folds and Avoid Leakage</h2>
+<p><strong>5-fold or 10-fold CV</strong> is a useful starting point for independent observations. Each fit uses a fraction <span class="math inline">\((K-1)/K\)</span> of the development data: with <span class="math inline">\(n=80\)</span>, that means 64 training observations for 5-fold, 72 for 10-fold, and 79 for LOOCV.</p>
+<p>Larger <span class="math inline">\(K\)</span> reduces the training-size difference from the final fit but requires more fits. This training-size issue is different from model bias due to underfitting. Increasing <span class="math inline">\(K\)</span> does not automatically improve the model or make CV less variable. A repeated-CV illustration is in <a href="#sec-cv-supplement">Supplementary</a>.</p>
 <p>Two practical details determine whether the comparison is fair:</p>
 <ul>
 <li><strong>Fit the whole procedure inside each training fold.</strong> Learn imputation, scaling, or feature selection using that fold’s training observations, then apply those choices to its validation observations. Using validation outcomes to select features before CV leaks information.</li>
 <li><strong>Split according to the prediction task.</strong> Keep repeated observations from the same person together when predicting new people. For future prediction, train on the past and validate on later times; randomly shuffling time points can use future information.</li>
 </ul>
 </section>
-<section id="sec-cv-summary" class="level2" data-number="6.6">
-<h2 data-number="6.6" class="anchored" data-anchor-id="sec-cv-summary"><span class="header-section-number">6.6</span> Summary</h2>
+<section id="sec-cv-summary" class="level2" data-number="6.7">
+<h2 data-number="6.7" class="anchored" data-anchor-id="sec-cv-summary"><span class="header-section-number">6.7</span> Summary</h2>
 <p>Cross-validation estimates how a <strong>fitting procedure predicts observations excluded from training</strong>. It helps choose a model or hyperparameter when the population prediction error cannot be calculated directly. Its score measures predictive performance for the chosen loss and a comparable population; it does not establish that the model is the true data-generating mechanism.</p>
 <p>The workflow is: <strong>define the prediction task and loss, hold out a test set, compare candidates by CV, refit the selected candidate, and assess it on the test set</strong>. Use the same folds for all candidates, and keep all data-dependent fitting inside the training folds.</p>
 <table class="caption-top table">
@@ -567,22 +628,22 @@ Figure&nbsp;6.4: Training error keeps falling, while CV reaches its minimum at d
 </table>
 <p>Here <span class="math inline">\(n\)</span> is the development sample size and <span class="math inline">\(R\)</span> is the number of repetitions. The separate final test set is not one of the CV folds.</p>
 </section>
-<section id="sec-cv-supplement" class="level2" data-number="6.7">
-<h2 data-number="6.7" class="anchored" data-anchor-id="sec-cv-supplement"><span class="header-section-number">6.7</span> Supplementary</h2>
+<section id="sec-cv-supplement" class="level2" data-number="6.8">
+<h2 data-number="6.8" class="anchored" data-anchor-id="sec-cv-supplement"><span class="header-section-number">6.8</span> Supplementary</h2>
 <p>Optional reading:</p>
 <ul>
 <li>James, Witten, Hastie, and Tibshirani (2021), <a href="https://www.statlearning.com/"><em>An Introduction to Statistical Learning</em>, 2nd edition</a>. Chapter 5, especially Section 5.1 and the R lab, develops validation, LOOCV, and <span class="math inline">\(K\)</span>-fold CV.</li>
 <li>Hastie, Tibshirani, and Friedman (2009), <a href="https://hastie.su.domains/ElemStatLearn/"><em>The Elements of Statistical Learning</em>, 2nd edition</a>. Sections 7.2-7.3 discuss bias and variance; Section 7.10 covers CV and why every model-building step belongs inside validation.</li>
 <li><a href="https://chikuang.github.io/teaching/2025F_stat8670/05-cv.html">2025 STAT 8670 lecture</a>: additional models and the ironslag example.</li>
 </ul>
-<section id="repeated-cv-optional" class="level3" data-number="6.7.1">
-<h3 data-number="6.7.1" class="anchored" data-anchor-id="repeated-cv-optional"><span class="header-section-number">6.7.1</span> Repeated CV (optional)</h3>
+<section id="repeated-cv-optional" class="level3" data-number="6.8.1">
+<h3 data-number="6.8.1" class="anchored" data-anchor-id="repeated-cv-optional"><span class="header-section-number">6.8.1</span> Repeated CV (optional)</h3>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
-<div id="fig-cv-repeat-splits" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Ten pastel CV curves over degrees 2 through 8 show variation from reassigning folds, with a darker average curve and low errors near degree 2.">
+<div id="fig-cv-repeat-splits" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Ten pastel CV curves over degrees 2 through 8 show variation from reassigning folds, with a darker average curve and low errors near degree 2." data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-cv-repeat-splits-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="06-cross-validation_files/figure-html/fig-cv-repeat-splits-1.png?v=8ff190207bf5" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Ten pastel CV curves over degrees 2 through 8 show variation from reassigning folds, with a darker average curve and low errors near degree 2." width="1280">
+<img src="06-cross-validation_files/figure-html/fig-cv-repeat-splits-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Ten pastel CV curves over degrees 2 through 8 show variation from reassigning folds, with a darker average curve and low errors near degree 2." width="1280">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cv-repeat-splits-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;6.5: Ten new 5-fold partitions of the same development data give slightly different CV curves. Only degrees 2-8 are shown to make nearby candidates visible. Thin curves are individual partitions; the thick curve is their average. No test observations are used.
