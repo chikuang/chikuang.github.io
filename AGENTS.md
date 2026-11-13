@@ -89,3 +89,10 @@ repositories match GitHub. Rendering and uploading are already authorized.
 The primary website source is `~/Documents/GitHub/personal_web/website` (`master`).
 The primary publishing checkout is
 `~/Documents/GitHub/personal_web/chikuang.github.io` (`master`).
+
+## Language preference
+
+Standing user preference (2026-11-13): use Canadian English for website and CV
+prose, including future updates. Preserve the official spelling of institutional
+names, programs, publication titles, and quoted material (for example, Georgia
+State University's Honors College and the RIMMES Program).
