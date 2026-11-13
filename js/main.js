@@ -66,8 +66,13 @@
       if (changed) document.dispatchEvent(new Event('site:pageview'));
     }
 
+    var legacyKeys = { publications: 'publication', softwares: 'software', resources: 'resource' };
+
     function syncFromUrl() {
-      showPanel(window.location.hash.slice(1));
+      var requested = window.location.hash.slice(1);
+      var key = Object.prototype.hasOwnProperty.call(legacyKeys, requested) ? legacyKeys[requested] : requested;
+      if (key !== requested) window.history.replaceState(null, '', homeUrl + '#' + key);
+      showPanel(key);
     }
 
     function activate(tab) {

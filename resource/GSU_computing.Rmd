@@ -1,0 +1,166 @@
+---
+title: "GSU research computing: a practical guide"
+date: "2026-09-25"
+description: "Getting started with ARCTIC: access, file storage, and R or Python jobs on GSU's research computing cluster."
+slug: "gsu_computing"
+tags: ["tutorial", "computing", "R", "Python"]
+categories: ["resources", "Computing"]
+output:
+  blogdown::html_page:
+    toc: false
+---
+
+Research computing is useful when a simulation, bootstrap study, or model-fitting task outgrows a laptop. At Georgia State University, [ARCTIC](https://arcwiki.rs.gsu.edu/) provides access to shared research computing infrastructure, including the ACIDS cluster. This guide introduces the workflow for students and researchers working with R or Python.
+
+Start with a small example, check its output, and then scale up. The examples below are templates: replace account and partition placeholders with the values available to your project. Consult the linked GSU documentation for current access rules and software versions.
+
+# Get access
+
+Three services serve different purposes:
+
+| Service | What to use it for |
+|:----------------|:--------------------------------------------------|
+| [Elpis](https://elpis.rs.gsu.edu/) | Project membership, computing allocations, and SSH certificates. |
+| [Hemera](https://hemera.rs.gsu.edu/) | Browser-based access through Open OnDemand: files, interactive sessions, and job submission. |
+| [ARCTIC wiki](https://arcwiki.rs.gsu.edu/) | Instructions for the cluster, software, storage, and troubleshooting. |
+
+Before connecting, log in to Elpis with your CampusID and check that you belong to a project with an active allocation. Students should ask their supervisor or principal investigator (PI) to add them to the appropriate project. A PI without an allocation can follow the [startup allocation instructions](https://arcwiki.rs.gsu.edu/en/home/elpis/startup-allocation). Your project's Slurm account name is needed when requesting computing resources. See GSU's [access prerequisites](https://arcwiki.rs.gsu.edu/en/home/acids/how-to/login-to-cluster).
+
+# Start in the browser
+
+[Hemera](https://hemera.rs.gsu.edu/) is a convenient starting point if you are new to a computing cluster.
+
+1. Sign in with your CampusID.
+2. Open **Interactive Apps → ACIDs Desktop** and choose the account associated with your project.
+3. Request a modest number of cores and a short runtime for testing. Wait for the allocation, then launch the desktop.
+4. Use **Files** to inspect scripts or transfer a few small files. For larger datasets, use Globus as described below.
+5. When finished, use **Delete** under **My Interactive Sessions** to release the session's resources.
+
+GSU describes these interactive apps as a development environment, rather than a place for production runs exceeding one hour. Use them to debug code and check packages; submit longer analyses as batch jobs. Hemera also provides **Jobs → Job Composer** for creating and submitting job scripts in the browser. See the [Open OnDemand guide](https://arcwiki.rs.gsu.edu/en/OpenOnDemand/interactive-computing).
+
+# Connect from a terminal
+
+SSH is useful when you prefer editing scripts locally and managing jobs from a terminal. ARCTIC uses an SSH key pair, a signed certificate from Elpis, and Duo authentication. A CampusID password alone does not complete this setup.
+
+Follow GSU's [key-generation guide](https://arcwiki.rs.gsu.edu/en/home/ssh/generating-keys), then [sign the public key in Elpis](https://arcwiki.rs.gsu.edu/en/home/elpis/signing-keys). Upload only the **public** key; keep the private key on your own computer. The [SSH login guide](https://arcwiki.rs.gsu.edu/en/home/ssh/signing-in) explains certificate placement and SSH-agent configuration for each operating system.
+
+After completing that setup, replace `YOUR_CAMPUSID` below and connect from your own computer:
+
+```bash
+ssh -o ForwardAgent=yes YOUR_CAMPUSID@arclogin.rs.gsu.edu
+```
+
+Use the login node to edit files, inspect jobs, and submit work. Request a compute allocation before running an analysis or installing computationally intensive packages. GSU's [interactive job guide](https://arcwiki.rs.gsu.edu/en/home/acids/how-to/how-to-submit-interactive-jobs) explains how to obtain a terminal session on a compute node.
+
+# Store and transfer files
+
+Choose storage according to the purpose of the files:
+
+| Location | Appropriate use |
+|:----------------|:--------------------------------------------------|
+| Home | Small scripts and configuration files. Avoid large datasets and software environments. |
+| Work | Personal research data. |
+| Project | Data shared with your research group. |
+| `/userapp` | User-installed software and environments; check permissions before storing anything private. |
+| `$SCRATCH` | Temporary working files for a compute job. |
+
+Within a Slurm job, `$SCRATCH` points to temporary space associated with that job. For substantial analyses, stage inputs there and copy results to Work or Project storage before the job finishes. Scratch is not a backup and its contents can be purged. Storage paths, access methods, and limits are described in the [ARCTIC storage guide](https://arcwiki.rs.gsu.edu/en/iRODS/Storage).
+
+For large transfers, use Globus and the ARCTIC transfer flows. GSU provides separate instructions for [personal computer → Scratch](https://arcwiki.rs.gsu.edu/en/data-transfer/globus/transfer-from-personal-to-scratch) and [Scratch → personal computer](https://arcwiki.rs.gsu.edu/en/data-transfer/globus/scratch-to-personal). Check that a transfer has completed before submitting a job that needs those files.
+
+# Submit a first R job
+
+A batch job is a script that asks Slurm for resources and specifies what to run. Once submitted, it can wait in the queue and run without keeping your browser or SSH session open. This small example uses only base R and prints results to a log.
+
+## Prepare the files
+
+On the cluster, create a directory for this small exercise:
+
+```bash
+mkdir -p ~/gsu-computing-demo
+cd ~/gsu-computing-demo
+```
+
+Save the following as `smoke_test.R` in that directory:
+
+```r
+set.seed(2026)
+x <- rnorm(10000)
+cat("Number of observations:", length(x), "\n")
+cat("Sample mean:", mean(x), "\n")
+cat("Sample standard deviation:", sd(x), "\n")
+sessionInfo()
+```
+
+Save this second file as `run-r.sbatch` in the same directory:
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=r-smoke-test
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=2G
+#SBATCH --time=00:05:00
+#SBATCH --output=r-smoke-%j.out
+#SBATCH --error=r-smoke-%j.err
+
+set -e
+cd "$SLURM_SUBMIT_DIR"
+module load R
+module list
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+Rscript --vanilla smoke_test.R
+```
+
+This requests one CPU, 2 GB of memory, and five minutes. The `%j` in each log filename is replaced by the job ID. The small scripts and logs can stay in Home for this exercise; use the storage workflow above for large research datasets. See GSU's [batch submission guide](https://arcwiki.rs.gsu.edu/en/home/acids/how-to/slurm) for additional options.
+
+## Select software and submit
+
+Check the installed modules with `module avail`. The example uses GSU's documented `module load R`; if needed, replace it with the full module name available on your cluster. For a research project, record the chosen version and use it consistently. The [module guide](https://arcwiki.rs.gsu.edu/en/Easybuild/load-easybuild-installed-software) explains how to inspect installed and loaded software.
+
+From the directory containing both files, submit the job with **your own** account and an eligible CPU partition:
+
+```bash
+sbatch --account=YOUR_ACCOUNT --partition=YOUR_CPU_PARTITION \
+  run-r.sbatch
+```
+
+`YOUR_ACCOUNT` is the project's Slurm account from Elpis, not necessarily your CampusID. Select a partition permitted by your allocation; do not copy another researcher's account name from an example.
+
+## Check the result
+
+Slurm returns a job ID after submission. Replace `JOBID` below with that number:
+
+```bash
+# See your queued and running jobs.
+squeue -u "$USER"
+
+# Inspect a job after it finishes.
+sacct -j JOBID --format=JobID,State,Elapsed,MaxRSS,ExitCode
+```
+
+Open `r-smoke-JOBID.out` to see the sample mean, standard deviation, and R session information. Check `r-smoke-JOBID.err` for errors; module information may also appear there. Memory usage may be reported on a job-step row rather than the main job row. See the [Slurm accounting reference](https://slurm.schedmd.com/sacct.html).
+
+A pending job is waiting for resources or its turn in the queue. To cancel a job you no longer need, use `scancel JOBID`. The [Slurm quick start guide](https://slurm.schedmd.com/quickstart.html) explains these commands and job states.
+
+# Adapt the workflow to your research
+
+**R packages.** Install dependencies once in a personal library from an allocated interactive session, then use the same R version and library path in your batch jobs. Avoid reinstalling packages in every simulation replicate. GSU's [R package guide](https://arcwiki.rs.gsu.edu/en/Rstat/installing-R-packages) covers user libraries.
+
+**Python.** Choose an installed Python module and create a project-specific environment. In each batch script, load the matching module, activate that environment, and run your script with Python. GSU's [virtual environment guide](https://arcwiki.rs.gsu.edu/en/python/creating-a-venv) explains this setup. Loading Python alone does not activate the packages installed in your environment.
+
+**Repeated simulations.** For independent bootstrap samples or simulation replicates, consider a [Slurm job array](https://arcwiki.rs.gsu.edu/en/home/slurm/submit-array-jobs). Use the task ID to choose a replicate, set a reproducible seed, and give each task a separate output filename. Test one replicate successfully before launching many.
+
+**GPU workloads.** Request a GPU only when your code can use it. A GPU partition and a GPU resource request are both needed; see GSU's [partition and GPU instructions](https://arcwiki.rs.gsu.edu/en/home/slurm/how-to-request-partitions). Ordinary R code does not automatically become GPU-enabled.
+
+# Troubleshooting and help
+
+- **SSH suddenly stops working:** check whether the signed certificate has expired. GSU requires periodic renewal; the [authentication troubleshooting guide](https://arcwiki.rs.gsu.edu/en/home/ssh/authentication-issues) explains how to inspect and renew it.
+- **An account or partition is rejected:** check project membership and allocation details in Elpis, then confirm the permitted partition with your PI or ARCTIC.
+- **A package is missing in a batch job:** compare the loaded modules, R library path, or Python environment with the interactive session where it worked.
+- **A job runs out of memory or time:** inspect its logs and accounting information, test a smaller case, and adjust the request based on measured usage.
+
+When asking for help, include the job ID, submission script, module versions, and relevant error output. The [ARCTIC wiki](https://arcwiki.rs.gsu.edu/) is the starting point for cluster documentation; the [GSU Resource page](/resources/gsu_resource/#computing) also collects computing and support links.
