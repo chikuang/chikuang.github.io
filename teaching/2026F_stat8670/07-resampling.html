@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>7&nbsp; Cross-Validation and Bootstrap – STAT 8670 -- Computational Methods in Statistics</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./Assignment1.html" rel="next">
+<link href="./06-cross-validation.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-d14fc70f2469ec0da4e09fb94d13d2e2.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="custom-callouts.css">
+<link rel="stylesheet" href="chapter4-practice.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">STAT 8670 – Computational Methods in Statistics</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/chikuang/Teaching-Stat8670/tree/2026F"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i>
+<span class="menu-text"></span></a>
+  </li>
+  <li class="nav-item compact">
+    <a class="nav-link" href="./STAT-8670-Computational-Methods-in-Statistics.pdf"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i>
+<span class="menu-text"></span></a>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./07-resampling.html"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Cross-Validation and Bootstrap</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container">
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./01-R.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction to R</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./02-computation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Intro to Computational Statistics</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./03-optimization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Optimization</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./04-generating-rv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Generating Random Variables</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./05-monte-carlo.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Monte Carlo Simulation and Variance Reduction</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./06-cross-validation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Cross Validation</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./07-resampling.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Cross-Validation and Bootstrap</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Assignment</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a>
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">
+          <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./Assignment1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assignment 1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./Assignment2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assignment 2</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./Assignment3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assignment 3</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./Assignment4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assignment 4</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Exam</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a>
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">
+          <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./Exam1-2026F.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Exam 1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./Exam2-2026F.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Exam 2</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./Exam1-2025F.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Past Exam 1</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Project</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a>
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">
+          <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./Project-Instructions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Instruction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./Project-Report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./Project-Package.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Package</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./Project-Presentation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Presentation</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+
+  <ul>
+  <li><a href="#sec-resampling-questions" id="toc-sec-resampling-questions" class="nav-link active" data-scroll-target="#sec-resampling-questions"><span class="header-section-number">7.1</span> One Dataset, Two Questions</a></li>
+  <li><a href="#sec-resampling-cv" id="toc-sec-resampling-cv" class="nav-link" data-scroll-target="#sec-resampling-cv"><span class="header-section-number">7.2</span> Cross-Validation: Predict the Observations Left Out</a></li>
+  <li><a href="#sec-resampling-bootstrap" id="toc-sec-resampling-bootstrap" class="nav-link" data-scroll-target="#sec-resampling-bootstrap"><span class="header-section-number">7.3</span> Bootstrap: Resample Whole Observations</a></li>
+  <li><a href="#sec-resampling-accuracy" id="toc-sec-resampling-accuracy" class="nav-link" data-scroll-target="#sec-resampling-accuracy"><span class="header-section-number">7.4</span> From the Replicates to SE, Bias, and a Confidence Interval</a></li>
+  <li><a href="#sec-resampling-decisions" id="toc-sec-resampling-decisions" class="nav-link" data-scroll-target="#sec-resampling-decisions"><span class="header-section-number">7.5</span> What More Resamples Can and Cannot Fix</a></li>
+  <li><a href="#sec-resampling-summary" id="toc-sec-resampling-summary" class="nav-link" data-scroll-target="#sec-resampling-summary"><span class="header-section-number">7.6</span> Summary</a></li>
+  <li><a href="#sec-resampling-supplement" id="toc-sec-resampling-supplement" class="nav-link" data-scroll-target="#sec-resampling-supplement"><span class="header-section-number">7.7</span> Supplementary</a>
+  <ul class="collapse">
+  <li><a href="#jackknife-same-deletion-pattern-different-goal" id="toc-jackknife-same-deletion-pattern-different-goal" class="nav-link" data-scroll-target="#jackknife-same-deletion-pattern-different-goal"><span class="header-section-number">7.7.1</span> Jackknife: Same Deletion Pattern, Different Goal</a></li>
+  <li><a href="#other-bootstrap-intervals-and-the-boot-package" id="toc-other-bootstrap-intervals-and-the-boot-package" class="nav-link" data-scroll-target="#other-bootstrap-intervals-and-the-boot-package"><span class="header-section-number">7.7.2</span> Other Bootstrap Intervals and the <code>boot</code> Package</a></li>
+  <li><a href="#sources-and-further-reading" id="toc-sources-and-further-reading" class="nav-link" data-scroll-target="#sources-and-further-reading"><span class="header-section-number">7.7.3</span> Sources and Further Reading</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span id="sec-resampling" class="quarto-section-identifier"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Cross-Validation and Bootstrap</span></span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+
+
+
+  </div>
+
+
+
+</header>
+
+
+<!-- Adapted from 2025 master:05-cv.qmd and 06-resample.qmd at
+392c7fb002c1b8b171a26deac8ffe69f294441bd.
+Core teaching plan, 112.5 minutes total (1.5 meetings of 75 minutes):
+two questions/data 7.5; CV recap and fold-by-fold output 25; resampling
+algorithm and illustration 25; SE, bias and percentile CI 25; practical
+decisions, code walkthrough, and summary/check 30. Supplementary is outside this plan.
+The existing Chapter 6 remains the detailed CV reference. -->
+<p><a href="./06-cross-validation.html">Chapter 6</a> used cross-validation to assess prediction. This chapter connects that idea to <strong>bootstrap uncertainty</strong>. We reuse one dataset throughout and focus on one algorithm and one confidence interval. The core lesson ends at <a href="#sec-resampling-summary">Summary</a>; jackknife and additional methods are in <a href="#sec-resampling-supplement">Supplementary</a>.</p>
+<p>By the end, you should be able to distinguish <strong>prediction error</strong> from <strong>estimator uncertainty</strong>, resample the correct observational unit, and calculate and interpret a bootstrap SE, bias estimate, and percentile interval.</p>
+<section id="sec-resampling-questions" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="sec-resampling-questions"><span class="header-section-number">7.1</span> One Dataset, Two Questions</h2>
+<p>Last year’s bootstrap example used <code>bootstrap::law</code>: average LSAT scores and average undergraduate GPA for <strong>15 law schools</strong>. Each row is a school, not a student. We use the usual independent-school sampling approximation for this illustration. See the <a href="https://cran.r-project.org/web/packages/bootstrap/bootstrap.pdf">dataset documentation</a>.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install the data package once if needed: install.packages("bootstrap")</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(law, <span class="at">package =</span> <span class="st">"bootstrap"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(law)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>theta_hat <span class="ot">&lt;-</span> <span class="fu">cor</span>(law<span class="sc">$</span>LSAT, law<span class="sc">$</span>GPA)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(law, <span class="dv">3</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   LSAT  GPA</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1  576 3.39</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2  635 3.30</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3  558 2.81</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div id="fig-resampling-law" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Scatterplot of GPA against LSAT for 15 law schools, showing a positive association and sample correlation 0.776.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-resampling-law-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="07-resampling_files/figure-html/fig-resampling-law-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Scatterplot of GPA against LSAT for 15 law schools, showing a positive association and sample correlation 0.776." width="1120">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-resampling-law-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.1: Each point is one school. The sample correlation is about 0.776. A strong association does not by itself tell us either the prediction error for another school or the precision of the estimated correlation.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li><strong>Prediction:</strong> how accurately can we predict GPA for another school from LSAT? Use held-out prediction errors, as in CV.</li>
+<li><strong>Estimation:</strong> how much would the sample correlation change if we observed another sample of schools? Bootstrap approximates this sampling variability. Here the parameter is the population correlation <span class="math inline">\(\theta=\operatorname{Corr}(\mathrm{LSAT},\mathrm{GPA})\)</span>, and the observed estimate is <span class="math inline">\(\hat\theta=0.776\)</span>.</li>
+</ul>
+<p>The GPA prediction error and the SE of a correlation measure different quantities and have different units. Neither is a substitute for the other.</p>
+</section>
+<section id="sec-resampling-cv" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="sec-resampling-cv"><span class="header-section-number">7.2</span> Cross-Validation: Predict the Observations Left Out</h2>
+<p>For a brief review, compare a straight line with a quadratic regression for GPA. Split the 15 schools into <strong>five folds of three</strong>. For each candidate, fit on 12 schools and predict the three left out; repeat for all five folds. Use identical folds for both candidates.</p>
+<p>If <span class="math inline">\(k(i)\)</span> is the fold containing school <span class="math inline">\(i\)</span>, then</p>
+<p><span class="math display">\[
+\operatorname{CV}=\frac1n\sum_{i=1}^n
+\left\{y_i-\hat f^{(-k(i))}(x_i)\right\}^2.
+\]</span></p>
+<p>The superscript means that the fitted model excludes the entire fold containing <span class="math inline">\(i\)</span>. Average <strong>held-out losses</strong>, not coefficients from the five fits.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>fold <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="at">each =</span> <span class="dv">3</span>))</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>cv_mse <span class="ot">&lt;-</span> training_mse <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="dv">2</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>fold_mse <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="cn">NA_real_</span>, <span class="at">nrow =</span> <span class="dv">5</span>, <span class="at">ncol =</span> <span class="dv">2</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (degree <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>) {</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  held_out <span class="ot">&lt;-</span> <span class="fu">numeric</span>(n)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>) {</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(GPA <span class="sc">~</span> <span class="fu">poly</span>(LSAT, degree), <span class="at">data =</span> law[fold <span class="sc">!=</span> k, ])</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    held_out[fold <span class="sc">==</span> k] <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit, <span class="at">newdata =</span> law[fold <span class="sc">==</span> k, ])</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    fold_mse[k, degree] <span class="ot">&lt;-</span> <span class="fu">mean</span>((law<span class="sc">$</span>GPA[fold <span class="sc">==</span> k] <span class="sc">-</span> held_out[fold <span class="sc">==</span> k])<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  cv_mse[degree] <span class="ot">&lt;-</span> <span class="fu">mean</span>((law<span class="sc">$</span>GPA <span class="sc">-</span> held_out)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  full_fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(GPA <span class="sc">~</span> <span class="fu">poly</span>(LSAT, degree), <span class="at">data =</span> law)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  training_mse[degree] <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">residuals</span>(full_fit)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Model</th>
+<th style="text-align: center;">Training MSE</th>
+<th style="text-align: center;">5-fold CV MSE</th>
+<th style="text-align: center;">CV RMSE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Straight line</td>
+<td style="text-align: center;">0.0220</td>
+<td style="text-align: center;">0.0275</td>
+<td style="text-align: center;">0.1659</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Quadratic</td>
+<td style="text-align: center;">0.0219</td>
+<td style="text-align: center;">0.0280</td>
+<td style="text-align: center;">0.1674</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><strong>Where does the CV number come from?</strong> Each row below uses a different training set of 12 schools and scores the three schools left out. The two models use the same held-out schools in each row.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Fold</th>
+<th style="text-align: center;">Straight-line MSE</th>
+<th style="text-align: center;">Quadratic MSE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0.0118</td>
+<td style="text-align: center;">0.0144</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">0.0019</td>
+<td style="text-align: center;">0.0017</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">0.0263</td>
+<td style="text-align: center;">0.0261</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">0.0096</td>
+<td style="text-align: center;">0.0094</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">0.0880</td>
+<td style="text-align: center;">0.0884</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>For example, the straight line’s first-fold MSE is <strong>0.0118</strong>, the average squared error for its three held-out schools. The five folds have equal sizes, so their five MSEs average to <strong>0.0275</strong>, exactly the pooled CV MSE above. With unequal fold sizes, weight fold MSEs by their validation counts. A single fold is not the result; different schools produce different prediction errors.</p>
+<p>The quadratic reduces training MSE slightly but has <strong>higher CV MSE</strong> on this split. CV favours the straight line, with an RMSE of about <strong>0.166 GPA points</strong>. Refit the chosen form on all development observations. With only 15 schools, the ranking can be sensitive to the split; the selected minimum CV score is not an independent final test result.</p>
+<p>The two rules from <a href="./06-cross-validation.html#sec-cv-choices">Chapter 6</a> still apply: learn preprocessing and selection inside each training fold, and split according to the prediction task. LOOCV uses <span class="math inline">\(K=n\)</span>; it changes the partition, not the goal. A separate untouched test set or nested CV is needed for a final assessment after model selection.</p>
+</section>
+<section id="sec-resampling-bootstrap" class="level2" data-number="7.3">
+<h2 data-number="7.3" class="anchored" data-anchor-id="sec-resampling-bootstrap"><span class="header-section-number">7.3</span> Bootstrap: Resample Whole Observations</h2>
+<p>To estimate the sampling variability of the correlation, we would ideally collect many new samples of 15 schools and recompute it. We only have one sample. The <strong>nonparametric bootstrap</strong> substitutes its empirical distribution <span class="math inline">\(F_n\)</span> for the unknown population distribution <span class="math inline">\(F\)</span>.</p>
+<p>Think of putting the 15 school IDs into a bag. Draw one ID, record that school’s <strong>entire LSAT/GPA row</strong>, return the ID to the bag, and repeat until you have 15 rows. Some schools appear more than once; others are absent. Compute one correlation, then repeat the whole process.</p>
+<p><strong>The algorithm.</strong> For <span class="math inline">\(b=1,\ldots,B\)</span>:</p>
+<ol type="1">
+<li>Draw <span class="math inline">\(n\)</span> row indices independently, uniformly from <span class="math inline">\(\{1,\ldots,n\}\)</span>, <strong>with replacement</strong>.</li>
+<li>Take those rows together as one bootstrap sample, <span class="math inline">\(D^{*(b)}\)</span>.</li>
+<li>Calculate the same statistic, <span class="math inline">\(\hat\theta^{*(b)}=T(D^{*(b)})\)</span>.</li>
+</ol>
+<p>The <span class="math inline">\(B\)</span> resulting <strong>statistics</strong> form the bootstrap distribution. We use its variation to approximate how <span class="math inline">\(\hat\theta\)</span> varies across fresh samples. This is a plug-in approximation, not <span class="math inline">\(B\)</span> new samples from the real population.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A separate experiment: seed once, then continue across all B resamples.</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>boot_theta <span class="ot">&lt;-</span> <span class="fu">numeric</span>(B)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>first_indices <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="cn">NA_integer_</span>, <span class="at">nrow =</span> n, <span class="at">ncol =</span> <span class="dv">3</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (b <span class="cf">in</span> <span class="fu">seq_len</span>(B)) {</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  i <span class="ot">&lt;-</span> <span class="fu">sample.int</span>(n, <span class="at">size =</span> n, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  boot_theta[b] <span class="ot">&lt;-</span> <span class="fu">cor</span>(law<span class="sc">$</span>LSAT[i], law<span class="sc">$</span>GPA[i])</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (b <span class="sc">&lt;=</span> <span class="dv">3</span>) first_indices[, b] <span class="ot">&lt;-</span> i</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div id="fig-resampling-rows" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Four rows of 15 labelled tiles show school IDs 1 through 15 in the original data and the selected IDs in three bootstrap samples. Repeated and missing IDs are visible.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-resampling-rows-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="07-resampling_files/figure-html/fig-resampling-rows-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Four rows of 15 labelled tiles show school IDs 1 through 15 in the original data and the selected IDs in three bootstrap samples. Repeated and missing IDs are visible." width="1120">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-resampling-rows-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.2: Numbers are original school IDs, not new observations. Every row contains 15 draws. The first bootstrap sample includes school 14 four times and omits several schools; its correlation is about 0.853. LSAT and GPA always move together.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Resample</th>
+<th style="text-align: center;">Distinct schools</th>
+<th style="text-align: center;">Correlation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">0.853</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">0.906</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">0.694</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><strong>Why replacement?</strong> Sampling all 15 rows without replacement only rearranges the same data, so every correlation would equal 0.776 and the estimated SE would be zero. <strong>Why whole rows?</strong> Resampling LSAT and GPA separately breaks the observed pairing and destroys the association we want to study.</p>
+<p>Each row has probability <span class="math inline">\(1/n\)</span> on a draw. If several rows share a value, its total probability includes all of those rows. The bootstrap does not make distinct observed values equally likely.</p>
+</section>
+<section id="sec-resampling-accuracy" class="level2" data-number="7.4">
+<h2 data-number="7.4" class="anchored" data-anchor-id="sec-resampling-accuracy"><span class="header-section-number">7.4</span> From the Replicates to SE, Bias, and a Confidence Interval</h2>
+<p>Let <span class="math inline">\(\bar\theta^*=B^{-1}\sum_{b=1}^B\hat\theta^{*(b)}\)</span>. Two summaries answer different questions:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\widehat{\operatorname{SE}}_{\mathrm{boot}}(\hat\theta)
+&amp;=\sqrt{\frac{1}{B-1}\sum_{b=1}^B
+(\hat\theta^{*(b)}-\bar\theta^*)^2},\\
+\widehat{\operatorname{bias}}_{\mathrm{boot}}
+&amp;=\bar\theta^*-\hat\theta.
+\end{aligned}
+\]</span></p>
+<p>The <strong>SE</strong> describes the spread of the estimator across hypothetical samples. The <strong>bias estimate</strong> compares the bootstrap centre with the original estimate, which plays the population-parameter role under <span class="math inline">\(F_n\)</span>.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>boot_se <span class="ot">&lt;-</span> <span class="fu">sd</span>(boot_theta)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>boot_bias <span class="ot">&lt;-</span> <span class="fu">mean</span>(boot_theta) <span class="sc">-</span> theta_hat</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>percentile_ci <span class="ot">&lt;-</span> <span class="fu">quantile</span>(boot_theta, <span class="fu">c</span>(.<span class="dv">025</span>, .<span class="dv">975</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Summary</th>
+<th style="text-align: center;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Observed correlation</td>
+<td style="text-align: center;">0.776</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Bootstrap mean</td>
+<td style="text-align: center;">0.771</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Bootstrap SE</td>
+<td style="text-align: center;">0.133</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Estimated bias</td>
+<td style="text-align: center;">-0.006</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Percentile lower limit</td>
+<td style="text-align: center;">0.462</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Percentile upper limit</td>
+<td style="text-align: center;">0.960</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Here the estimated SE is <strong>0.133</strong>, while estimated bias is <strong>-0.006</strong>. The estimated bias is small relative to the spread; this alone is not a reason to replace the observed correlation with a bias-corrected estimate.</p>
+<p><strong>A percentile interval.</strong> Take the 2.5th and 97.5th percentiles of the bootstrap statistics:</p>
+<p><span class="math display">\[
+\mathrm{CI}_{\mathrm{perc}}=
+\left[q^*_{0.025},\ q^*_{0.975}\right].
+\]</span></p>
+<p>For these data, the nominal 95% percentile interval is <strong>[0.462, 0.960]</strong>. It follows the asymmetry of the bootstrap distribution instead of forcing equal distances on each side of <span class="math inline">\(\hat\theta\)</span>.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div id="fig-resampling-distribution" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" alt="Histogram of 5,000 bootstrap correlation estimates, concentrated near 0.8 with a left tail. The observed correlation is 0.776; the percentile interval runs from about 0.462 to 0.960.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-resampling-distribution-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="07-resampling_files/figure-html/fig-resampling-distribution-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" alt="Histogram of 5,000 bootstrap correlation estimates, concentrated near 0.8 with a left tail. The observed correlation is 0.776; the percentile interval runs from about 0.462 to 0.960." width="1120">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-resampling-distribution-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.3: Distribution of 5,000 bootstrap correlations. The solid line is the observed correlation; dashed lines mark the percentile interval. The histogram describes estimator uncertainty, not the distribution of individual schools’ GPA.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The data suggest a positive association between school-level averages, with substantial uncertainty about its magnitude. A nominal 95% confidence procedure aims for about 95% coverage across repeated original samples. This interval is approximate, especially with only 15 schools; it is not a 95% probability statement about the fixed parameter, a prediction interval for a new GPA, or a causal conclusion.</p>
+</section>
+<section id="sec-resampling-decisions" class="level2" data-number="7.5">
+<h2 data-number="7.5" class="anchored" data-anchor-id="sec-resampling-decisions"><span class="header-section-number">7.5</span> What More Resamples Can and Cannot Fix</h2>
+<p><strong>Keep <span class="math inline">\(n\)</span> and <span class="math inline">\(B\)</span> separate.</strong> Here <span class="math inline">\(n=15\)</span> is the number of observed schools, while <span class="math inline">\(B=5000\)</span> is the number of computer-generated resamples. Increasing <span class="math inline">\(B\)</span> reduces Monte Carlo noise in the estimated SE and percentiles; it does not add schools or eliminate sampling uncertainty. Check that the reported digits are stable if the results matter.</p>
+<p><strong>Do not divide the bootstrap SE by <span class="math inline">\(\sqrt B\)</span>.</strong> <code>sd(boot_theta)</code> estimates the sampling SE of the original correlation. <code>sd(boot_theta) / sqrt(B)</code> instead estimates the Monte Carlo SE of the <em>mean of the bootstrap replicates</em>, conditional on the observed data. These are different targets, connecting back to <a href="./05-monte-carlo.html#sec-monte-carlo">Chapter 5</a>.</p>
+<p><strong>Match the resampling unit to the design.</strong> Independent observations can be resampled by row. Repeated measurements from one person should be resampled together for an independent-person target; dependent time series need an appropriate block or model-based method. A bootstrap cannot repair selection bias, missing population features, or an inappropriate model. For a sample maximum or other boundary/non-smooth problems, ordinary resampling can fail; use a method justified for that statistic.</p>
+</section>
+<section id="sec-resampling-summary" class="level2" data-number="7.6">
+<h2 data-number="7.6" class="anchored" data-anchor-id="sec-resampling-summary"><span class="header-section-number">7.6</span> Summary</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Task</th>
+<th style="text-align: center;">What gets reused?</th>
+<th style="text-align: center;">What do we calculate?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Compare prediction methods</td>
+<td style="text-align: center;">Rotate disjoint training and validation folds.</td>
+<td style="text-align: center;">Mean held-out loss; use it to choose a candidate, then refit.</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Estimate sampling SE or bias</td>
+<td style="text-align: center;">Draw <span class="math inline">\(n\)</span> whole observations with replacement, <span class="math inline">\(B\)</span> times.</td>
+<td style="text-align: center;">SD of the <span class="math inline">\(B\)</span> statistics; their mean minus the original estimate.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Form a percentile interval</td>
+<td style="text-align: center;">Use those same bootstrap statistics.</td>
+<td style="text-align: center;">The requested lower and upper quantiles; check assumptions and small-sample limitations.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Before reporting:</strong> state the target, preserve the observation structure, distinguish <span class="math inline">\(n\)</span> from <span class="math inline">\(B\)</span>, and say whether the result measures prediction error or estimator uncertainty.</p>
+<div id="exr-resampling-check" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 7.1 (Check Your Understanding)</strong></span> &nbsp;</p>
+<ol type="1">
+<li>The quadratic fits the observed schools slightly better but has higher CV MSE. Which model does this split favour, and what does the CV RMSE measure?</li>
+<li>A student resamples all 15 schools without replacement and gets a bootstrap SE of zero. Why?</li>
+<li>Another student resamples the LSAT and GPA columns independently. Which feature of the data is lost?</li>
+<li>A third reports <code>sd(boot_theta) / sqrt(5000)</code> as the SE of the observed correlation. What does that quantity actually measure?</li>
+</ol>
+</div>
+<div id="sol-resampling-check" class="proof solution">
+<p><span class="proof-title"><em>Solution 7.1</em>. </span></p>
+<ol type="1">
+<li>The straight line. CV RMSE summarises held-out GPA prediction error, in GPA points; it is not the SE of the estimated correlation. With only 15 schools, a small advantage on one split is not a decisive general ranking.</li>
+<li>Every sample contains the same paired observations; changing their order does not change the correlation.</li>
+<li>The pairing within each school, and therefore its association structure.</li>
+<li>Monte Carlo uncertainty in the estimated bootstrap mean, conditional on these data. Use <code>sd(boot_theta)</code> for the bootstrap estimate of the original statistic’s sampling SE.</li>
+</ol>
+</div>
+</section>
+<section id="sec-resampling-supplement" class="level2" data-number="7.7">
+<h2 data-number="7.7" class="anchored" data-anchor-id="sec-resampling-supplement"><span class="header-section-number">7.7</span> Supplementary</h2>
+<p>These topics extend the core lesson and can be read separately.</p>
+<section id="jackknife-same-deletion-pattern-different-goal" class="level3" data-number="7.7.1">
+<h3 data-number="7.7.1" class="anchored" data-anchor-id="jackknife-same-deletion-pattern-different-goal"><span class="header-section-number">7.7.1</span> Jackknife: Same Deletion Pattern, Different Goal</h3>
+<p>LOOCV and the delete-one jackknife both omit one observation, but they summarise different quantities. LOOCV scores a prediction for the omitted response. Jackknife recomputes a statistic on the retained <span class="math inline">\(n-1\)</span> observations to approximate its bias or SE.</p>
+<p>If <span class="math inline">\(\hat\theta_{(-i)}\)</span> is the statistic with row <span class="math inline">\(i\)</span> omitted and <span class="math inline">\(\bar\theta_{(-\cdot)}=n^{-1}\sum_i\hat\theta_{(-i)}\)</span>, then</p>
+<p><span class="math display">\[
+\begin{aligned}
+\widehat{\operatorname{SE}}_{\mathrm{jack}}
+&amp;=\sqrt{\frac{n-1}{n}\sum_i
+(\hat\theta_{(-i)}-\bar\theta_{(-\cdot)})^2},\\
+\widehat{\operatorname{bias}}_{\mathrm{jack}}
+&amp;=(n-1)(\bar\theta_{(-\cdot)}-\hat\theta).
+\end{aligned}
+\]</span></p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>jack_theta <span class="ot">&lt;-</span> <span class="fu">vapply</span>(<span class="fu">seq_len</span>(n), <span class="cf">function</span>(i)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cor</span>(law<span class="sc">$</span>LSAT[<span class="sc">-</span>i], law<span class="sc">$</span>GPA[<span class="sc">-</span>i]), <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">SE =</span> <span class="fu">sqrt</span>((n <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">/</span> n <span class="sc">*</span> <span class="fu">sum</span>((jack_theta <span class="sc">-</span> <span class="fu">mean</span>(jack_theta))<span class="sc">^</span><span class="dv">2</span>)),</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">bias =</span> (n <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> (<span class="fu">mean</span>(jack_theta) <span class="sc">-</span> theta_hat))</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;           SE         bias </span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  0.142518619 -0.006473623</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>The ordinary delete-one jackknife is most suitable for sufficiently smooth statistics; it can be unreliable for non-smooth statistics such as a sample median. The <a href="https://chikuang.github.io/teaching/2025F_stat8670/06-resample.html#jackknife">2025 resampling lecture</a> gives additional examples and derivations.</p>
+</section>
+<section id="other-bootstrap-intervals-and-the-boot-package" class="level3" data-number="7.7.2">
+<h3 data-number="7.7.2" class="anchored" data-anchor-id="other-bootstrap-intervals-and-the-boot-package"><span class="header-section-number">7.7.2</span> Other Bootstrap Intervals and the <code>boot</code> Package</h3>
+<p>A normal approximation uses <span class="math inline">\(\hat\theta\pm1.96\widehat{\operatorname{SE}}\)</span> when bias is negligible and the sampling distribution is approximately normal. A basic interval reflects the percentile limits around the observed estimate: <span class="math inline">\([2\hat\theta-q^*_{0.975},\ 2\hat\theta-q^*_{0.025}]\)</span>. For bounded or skewed statistics, these simple intervals can be inappropriate. Studentized and BCa intervals make further adjustments; they need additional calculations and assumptions.</p>
+<p>The <a href="https://stat.ethz.ch/R-manual/R-devel/library/boot/html/boot.html">official <code>boot</code> documentation</a> describes a reusable implementation. Its statistic function must take the original data and a vector of resampled row indices:</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>cor_stat <span class="ot">&lt;-</span> <span class="cf">function</span>(data, indices) {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cor</span>(data<span class="sc">$</span>LSAT[indices], data<span class="sc">$</span>GPA[indices])</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8670</span>)  <span class="co"># Independent package demonstration</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> boot<span class="sc">::</span><span class="fu">boot</span>(law, <span class="at">statistic =</span> cor_stat, <span class="at">R =</span> <span class="dv">5000</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>boot<span class="sc">::</span><span class="fu">boot.ci</span>(result, <span class="at">type =</span> <span class="st">"perc"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>This optional code performs another Monte Carlo run; its endpoints need not exactly match the manual loop. See <a href="https://stat.ethz.ch/R-manual/R-devel/library/boot/html/boot.ci.html"><code>boot.ci()</code></a> for percentile, basic, normal, studentized, and BCa intervals. A <strong>parametric bootstrap</strong> instead simulates new samples from a fitted probability model; its validity depends on that model.</p>
+</section>
+<section id="sources-and-further-reading" class="level3" data-number="7.7.3">
+<h3 data-number="7.7.3" class="anchored" data-anchor-id="sources-and-further-reading"><span class="header-section-number">7.7.3</span> Sources and Further Reading</h3>
+<p>This compact chapter adapts the <a href="https://chikuang.github.io/teaching/2025F_stat8670/05-cv.html">2025 cross-validation lecture</a> and <a href="https://chikuang.github.io/teaching/2025F_stat8670/06-resample.html">2025 jackknife/bootstrap lecture</a>, retaining the law-school example. The original resampling notes draw on Rizzo, <em>Statistical Computing with R</em>, Chapter 8, and Efron and Tibshirani, <em>An Introduction to the Bootstrap</em>. <a href="./06-cross-validation.html">Chapter 6</a> contains the fuller CV treatment for the current course.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+
+    document
+    .querySelectorAll('div.solution.proof[id^="sol-"]')
+    .forEach(function (solution) {
+
+      // Get Quarto's automatically generated title,
+      // e.g. "Solution 2.1"
+      const proofTitle = solution.querySelector(".proof-title");
+
+      let titleText = "Solution";
+
+      if (proofTitle) {
+        titleText = proofTitle.textContent
+          .trim()
+          .replace(/\.$/, "");
+
+        // Remove the original inline title
+        proofTitle.remove();
+      }
+
+      // Create collapsible <details>
+      const details = document.createElement("details");
+      details.className = "solution-collapse";
+
+      // Keep the original ID so cross-references still work
+      details.id = solution.id;
+
+      const summary = document.createElement("summary");
+      summary.textContent = titleText;
+
+      const body = document.createElement("div");
+      body.className = "solution-collapse-body";
+
+      // Move the original solution contents into the collapsible body
+      while (solution.firstChild) {
+        body.appendChild(solution.firstChild);
+      }
+
+      // Remove an empty first paragraph if Quarto leaves one behind
+      const firstParagraph = body.querySelector(":scope > p:first-child");
+
+      if (
+        firstParagraph &&
+        firstParagraph.textContent.trim() === "" &&
+        firstParagraph.children.length === 0
+      ) {
+        firstParagraph.remove();
+      }
+
+      details.appendChild(summary);
+      details.appendChild(body);
+
+      solution.replaceWith(details);
+    });
+
+});
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button,
+          { trigger: "manual",
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config);
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined;
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              }
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            }
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./06-cross-validation.html" class="pagination-link" aria-label="Cross Validation">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Cross Validation</span></span>
+      </a>
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./Assignment1.html" class="pagination-link" aria-label="Assignment 1">
+        <span class="nav-page-text">Assignment 1</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
