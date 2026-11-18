@@ -662,6 +662,7 @@ Y_i=\beta_0+\sum_{j=1}^{d}\beta_jx_{ij}+\varepsilon_i,
 <p>For a unique full-model OLS estimate, also require <span class="math inline">\(\operatorname{rank}(\mathbf X)=p\)</span>; require <span class="math inline">\(n&gt;p\)</span> to estimate <span class="math inline">\(\sigma^2\)</span> using residual degrees of freedom. These are design requirements, not distributional assumptions.</p>
 </div>
 <p><strong>Why distinguish them?</strong> With a correct mean and full column rank, OLS is unbiased even without normal errors. Constant variance and uncorrelated errors give <span class="math inline">\(\operatorname{Var}(\hat{\boldsymbol\beta}\mid\mathbf X)=\sigma^2(\mathbf X^\top\mathbf X)^{-1}\)</span>. Normal errors additionally justify the exact finite-sample <span class="math inline">\(t\)</span> and <span class="math inline">\(F\)</span> distributions used in <a href="./03_OLS_inference.html">Chapters 3</a> and <a href="./04.html">4</a>. Computing least squares does not itself verify any of these assumptions.</p>
+<p><strong>How the four assumptions fit together.</strong> At a given predictor value, the mean model locates the <strong>centre</strong> of the responses, constant variance specifies their <strong>spread</strong>, and normality specifies the <strong>shape</strong> around that centre. Independence concerns <strong>relationships between different observations</strong>, not the shape of one observation’s distribution. A bell-shaped distribution with equal spread can still arise from dependent measurements, such as repeated readings from the same person.</p>
 <div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -689,44 +690,71 @@ Figure&nbsp;7.3: Conditional error distributions at three predictor values. A sa
 </div>
 </div>
 </div>
-<p><strong>Use diagnostics to identify the problem.</strong> Continue the graphical checks from <a href="./06.html">Chapter 6</a>, but give each plot a specific job:</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Feature to check</th>
-<th>Useful evidence</th>
-<th>Possible response</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Mean form</td>
-<td>A curve in residuals versus fitted values or a predictor</td>
-<td>Add a meaningful predictor function or interaction; consider a transformation.</td>
-</tr>
-<tr class="even">
-<td>Constant variance</td>
-<td>Residual spread changes with the fitted mean or a predictor</td>
-<td>Consider a response transformation or a variance model such as weighted least squares.</td>
-</tr>
-<tr class="odd">
-<td>Normality</td>
-<td>Systematic departures in a normal Q-Q plot, especially in the tails</td>
-<td>Investigate unusual observations and the error model; consider whether a meaningful response transformation helps.</td>
-</tr>
-<tr class="even">
-<td>Independence</td>
-<td>Study design, time-order patterns, or clustering within people or sites</td>
-<td>Model the dependence; changing scale alone does not remove it.</td>
-</tr>
-</tbody>
-</table>
-<p>Residuals are estimated errors, not independent copies of the errors: even under the normal model their covariance is <span class="math inline">\(\sigma^2(\mathbf I_n-\mathbf H)\)</span>. Use the <a href="./06.html#sec-ch6-supplementary">Chapter 6 supplement</a> for residual scaling. Plots can reveal problems but cannot prove an assumption. If the mean is adequate but variance is not constant, heteroscedasticity-robust standard errors are another option for coefficient inference; they do not change the fitted mean or automatically supply valid individual prediction intervals.</p>
+<p><strong>From assumptions about errors to checks using residuals.</strong> We cannot observe <span class="math inline">\(\varepsilon_i=Y_i-m(\mathbf x_i)\)</span> because the true mean <span class="math inline">\(m\)</span> is unknown. After fitting, we inspect <span class="math inline">\(e_i=y_i-\hat y_i\)</span> instead. A residual contains both random error and any mean pattern the model missed. A wrong mean can therefore make the spread or Q-Q plot look problematic too. This connects the assumptions to the <a href="./06.html">Chapter 6 diagnostics</a>: first identify the feature that fails, then choose a response to that feature.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>A useful checking order
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Study design and dependence → mean pattern → conditional spread → distributional shape → refit and repeat.</strong></p>
+<p>Check how observations were collected before fitting. Then inspect the residual mean pattern before interpreting spread and normality. The checks are related, so revisit all of them after changing the model. Here “check” means assess compatibility with the assumptions; neither a tidy plot nor a nonsignificant test proves them true.</p>
+</div>
+</div>
+<p><strong>1. Correct mean: is the residual pattern centred near zero?</strong> Plot residuals against fitted values and against each relevant predictor. Look for a roughly horizontal smooth around zero throughout the predictor range, without a curve or systematic group differences. A U-shaped smooth suggests missing curvature; different group centres may suggest a missing group effect or interaction. These are reasons to revise the mean model. Inspect individual predictors as well: a residual-versus-fitted plot can hide a pattern in one predictor.</p>
+<p>With an intercept, OLS automatically gives <span class="math inline">\(\sum_i e_i=0\)</span> and makes residuals orthogonal to the fitted design columns. Thus a residual mean of zero, or zero sample correlation with an included predictor, <strong>does not verify</strong> <span class="math inline">\(E(\varepsilon_i\mid\mathbf X)=0\)</span>. The question is whether a systematic pattern remains locally. Residual plots also cannot establish that an unmeasured confounder is absent.</p>
+<p><strong>2. Constant variance: is the conditional spread stable?</strong> Compare the widths of the residual clouds across fitted values and predictors after accounting for the mean. A fan suggests that conditional variance changes. R’s <strong>Scale-Location</strong> plot displays <span class="math inline">\(\sqrt{|r_i|}\)</span> against fitted values, where <span class="math inline">\(r_i\)</span> is a standardized residual; a roughly level smooth is compatible with constant variance. Its vertical axis is nonnegative, so the reference is a <strong>level trend, not a line at zero</strong>. Check group-specific spread when groups matter.</p>
+<p>Standardization accounts for the leverage-related residual variance under the working model; it does not automatically remove heteroscedasticity. See the <a href="./06.html#sec-ch6-supplementary">Chapter 6 supplement</a> for the scaling details. If spread still changes after fixing the mean, consider a meaningful response transformation or a variance model such as weighted least squares. Heteroscedasticity-robust standard errors are another option for coefficient inference; they do not repair a wrong mean or automatically give valid individual prediction intervals.</p>
+<p><strong>3. Independence: are observations linked?</strong> Could one observation’s error help predict another’s? Begin with the sampling units: are observations from different people, or repeated visits to the same person? Are measurements ordered in time, grouped by site, or spatially close? For a genuine time sequence, plot residuals in <strong>collection order</strong> and look for long runs, cycles, or drift; an autocorrelation plot can help for an equally spaced series. For repeated or clustered observations, inspect within-unit patterns and account for the grouping in the model.</p>
+<p>Arbitrary row numbers, or observations sorted by their predictor values, are not a substitute for collection order. Absence of an obvious pattern does not establish independence. Even under a correct mean model with independent, constant-variance errors, fitted residuals have covariance <span class="math inline">\(\sigma^2(\mathbf I_n-\mathbf H)\)</span>, so some residual dependence is induced by fitting. Interpret patterns together with the design; a transformation alone does not remove repeated-measurement dependence. A correlation model or the <a href="./App_G-mixed-effects.html">optional mixed-effects material</a> may be appropriate.</p>
+<p><strong>4. Normality: is the remaining error shape approximately normal?</strong> After checking mean and spread, inspect a <strong>normal Q-Q plot of standardized residuals</strong>. It compares ordered residuals with theoretical normal quantiles. Points should follow an approximately straight reference line, allowing sampling variability; the slope need not be 1. Systematic curvature suggests skewness or tail differences, while one isolated departure calls for the <a href="./06.html">Chapter 6 outlier and influence checks</a>.</p>
+<p>A near-straight Q-Q plot does not establish constant variance or independence. Conversely, a fan-shaped variance pattern can distort a pooled Q-Q plot even when errors at each predictor value are normal. Revisit mean and spread before attributing every Q-Q departure to error shape. The relevant distribution is the conditional error distribution, not a histogram of the raw response or predictors. <a href="https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd44.htm">NIST’s guide to model checking</a> explains why residual graphics complement numerical fit summaries.</p>
+<p><strong>See the checks in R.</strong> Fit the original-scale tree-volume model that we will revisit in <a href="#sec-ch7-transform-procedure">Section 7.3</a>. These three panels address mean form, spread, and normality:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ch7_check_data <span class="ot">&lt;-</span> <span class="fu">transform</span>(datasets<span class="sc">::</span>trees, <span class="at">Diameter =</span> Girth)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>ch7_check_fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Diameter <span class="sc">+</span> Height,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> ch7_check_data, <span class="at">na.action =</span> na.fail)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>ch7_check_par <span class="ot">&lt;-</span> <span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>),</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">mgp =</span> <span class="fu">c</span>(<span class="fl">2.4</span>, <span class="fl">0.7</span>, <span class="dv">0</span>), <span class="at">cex =</span> <span class="fl">0.75</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (ch7_panel <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">2</span>)) {</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(ch7_check_fit, <span class="at">which =</span> ch7_panel, <span class="at">ask =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">sub.caption =</span> <span class="st">""</span>, <span class="at">id.n =</span> <span class="dv">0</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">col =</span> <span class="st">"#247D77"</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(ch7_check_par)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-ch7-assumption-checks" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Three standard lm diagnostic panels for tree volume regressed on diameter and height: residuals versus fitted values, Scale-Location, and a normal Q-Q plot. The residual smooth is curved, motivating a review of the mean model." data-fig-pos="H">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ch7-assumption-checks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="07_files/figure-html/fig-ch7-assumption-checks-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Three standard lm diagnostic panels for tree volume regressed on diameter and height: residuals versus fitted values, Scale-Location, and a normal Q-Q plot. The residual smooth is curved, motivating a review of the mean model." width="691">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-assumption-checks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.4: Original-scale tree-volume diagnostics: mean pattern (left), spread (middle), and normality (right). Read the mean pattern first, then reconsider spread and shape after refitting. None of these panels establishes independence between trees.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The curved residual smooth is a reason to revisit the mean specification. A reasonable-looking Q-Q plot would not remove that concern. The <code>trees</code> dataset provides no collection-time or repeated-unit identifiers, so these plots cannot verify independence; that requires information about how the trees were sampled.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Four default R plots do not check four assumptions
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>For <code>plot(fit)</code>, <code>which = 1</code> checks residual mean patterns, <code>which = 3</code> helps assess spread, and <code>which = 2</code> assesses normal shape. The fourth default panel, <code>which = 5</code>, concerns residuals, leverage, and influence; it is <strong>not an independence check</strong>. Study-design information and appropriate order/group diagnostics must be added separately. <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/plot.lm.html">R diagnostic-plot documentation</a>.</p>
+</div>
+</div>
 <div id="exr-ch7-assumptions" class="theorem exercise">
 <p><span class="theorem-title"><strong>Exercise 7.1 (Shape or Spread?)</strong></span> Suppose <span class="math inline">\(Y_i=2+3x_i+\varepsilon_i\)</span> and the errors are independent. In model A, <span class="math inline">\(\varepsilon_i\mid x_i\sim N(0,(1+x_i)^2)\)</span> for <span class="math inline">\(x_i\geq0\)</span>. In model B, <span class="math inline">\(\varepsilon_i=U_i-1\)</span>, where <span class="math inline">\(U_i\sim\operatorname{Exponential}(1)\)</span> independently of <span class="math inline">\(x_i\)</span>. Which assumptions fail? Must the slope estimate be biased?</p>
 </div>
@@ -829,10 +857,10 @@ V_i=aD_i^{b}H_i^{c}\exp(\varepsilon_i)
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>ch7_trees <span class="ot">&lt;-</span> <span class="fu">transform</span>(datasets<span class="sc">::</span>trees, <span class="at">Diameter =</span> Girth)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>ch7_raw <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Diameter <span class="sc">+</span> Height, <span class="at">data =</span> ch7_trees)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>ch7_log <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Volume) <span class="sc">~</span> <span class="fu">log</span>(Diameter) <span class="sc">+</span> <span class="fu">log</span>(Height), <span class="at">data =</span> ch7_trees)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ch7_trees <span class="ot">&lt;-</span> <span class="fu">transform</span>(datasets<span class="sc">::</span>trees, <span class="at">Diameter =</span> Girth)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>ch7_raw <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Diameter <span class="sc">+</span> Height, <span class="at">data =</span> ch7_trees)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>ch7_log <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Volume) <span class="sc">~</span> <span class="fu">log</span>(Diameter) <span class="sc">+</span> <span class="fu">log</span>(Height), <span class="at">data =</span> ch7_trees)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div class="cell">
@@ -843,7 +871,7 @@ V_i=aD_i^{b}H_i^{c}\exp(\varepsilon_i)
 <img src="07_files/figure-html/fig-ch7-tree-scales-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Side-by-side plots show volume versus diameter on the original scale and log volume versus log diameter. A purple straight line is fitted separately in each panel." width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-tree-scales-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.4: The same 31 trees on two scales, each with a simple least-squares line using diameter alone. The log-log view motivates a power relationship; the fitted multiple regression above also adjusts for height. This plot does not establish that the transformed model is adequate.
+Figure&nbsp;7.5: The same 31 trees on two scales, each with a simple least-squares line using diameter alone. The log-log view motivates a power relationship; the fitted multiple regression above also adjusts for height. This plot does not establish that the transformed model is adequate.
 </figcaption>
 </figure>
 </div>
@@ -858,7 +886,7 @@ Figure&nbsp;7.4: The same 31 trees on two scales, each with a simple least-squar
 <img src="07_files/figure-html/fig-ch7-tree-residuals-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Two panels compare standardized residuals versus fitted values for the original and log-response tree models, with zero reference lines and smooth trend lines." width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-tree-residuals-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.5: Standardized residuals from the additive original-scale model and the log-log model, both using diameter and height. The smooth orange line helps reveal remaining mean structure. Inspect each pattern; their fitted-value scales differ, so raw SSE or R-squared values across response scales would not be a fair comparison.
+Figure&nbsp;7.6: Standardized residuals from the additive original-scale model and the log-log model, both using diameter and height. The smooth orange line helps reveal remaining mean structure. Inspect each pattern; their fitted-value scales differ, so raw SSE or R-squared values across response scales would not be a fair comparison.
 </figcaption>
 </figure>
 </div>
@@ -878,13 +906,13 @@ Figure&nbsp;7.5: Standardized residuals from the additive original-scale model a
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ch7_newtree <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Diameter =</span> <span class="dv">15</span>, <span class="at">Height =</span> <span class="dv">80</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ch7_eta <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">predict</span>(ch7_log, <span class="at">newdata =</span> ch7_newtree))</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Median volume</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">exp</span>(ch7_eta),</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Mean volume, lognormal correction</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">exp</span>(ch7_eta <span class="sc">+</span> <span class="fu">sigma</span>(ch7_log)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> <span class="dv">2</span>),</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span>), <span class="at">digits =</span> <span class="dv">2</span>,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">"Predicted cubic feet for diameter 15 inches and height 80 feet."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ch7_newtree <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Diameter =</span> <span class="dv">15</span>, <span class="at">Height =</span> <span class="dv">80</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>ch7_eta <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">predict</span>(ch7_log, <span class="at">newdata =</span> ch7_newtree))</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Median volume</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">exp</span>(ch7_eta),</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Mean volume, lognormal correction</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">exp</span>(ch7_eta <span class="sc">+</span> <span class="fu">sigma</span>(ch7_log)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> <span class="dv">2</span>),</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">check.names =</span> <span class="cn">FALSE</span>), <span class="at">digits =</span> <span class="dv">2</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">"Predicted cubic feet for diameter 15 inches and height 80 feet."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -939,13 +967,13 @@ Figure&nbsp;7.5: Standardized residuals from the additive original-scale model a
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ch7_flag <span class="ot">&lt;-</span> <span class="fu">which.max</span>(<span class="fu">cooks.distance</span>(ch7_log))</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>ch7_log_without <span class="ot">&lt;-</span> <span class="fu">update</span>(ch7_log, <span class="at">data =</span> ch7_trees[<span class="sc">-</span>ch7_flag, ])</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Term =</span> <span class="fu">names</span>(<span class="fu">coef</span>(ch7_log)),</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">All_trees =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch7_log)),</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Omit_flagged_tree =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch7_log_without))),</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Term"</span>, <span class="st">"All trees"</span>, <span class="st">"Omit flagged tree"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>ch7_flag <span class="ot">&lt;-</span> <span class="fu">which.max</span>(<span class="fu">cooks.distance</span>(ch7_log))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>ch7_log_without <span class="ot">&lt;-</span> <span class="fu">update</span>(ch7_log, <span class="at">data =</span> ch7_trees[<span class="sc">-</span>ch7_flag, ])</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Term =</span> <span class="fu">names</span>(<span class="fu">coef</span>(ch7_log)),</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">All_trees =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch7_log)),</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Omit_flagged_tree =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch7_log_without))),</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Term"</span>, <span class="st">"All trees"</span>, <span class="st">"Omit flagged tree"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1050,17 +1078,17 @@ Y_i=\beta_0+\sum_{j\in S}\beta_jx_{ij}+\varepsilon_{i,S},
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8561</span>)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>ch7_n <span class="ot">&lt;-</span> <span class="dv">160</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>ch7_X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(ch7_n <span class="sc">*</span> <span class="dv">8</span>), <span class="at">nrow =</span> ch7_n)</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>ch7_X[, <span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="fl">0.7</span> <span class="sc">*</span> ch7_X[, <span class="dv">1</span>] <span class="sc">+</span> <span class="fu">sqrt</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="fl">0.7</span><span class="sc">^</span><span class="dv">2</span>) <span class="sc">*</span> ch7_X[, <span class="dv">2</span>]</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(ch7_X) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>ch7_dat <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">y =</span> <span class="dv">5</span> <span class="sc">+</span> <span class="dv">3</span> <span class="sc">*</span> ch7_X[, <span class="dv">1</span>] <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> ch7_X[, <span class="dv">2</span>] <span class="sc">+</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.5</span> <span class="sc">*</span> ch7_X[, <span class="dv">3</span>] <span class="sc">+</span> <span class="fu">rnorm</span>(ch7_n, <span class="at">sd =</span> <span class="dv">2</span>), ch7_X)</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>ch7_id <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">seq_len</span>(ch7_n), <span class="dv">120</span>)</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>ch7_train <span class="ot">&lt;-</span> ch7_dat[ch7_id, ]</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>ch7_test <span class="ot">&lt;-</span> ch7_dat[<span class="sc">-</span>ch7_id, ]</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>ch7_folds <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="at">length.out =</span> <span class="fu">nrow</span>(ch7_train)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8561</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ch7_n <span class="ot">&lt;-</span> <span class="dv">160</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>ch7_X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(ch7_n <span class="sc">*</span> <span class="dv">8</span>), <span class="at">nrow =</span> ch7_n)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>ch7_X[, <span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="fl">0.7</span> <span class="sc">*</span> ch7_X[, <span class="dv">1</span>] <span class="sc">+</span> <span class="fu">sqrt</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="fl">0.7</span><span class="sc">^</span><span class="dv">2</span>) <span class="sc">*</span> ch7_X[, <span class="dv">2</span>]</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(ch7_X) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>ch7_dat <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">y =</span> <span class="dv">5</span> <span class="sc">+</span> <span class="dv">3</span> <span class="sc">*</span> ch7_X[, <span class="dv">1</span>] <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> ch7_X[, <span class="dv">2</span>] <span class="sc">+</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.5</span> <span class="sc">*</span> ch7_X[, <span class="dv">3</span>] <span class="sc">+</span> <span class="fu">rnorm</span>(ch7_n, <span class="at">sd =</span> <span class="dv">2</span>), ch7_X)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>ch7_id <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">seq_len</span>(ch7_n), <span class="dv">120</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>ch7_train <span class="ot">&lt;-</span> ch7_dat[ch7_id, ]</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>ch7_test <span class="ot">&lt;-</span> ch7_dat[<span class="sc">-</span>ch7_id, ]</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>ch7_folds <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="at">length.out =</span> <span class="fu">nrow</span>(ch7_train)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>We reserve 40 observations now and fit all searches on the other 120. The candidate set contains only main effects, so no polynomial or interaction hierarchy needs to be imposed in this example.</p>
@@ -1068,18 +1096,18 @@ Y_i=\beta_0+\sum_{j\in S}\beta_jx_{ij}+\varepsilon_{i,S},
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ch7_null <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> ch7_train, <span class="at">na.action =</span> na.fail)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ch7_full <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> ., <span class="at">data =</span> ch7_train, <span class="at">na.action =</span> na.fail)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>ch7_one_term <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>), <span class="cf">function</span>(term)</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lm</span>(<span class="fu">reformulate</span>(term, <span class="at">response =</span> <span class="st">"y"</span>), <span class="at">data =</span> ch7_train, <span class="at">na.action =</span> na.fail))</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>ch7_first_scores <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">"Intercept only"</span>, <span class="fu">paste</span>(<span class="st">"Add"</span>, <span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>))),</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">AIC =</span> <span class="fu">c</span>(<span class="fu">AIC</span>(ch7_null), <span class="fu">vapply</span>(ch7_one_term, AIC, <span class="fu">numeric</span>(<span class="dv">1</span>))))</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>ch7_first_scores<span class="sc">$</span>Change <span class="ot">&lt;-</span> ch7_first_scores<span class="sc">$</span>AIC <span class="sc">-</span> <span class="fu">AIC</span>(ch7_null)</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>ch7_best_additions <span class="ot">&lt;-</span> <span class="fu">order</span>(ch7_first_scores<span class="sc">$</span>AIC[<span class="sc">-</span><span class="dv">1</span>]) <span class="sc">+</span> <span class="dv">1</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(ch7_first_scores[<span class="fu">c</span>(<span class="dv">1</span>, <span class="fu">head</span>(ch7_best_additions, <span class="dv">3</span>)), ],</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>, <span class="at">align =</span> <span class="st">"c"</span>,</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Candidate model"</span>, <span class="st">"AIC"</span>, <span class="st">"Change from starting AIC"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ch7_null <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> ch7_train, <span class="at">na.action =</span> na.fail)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>ch7_full <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> ., <span class="at">data =</span> ch7_train, <span class="at">na.action =</span> na.fail)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>ch7_one_term <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>), <span class="cf">function</span>(term)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lm</span>(<span class="fu">reformulate</span>(term, <span class="at">response =</span> <span class="st">"y"</span>), <span class="at">data =</span> ch7_train, <span class="at">na.action =</span> na.fail))</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>ch7_first_scores <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">"Intercept only"</span>, <span class="fu">paste</span>(<span class="st">"Add"</span>, <span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>))),</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">AIC =</span> <span class="fu">c</span>(<span class="fu">AIC</span>(ch7_null), <span class="fu">vapply</span>(ch7_one_term, AIC, <span class="fu">numeric</span>(<span class="dv">1</span>))))</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>ch7_first_scores<span class="sc">$</span>Change <span class="ot">&lt;-</span> ch7_first_scores<span class="sc">$</span>AIC <span class="sc">-</span> <span class="fu">AIC</span>(ch7_null)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>ch7_best_additions <span class="ot">&lt;-</span> <span class="fu">order</span>(ch7_first_scores<span class="sc">$</span>AIC[<span class="sc">-</span><span class="dv">1</span>]) <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(ch7_first_scores[<span class="fu">c</span>(<span class="dv">1</span>, <span class="fu">head</span>(ch7_best_additions, <span class="dv">3</span>)), ],</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>, <span class="at">align =</span> <span class="st">"c"</span>,</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Candidate model"</span>, <span class="st">"AIC"</span>, <span class="st">"Change from starting AIC"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1120,20 +1148,20 @@ Y_i=\beta_0+\sum_{j\in S}\beta_jx_{ij}+\varepsilon_{i,S},
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ch7_scope <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">lower =</span> <span class="fu">formula</span>(ch7_null), <span class="at">upper =</span> <span class="fu">formula</span>(ch7_full))</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>ch7_forward <span class="ot">&lt;-</span> <span class="fu">step</span>(ch7_null, <span class="at">scope =</span> ch7_scope,</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="st">"forward"</span>, <span class="at">trace =</span> <span class="dv">0</span>)</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>ch7_backward <span class="ot">&lt;-</span> <span class="fu">step</span>(ch7_full, <span class="at">scope =</span> ch7_scope,</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="st">"backward"</span>, <span class="at">trace =</span> <span class="dv">0</span>)</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>ch7_both <span class="ot">&lt;-</span> <span class="fu">step</span>(ch7_null, <span class="at">scope =</span> ch7_scope,</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="st">"both"</span>, <span class="at">trace =</span> <span class="dv">0</span>)</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>ch7_searches <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">Forward =</span> ch7_forward, <span class="at">Backward =</span> ch7_backward,</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Stepwise =</span> ch7_both)</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">Search =</span> <span class="fu">names</span>(ch7_searches),</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">Selected =</span> <span class="fu">vapply</span>(ch7_searches, <span class="cf">function</span>(m)</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste</span>(<span class="fu">attr</span>(<span class="fu">terms</span>(m), <span class="st">"term.labels"</span>), <span class="at">collapse =</span> <span class="st">", "</span>), <span class="fu">character</span>(<span class="dv">1</span>)),</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">AIC =</span> <span class="fu">vapply</span>(ch7_searches, AIC, <span class="fu">numeric</span>(<span class="dv">1</span>))), <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>ch7_scope <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">lower =</span> <span class="fu">formula</span>(ch7_null), <span class="at">upper =</span> <span class="fu">formula</span>(ch7_full))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>ch7_forward <span class="ot">&lt;-</span> <span class="fu">step</span>(ch7_null, <span class="at">scope =</span> ch7_scope,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="st">"forward"</span>, <span class="at">trace =</span> <span class="dv">0</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>ch7_backward <span class="ot">&lt;-</span> <span class="fu">step</span>(ch7_full, <span class="at">scope =</span> ch7_scope,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="st">"backward"</span>, <span class="at">trace =</span> <span class="dv">0</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>ch7_both <span class="ot">&lt;-</span> <span class="fu">step</span>(ch7_null, <span class="at">scope =</span> ch7_scope,</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="st">"both"</span>, <span class="at">trace =</span> <span class="dv">0</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>ch7_searches <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">Forward =</span> ch7_forward, <span class="at">Backward =</span> ch7_backward,</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Stepwise =</span> ch7_both)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">Search =</span> <span class="fu">names</span>(ch7_searches),</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">Selected =</span> <span class="fu">vapply</span>(ch7_searches, <span class="cf">function</span>(m)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste</span>(<span class="fu">attr</span>(<span class="fu">terms</span>(m), <span class="st">"term.labels"</span>), <span class="at">collapse =</span> <span class="st">", "</span>), <span class="fu">character</span>(<span class="dv">1</span>)),</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">AIC =</span> <span class="fu">vapply</span>(ch7_searches, AIC, <span class="fu">numeric</span>(<span class="dv">1</span>))), <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1253,7 +1281,7 @@ L(\beta_0,\boldsymbol\beta)=
 <img src="07_files/figure-html/fig-ch7-shrinkage-rules-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Three panels plot a penalized slope against its OLS value. Ridge is a shallower straight line; lasso and elastic net have flat segments at zero." width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-shrinkage-rules-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.6: An orthogonal-design illustration with lambda = 0.5 and elastic-net alpha = 0.5. Dashed lines show no shrinkage. The flat portions at zero show how lasso and elastic net remove small coefficients; ridge continuously shrinks them.
+Figure&nbsp;7.7: An orthogonal-design illustration with lambda = 0.5 and elastic-net alpha = 0.5. Dashed lines show no shrinkage. The flat portions at zero show how lasso and elastic net remove small coefficients; ridge continuously shrinks them.
 </figcaption>
 </figure>
 </div>
@@ -1277,25 +1305,25 @@ Figure&nbsp;7.6: An orthogonal-design illustration with lambda = 0.5 and elastic
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>ch7_xtrain <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(ch7_train[<span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)])</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>ch7_xtest <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(ch7_test[<span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)])</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>ch7_cv_fit <span class="ot">&lt;-</span> <span class="cf">function</span>(a) <span class="fu">cv.glmnet</span>(ch7_xtrain, ch7_train<span class="sc">$</span>y,</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="st">"gaussian"</span>, <span class="at">alpha =</span> a, <span class="at">foldid =</span> ch7_folds,</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span>, <span class="at">type.measure =</span> <span class="st">"mse"</span>)</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>ch7_ridge <span class="ot">&lt;-</span> <span class="fu">ch7_cv_fit</span>(<span class="dv">0</span>)</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>ch7_lasso <span class="ot">&lt;-</span> <span class="fu">ch7_cv_fit</span>(<span class="dv">1</span>)</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>ch7_alpha_grid <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>)</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>ch7_enet_grid <span class="ot">&lt;-</span> <span class="fu">lapply</span>(ch7_alpha_grid, ch7_cv_fit)</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>ch7_enet_mse <span class="ot">&lt;-</span> <span class="fu">vapply</span>(ch7_enet_grid, <span class="cf">function</span>(m) <span class="fu">min</span>(m<span class="sc">$</span>cvm), <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>ch7_alpha_index <span class="ot">&lt;-</span> <span class="fu">which.min</span>(ch7_enet_mse)</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>ch7_alpha <span class="ot">&lt;-</span> ch7_alpha_grid[ch7_alpha_index]</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>ch7_enet <span class="ot">&lt;-</span> ch7_enet_grid[[ch7_alpha_index]]</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Alpha =</span> ch7_alpha_grid,</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">Minimum_CV_MSE =</span> ch7_enet_mse,</span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">Selected =</span> <span class="fu">seq_along</span>(ch7_alpha_grid) <span class="sc">==</span> ch7_alpha_index),</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Alpha"</span>, <span class="st">"Minimum CV MSE"</span>, <span class="st">"Selected"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>ch7_xtrain <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(ch7_train[<span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)])</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>ch7_xtest <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(ch7_test[<span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)])</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>ch7_cv_fit <span class="ot">&lt;-</span> <span class="cf">function</span>(a) <span class="fu">cv.glmnet</span>(ch7_xtrain, ch7_train<span class="sc">$</span>y,</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="st">"gaussian"</span>, <span class="at">alpha =</span> a, <span class="at">foldid =</span> ch7_folds,</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span>, <span class="at">type.measure =</span> <span class="st">"mse"</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>ch7_ridge <span class="ot">&lt;-</span> <span class="fu">ch7_cv_fit</span>(<span class="dv">0</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>ch7_lasso <span class="ot">&lt;-</span> <span class="fu">ch7_cv_fit</span>(<span class="dv">1</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>ch7_alpha_grid <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>ch7_enet_grid <span class="ot">&lt;-</span> <span class="fu">lapply</span>(ch7_alpha_grid, ch7_cv_fit)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>ch7_enet_mse <span class="ot">&lt;-</span> <span class="fu">vapply</span>(ch7_enet_grid, <span class="cf">function</span>(m) <span class="fu">min</span>(m<span class="sc">$</span>cvm), <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>ch7_alpha_index <span class="ot">&lt;-</span> <span class="fu">which.min</span>(ch7_enet_mse)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>ch7_alpha <span class="ot">&lt;-</span> ch7_alpha_grid[ch7_alpha_index]</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>ch7_enet <span class="ot">&lt;-</span> ch7_enet_grid[[ch7_alpha_index]]</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Alpha =</span> ch7_alpha_grid,</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">Minimum_CV_MSE =</span> ch7_enet_mse,</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">Selected =</span> <span class="fu">seq_along</span>(ch7_alpha_grid) <span class="sc">==</span> ch7_alpha_index),</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Alpha"</span>, <span class="st">"Minimum CV MSE"</span>, <span class="st">"Selected"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1330,15 +1358,15 @@ Figure&nbsp;7.6: An orthogonal-design illustration with lambda = 0.5 and elastic
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ch7_penalty_fits <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">Ridge =</span> ch7_ridge, <span class="at">Lasso =</span> ch7_lasso,</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Elastic_net =</span> ch7_enet)</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>ch7_coef <span class="ot">&lt;-</span> <span class="fu">vapply</span>(ch7_penalty_fits, <span class="cf">function</span>(m)</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.numeric</span>(<span class="fu">coef</span>(m, <span class="at">s =</span> <span class="st">"lambda.1se"</span>)), <span class="fu">numeric</span>(<span class="dv">9</span>))</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>ch7_coef_display <span class="ot">&lt;-</span> <span class="fu">apply</span>(ch7_coef, <span class="dv">2</span>, <span class="cf">function</span>(b)</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ifelse</span>(b <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"0"</span>, <span class="fu">sub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">.?0+$"</span>, <span class="st">""</span>, <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, b))))</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Term =</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)),</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  ch7_coef_display), <span class="at">row.names =</span> <span class="cn">FALSE</span>, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="st">"r"</span>, <span class="st">"r"</span>, <span class="st">"r"</span>),</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Term"</span>, <span class="st">"Ridge"</span>, <span class="st">"Lasso"</span>, <span class="st">"Elastic net"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ch7_penalty_fits <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">Ridge =</span> ch7_ridge, <span class="at">Lasso =</span> ch7_lasso,</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Elastic_net =</span> ch7_enet)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>ch7_coef <span class="ot">&lt;-</span> <span class="fu">vapply</span>(ch7_penalty_fits, <span class="cf">function</span>(m)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.numeric</span>(<span class="fu">coef</span>(m, <span class="at">s =</span> <span class="st">"lambda.1se"</span>)), <span class="fu">numeric</span>(<span class="dv">9</span>))</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>ch7_coef_display <span class="ot">&lt;-</span> <span class="fu">apply</span>(ch7_coef, <span class="dv">2</span>, <span class="cf">function</span>(b)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ifelse</span>(b <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"0"</span>, <span class="fu">sub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">.?0+$"</span>, <span class="st">""</span>, <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, b))))</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Term =</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)),</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  ch7_coef_display), <span class="at">row.names =</span> <span class="cn">FALSE</span>, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="st">"r"</span>, <span class="st">"r"</span>, <span class="st">"r"</span>),</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Term"</span>, <span class="st">"Ridge"</span>, <span class="st">"Lasso"</span>, <span class="st">"Elastic net"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1419,7 +1447,7 @@ Figure&nbsp;7.6: An orthogonal-design illustration with lambda = 0.5 and elastic
 <img src="07_files/figure-html/fig-ch7-lasso-path-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Lasso coefficient paths against lambda on a log scale; x1, x2, and x3 are colored and the other five predictors are gray. More paths become zero at larger penalties." width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-lasso-path-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.7: Lasso coefficient paths from the sensor training data. Larger penalties move slopes toward zero. The three true signal predictors are colored; the other five are gray. A path displays fitted coefficients, not confidence intervals.
+Figure&nbsp;7.8: Lasso coefficient paths from the sensor training data. Larger penalties move slopes toward zero. The three true signal predictors are colored; the other five are gray. A path displays fitted coefficients, not confidence intervals.
 </figcaption>
 </figure>
 </div>
@@ -1433,7 +1461,7 @@ Figure&nbsp;7.7: Lasso coefficient paths from the sensor training data. Larger p
 <img src="07_files/figure-html/fig-ch7-lasso-cv-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Cross-validation mean squared error for lasso versus lambda, with standard-error bars and vertical lines for lambda.min and lambda.1se." width="624">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-lasso-cv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.8: Five-fold CV within the sensor training set. Bars show plus or minus one estimated CV standard error, not confidence intervals for individual responses. Dashed: minimum-error lambda. Solid: the more regularized one-SE choice used below.
+Figure&nbsp;7.9: Five-fold CV within the sensor training set. Bars show plus or minus one estimated CV standard error, not confidence intervals for individual responses. Dashed: minimum-error lambda. Solid: the more regularized one-SE choice used below.
 </figcaption>
 </figure>
 </div>
@@ -1446,18 +1474,18 @@ Figure&nbsp;7.8: Five-fold CV within the sensor training set. Bars show plus or 
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ch7_predictions <span class="ot">&lt;-</span> <span class="fu">cbind</span>(</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Baseline =</span> <span class="fu">rep</span>(<span class="fu">mean</span>(ch7_train<span class="sc">$</span>y), <span class="fu">nrow</span>(ch7_test)),</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Full_OLS =</span> <span class="fu">predict</span>(ch7_full, <span class="at">newdata =</span> ch7_test),</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Forward =</span> <span class="fu">predict</span>(ch7_forward, <span class="at">newdata =</span> ch7_test),</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Backward =</span> <span class="fu">predict</span>(ch7_backward, <span class="at">newdata =</span> ch7_test),</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Stepwise =</span> <span class="fu">predict</span>(ch7_both, <span class="at">newdata =</span> ch7_test),</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Ridge =</span> <span class="fu">as.numeric</span>(<span class="fu">predict</span>(ch7_ridge, <span class="at">newx =</span> ch7_xtest, <span class="at">s =</span> <span class="st">"lambda.1se"</span>)),</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">Lasso =</span> <span class="fu">as.numeric</span>(<span class="fu">predict</span>(ch7_lasso, <span class="at">newx =</span> ch7_xtest, <span class="at">s =</span> <span class="st">"lambda.1se"</span>)),</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Elastic_net =</span> <span class="fu">as.numeric</span>(<span class="fu">predict</span>(ch7_enet, <span class="at">newx =</span> ch7_xtest, <span class="at">s =</span> <span class="st">"lambda.1se"</span>)))</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Method =</span> <span class="fu">gsub</span>(<span class="st">"_"</span>, <span class="st">" "</span>, <span class="fu">colnames</span>(ch7_predictions)),</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">Test_RMSE =</span> <span class="fu">sqrt</span>(<span class="fu">colMeans</span>((ch7_predictions <span class="sc">-</span> ch7_test<span class="sc">$</span>y)<span class="sc">^</span><span class="dv">2</span>))),</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>, <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Method"</span>, <span class="st">"Test RMSE"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>ch7_predictions <span class="ot">&lt;-</span> <span class="fu">cbind</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Baseline =</span> <span class="fu">rep</span>(<span class="fu">mean</span>(ch7_train<span class="sc">$</span>y), <span class="fu">nrow</span>(ch7_test)),</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Full_OLS =</span> <span class="fu">predict</span>(ch7_full, <span class="at">newdata =</span> ch7_test),</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Forward =</span> <span class="fu">predict</span>(ch7_forward, <span class="at">newdata =</span> ch7_test),</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Backward =</span> <span class="fu">predict</span>(ch7_backward, <span class="at">newdata =</span> ch7_test),</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Stepwise =</span> <span class="fu">predict</span>(ch7_both, <span class="at">newdata =</span> ch7_test),</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Ridge =</span> <span class="fu">as.numeric</span>(<span class="fu">predict</span>(ch7_ridge, <span class="at">newx =</span> ch7_xtest, <span class="at">s =</span> <span class="st">"lambda.1se"</span>)),</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">Lasso =</span> <span class="fu">as.numeric</span>(<span class="fu">predict</span>(ch7_lasso, <span class="at">newx =</span> ch7_xtest, <span class="at">s =</span> <span class="st">"lambda.1se"</span>)),</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Elastic_net =</span> <span class="fu">as.numeric</span>(<span class="fu">predict</span>(ch7_enet, <span class="at">newx =</span> ch7_xtest, <span class="at">s =</span> <span class="st">"lambda.1se"</span>)))</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Method =</span> <span class="fu">gsub</span>(<span class="st">"_"</span>, <span class="st">" "</span>, <span class="fu">colnames</span>(ch7_predictions)),</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">Test_RMSE =</span> <span class="fu">sqrt</span>(<span class="fu">colMeans</span>((ch7_predictions <span class="sc">-</span> ch7_test<span class="sc">$</span>y)<span class="sc">^</span><span class="dv">2</span>))),</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>, <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Method"</span>, <span class="st">"Test RMSE"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
