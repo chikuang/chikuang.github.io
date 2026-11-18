@@ -390,8 +390,8 @@ window.Quarto = {
    
   <ul>
   <li><a href="#sec-ch7-transform-motivation" id="toc-sec-ch7-transform-motivation" class="nav-link active" data-scroll-target="#sec-ch7-transform-motivation"><span class="header-section-number">7.1</span> When does a transformation help?</a></li>
-  <li><a href="#sec-ch7-linearity" id="toc-sec-ch7-linearity" class="nav-link" data-scroll-target="#sec-ch7-linearity"><span class="header-section-number">7.2</span> A curved relationship can still be a linear model</a></li>
-  <li><a href="#sec-ch7-transform-procedure" id="toc-sec-ch7-transform-procedure" class="nav-link" data-scroll-target="#sec-ch7-transform-procedure"><span class="header-section-number">7.3</span> Choose a transformation, fit, and check again</a></li>
+  <li><a href="#sec-ch7-assumptions" id="toc-sec-ch7-assumptions" class="nav-link" data-scroll-target="#sec-ch7-assumptions"><span class="header-section-number">7.2</span> What assumptions are we trying to achieve?</a></li>
+  <li><a href="#sec-ch7-transform-procedure" id="toc-sec-ch7-transform-procedure" class="nav-link" data-scroll-target="#sec-ch7-transform-procedure"><span class="header-section-number">7.3</span> Transform the model, fit, and check again</a></li>
   <li><a href="#sec-ch7-selection" id="toc-sec-ch7-selection" class="nav-link" data-scroll-target="#sec-ch7-selection"><span class="header-section-number">7.4</span> From candidate terms to variable selection</a></li>
   <li><a href="#sec-ch7-regularization" id="toc-sec-ch7-regularization" class="nav-link" data-scroll-target="#sec-ch7-regularization"><span class="header-section-number">7.5</span> Shrinkage: ridge, lasso, and elastic net</a></li>
   <li><a href="#sec-ch7-validation" id="toc-sec-ch7-validation" class="nav-link" data-scroll-target="#sec-ch7-validation"><span class="header-section-number">7.6</span> Evaluate the complete procedure</a></li>
@@ -422,17 +422,19 @@ window.Quarto = {
 </header>
 
 
-<p><a href="./06.html">Chapter 6</a> asked whether individual observations change a fitted model. A different problem arises when <strong>many observations follow a pattern that the model misses</strong>. We begin with pictures and numbers: when should we change the predictor scale, and when should we change the response scale? After choosing and checking a plausible model form, we introduce variable selection: which candidate terms should remain in the model?</p>
+<p><a href="./06.html">Chapter 6</a> asked whether individual observations change a fitted model. A different problem arises when <strong>many observations follow a pattern that the model misses</strong>. We begin with pictures and numbers: when should we change the predictor scale, and when should we change the response scale? We then make the regression assumptions explicit, use them to guide transformations, and consider which terms to retain. Finally, ridge, lasso, and elastic net show how shrinking coefficients can improve prediction when a full OLS fit is unstable.</p>
 <blockquote class="blockquote">
 <p><strong>Learning Objectives</strong></p>
 <p>By the end of this chapter, students should be able to:</p>
 <ul>
+<li>distinguish correct mean form, normality, constant variance, and independence;</li>
 <li>distinguish a curved relationship from a model nonlinear in its parameters;</li>
 <li>use curvature and changing residual spread to motivate a transformation;</li>
 <li>distinguish transforming a predictor from transforming the response;</li>
 <li>interpret predictions after transforming the response;</li>
 <li>carry out forward selection, backward elimination, and stepwise selection;</li>
-<li>explain ridge and lasso, and choose a penalty using cross-validation;</li>
+<li>write the regression models and estimation objectives for ridge, lasso, and elastic net;</li>
+<li>tune penalties using cross-validation within training data;</li>
 <li>separate model development from final prediction assessment.</li>
 </ul>
 </blockquote>
@@ -473,7 +475,7 @@ window.Quarto = {
 </div>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-ch7-transform-x" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Four panels show y and residuals against x on the left and against log2(x) on the right. The original line misses a concave pattern, while the transformed predictor gives a straight relationship with residuals minus 0.6, zero, and 0.6 at every input level.">
+<div id="fig-ch7-transform-x" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Four panels show y and residuals against x on the left and against log2(x) on the right. The original line misses a concave pattern, while the transformed predictor gives a straight relationship with residuals minus 0.6, zero, and 0.6 at every input level." data-fig-pos="H">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ch7-transform-x-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="07_files/figure-html/fig-ch7-transform-x-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Four panels show y and residuals against x on the left and against log2(x) on the right. The original line misses a concave pattern, while the transformed predictor gives a straight relationship with residuals minus 0.6, zero, and 0.6 at every input level." width="672">
@@ -562,7 +564,7 @@ Figure&nbsp;7.1: The same 15 observations before and after transforming x. Top: 
 </div>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-ch7-transform-y" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Four panels show y and original-scale residuals against time on the left, and log y and log-scale residuals against time on the right. Original observations range from 8 to 12.5 at time zero and from 128 to 200 at time four. Log residuals are approximately minus 0.223, zero, and 0.223 at every time.">
+<div id="fig-ch7-transform-y" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Four panels show y and original-scale residuals against time on the left, and log y and log-scale residuals against time on the right. Original observations range from 8 to 12.5 at time zero and from 128 to 200 at time four. Log residuals are approximately minus 0.223, zero, and 0.223 at every time." data-fig-pos="H">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ch7-transform-y-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="07_files/figure-html/fig-ch7-transform-y-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Four panels show y and original-scale residuals against time on the left, and log y and log-scale residuals against time on the right. Original observations range from 8 to 12.5 at time zero and from 128 to 200 at time four. Log residuals are approximately minus 0.223, zero, and 0.223 at every time." width="672">
@@ -641,10 +643,109 @@ Figure&nbsp;7.2: The same 15 positive responses on original and natural-log scal
 <p><strong>When should we keep the original scale?</strong> If the fitted mean is plausible and residuals show roughly constant spread without a systematic pattern, there may be no reason to transform. A skewed histogram of <span class="math inline">\(Y\)</span> alone is not enough: regression assumptions concern errors conditional on the predictors. An isolated unusual point calls for the investigation in <a href="./06.html#sec-ch6-summary">Chapter 6</a>, not an automatic transformation of all observations.</p>
 <p>Transformations are candidates, not mandatory fixes. Curvature may instead be represented by polynomial terms or splines; nonconstant variance may be modeled with weighted least squares. If both shape and spread need attention, choose a meaningful response scale and then recheck which predictor functions are needed. <a href="https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd452.htm">NIST discusses transformation and weighting</a>. In real data, always refit and recheck: these tidy constructed examples do not establish normality, independence, or performance on new observations.</p>
 </section>
-<section id="sec-ch7-linearity" class="level2" data-number="7.2">
-<h2 data-number="7.2" class="anchored" data-anchor-id="sec-ch7-linearity"><span class="header-section-number">7.2</span> A curved relationship can still be a linear model</h2>
+<section id="sec-ch7-assumptions" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="sec-ch7-assumptions"><span class="header-section-number">7.2</span> What assumptions are we trying to achieve?</h2>
+<p>The pictures in Section 7.1 suggest changing the model, but <strong>which part of the model needs to change?</strong> Separate the mean, variance, dependence, and distribution assumptions before choosing a transformation.</p>
+<div id="def-ch7-assumptions" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 7.1 (Assumptions of the Normal Linear Model)</strong></span> Using the notation from <a href="./03_OLS_inference.html#def-normal-linear-model">Chapter 3</a>, write</p>
+<p><span class="math display">\[
+Y_i=\beta_0+\sum_{j=1}^{d}\beta_jx_{ij}+\varepsilon_i,
+\qquad \mathbf Y=\mathbf X\boldsymbol\beta+\boldsymbol\varepsilon.
+\]</span></p>
+<p>There are <span class="math inline">\(d\)</span> predictor columns and <span class="math inline">\(p=d+1\)</span> coefficients, including the intercept. A column may be an original predictor, a transformation, or an interaction. Conditional on the design <span class="math inline">\(\mathbf X\)</span>, distinguish:</p>
+<ol type="1">
+<li><strong>Correct mean:</strong> <span class="math inline">\(E(\varepsilon_i\mid\mathbf X)=0\)</span>, so <span class="math inline">\(E(Y_i\mid\mathbf X)=\beta_0+\sum_j\beta_jx_{ij}\)</span>. The chosen columns must describe the systematic mean pattern.</li>
+<li><strong>Constant variance (homoscedasticity):</strong> <span class="math inline">\(\operatorname{Var}(\varepsilon_i\mid\mathbf X)=\sigma^2\)</span> for every <span class="math inline">\(i\)</span>. Responses have the same conditional spread around their respective means, not necessarily the same values or means.</li>
+<li><strong>Independent errors:</strong> conditional on <span class="math inline">\(\mathbf X\)</span>, one observation’s error supplies no information about another’s. For example, repeated measurements on one person may violate this assumption. Uncorrelated errors, <span class="math inline">\(\operatorname{Cov}(\varepsilon_i,\varepsilon_j\mid\mathbf X)=0\)</span> for <span class="math inline">\(i\ne j\)</span>, are sufficient for the usual OLS covariance formula; independence is stronger in general.</li>
+<li><strong>Normality:</strong> each <span class="math inline">\(\varepsilon_i\mid\mathbf X\)</span> has a normal distribution. Together with assumptions 1–3, this gives <span class="math inline">\(\boldsymbol\varepsilon\mid\mathbf X\sim N_n(\mathbf0,\sigma^2\mathbf I_n)\)</span>.</li>
+</ol>
+<p>For a unique full-model OLS estimate, also require <span class="math inline">\(\operatorname{rank}(\mathbf X)=p\)</span>; require <span class="math inline">\(n&gt;p\)</span> to estimate <span class="math inline">\(\sigma^2\)</span> using residual degrees of freedom. These are design requirements, not distributional assumptions.</p>
+</div>
+<p><strong>Why distinguish them?</strong> With a correct mean and full column rank, OLS is unbiased even without normal errors. Constant variance and uncorrelated errors give <span class="math inline">\(\operatorname{Var}(\hat{\boldsymbol\beta}\mid\mathbf X)=\sigma^2(\mathbf X^\top\mathbf X)^{-1}\)</span>. Normal errors additionally justify the exact finite-sample <span class="math inline">\(t\)</span> and <span class="math inline">\(F\)</span> distributions used in <a href="./03_OLS_inference.html">Chapters 3</a> and <a href="./04.html">4</a>. Computing least squares does not itself verify any of these assumptions.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Normality is not the same as constant variance
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Normality describes shape; constant variance describes spread.</strong> Normal errors can have variances that grow with <span class="math inline">\(x\)</span>, and nonnormal errors can have constant variance. Neither the predictors nor the marginal distribution of <span class="math inline">\(Y\)</span> must be normal. The assumptions concern errors <strong>conditional on the predictors</strong>; a mixture of normal responses with different conditional means need not have a normal histogram.</p>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ch7-error-assumptions" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Three panels compare zero-centred conditional error densities: identical normal curves, normal curves of increasing width, and identical skewed curves with mean zero." data-fig-pos="H">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ch7-error-assumptions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="07_files/figure-html/fig-ch7-error-assumptions-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Three panels compare zero-centred conditional error densities: identical normal curves, normal curves of increasing width, and identical skewed curves with mean zero." width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-error-assumptions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.3: Conditional error distributions at three predictor values. A satisfies normality and constant variance; B is normal but has increasing variance; C is skewed but has constant variance. All have mean zero. These are population illustrations, not residual plots.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Use diagnostics to identify the problem.</strong> Continue the graphical checks from <a href="./06.html">Chapter 6</a>, but give each plot a specific job:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature to check</th>
+<th>Useful evidence</th>
+<th>Possible response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Mean form</td>
+<td>A curve in residuals versus fitted values or a predictor</td>
+<td>Add a meaningful predictor function or interaction; consider a transformation.</td>
+</tr>
+<tr class="even">
+<td>Constant variance</td>
+<td>Residual spread changes with the fitted mean or a predictor</td>
+<td>Consider a response transformation or a variance model such as weighted least squares.</td>
+</tr>
+<tr class="odd">
+<td>Normality</td>
+<td>Systematic departures in a normal Q-Q plot, especially in the tails</td>
+<td>Investigate unusual observations and the error model; consider whether a meaningful response transformation helps.</td>
+</tr>
+<tr class="even">
+<td>Independence</td>
+<td>Study design, time-order patterns, or clustering within people or sites</td>
+<td>Model the dependence; changing scale alone does not remove it.</td>
+</tr>
+</tbody>
+</table>
+<p>Residuals are estimated errors, not independent copies of the errors: even under the normal model their covariance is <span class="math inline">\(\sigma^2(\mathbf I_n-\mathbf H)\)</span>. Use the <a href="./06.html#sec-ch6-supplementary">Chapter 6 supplement</a> for residual scaling. Plots can reveal problems but cannot prove an assumption. If the mean is adequate but variance is not constant, heteroscedasticity-robust standard errors are another option for coefficient inference; they do not change the fitted mean or automatically supply valid individual prediction intervals.</p>
+<div id="exr-ch7-assumptions" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 7.1 (Shape or Spread?)</strong></span> Suppose <span class="math inline">\(Y_i=2+3x_i+\varepsilon_i\)</span> and the errors are independent. In model A, <span class="math inline">\(\varepsilon_i\mid x_i\sim N(0,(1+x_i)^2)\)</span> for <span class="math inline">\(x_i\geq0\)</span>. In model B, <span class="math inline">\(\varepsilon_i=U_i-1\)</span>, where <span class="math inline">\(U_i\sim\operatorname{Exponential}(1)\)</span> independently of <span class="math inline">\(x_i\)</span>. Which assumptions fail? Must the slope estimate be biased?</p>
+</div>
+<div id="sol-ch7-assumptions" class="proof solution">
+<p><span class="proof-title"><em>Solution 7.1</em>. </span>A has a correct linear mean and normal errors, but nonconstant variance. B has a correct linear mean and constant variance 1, but nonnormal errors. With a full-rank design, neither violation alone biases OLS: both have conditional error mean zero. The usual homoscedastic standard errors are not justified for A, while exact normal-model <span class="math inline">\(t\)</span> and <span class="math inline">\(F\)</span> inference is not justified for B.</p>
+</div>
+<p>We can now choose a transformation for a stated reason: <strong>improve the mean form, stabilize the conditional variance, or obtain a more plausible error distribution.</strong> One transformation may help several features, but each must be checked after refitting.</p>
+</section>
+<section id="sec-ch7-transform-procedure" class="level2" data-number="7.3">
+<h2 data-number="7.3" class="anchored" data-anchor-id="sec-ch7-transform-procedure"><span class="header-section-number">7.3</span> Transform the model, fit, and check again</h2>
+<p><span id="sec-ch7-linearity"></span></p>
+<p><strong>A curved relationship can still be a linear model.</strong> A transformation is useful when it gives a plausible conditional mean and error structure. It need not make the original response a straight line in the original predictor.</p>
 <div id="def-ch7-linear-parameters" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 7.1 (Linear in the Parameters)</strong></span> A regression model is linear in its parameters when it can be written as <span class="math inline">\(Y_i=\beta_0+\sum_{j=1}^d\beta_j h_j(\mathbf x_i)+\varepsilon_i\)</span>, where the functions <span class="math inline">\(h_j\)</span> are specified independently of the unknown coefficients. The design row is <span class="math inline">\((1\;h_1(\mathbf x_i)\;\cdots\;h_d(\mathbf x_i))\)</span>; the response need not be a straight-line function of the original predictors.</p>
+<p><span class="theorem-title"><strong>Definition 7.2 (Linear in the Parameters)</strong></span> A regression model is linear in its parameters when it can be written as <span class="math inline">\(Y_i=\beta_0+\sum_{j=1}^d\beta_j h_j(\mathbf x_i)+\varepsilon_i\)</span>, where the functions <span class="math inline">\(h_j\)</span> are specified independently of the unknown coefficients. The design row is <span class="math inline">\((1\;h_1(\mathbf x_i)\;\cdots\;h_d(\mathbf x_i))\)</span>; the response need not be a straight-line function of the original predictors. More generally, a transformed-response model is</p>
+<p><span class="math display">\[
+g(Y_i)=\beta_0+\sum_{j=1}^d\beta_jh_j(\mathbf x_i)+\varepsilon_i,
+\qquad E(\varepsilon_i\mid\mathbf X)=0.
+\]</span></p>
+<p>It describes <span class="math inline">\(E\{g(Y_i)\mid\mathbf x_i\}\)</span>, not automatically <span class="math inline">\(g\{E(Y_i\mid\mathbf x_i)\}\)</span>. Constant variance and normality, when assumed, now refer to errors on the <strong>transformed response scale</strong>.</p>
 </div>
 <table class="caption-top table">
 <colgroup>
@@ -697,7 +798,7 @@ Figure&nbsp;7.2: The same 15 positive responses on original and natural-log scal
 </div>
 </div>
 <div id="exr-ch7-linear" class="theorem exercise">
-<p><span class="theorem-title"><strong>Exercise 7.1 (Linear in Which Sense?)</strong></span> Which can be fitted by <code>lm()</code> using known predictor columns?</p>
+<p><span class="theorem-title"><strong>Exercise 7.2 (Linear in Which Sense?)</strong></span> Which can be fitted by <code>lm()</code> using known predictor columns?</p>
 <ol type="1">
 <li><span class="math inline">\(Y=\beta_0+\beta_1\sqrt{x}+\varepsilon\)</span>, with <span class="math inline">\(x\geq0\)</span>.</li>
 <li><span class="math inline">\(Y=\beta_0+\beta_1x^{\beta_2}+\varepsilon\)</span>, with unknown <span class="math inline">\(\beta_2\)</span>.</li>
@@ -705,11 +806,8 @@ Figure&nbsp;7.2: The same 15 positive responses on original and natural-log scal
 </ol>
 </div>
 <div id="sol-ch7-linear" class="proof solution">
-<p><span class="proof-title"><em>Solution 7.1</em>. </span>Models 1 and 3 are linear in their coefficients. Model 2 has an unknown exponent inside the predictor function; ordinary <code>lm()</code> cannot estimate all three coefficients as written. Model 3 models the conditional mean of <span class="math inline">\(\log Y\)</span>, not directly the conditional mean of <span class="math inline">\(Y\)</span>.</p>
+<p><span class="proof-title"><em>Solution 7.2</em>. </span>Models 1 and 3 are linear in their coefficients. Model 2 has an unknown exponent inside the predictor function; ordinary <code>lm()</code> cannot estimate all three coefficients as written. Model 3 models the conditional mean of <span class="math inline">\(\log Y\)</span>, not directly the conditional mean of <span class="math inline">\(Y\)</span>.</p>
 </div>
-</section>
-<section id="sec-ch7-transform-procedure" class="level2" data-number="7.3">
-<h2 data-number="7.3" class="anchored" data-anchor-id="sec-ch7-transform-procedure"><span class="header-section-number">7.3</span> Choose a transformation, fit, and check again</h2>
 <p><strong>Motivation: measuring tree volume.</strong> Measuring a standing tree’s diameter and height is easier than measuring its timber volume. The trees from <a href="./05.html#exm-ch5-tree-adjustment">Chapter 5</a> suggest a physical starting point: volume is roughly proportional to cross-sectional area times height, so a power relationship such as <span class="math inline">\(V\approx aD^bH^c\)</span> may be more natural than an additive straight-line model. The exponents are to be estimated, not fixed by the cylinder analogy. <a href="https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/trees.html">Data documentation</a>.</p>
 <p><strong>Apply what the two examples showed.</strong></p>
 <ol type="1">
@@ -734,44 +832,18 @@ V_i=aD_i^{b}H_i^{c}\exp(\varepsilon_i)
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>ch7_trees <span class="ot">&lt;-</span> <span class="fu">transform</span>(datasets<span class="sc">::</span>trees, <span class="at">Diameter =</span> Girth)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>ch7_raw <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Diameter <span class="sc">+</span> Height, <span class="at">data =</span> ch7_trees)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>ch7_log <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Volume) <span class="sc">~</span> <span class="fu">log</span>(Diameter) <span class="sc">+</span> <span class="fu">log</span>(Height), <span class="at">data =</span> ch7_trees)</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Term =</span> <span class="fu">names</span>(<span class="fu">coef</span>(ch7_log)),</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimate =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch7_log))), <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>ch7_log <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Volume) <span class="sc">~</span> <span class="fu">log</span>(Diameter) <span class="sc">+</span> <span class="fu">log</span>(Height), <span class="at">data =</span> ch7_trees)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<thead>
-<tr class="header">
-<th style="text-align: left;">Term</th>
-<th style="text-align: right;">Estimate</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">(Intercept)</td>
-<td style="text-align: right;">-6.632</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">log(Diameter)</td>
-<td style="text-align: right;">1.983</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">log(Height)</td>
-<td style="text-align: right;">1.117</td>
-</tr>
-</tbody>
-</table>
-</div>
 </div>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-ch7-tree-scales" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Side-by-side plots show volume versus diameter on the original scale and log volume versus log diameter. A purple straight line is fitted separately in each panel.">
+<div id="fig-ch7-tree-scales" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Side-by-side plots show volume versus diameter on the original scale and log volume versus log diameter. A purple straight line is fitted separately in each panel." data-fig-pos="H">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ch7-tree-scales-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="07_files/figure-html/fig-ch7-tree-scales-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Side-by-side plots show volume versus diameter on the original scale and log volume versus log diameter. A purple straight line is fitted separately in each panel." width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-tree-scales-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.3: The same 31 trees on two scales, each with a simple least-squares line using diameter alone. The log-log view motivates a power relationship; the fitted multiple regression above also adjusts for height. This plot does not establish that the transformed model is adequate.
+Figure&nbsp;7.4: The same 31 trees on two scales, each with a simple least-squares line using diameter alone. The log-log view motivates a power relationship; the fitted multiple regression above also adjusts for height. This plot does not establish that the transformed model is adequate.
 </figcaption>
 </figure>
 </div>
@@ -780,13 +852,13 @@ Figure&nbsp;7.3: The same 31 trees on two scales, each with a simple least-squar
 <p>The estimated diameter and height exponents are about <strong>1.983</strong> and <strong>1.117</strong>, close to the geometric motivation but not constrained to it. Holding height fixed, multiplying diameter by <span class="math inline">\(r\)</span> changes the fitted log-volume by <span class="math inline">\(\hat b\log r\)</span>. Under the lognormal model below, the fitted median volume is multiplied by <span class="math inline">\(r^{\hat b}\)</span>. Thus a 1% diameter increase corresponds approximately to a <span class="math inline">\(\hat b\)</span>% change in that median; the exact percentage is <span class="math inline">\(100(1.01^{\hat b}-1)\)</span>.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-ch7-tree-residuals" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Two panels compare standardized residuals versus fitted values for the original and log-response tree models, with zero reference lines and smooth trend lines.">
+<div id="fig-ch7-tree-residuals" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two panels compare standardized residuals versus fitted values for the original and log-response tree models, with zero reference lines and smooth trend lines." data-fig-pos="H">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ch7-tree-residuals-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="07_files/figure-html/fig-ch7-tree-residuals-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Two panels compare standardized residuals versus fitted values for the original and log-response tree models, with zero reference lines and smooth trend lines." width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-tree-residuals-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.4: Standardized residuals from the additive original-scale model and the log-log model, both using diameter and height. The smooth orange line helps reveal remaining mean structure. Inspect each pattern; their fitted-value scales differ, so raw SSE or R-squared values across response scales would not be a fair comparison.
+Figure&nbsp;7.5: Standardized residuals from the additive original-scale model and the log-log model, both using diameter and height. The smooth orange line helps reveal remaining mean structure. Inspect each pattern; their fitted-value scales differ, so raw SSE or R-squared values across response scales would not be a fair comparison.
 </figcaption>
 </figure>
 </div>
@@ -795,7 +867,7 @@ Figure&nbsp;7.4: Standardized residuals from the additive original-scale model a
 <p>The log model is a candidate to examine, not a guaranteed cure. Both panels still deserve scrutiny. With only 31 observations, a large search over powers and interactions would be hard to justify.</p>
 </div>
 <div id="def-ch7-lognormal" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 7.2 (Back-Transformation Under Lognormal Errors)</strong></span> If <span class="math inline">\(\log Y=\eta(\mathbf x)+\varepsilon\)</span> with <span class="math inline">\(\varepsilon\mid\mathbf x\sim N(0,\sigma^2)\)</span>, then</p>
+<p><span class="theorem-title"><strong>Definition 7.3 (Back-Transformation Under Lognormal Errors)</strong></span> If <span class="math inline">\(\log Y=\eta(\mathbf x)+\varepsilon\)</span> with <span class="math inline">\(\varepsilon\mid\mathbf x\sim N(0,\sigma^2)\)</span>, then</p>
 <p><span class="math display">\[
 \operatorname{Median}(Y\mid\mathbf x)=\exp\{\eta(\mathbf x)\},
 \qquad
@@ -848,82 +920,32 @@ Figure&nbsp;7.4: Standardized residuals from the additive original-scale model a
 </div>
 </div>
 <div id="exr-ch7-back-transform" class="theorem exercise">
-<p><span class="theorem-title"><strong>Exercise 7.2 (What Does Exponentiating Predict?)</strong></span> Suppose <span class="math inline">\(\log Y=2+0.4x+\varepsilon\)</span>, with <span class="math inline">\(\varepsilon\sim N(0,0.25)\)</span>. At <span class="math inline">\(x=0\)</span>, give the conditional median and mean of <span class="math inline">\(Y\)</span>. Does increasing <span class="math inline">\(x\)</span> by one add 0.4 units to the original-scale mean?</p>
+<p><span class="theorem-title"><strong>Exercise 7.3 (What Does Exponentiating Predict?)</strong></span> Suppose <span class="math inline">\(\log Y=2+0.4x+\varepsilon\)</span>, with <span class="math inline">\(\varepsilon\sim N(0,0.25)\)</span>. At <span class="math inline">\(x=0\)</span>, give the conditional median and mean of <span class="math inline">\(Y\)</span>. Does increasing <span class="math inline">\(x\)</span> by one add 0.4 units to the original-scale mean?</p>
 </div>
 <div id="sol-ch7-back-transform" class="proof solution">
-<p><span class="proof-title"><em>Solution 7.2</em>. </span>The median is <span class="math inline">\(e^2\approx7.39\)</span> and the mean is <span class="math inline">\(e^{2+0.25/2}\approx8.37\)</span>. A one-unit increase in <span class="math inline">\(x\)</span> multiplies both by <span class="math inline">\(e^{0.4}\approx1.49\)</span> because the log-error variance is constant. It does not add 0.4 response units.</p>
+<p><span class="proof-title"><em>Solution 7.3</em>. </span>The median is <span class="math inline">\(e^2\approx7.39\)</span> and the mean is <span class="math inline">\(e^{2+0.25/2}\approx8.37\)</span>. A one-unit increase in <span class="math inline">\(x\)</span> multiplies both by <span class="math inline">\(e^{0.4}\approx1.49\)</span> because the log-error variance is constant. It does not add 0.4 response units.</p>
 </div>
-<p><strong>Recheck influence after transforming.</strong> A new response scale changes residuals, and new predictor columns can change leverage. Apply the diagnostics from <a href="./06.html">Chapter 6</a> to the fitted log model as well.</p>
-<div id="exm-ch7-tree-influence" class="theorem example">
-<p><span class="theorem-title"><strong>Example 7.4 (Does One Tree Drive the Power Relationship?)</strong></span> Return to the log-volume model. A wrongly recorded diameter could distort a timber prediction rule, but an accurately measured unusual tree may reveal where the rule needs improvement. First identify observations worth inspecting:</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recheck the fitted model before selecting variables
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A new response scale changes residuals, and new predictor columns can change leverage. Apply the <a href="./06.html">Chapter 6 diagnostics</a> to the transformed fit. For the tree model, the largest Cook’s distance belongs to tree 18 (<span class="math inline">\(D_i\approx0.224\)</span>). A sensitivity fit gives:</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ch7_diag <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Tree =</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(ch7_trees)),</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Studentized =</span> <span class="fu">rstudent</span>(ch7_log), <span class="at">Leverage =</span> <span class="fu">hatvalues</span>(ch7_log),</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Cook =</span> <span class="fu">cooks.distance</span>(ch7_log))</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>ch7_top <span class="ot">&lt;-</span> <span class="fu">head</span>(<span class="fu">order</span>(ch7_diag<span class="sc">$</span>Cook, <span class="at">decreasing =</span> <span class="cn">TRUE</span>), <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-ch7-tree-cook" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="A stem plot of Cook's distance by tree index. Tree 18 is highest at about 0.224, above a dashed 4/31 screening line; trees 17 and 11 are also labeled.">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-ch7-tree-cook-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="07_files/figure-html/fig-ch7-tree-cook-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="A stem plot of Cook's distance by tree index. Tree 18 is highest at about 0.224, above a dashed 4/31 screening line; trees 17 and 11 are also labeled." width="624">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-tree-cook-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.5: Cook’s distances for the log-volume model. Labels mark the three largest values; the dashed 4/n line is only a screening guide. Tree 18 deserves a sensitivity check, not automatic deletion.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<thead>
-<tr class="header">
-<th style="text-align: right;">Tree</th>
-<th style="text-align: right;">Studentized</th>
-<th style="text-align: right;">Leverage</th>
-<th style="text-align: right;">Cook</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: right;">18</td>
-<td style="text-align: right;">-2.326</td>
-<td style="text-align: right;">0.126</td>
-<td style="text-align: right;">0.224</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">17</td>
-<td style="text-align: right;">1.598</td>
-<td style="text-align: right;">0.116</td>
-<td style="text-align: right;">0.106</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">11</td>
-<td style="text-align: right;">1.703</td>
-<td style="text-align: right;">0.072</td>
-<td style="text-align: right;">0.070</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p><strong>Refit to understand sensitivity.</strong> Temporarily omit the largest-<span class="math inline">\(D_i\)</span> tree and compare the same coefficients; keep the original fit as the reference.</p>
-<div class="cell">
-<details class="code-fold">
-<summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>ch7_flag <span class="ot">&lt;-</span> <span class="fu">which.max</span>(ch7_diag<span class="sc">$</span>Cook)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>ch7_log_without <span class="ot">&lt;-</span> <span class="fu">update</span>(ch7_log, <span class="at">data =</span> ch7_trees[<span class="sc">-</span>ch7_flag, ])</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Term =</span> <span class="fu">names</span>(<span class="fu">coef</span>(ch7_log)),</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">All_trees =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch7_log)),</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Omit_flagged_tree =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch7_log_without))),</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Term"</span>, <span class="st">"All trees"</span>, <span class="st">"Omit flagged tree"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ch7_flag <span class="ot">&lt;-</span> <span class="fu">which.max</span>(<span class="fu">cooks.distance</span>(ch7_log))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>ch7_log_without <span class="ot">&lt;-</span> <span class="fu">update</span>(ch7_log, <span class="at">data =</span> ch7_trees[<span class="sc">-</span>ch7_flag, ])</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Term =</span> <span class="fu">names</span>(<span class="fu">coef</span>(ch7_log)),</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">All_trees =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch7_log)),</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Omit_flagged_tree =</span> <span class="fu">unname</span>(<span class="fu">coef</span>(ch7_log_without))),</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Term"</span>, <span class="st">"All trees"</span>, <span class="st">"Omit flagged tree"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -954,18 +976,25 @@ Figure&nbsp;7.5: Cook’s distances for the log-volume model. Labels mark the th
 </table>
 </div>
 </div>
-<p>Tree <strong>18</strong> has <span class="math inline">\(D_i\approx0.224\)</span>. Omitting it changes the diameter exponent from <strong>1.983 to 1.958</strong>, and the height exponent from <strong>1.117 to 1.261</strong>. The estimated height contribution is more sensitive here; influence can matter differently for different scientific questions. This calculation supplies no evidence of a recording error. Report the sensitivity and investigate the measurement before deciding how to handle it.</p>
+<p>The height exponent changes more than the diameter exponent. This is a reason to investigate and report sensitivity, not to delete an accurate measurement automatically. An influential observation can also change which variables a search retains. Resolve data-quality and model-form questions within training data, and recheck the selected model. Squared-error ridge, lasso, and elastic net are not automatic remedies for outliers.</p>
 </div>
-<p><strong>Why recheck before selection?</strong> One influential observation can make a predictor appear useful or change which term a search retains. Resolve data-quality questions and inspect model form first, then assess whether the selection is stable. Recheck the final selected model as well. Ridge and lasso still use squared-error loss here; shrinkage is not an automatic remedy for outliers. For prediction assessment, all outcome-driven diagnostic and model-development decisions belong within training data, not the held-out test set.</p>
+</div>
 </section>
 <section id="sec-ch7-selection" class="level2" data-number="7.4">
 <h2 data-number="7.4" class="anchored" data-anchor-id="sec-ch7-selection"><span class="header-section-number">7.4</span> From candidate terms to variable selection</h2>
 <p><strong>Transformation asks how a variable should enter the model; variable selection asks which candidate terms to retain.</strong> In <a href="#sec-ch7-transform-motivation">Section 7.1</a>, replacing <span class="math inline">\(x\)</span> by <span class="math inline">\(\log_2 x\)</span> kept the same predictor but changed its relationship with the response. A selection method choosing among only untransformed straight-line terms could not discover that relationship.</p>
 <p>Now suppose several predictors are available. Adding columns cannot increase training SSE, even when they represent noise, but estimating more coefficients can make predictions less stable. Selection balances fit against complexity within a scientifically defensible candidate set. Specify plausible transformations and required terms first; if their choice is data-driven, include it in the validation procedure in <a href="#sec-ch7-validation">Section 7.6</a>.</p>
 <div id="def-ch7-selection" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 7.3 (Variable Selection)</strong></span> Variable selection chooses a subset of candidate predictors or model terms using a specified rule. A term may contain several columns, such as a factor. The candidate set, terms that must remain, comparison criterion, and stopping rule are part of the procedure.</p>
+<p><span class="theorem-title"><strong>Definition 7.4 (Variable Selection)</strong></span> Start with the candidate regression model <span class="math inline">\(Y_i=\beta_0+\sum_{j=1}^d\beta_jx_{ij}+\varepsilon_i\)</span>. The columns may already include justified transformations. For a subset <span class="math inline">\(S\subseteq\{1,\ldots,d\}\)</span>, fit</p>
+<p><span class="math display">\[
+Y_i=\beta_0+\sum_{j\in S}\beta_jx_{ij}+\varepsilon_{i,S},
+\qquad
+\hat y_{i,S}=\hat\beta_{0,S}+\sum_{j\in S}\hat\beta_{j,S}x_{ij},
+\]</span></p>
+<p>where the estimates minimize <span class="math inline">\(\mathrm{SSE}_S=\sum_i(y_i-\hat y_{i,S})^2\)</span> on the training observations. <strong>Every candidate subset is refitted</strong>; we do not simply remove coefficients from the full-model estimate. A subset can miss a mean contribution, so its mean-zero error assumption must be assessed rather than presumed.</p>
+<p>Variable selection chooses <span class="math inline">\(S\)</span> using a stated criterion and search rule. A term may span several columns, such as a factor. Specify the candidate terms, required terms, comparison criterion, and stopping rule before running the search.</p>
 </div>
-<p><strong>Choose the rule before the search.</strong> For Gaussian models fitted to the same observations and response, <span class="math inline">\(\mathrm{AIC}=-2\hat\ell+2k\)</span> and <span class="math inline">\(\mathrm{BIC}=-2\hat\ell+k\log n\)</span>, where <span class="math inline">\(k=p+1\)</span> includes <span class="math inline">\(p\)</span> regression coefficients and the variance parameter. Smaller values are preferred. Ordinary <span class="math inline">\(R^2\)</span> alone cannot stop a search because it never decreases when columns are added. These criteria are scores, not significance levels. <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/AIC.html">R documentation</a>.</p>
+<p><strong>Choose the rule before the search.</strong> For Gaussian models fitted to the same observations and response, <span class="math inline">\(\mathrm{AIC}=-2\hat\ell+2K\)</span> and <span class="math inline">\(\mathrm{BIC}=-2\hat\ell+K\log n\)</span>, where <span class="math inline">\(K=p_S+1\)</span> includes the subset model’s <span class="math inline">\(p_S\)</span> regression coefficients (including the intercept) and its variance parameter. Smaller values are preferred. Ordinary <span class="math inline">\(R^2\)</span> alone cannot stop a search because it never decreases when columns are added. These criteria are scores, not significance levels. <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/AIC.html">R documentation</a>.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 25%">
@@ -1017,21 +1046,21 @@ Figure&nbsp;7.5: Cook’s distances for the log-volume model. Labels mark the th
 </div>
 </div>
 <div id="exm-ch7-sensor-selection" class="theorem example">
-<p><span class="theorem-title"><strong>Example 7.5 (Which Sensor Measurements Help Predict an Outcome?)</strong></span> Imagine a manufacturing outcome and eight candidate sensor readings. We simulate data so the useful predictors are known: <span class="math inline">\(Y=5+3x_1-2x_2+1.5x_3+\varepsilon\)</span>, with independent <span class="math inline">\(N(0,4)\)</span> errors. Predictors <span class="math inline">\(x_1,x_2\)</span> are correlated; <span class="math inline">\(x_4,\ldots,x_8\)</span> have no additional mean contribution. All methods receive the same eight candidates. This is a teaching simulation, not an industrial dataset.</p>
+<p><span class="theorem-title"><strong>Example 7.4 (Which Sensor Measurements Help Predict an Outcome?)</strong></span> Imagine a manufacturing outcome and eight candidate sensor readings. We simulate data so the useful predictors are known: <span class="math inline">\(Y=5+3x_1-2x_2+1.5x_3+\varepsilon\)</span>, with independent <span class="math inline">\(N(0,4)\)</span> errors. Predictors <span class="math inline">\(x_1,x_2\)</span> are correlated; <span class="math inline">\(x_4,\ldots,x_8\)</span> have no additional mean contribution. All methods receive the same eight candidates. This is a teaching simulation, not an industrial dataset.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8561</span>)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ch7_n <span class="ot">&lt;-</span> <span class="dv">160</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>ch7_X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(ch7_n <span class="sc">*</span> <span class="dv">8</span>), <span class="at">nrow =</span> ch7_n)</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>ch7_X[, <span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="fl">0.7</span> <span class="sc">*</span> ch7_X[, <span class="dv">1</span>] <span class="sc">+</span> <span class="fu">sqrt</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="fl">0.7</span><span class="sc">^</span><span class="dv">2</span>) <span class="sc">*</span> ch7_X[, <span class="dv">2</span>]</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(ch7_X) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>ch7_dat <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">y =</span> <span class="dv">5</span> <span class="sc">+</span> <span class="dv">3</span> <span class="sc">*</span> ch7_X[, <span class="dv">1</span>] <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> ch7_X[, <span class="dv">2</span>] <span class="sc">+</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.5</span> <span class="sc">*</span> ch7_X[, <span class="dv">3</span>] <span class="sc">+</span> <span class="fu">rnorm</span>(ch7_n, <span class="at">sd =</span> <span class="dv">2</span>), ch7_X)</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>ch7_id <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">seq_len</span>(ch7_n), <span class="dv">120</span>)</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>ch7_train <span class="ot">&lt;-</span> ch7_dat[ch7_id, ]</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>ch7_test <span class="ot">&lt;-</span> ch7_dat[<span class="sc">-</span>ch7_id, ]</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>ch7_folds <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="at">length.out =</span> <span class="fu">nrow</span>(ch7_train)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">8561</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>ch7_n <span class="ot">&lt;-</span> <span class="dv">160</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>ch7_X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(ch7_n <span class="sc">*</span> <span class="dv">8</span>), <span class="at">nrow =</span> ch7_n)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>ch7_X[, <span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="fl">0.7</span> <span class="sc">*</span> ch7_X[, <span class="dv">1</span>] <span class="sc">+</span> <span class="fu">sqrt</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="fl">0.7</span><span class="sc">^</span><span class="dv">2</span>) <span class="sc">*</span> ch7_X[, <span class="dv">2</span>]</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(ch7_X) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>ch7_dat <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">y =</span> <span class="dv">5</span> <span class="sc">+</span> <span class="dv">3</span> <span class="sc">*</span> ch7_X[, <span class="dv">1</span>] <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> ch7_X[, <span class="dv">2</span>] <span class="sc">+</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.5</span> <span class="sc">*</span> ch7_X[, <span class="dv">3</span>] <span class="sc">+</span> <span class="fu">rnorm</span>(ch7_n, <span class="at">sd =</span> <span class="dv">2</span>), ch7_X)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>ch7_id <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">seq_len</span>(ch7_n), <span class="dv">120</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>ch7_train <span class="ot">&lt;-</span> ch7_dat[ch7_id, ]</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>ch7_test <span class="ot">&lt;-</span> ch7_dat[<span class="sc">-</span>ch7_id, ]</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>ch7_folds <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="at">length.out =</span> <span class="fu">nrow</span>(ch7_train)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>We reserve 40 observations now and fit all searches on the other 120. The candidate set contains only main effects, so no polynomial or interaction hierarchy needs to be imposed in this example.</p>
@@ -1039,18 +1068,18 @@ Figure&nbsp;7.5: Cook’s distances for the log-volume model. Labels mark the th
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ch7_null <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> ch7_train, <span class="at">na.action =</span> na.fail)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>ch7_full <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> ., <span class="at">data =</span> ch7_train, <span class="at">na.action =</span> na.fail)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>ch7_one_term <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>), <span class="cf">function</span>(term)</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lm</span>(<span class="fu">reformulate</span>(term, <span class="at">response =</span> <span class="st">"y"</span>), <span class="at">data =</span> ch7_train, <span class="at">na.action =</span> na.fail))</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>ch7_first_scores <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">"Intercept only"</span>, <span class="fu">paste</span>(<span class="st">"Add"</span>, <span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>))),</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">AIC =</span> <span class="fu">c</span>(<span class="fu">AIC</span>(ch7_null), <span class="fu">vapply</span>(ch7_one_term, AIC, <span class="fu">numeric</span>(<span class="dv">1</span>))))</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>ch7_first_scores<span class="sc">$</span>Change <span class="ot">&lt;-</span> ch7_first_scores<span class="sc">$</span>AIC <span class="sc">-</span> <span class="fu">AIC</span>(ch7_null)</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>ch7_best_additions <span class="ot">&lt;-</span> <span class="fu">order</span>(ch7_first_scores<span class="sc">$</span>AIC[<span class="sc">-</span><span class="dv">1</span>]) <span class="sc">+</span> <span class="dv">1</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(ch7_first_scores[<span class="fu">c</span>(<span class="dv">1</span>, <span class="fu">head</span>(ch7_best_additions, <span class="dv">3</span>)), ],</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>, <span class="at">align =</span> <span class="st">"c"</span>,</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Candidate model"</span>, <span class="st">"AIC"</span>, <span class="st">"Change from starting AIC"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ch7_null <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> ch7_train, <span class="at">na.action =</span> na.fail)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ch7_full <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> ., <span class="at">data =</span> ch7_train, <span class="at">na.action =</span> na.fail)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>ch7_one_term <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>), <span class="cf">function</span>(term)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lm</span>(<span class="fu">reformulate</span>(term, <span class="at">response =</span> <span class="st">"y"</span>), <span class="at">data =</span> ch7_train, <span class="at">na.action =</span> na.fail))</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>ch7_first_scores <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">"Intercept only"</span>, <span class="fu">paste</span>(<span class="st">"Add"</span>, <span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>))),</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">AIC =</span> <span class="fu">c</span>(<span class="fu">AIC</span>(ch7_null), <span class="fu">vapply</span>(ch7_one_term, AIC, <span class="fu">numeric</span>(<span class="dv">1</span>))))</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>ch7_first_scores<span class="sc">$</span>Change <span class="ot">&lt;-</span> ch7_first_scores<span class="sc">$</span>AIC <span class="sc">-</span> <span class="fu">AIC</span>(ch7_null)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>ch7_best_additions <span class="ot">&lt;-</span> <span class="fu">order</span>(ch7_first_scores<span class="sc">$</span>AIC[<span class="sc">-</span><span class="dv">1</span>]) <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(ch7_first_scores[<span class="fu">c</span>(<span class="dv">1</span>, <span class="fu">head</span>(ch7_best_additions, <span class="dv">3</span>)), ],</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>, <span class="at">align =</span> <span class="st">"c"</span>,</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Candidate model"</span>, <span class="st">"AIC"</span>, <span class="st">"Change from starting AIC"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1091,20 +1120,20 @@ Figure&nbsp;7.5: Cook’s distances for the log-volume model. Labels mark the th
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>ch7_scope <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">lower =</span> <span class="fu">formula</span>(ch7_null), <span class="at">upper =</span> <span class="fu">formula</span>(ch7_full))</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>ch7_forward <span class="ot">&lt;-</span> <span class="fu">step</span>(ch7_null, <span class="at">scope =</span> ch7_scope,</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="st">"forward"</span>, <span class="at">trace =</span> <span class="dv">0</span>)</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>ch7_backward <span class="ot">&lt;-</span> <span class="fu">step</span>(ch7_full, <span class="at">scope =</span> ch7_scope,</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="st">"backward"</span>, <span class="at">trace =</span> <span class="dv">0</span>)</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>ch7_both <span class="ot">&lt;-</span> <span class="fu">step</span>(ch7_null, <span class="at">scope =</span> ch7_scope,</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="st">"both"</span>, <span class="at">trace =</span> <span class="dv">0</span>)</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>ch7_searches <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">Forward =</span> ch7_forward, <span class="at">Backward =</span> ch7_backward,</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Stepwise =</span> ch7_both)</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">Search =</span> <span class="fu">names</span>(ch7_searches),</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">Selected =</span> <span class="fu">vapply</span>(ch7_searches, <span class="cf">function</span>(m)</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste</span>(<span class="fu">attr</span>(<span class="fu">terms</span>(m), <span class="st">"term.labels"</span>), <span class="at">collapse =</span> <span class="st">", "</span>), <span class="fu">character</span>(<span class="dv">1</span>)),</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">AIC =</span> <span class="fu">vapply</span>(ch7_searches, AIC, <span class="fu">numeric</span>(<span class="dv">1</span>))), <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ch7_scope <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">lower =</span> <span class="fu">formula</span>(ch7_null), <span class="at">upper =</span> <span class="fu">formula</span>(ch7_full))</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>ch7_forward <span class="ot">&lt;-</span> <span class="fu">step</span>(ch7_null, <span class="at">scope =</span> ch7_scope,</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="st">"forward"</span>, <span class="at">trace =</span> <span class="dv">0</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>ch7_backward <span class="ot">&lt;-</span> <span class="fu">step</span>(ch7_full, <span class="at">scope =</span> ch7_scope,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="st">"backward"</span>, <span class="at">trace =</span> <span class="dv">0</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>ch7_both <span class="ot">&lt;-</span> <span class="fu">step</span>(ch7_null, <span class="at">scope =</span> ch7_scope,</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="st">"both"</span>, <span class="at">trace =</span> <span class="dv">0</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>ch7_searches <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">Forward =</span> ch7_forward, <span class="at">Backward =</span> ch7_backward,</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Stepwise =</span> ch7_both)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">Search =</span> <span class="fu">names</span>(ch7_searches),</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">Selected =</span> <span class="fu">vapply</span>(ch7_searches, <span class="cf">function</span>(m)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste</span>(<span class="fu">attr</span>(<span class="fu">terms</span>(m), <span class="st">"term.labels"</span>), <span class="at">collapse =</span> <span class="st">", "</span>), <span class="fu">character</span>(<span class="dv">1</span>)),</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">AIC =</span> <span class="fu">vapply</span>(ch7_searches, AIC, <span class="fu">numeric</span>(<span class="dv">1</span>))), <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1139,89 +1168,258 @@ Figure&nbsp;7.5: Cook’s distances for the log-volume model. Labels mark the th
 <p><code>step()</code> uses AIC by default; <code>k = log(nrow(ch7_train))</code> changes the penalty to the BIC-style rule. Fix the analysis rows across all candidates, especially when missing values occur. The trace uses <code>extractAIC()</code>, whose additive constant differs from <code>AIC()</code> for <code>lm</code>; compare scores computed with the same function. <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/step.html">Selection documentation</a>.</p>
 </div>
 <div id="exr-ch7-forward" class="theorem exercise">
-<p><span class="theorem-title"><strong>Exercise 7.3 (Take One Forward Step)</strong></span> The current AIC is 210. Adding <span class="math inline">\(x_2\)</span>, <span class="math inline">\(x_3\)</span>, or <span class="math inline">\(x_4\)</span> gives 207, 209, or 212. Which move is made? At the next step, the best available AIC is 207.4. Continue or stop? Would a different answer prove that one variable has no scientific role?</p>
+<p><span class="theorem-title"><strong>Exercise 7.4 (Take One Forward Step)</strong></span> The current AIC is 210. Adding <span class="math inline">\(x_2\)</span>, <span class="math inline">\(x_3\)</span>, or <span class="math inline">\(x_4\)</span> gives 207, 209, or 212. Which move is made? At the next step, the best available AIC is 207.4. Continue or stop? Would a different answer prove that one variable has no scientific role?</p>
 </div>
 <div id="sol-ch7-forward" class="proof solution">
-<p><span class="proof-title"><em>Solution 7.3</em>. </span>Add <span class="math inline">\(x_2\)</span>, producing the largest AIC decrease. Stop at the next step because 207.4 is worse than 207. This is a conditional search result under the chosen candidates and score, not proof that an excluded variable has no scientific role.</p>
+<p><span class="proof-title"><em>Solution 7.4</em>. </span>Add <span class="math inline">\(x_2\)</span>, producing the largest AIC decrease. Stop at the next step because 207.4 is worse than 207. This is a conditional search result under the chosen candidates and score, not proof that an excluded variable has no scientific role.</p>
 </div>
 </section>
 <section id="sec-ch7-regularization" class="level2" data-number="7.5">
 <h2 data-number="7.5" class="anchored" data-anchor-id="sec-ch7-regularization"><span class="header-section-number">7.5</span> Shrinkage: ridge, lasso, and elastic net</h2>
-<p>Subset selection makes discrete include-or-exclude decisions. <strong>Regularization</strong> instead penalizes coefficient size: it accepts some bias to reduce sensitivity to the sample. Lasso can also produce exact zeros.</p>
-<div id="def-ch7-penalized" class="theorem definition">
-<p><span class="theorem-title"><strong>Definition 7.4 (Penalized Least Squares)</strong></span> Let <span class="math inline">\(\mathbf x_i\)</span> contain <span class="math inline">\(d\)</span> candidate predictor columns, excluding the intercept, and let <span class="math inline">\(\boldsymbol\beta=(\beta_1,\ldots,\beta_d)\)</span>. On <span class="math inline">\(n_{\mathrm{tr}}\)</span> training observations, estimate the intercept and slopes by minimizing</p>
+<p>Subset selection drops a term completely or estimates its coefficient without a penalty. <strong>Regularization</strong> provides another way to control complexity: keep the candidate mean model, but penalize coefficient size when fitting it. This introduces bias and can reduce sampling variability and prediction error. Lasso and elastic net can also remove columns by assigning zero coefficients.</p>
+<p><strong>The regression model stays explicit.</strong> Let <span class="math inline">\(z_{ij}=(x_{ij}-\bar x_j)/s_j\)</span> denote training-standardized predictor columns. For all three methods, the working model is</p>
 <p><span class="math display">\[
-\frac{1}{2n_{\mathrm{tr}}}\sum_i(y_i-\beta_0-\mathbf x_i^\top\boldsymbol\beta)^2
-+\lambda\left\{\frac{1-\alpha}{2}\sum_j\beta_j^2
-+\alpha\sum_j|\beta_j|\right\}.
+Y_i=\beta_0+\sum_{j=1}^d\beta_jz_{ij}+\varepsilon_i,
+\qquad E(\varepsilon_i\mid\mathbf Z)=0.
 \]</span></p>
-<p>The intercept is not penalized. Ridge uses <span class="math inline">\(\alpha=0\)</span>, lasso uses <span class="math inline">\(\alpha=1\)</span>, and elastic net uses <span class="math inline">\(0&lt;\alpha&lt;1\)</span>. Larger <span class="math inline">\(\lambda\)</span> puts more weight on shrinkage. At <span class="math inline">\(\lambda=0\)</span> the objective is OLS; uniqueness still depends on the design rank.</p>
+<p>Here <span class="math inline">\(\mathbf Z\)</span> contains the standardized columns. One may additionally assume independent <span class="math inline">\(N(0,\sigma^2)\)</span> errors for a Gaussian model, but normality is not required to compute a squared-error fit. A log response or transformed predictor can be used if the preceding model checks justify it. The methods below change <strong>how the coefficients are estimated</strong>, not what a linear conditional mean means.</p>
+<p>For a training sample of size <span class="math inline">\(n_{\mathrm{tr}}\)</span>, define the common loss</p>
+<p><span class="math display">\[
+L(\beta_0,\boldsymbol\beta)=
+\frac{1}{2n_{\mathrm{tr}}}\sum_{i=1}^{n_{\mathrm{tr}}}
+\left(y_i-\beta_0-\sum_{j=1}^d\beta_jz_{ij}\right)^2,
+\qquad \boldsymbol\beta=(\beta_1,\ldots,\beta_d).
+\]</span></p>
+<p>In this section <span class="math inline">\(\boldsymbol\beta\)</span> contains the slopes; the intercept <span class="math inline">\(\beta_0\)</span> is written separately and is <strong>not penalized</strong>. The <span class="math inline">\(1/(2n_{\mathrm{tr}})\)</span> convention matches the Gaussian objective in <a href="https://glmnet.stanford.edu/articles/glmnet.html">the glmnet guide</a>; changing the loss scaling changes the numerical meaning of <span class="math inline">\(\lambda\)</span>.</p>
+<div id="def-ch7-ridge" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 7.5 (Ridge Regression)</strong></span> Ridge estimates the linear model by minimizing squared error plus a squared-coefficient penalty:</p>
+<p><span class="math display">\[
+(\hat\beta_0^{R},\hat{\boldsymbol\beta}^{R})
+=\operatorname*{arg\,min}_{\beta_0,\boldsymbol\beta}
+\left\{L(\beta_0,\boldsymbol\beta)+\frac{\lambda}{2}\sum_{j=1}^d\beta_j^2\right\},
+\qquad \lambda\geq0.
+\]</span></p>
+<p>Its fitted regression function is <span class="math inline">\(\hat m_R(\mathbf z)=\hat\beta_0^R+\sum_j\hat\beta_j^Rz_j\)</span>. Larger <span class="math inline">\(\lambda\)</span> discourages large slopes more strongly. Ridge generally retains every column; it is primarily a shrinkage method, not a variable-selection rule.</p>
 </div>
-<p><strong>Why can lasso give zeros?</strong> Near zero, a squared penalty becomes nearly flat, while an absolute-value penalty keeps a nonzero slope on each side of its corner. A small improvement in fit may therefore fail to move a lasso coefficient away from zero. Ridge usually reduces its magnitude continuously instead.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
+<p><strong>Why use it?</strong> If two sensors are strongly correlated, many coefficient combinations can produce similar predictions. OLS coefficients can then change sharply between samples. Ridge discourages extreme compensating coefficients and stabilizes the fit. With centred columns and response, its slope estimate is</p>
+<p><span class="math display">\[
+\hat{\boldsymbol\beta}^{R}=
+(\mathbf Z^\top\mathbf Z+n_{\mathrm{tr}}\lambda\mathbf I_d)^{-1}
+\mathbf Z^\top\mathbf y_c,
+\qquad \mathbf y_c=\mathbf y-\bar y\mathbf1.
+\]</span></p>
+<p>For <span class="math inline">\(\lambda&gt;0\)</span>, the inverse exists even with linearly dependent columns or <span class="math inline">\(d\geq n_{\mathrm{tr}}\)</span>. This makes estimation possible; it does not make unsupported scientific effects identifiable from the data.</p>
+<div id="def-ch7-lasso" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 7.6 (Lasso Regression)</strong></span> Lasso uses the same linear model with an absolute-value penalty:</p>
+<p><span class="math display">\[
+(\hat\beta_0^{L},\hat{\boldsymbol\beta}^{L})
+=\operatorname*{arg\,min}_{\beta_0,\boldsymbol\beta}
+\left\{L(\beta_0,\boldsymbol\beta)+\lambda\sum_{j=1}^d|\beta_j|\right\}.
+\]</span></p>
+<p>Its fitted regression function is <span class="math inline">\(\hat m_L(\mathbf z)=\hat\beta_0^L+\sum_{j\in\hat S_L}\hat\beta_j^Lz_j\)</span>, where <span class="math inline">\(\hat S_L=\{j:\hat\beta_j^L\ne0\}\)</span>. The corner of <span class="math inline">\(|\beta_j|\)</span> at zero permits exact zero estimates: lasso performs shrinkage and column selection together.</p>
+</div>
+<p><strong>Why use it?</strong> A sparse rule can be easier to deploy when collecting many measurements is costly. However, correlated predictors can compete for the same signal: a small sample change may alter which one is retained. A zero coefficient is an outcome of this penalty and dataset, not proof that the variable is scientifically irrelevant.</p>
+<div id="def-ch7-penalized" class="theorem definition">
+<p><span class="theorem-title"><strong>Definition 7.7 (Elastic Net Regression)</strong></span> Elastic net combines the ridge and lasso penalties in the same linear model:</p>
+<p><span class="math display">\[
+\begin{aligned}
+(\hat\beta_0^{E},\hat{\boldsymbol\beta}^{E})
+&amp;=\operatorname*{arg\,min}_{\beta_0,\boldsymbol\beta}
+\biggl\{L(\beta_0,\boldsymbol\beta)\\
+&amp;\qquad+\lambda\left[\frac{1-\alpha}{2}\sum_{j=1}^d\beta_j^2
++\alpha\sum_{j=1}^d|\beta_j|\right]\biggr\},
+\qquad 0&lt;\alpha&lt;1.
+\end{aligned}
+\]</span></p>
+<p>Its fitted regression function is <span class="math inline">\(\hat m_E(\mathbf z)=\hat\beta_0^E+\sum_{j\in\hat S_E}\hat\beta_j^Ez_j\)</span>, where <span class="math inline">\(\hat S_E=\{j:\hat\beta_j^E\ne0\}\)</span>. The absolute-value part can remove columns, while the squared part stabilizes coefficients of correlated columns.</p>
+</div>
+<p><strong>Two tuning parameters, two roles.</strong> <span class="math inline">\(\lambda\)</span> controls the overall penalty strength; <span class="math inline">\(\alpha\)</span> controls its mixture. At <span class="math inline">\(\alpha=0\)</span> the objective is ridge, and at <span class="math inline">\(\alpha=1\)</span> it is lasso. At <span class="math inline">\(\lambda=0\)</span> all reduce to OLS, with uniqueness depending on design rank. Here <span class="math inline">\(\alpha\)</span> is a mixing parameter, <strong>not a significance level</strong>. Elastic net can retain related predictors together, but it does not guarantee selection of the true variables.</p>
+<div id="exm-ch7-shrinkage" class="theorem example">
+<p><span class="theorem-title"><strong>Example 7.5 (See How a Small Coefficient Becomes Zero)</strong></span> Consider centred, mutually orthogonal predictor columns scaled so that <span class="math inline">\(\mathbf Z^\top\mathbf Z/n_{\mathrm{tr}}=\mathbf I_d\)</span>. Let <span class="math inline">\(b_j\)</span> be a slope from unpenalized OLS. In this special case, each slope is fitted separately:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\text{Ridge:}\quad &amp;\hat\beta_j^R=\frac{b_j}{1+\lambda},\\
+\text{Lasso:}\quad &amp;\hat\beta_j^L=\operatorname{sign}(b_j)(|b_j|-\lambda)_+,\\
+\text{Elastic net:}\quad &amp;\hat\beta_j^E=
+\frac{\operatorname{sign}(b_j)(|b_j|-\lambda\alpha)_+}{1+\lambda(1-\alpha)}.
+\end{aligned}
+\]</span></p>
+<p>Here <span class="math inline">\((u)_+=\max(u,0)\)</span>. Thus ridge divides continuously; lasso first subtracts a threshold from the magnitude and sets small values to zero; elastic net combines thresholding with division. <strong>These separate-coordinate formulas require the orthogonal design.</strong> They are not formulas for fitting the correlated sensor data below.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ch7-shrinkage-rules" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Three panels plot a penalized slope against its OLS value. Ridge is a shallower straight line; lasso and elastic net have flat segments at zero." data-fig-pos="H">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ch7-shrinkage-rules-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="07_files/figure-html/fig-ch7-shrinkage-rules-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Three panels plot a penalized slope against its OLS value. Ridge is a shallower straight line; lasso and elastic net have flat segments at zero." width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-shrinkage-rules-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.6: An orthogonal-design illustration with lambda = 0.5 and elastic-net alpha = 0.5. Dashed lines show no shrinkage. The flat portions at zero show how lasso and elastic net remove small coefficients; ridge continuously shrinks them.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="exr-ch7-small-slope" class="theorem exercise">
+<p><span class="theorem-title"><strong>Exercise 7.5 (Which Method Removes This Column?)</strong></span> In the orthogonal example, an OLS slope is <span class="math inline">\(b_j=0.3\)</span>. Use <span class="math inline">\(\lambda=0.5\)</span> for all methods and <span class="math inline">\(\alpha=0.5\)</span> for elastic net. Find the three penalized slopes. Why are the lasso and elastic-net answers different?</p>
+</div>
+<div id="sol-ch7-small-slope" class="proof solution">
+<p><span class="proof-title"><em>Solution 7.5</em>. </span>Ridge gives <span class="math inline">\(0.3/1.5=0.2\)</span>; lasso gives <span class="math inline">\((0.3-0.5)_+=0\)</span>; elastic net gives <span class="math inline">\((0.3-0.25)/1.25=0.04\)</span>. Elastic net uses threshold <span class="math inline">\(\lambda\alpha=0.25\)</span>, then applies ridge shrinkage. Equal <span class="math inline">\(\lambda\)</span> does not mean equal shrinkage across methods; tune each method for the intended prediction task.</p>
+</div>
+<p><strong>Scale using training data.</strong> Converting metres to millimetres divides the corresponding slope by 1,000 without changing predictions, but it changes either penalty. Standardization makes the penalty comparable across units. With <code>standardize = TRUE</code>, <code>glmnet</code> scales within each fit, including CV training folds, and returns coefficients and predictions on the original input scale. Do not standardize the entire dataset before splitting it. Ordinary lasso/elastic net select columns; they do not automatically retain a whole factor or preserve interaction hierarchy.</p>
+<p><strong>Choose the penalty before opening the test set.</strong> On the 120 sensor training observations, use the same five folds for each candidate:</p>
+<ol type="1">
+<li>For each fixed <span class="math inline">\(\alpha\)</span>, fit a sequence of <span class="math inline">\(\lambda\)</span> values using four folds and score the fifth; repeat over all folds.</li>
+<li><code>lambda.min</code> minimizes average validation MSE. <code>lambda.1se</code> is the largest <span class="math inline">\(\lambda\)</span> within one estimated standard error of that minimum, favouring more shrinkage. This is a practical rule, not a hypothesis test.</li>
+<li>For elastic net, compare a prespecified grid <span class="math inline">\(\alpha\in\{0.25,0.5,0.75\}\)</span> using each curve’s minimum CV MSE. Choose the best <span class="math inline">\(\alpha\)</span>, then use its <code>lambda.1se</code>. This is our stated tuning rule, not a unique definition of an optimal elastic net.</li>
+</ol>
+<p>A single <code>cv.glmnet()</code> call tunes <span class="math inline">\(\lambda\)</span> at a <strong>fixed</strong> <span class="math inline">\(\alpha\)</span>; it does not choose both. Reusing the same folds makes comparisons less sensitive to different random partitions. The selected CV score is a tuning score, not an unbiased final performance estimate. <a href="https://glmnet.stanford.edu/reference/cv.glmnet.html">CV documentation</a>.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>ch7_xtrain <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(ch7_train[<span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)])</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>ch7_xtest <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(ch7_test[<span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)])</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>ch7_cv_fit <span class="ot">&lt;-</span> <span class="cf">function</span>(a) <span class="fu">cv.glmnet</span>(ch7_xtrain, ch7_train<span class="sc">$</span>y,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="st">"gaussian"</span>, <span class="at">alpha =</span> a, <span class="at">foldid =</span> ch7_folds,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span>, <span class="at">type.measure =</span> <span class="st">"mse"</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>ch7_ridge <span class="ot">&lt;-</span> <span class="fu">ch7_cv_fit</span>(<span class="dv">0</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>ch7_lasso <span class="ot">&lt;-</span> <span class="fu">ch7_cv_fit</span>(<span class="dv">1</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>ch7_alpha_grid <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>ch7_enet_grid <span class="ot">&lt;-</span> <span class="fu">lapply</span>(ch7_alpha_grid, ch7_cv_fit)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>ch7_enet_mse <span class="ot">&lt;-</span> <span class="fu">vapply</span>(ch7_enet_grid, <span class="cf">function</span>(m) <span class="fu">min</span>(m<span class="sc">$</span>cvm), <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>ch7_alpha_index <span class="ot">&lt;-</span> <span class="fu">which.min</span>(ch7_enet_mse)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>ch7_alpha <span class="ot">&lt;-</span> ch7_alpha_grid[ch7_alpha_index]</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>ch7_enet <span class="ot">&lt;-</span> ch7_enet_grid[[ch7_alpha_index]]</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Alpha =</span> ch7_alpha_grid,</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">Minimum_CV_MSE =</span> ch7_enet_mse,</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">Selected =</span> <span class="fu">seq_along</span>(ch7_alpha_grid) <span class="sc">==</span> ch7_alpha_index),</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Alpha"</span>, <span class="st">"Minimum CV MSE"</span>, <span class="st">"Selected"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th>Method</th>
-<th>Main behavior</th>
-<th>Interpretation</th>
+<th style="text-align: right;">Alpha</th>
+<th style="text-align: right;">Minimum CV MSE</th>
+<th style="text-align: left;">Selected</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Ridge</td>
-<td>Shrinks slopes, usually without exact zeros.</td>
-<td>Useful when many correlated columns carry information.</td>
+<td style="text-align: right;">0.25</td>
+<td style="text-align: right;">3.889</td>
+<td style="text-align: left;">FALSE</td>
 </tr>
 <tr class="even">
-<td>Lasso</td>
-<td>Can set slopes exactly to zero.</td>
-<td>A sparse prediction rule; correlated predictors can compete for selection.</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">3.853</td>
+<td style="text-align: left;">FALSE</td>
 </tr>
 <tr class="odd">
-<td>Elastic net</td>
-<td>Combines both penalties.</td>
-<td>Can retain correlated predictors together; both <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\lambda\)</span> need a selection rule.</td>
+<td style="text-align: right;">0.75</td>
+<td style="text-align: right;">3.827</td>
+<td style="text-align: left;">TRUE</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Why scaling matters.</strong> Converting a predictor from meters to millimeters changes its coefficient by a factor of 1,000. Standardize predictor columns using training data so the penalty does not favor a unit convention. In <code>glmnet</code>, <code>standardize = TRUE</code> performs this within each fit, including CV training folds, while predictions use the original input units. An ordinary lasso selects columns; it does not automatically preserve an entire factor or interaction hierarchy. <a href="https://glmnet.stanford.edu/reference/glmnet.html">Package documentation</a>.</p>
-<p><strong>Choose the penalty on training data.</strong> Divide the 120 training observations into five folds. Fit on four and score predictions on the fifth, repeating for all folds. <code>lambda.min</code> minimizes average CV error; <code>lambda.1se</code> is the largest penalty within one estimated standard error of the minimum. The latter is a simplicity rule, not a hypothesis test. A single <code>cv.glmnet()</code> call tunes <span class="math inline">\(\lambda\)</span> at a fixed <span class="math inline">\(\alpha\)</span>. <a href="https://glmnet.stanford.edu/reference/cv.glmnet.html">CV documentation</a>.</p>
-<p>Install <code>glmnet</code> once with <code>install.packages("glmnet")</code> if needed. Continue the same sensor example:</p>
+</div>
+</div>
+<p>The selected elastic-net mixture is <span class="math inline">\(\alpha=\)</span> <strong>0.75</strong>. Each CV object also stores fits to all 120 training observations; use the fit at the selected penalty. For example, <code>predict(ch7_enet, newx = ch7_xtest, s = "lambda.1se")</code> uses that fitted rule on new sensor readings.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ch7_penalty_fits <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">Ridge =</span> ch7_ridge, <span class="at">Lasso =</span> ch7_lasso,</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Elastic_net =</span> ch7_enet)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>ch7_coef <span class="ot">&lt;-</span> <span class="fu">vapply</span>(ch7_penalty_fits, <span class="cf">function</span>(m)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.numeric</span>(<span class="fu">coef</span>(m, <span class="at">s =</span> <span class="st">"lambda.1se"</span>)), <span class="fu">numeric</span>(<span class="dv">9</span>))</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>ch7_coef_display <span class="ot">&lt;-</span> <span class="fu">apply</span>(ch7_coef, <span class="dv">2</span>, <span class="cf">function</span>(b)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ifelse</span>(b <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"0"</span>, <span class="fu">sub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">.?0+$"</span>, <span class="st">""</span>, <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, b))))</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Term =</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)),</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  ch7_coef_display), <span class="at">row.names =</span> <span class="cn">FALSE</span>, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="st">"r"</span>, <span class="st">"r"</span>, <span class="st">"r"</span>),</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Term"</span>, <span class="st">"Ridge"</span>, <span class="st">"Lasso"</span>, <span class="st">"Elastic net"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: Matrix</code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Term</th>
+<th style="text-align: right;">Ridge</th>
+<th style="text-align: right;">Lasso</th>
+<th style="text-align: right;">Elastic net</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Intercept</td>
+<td style="text-align: right;">4.745</td>
+<td style="text-align: right;">4.74</td>
+<td style="text-align: right;">4.742</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">x1</td>
+<td style="text-align: right;">2.424</td>
+<td style="text-align: right;">2.562</td>
+<td style="text-align: right;">2.559</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">x2</td>
+<td style="text-align: right;">-1.372</td>
+<td style="text-align: right;">-1.445</td>
+<td style="text-align: right;">-1.454</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">x3</td>
+<td style="text-align: right;">1.305</td>
+<td style="text-align: right;">1.267</td>
+<td style="text-align: right;">1.281</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">x4</td>
+<td style="text-align: right;">-0.258</td>
+<td style="text-align: right;">-0.078</td>
+<td style="text-align: right;">-0.114</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">x5</td>
+<td style="text-align: right;">-0.013</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">x6</td>
+<td style="text-align: right;">0.07</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">x7</td>
+<td style="text-align: right;">-0.09</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">x8</td>
+<td style="text-align: right;">0.069</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loaded glmnet 5.1</code></pre>
 </div>
-<details class="code-fold">
-<summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>ch7_xtrain <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(ch7_train[<span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)])</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>ch7_xtest <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(ch7_test[<span class="fu">paste0</span>(<span class="st">"x"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)])</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>ch7_ridge <span class="ot">&lt;-</span> <span class="fu">cv.glmnet</span>(ch7_xtrain, ch7_train<span class="sc">$</span>y,</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="dv">0</span>, <span class="at">foldid =</span> ch7_folds, <span class="at">standardize =</span> <span class="cn">TRUE</span>, <span class="at">type.measure =</span> <span class="st">"mse"</span>)</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>ch7_lasso <span class="ot">&lt;-</span> <span class="fu">cv.glmnet</span>(ch7_xtrain, ch7_train<span class="sc">$</span>y,</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="dv">1</span>, <span class="at">foldid =</span> ch7_folds, <span class="at">standardize =</span> <span class="cn">TRUE</span>, <span class="at">type.measure =</span> <span class="st">"mse"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-</div>
+<p>These are coefficients in the <strong>original sensor units</strong>, so read each column as <span class="math inline">\(\hat y_M=\hat b_{0,M}+\sum_{j=1}^8\hat b_{j,M}x_j\)</span>, for <span class="math inline">\(M\in\{R,L,E\}\)</span>. Zero entries remove columns from that prediction rule. The full-precision coefficients, not the rounded table, are used for prediction. Compare how the three methods handle the known signal <span class="math inline">\(x_1,x_2,x_3\)</span> and the five noise columns.</p>
+<p><strong>Read the path and the validation curve.</strong> The coefficient path shows how the fitted rule changes as the penalty increases. The CV curve asks which penalty predicts held-out training folds well; the path alone cannot answer that question.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-ch7-lasso-path" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Lasso coefficient paths against lambda on a log scale; x1, x2, and x3 are colored and the other five predictors are gray. More paths become zero at larger penalties.">
+<div id="fig-ch7-lasso-path" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Lasso coefficient paths against lambda on a log scale; x1, x2, and x3 are colored and the other five predictors are gray. More paths become zero at larger penalties." data-fig-pos="H">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ch7-lasso-path-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="07_files/figure-html/fig-ch7-lasso-path-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Lasso coefficient paths against lambda on a log scale; x1, x2, and x3 are colored and the other five predictors are gray. More paths become zero at larger penalties." width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-lasso-path-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.6: Lasso coefficient paths from the sensor training data. Larger penalties move slopes toward zero. The three true signal predictors are colored; the other five are gray. A path displays fitted coefficients, not confidence intervals.
+Figure&nbsp;7.7: Lasso coefficient paths from the sensor training data. Larger penalties move slopes toward zero. The three true signal predictors are colored; the other five are gray. A path displays fitted coefficients, not confidence intervals.
 </figcaption>
 </figure>
 </div>
@@ -1229,44 +1427,44 @@ Figure&nbsp;7.6: Lasso coefficient paths from the sensor training data. Larger p
 </div>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-ch7-lasso-cv" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="H" alt="Cross-validation mean squared error for lasso versus lambda, with standard-error bars and vertical lines for lambda.min and lambda.1se.">
+<div id="fig-ch7-lasso-cv" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Cross-validation mean squared error for lasso versus lambda, with standard-error bars and vertical lines for lambda.min and lambda.1se." data-fig-pos="H">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ch7-lasso-cv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="07_files/figure-html/fig-ch7-lasso-cv-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Cross-validation mean squared error for lasso versus lambda, with standard-error bars and vertical lines for lambda.min and lambda.1se." width="624">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-lasso-cv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.7: Five-fold CV within the sensor training set. Bars show plus or minus one estimated CV standard error, not confidence intervals for individual responses. Dashed: minimum-error lambda. Solid: the more regularized one-SE choice used below.
+Figure&nbsp;7.8: Five-fold CV within the sensor training set. Bars show plus or minus one estimated CV standard error, not confidence intervals for individual responses. Dashed: minimum-error lambda. Solid: the more regularized one-SE choice used below.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p><strong>From one column to many.</strong> Ridge remains computable with more columns than observations; ordinary full-model OLS then cannot have full column rank. Lasso can give sparse fits in that setting, but it does not guarantee recovery of the true variables. Here we focus on a modest candidate set so the classical searches and penalized fits are directly comparable.</p>
 </section>
 <section id="sec-ch7-validation" class="level2" data-number="7.6">
 <h2 data-number="7.6" class="anchored" data-anchor-id="sec-ch7-validation"><span class="header-section-number">7.6</span> Evaluate the complete procedure</h2>
-<p>Our choices are now fixed: AIC for the three subset searches and the one-SE rule for ridge and lasso. Evaluate all five on the <strong>same untouched 40 observations</strong>. Add full-model OLS and a training-mean baseline for context. For <span class="math inline">\(m\)</span> test observations, <span class="math inline">\(\mathrm{RMSE}=\{m^{-1}\sum_i(y_i-\hat y_i)^2\}^{1/2}\)</span>, in response units.</p>
+<p>Our choices are now fixed: AIC for the three subset searches, the one-SE rule for ridge and lasso, and the stated <span class="math inline">\(\alpha\)</span>-grid/one-SE rule for elastic net. Evaluate these six procedures on the <strong>same untouched 40 observations</strong>. Add full-model OLS and a training-mean baseline for context. For <span class="math inline">\(m\)</span> test observations, <span class="math inline">\(\mathrm{RMSE}=\{m^{-1}\sum_i(y_i-\hat y_i)^2\}^{1/2}\)</span>, in response units.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>ch7_predictions <span class="ot">&lt;-</span> <span class="fu">cbind</span>(</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Baseline =</span> <span class="fu">rep</span>(<span class="fu">mean</span>(ch7_train<span class="sc">$</span>y), <span class="fu">nrow</span>(ch7_test)),</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Full_OLS =</span> <span class="fu">predict</span>(ch7_full, <span class="at">newdata =</span> ch7_test),</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Forward =</span> <span class="fu">predict</span>(ch7_forward, <span class="at">newdata =</span> ch7_test),</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Backward =</span> <span class="fu">predict</span>(ch7_backward, <span class="at">newdata =</span> ch7_test),</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Stepwise =</span> <span class="fu">predict</span>(ch7_both, <span class="at">newdata =</span> ch7_test),</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Ridge =</span> <span class="fu">as.numeric</span>(<span class="fu">predict</span>(ch7_ridge, <span class="at">newx =</span> ch7_xtest, <span class="at">s =</span> <span class="st">"lambda.1se"</span>)),</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">Lasso =</span> <span class="fu">as.numeric</span>(<span class="fu">predict</span>(ch7_lasso, <span class="at">newx =</span> ch7_xtest, <span class="at">s =</span> <span class="st">"lambda.1se"</span>)))</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Method =</span> <span class="fu">colnames</span>(ch7_predictions),</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">Test_RMSE =</span> <span class="fu">sqrt</span>(<span class="fu">colMeans</span>((ch7_predictions <span class="sc">-</span> ch7_test<span class="sc">$</span>y)<span class="sc">^</span><span class="dv">2</span>))),</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ch7_predictions <span class="ot">&lt;-</span> <span class="fu">cbind</span>(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Baseline =</span> <span class="fu">rep</span>(<span class="fu">mean</span>(ch7_train<span class="sc">$</span>y), <span class="fu">nrow</span>(ch7_test)),</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Full_OLS =</span> <span class="fu">predict</span>(ch7_full, <span class="at">newdata =</span> ch7_test),</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Forward =</span> <span class="fu">predict</span>(ch7_forward, <span class="at">newdata =</span> ch7_test),</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Backward =</span> <span class="fu">predict</span>(ch7_backward, <span class="at">newdata =</span> ch7_test),</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Stepwise =</span> <span class="fu">predict</span>(ch7_both, <span class="at">newdata =</span> ch7_test),</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Ridge =</span> <span class="fu">as.numeric</span>(<span class="fu">predict</span>(ch7_ridge, <span class="at">newx =</span> ch7_xtest, <span class="at">s =</span> <span class="st">"lambda.1se"</span>)),</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">Lasso =</span> <span class="fu">as.numeric</span>(<span class="fu">predict</span>(ch7_lasso, <span class="at">newx =</span> ch7_xtest, <span class="at">s =</span> <span class="st">"lambda.1se"</span>)),</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Elastic_net =</span> <span class="fu">as.numeric</span>(<span class="fu">predict</span>(ch7_enet, <span class="at">newx =</span> ch7_xtest, <span class="at">s =</span> <span class="st">"lambda.1se"</span>)))</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Method =</span> <span class="fu">gsub</span>(<span class="st">"_"</span>, <span class="st">" "</span>, <span class="fu">colnames</span>(ch7_predictions)),</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">Test_RMSE =</span> <span class="fu">sqrt</span>(<span class="fu">colMeans</span>((ch7_predictions <span class="sc">-</span> ch7_test<span class="sc">$</span>y)<span class="sc">^</span><span class="dv">2</span>))),</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>, <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Method"</span>, <span class="st">"Test RMSE"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
 <th style="text-align: left;">Method</th>
-<th style="text-align: right;">Test_RMSE</th>
+<th style="text-align: right;">Test RMSE</th>
 </tr>
 </thead>
 <tbody>
@@ -1275,7 +1473,7 @@ Figure&nbsp;7.7: Five-fold CV within the sensor training set. Bars show plus or 
 <td style="text-align: right;">2.972</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Full_OLS</td>
+<td style="text-align: left;">Full OLS</td>
 <td style="text-align: right;">2.182</td>
 </tr>
 <tr class="odd">
@@ -1298,61 +1496,15 @@ Figure&nbsp;7.7: Five-fold CV within the sensor training set. Bars show plus or 
 <td style="text-align: left;">Lasso</td>
 <td style="text-align: right;">2.131</td>
 </tr>
-</tbody>
-</table>
-</div>
-<details class="code-fold">
-<summary>Show R code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>ch7_lasso_coef <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">coef</span>(ch7_lasso, <span class="at">s =</span> <span class="st">"lambda.1se"</span>))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>]</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(<span class="at">Predictor =</span> <span class="fu">names</span>(ch7_lasso_coef),</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Lasso_coefficient =</span> <span class="fu">unname</span>(ch7_lasso_coef)), <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<thead>
-<tr class="header">
-<th style="text-align: left;">Predictor</th>
-<th style="text-align: right;">Lasso_coefficient</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">x1</td>
-<td style="text-align: right;">2.562</td>
-</tr>
 <tr class="even">
-<td style="text-align: left;">x2</td>
-<td style="text-align: right;">-1.445</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">x3</td>
-<td style="text-align: right;">1.267</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">x4</td>
-<td style="text-align: right;">-0.078</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">x5</td>
-<td style="text-align: right;">0.000</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">x6</td>
-<td style="text-align: right;">0.000</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">x7</td>
-<td style="text-align: right;">0.000</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">x8</td>
-<td style="text-align: right;">0.000</td>
+<td style="text-align: left;">Elastic net</td>
+<td style="text-align: right;">2.127</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<p>Ridge and lasso have slightly smaller test RMSE than full OLS on this split. Lasso keeps a small coefficient for the noise predictor <span class="math inline">\(x_4\)</span>, while setting <span class="math inline">\(x_5,\ldots,x_8\)</span> to zero. Equal search results are possible, and no method must win on every split. Report the comparison without revising the methods after looking at test outcomes. If choosing a winning method from this table, its same test error is no longer an independent final assessment of that choice.</p>
+<p>Read this table together with the coefficient table: fewer retained columns and lower test error are different goals. A penalized model may retain a noise predictor or shrink a true signal. Equal search results are possible, and no method must win on every split. Report the comparison without revising the methods after looking at test outcomes. If choosing a winning method from this table, its same test error is no longer an independent final assessment of that choice.</p>
 <div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1368,10 +1520,10 @@ Figure&nbsp;7.7: Five-fold CV within the sensor training set. Bars show plus or 
 </div>
 <p>Prediction and inference answer different questions. A selected coefficient is not automatically a scientific discovery; ordinary fixed-model <span class="math inline">\(t\)</span> tests and confidence intervals do not automatically remain valid after selection or lasso followed by OLS refitting. Likewise, a good predictive score does not establish a causal effect.</p>
 <div id="exr-ch7-leakage" class="theorem exercise">
-<p><span class="theorem-title"><strong>Exercise 7.4 (Find the Leakage)</strong></span> A student selects predictors using all 160 outcomes, then splits the observations and reports test RMSE. Another student reserves 40 observations first and runs selection only on the other 120. Which analysis gives an honest held-out assessment of its fitted procedure? Does that make its selected-coefficient p-values valid?</p>
+<p><span class="theorem-title"><strong>Exercise 7.6 (Find the Leakage)</strong></span> A student selects predictors using all 160 outcomes, then splits the observations and reports test RMSE. Another student reserves 40 observations first and runs selection only on the other 120. Which analysis gives an honest held-out assessment of its fitted procedure? Does that make its selected-coefficient p-values valid?</p>
 </div>
 <div id="sol-ch7-leakage" class="proof solution">
-<p><span class="proof-title"><em>Solution 7.4</em>. </span>Only the second keeps test outcomes out of model development, provided the test results are not used to revise the procedure. That separation assesses prediction; it does not repair ordinary post-selection coefficient inference.</p>
+<p><span class="proof-title"><em>Solution 7.6</em>. </span>Only the second keeps test outcomes out of model development, provided the test results are not used to revise the procedure. That separation assesses prediction; it does not repair ordinary post-selection coefficient inference.</p>
 </div>
 </section>
 <section id="sec-ch7-summary" class="level2" data-number="7.7">
@@ -1392,26 +1544,31 @@ Figure&nbsp;7.7: Five-fold CV within the sensor training set. Bars show plus or 
 </thead>
 <tbody>
 <tr class="odd">
+<td style="text-align: center;">Mean, spread, or distribution assumptions are doubtful</td>
+<td style="text-align: center;">Identify which feature fails using the design and targeted diagnostics.</td>
+<td style="text-align: center;">Normality and constant variance are different; transformations do not fix dependence.</td>
+</tr>
+<tr class="even">
 <td style="text-align: center;">Curved mean, roughly constant spread</td>
 <td style="text-align: center;">A predictor transformation or suitable polynomial terms; keep <span class="math inline">\(Y\)</span> in its units when appropriate.</td>
 <td style="text-align: center;">Does the residual mean pattern disappear? Interpret the new predictor scale.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: center;">Positive responses with proportional variation</td>
 <td style="text-align: center;">A log response, possibly together with transformed predictors.</td>
 <td style="text-align: center;">Recheck shape and spread; distinguish the original-scale mean from an exponentiated log prediction.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">Many plausible candidate terms</td>
 <td style="text-align: center;">Forward, backward, or stepwise selection with a stated score and required terms.</td>
 <td style="text-align: center;">Preserve factors and hierarchy; selected terms and ordinary p-values are not automatic discoveries.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: center;">Unstable estimates or many correlated columns</td>
-<td style="text-align: center;">Ridge for shrinkage; lasso when sparsity is also useful; consider elastic net.</td>
+<td style="text-align: center;">Ridge shrinks; lasso also selects; elastic net combines shrinkage and selection for correlated columns.</td>
 <td style="text-align: center;">Scale within training data and tune penalties by CV.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">A final claim about prediction</td>
 <td style="text-align: center;">Evaluate the entire fixed procedure on untouched observations.</td>
 <td style="text-align: center;">Use the same target and units; learn transformations and selection within training folds.</td>
@@ -1425,25 +1582,27 @@ Figure&nbsp;7.7: Five-fold CV within the sensor training set. Bars show plus or 
 <section id="sec-ch7-practice" class="level2" data-number="7.8">
 <h2 data-number="7.8" class="anchored" data-anchor-id="sec-ch7-practice"><span class="header-section-number">7.8</span> Practice Problems</h2>
 <div id="exr-ch7-practice" class="theorem exercise">
-<p><span class="theorem-title"><strong>Exercise 7.5 (Practice: Specify, Select, and Assess)</strong></span> &nbsp;</p>
+<p><span class="theorem-title"><strong>Exercise 7.7 (Practice: Specify, Select, and Assess)</strong></span> &nbsp;</p>
 <ol type="1">
 <li>A positive outcome grows approximately exponentially with time. Write a multiplicative-error model and its log-linear form. Explain why an additive original-scale error would change the argument.</li>
 <li>A quadratic mean fits better than a straight line. Does it cease to be a linear regression model? State the columns of its design matrix.</li>
 <li>A backward search considers removing a three-level factor. How many coefficient restrictions are imposed when there is an intercept and no interaction? Why should its indicators be treated together?</li>
 <li>Explain why ridge is not generally a variable-selection method and why lasso selections can vary among correlated predictors.</li>
 <li>Compare <code>lambda.min</code> with <code>lambda.1se</code>. Where should the folds, transformation choices, and final test observations enter the procedure?</li>
-<li>A tree exceeds the <span class="math inline">\(4/n\)</span> Cook’s-distance guide. A student deletes it and runs forward selection. Explain what is missing from this procedure and propose a sensitivity analysis.</li>
+<li>Errors are independent and normal, with mean zero and variance <span class="math inline">\(\sigma^2x_i^2\)</span> for <span class="math inline">\(x_i&gt;0\)</span>. Which assumption fails? Why is a normal Q-Q plot alone insufficient to diagnose it?</li>
+<li>Write the elastic-net regression model and objective for four standardized predictors. Explain which parameters are estimated from the data, which are tuned, and why <span class="math inline">\(\alpha=0.5\)</span> is not a 50% test level.</li>
 </ol>
 </div>
 <div id="sol-ch7-practice" class="proof solution">
-<p><span class="proof-title"><em>Solution 7.5</em>. </span></p>
+<p><span class="proof-title"><em>Solution 7.7</em>. </span></p>
 <ol type="1">
 <li><span class="math inline">\(Y=a\exp(bt)\exp(\varepsilon)\)</span> gives <span class="math inline">\(\log Y=\log a+bt+\varepsilon\)</span>. Logging <span class="math inline">\(a\exp(bt)+\varepsilon\)</span> does not yield this additive log-error structure.</li>
 <li>It remains linear in the coefficients; the columns are <span class="math inline">\(\mathbf 1\)</span>, <span class="math inline">\(\mathbf x\)</span>, and the vector of squared predictor values.</li>
 <li>Two restrictions. The two columns represent one factor; selecting them separately makes the search depend on the chosen reference coding.</li>
 <li>Ridge usually leaves all slopes nonzero. Correlated predictors offer similar information, so small sample changes can alter which one lasso retains.</li>
 <li><code>lambda.min</code> minimizes CV error; <code>lambda.1se</code> prefers the largest penalty within one estimated SE of that minimum. Choose transformations and tune models within training data/folds, then evaluate the fixed procedure on an untouched test set.</li>
-<li>A screening flag does not establish an error. Check the measurement and model specification, compare scientifically relevant estimates and predictions with and without the tree, and examine whether the selected terms change. Explain any exclusion and retain an honest test set.</li>
+<li>Constant variance fails when the predictor values vary. Normality at each predictor value does not imply equal spread. Inspect residual spread against the predictor or fitted values; a pooled Q-Q plot does not isolate the source of a variance pattern.</li>
+<li>Use <span class="math inline">\(Y_i=\beta_0+\sum_{j=1}^4\beta_jz_{ij}+\varepsilon_i\)</span>, with conditional error mean zero. Minimize <span class="math inline">\(L+\lambda\{(1-\alpha)\sum_{j=1}^4\beta_j^2/2+\alpha\sum_{j=1}^4|\beta_j|\}\)</span>. Estimate the intercept and four slopes for each tuning choice; select <span class="math inline">\(\lambda\)</span> and <span class="math inline">\(\alpha\)</span> within training data. At <span class="math inline">\(\alpha=0.5\)</span>, the objective mixes squared and absolute-value penalties; it does not define a test.</li>
 </ol>
 </div>
 
