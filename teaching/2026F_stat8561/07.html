@@ -645,7 +645,7 @@ Figure&nbsp;7.2: The same 15 positive responses on original and natural-log scal
 </section>
 <section id="sec-ch7-assumptions" class="level2" data-number="7.2">
 <h2 data-number="7.2" class="anchored" data-anchor-id="sec-ch7-assumptions"><span class="header-section-number">7.2</span> What assumptions are we trying to achieve?</h2>
-<p>The pictures in Section 7.1 suggest changing the model, but <strong>which part of the model needs to change?</strong> Separate the mean, variance, dependence, and distribution assumptions before choosing a transformation.</p>
+<p>Section 7.1 showed patterns that a model can miss. <strong>Which part of the model needs to change?</strong> Use the four assumptions to guide the diagnosis.</p>
 <div id="def-ch7-assumptions" class="theorem definition">
 <p><span class="theorem-title"><strong>Definition 7.1 (Assumptions of the Normal Linear Model)</strong></span> Using the notation from <a href="./03_OLS_inference.html#def-normal-linear-model">Chapter 3</a>, write</p>
 <p><span class="math display">\[
@@ -654,66 +654,308 @@ Y_i=\beta_0+\sum_{j=1}^{d}\beta_jx_{ij}+\varepsilon_i,
 \]</span></p>
 <p>There are <span class="math inline">\(d\)</span> predictor columns and <span class="math inline">\(p=d+1\)</span> coefficients, including the intercept. A column may be an original predictor, a transformation, or an interaction. Conditional on the design <span class="math inline">\(\mathbf X\)</span>, distinguish:</p>
 <ol type="1">
-<li><strong>Correct mean:</strong> <span class="math inline">\(E(\varepsilon_i\mid\mathbf X)=0\)</span>, so <span class="math inline">\(E(Y_i\mid\mathbf X)=\beta_0+\sum_j\beta_jx_{ij}\)</span>. The chosen columns must describe the systematic mean pattern.</li>
-<li><strong>Constant variance (homoscedasticity):</strong> <span class="math inline">\(\operatorname{Var}(\varepsilon_i\mid\mathbf X)=\sigma^2\)</span> for every <span class="math inline">\(i\)</span>. Responses have the same conditional spread around their respective means, not necessarily the same values or means.</li>
-<li><strong>Independent errors:</strong> conditional on <span class="math inline">\(\mathbf X\)</span>, one observation’s error supplies no information about another’s. For example, repeated measurements on one person may violate this assumption. Uncorrelated errors, <span class="math inline">\(\operatorname{Cov}(\varepsilon_i,\varepsilon_j\mid\mathbf X)=0\)</span> for <span class="math inline">\(i\ne j\)</span>, are sufficient for the usual OLS covariance formula; independence is stronger in general.</li>
+<li><strong>Correct mean:</strong> <span class="math inline">\(E(\varepsilon_i\mid\mathbf X)=0\)</span>. Thus <span class="math inline">\(E(Y_i\mid\mathbf X)=\beta_0+\sum_j\beta_jx_{ij}\)</span>. The chosen columns describe the systematic mean pattern.</li>
+<li><strong>Constant variance (homoscedasticity):</strong> <span class="math inline">\(\operatorname{Var}(\varepsilon_i\mid\mathbf X)=\sigma^2\)</span> for every <span class="math inline">\(i\)</span>. Responses have the same conditional spread around their respective means. Their means may differ.</li>
+<li><strong>Independent errors:</strong> given <span class="math inline">\(\mathbf X\)</span>, one observation’s error supplies no information about another’s. Repeated measurements on one person may violate this assumption. Independence implies <span class="math inline">\(\operatorname{Cov}(\varepsilon_i,\varepsilon_j\mid\mathbf X)=0\)</span> for <span class="math inline">\(i\ne j\)</span>. The converse need not hold. With constant variance, uncorrelated errors suffice for the usual OLS covariance formula.</li>
 <li><strong>Normality:</strong> each <span class="math inline">\(\varepsilon_i\mid\mathbf X\)</span> has a normal distribution. Together with assumptions 1–3, this gives <span class="math inline">\(\boldsymbol\varepsilon\mid\mathbf X\sim N_n(\mathbf0,\sigma^2\mathbf I_n)\)</span>.</li>
 </ol>
-<p>For a unique full-model OLS estimate, also require <span class="math inline">\(\operatorname{rank}(\mathbf X)=p\)</span>; require <span class="math inline">\(n&gt;p\)</span> to estimate <span class="math inline">\(\sigma^2\)</span> using residual degrees of freedom. These are design requirements, not distributional assumptions.</p>
+<p>A unique full-model OLS estimate requires <span class="math inline">\(\operatorname{rank}(\mathbf X)=p\)</span>. Estimating <span class="math inline">\(\sigma^2\)</span> from residuals also requires <span class="math inline">\(n&gt;p\)</span>. These are design requirements.</p>
 </div>
-<p><strong>Why distinguish them?</strong> With a correct mean and full column rank, OLS is unbiased even without normal errors. Constant variance and uncorrelated errors give <span class="math inline">\(\operatorname{Var}(\hat{\boldsymbol\beta}\mid\mathbf X)=\sigma^2(\mathbf X^\top\mathbf X)^{-1}\)</span>. Normal errors additionally justify the exact finite-sample <span class="math inline">\(t\)</span> and <span class="math inline">\(F\)</span> distributions used in <a href="./03_OLS_inference.html">Chapters 3</a> and <a href="./04.html">4</a>. Computing least squares does not itself verify any of these assumptions.</p>
-<p><strong>How the four assumptions fit together.</strong> At a given predictor value, the mean model locates the <strong>centre</strong> of the responses, constant variance specifies their <strong>spread</strong>, and normality specifies the <strong>shape</strong> around that centre. Independence concerns <strong>relationships between different observations</strong>, not the shape of one observation’s distribution. A bell-shaped distribution with equal spread can still arise from dependent measurements, such as repeated readings from the same person.</p>
-<div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>Normality is not the same as constant variance
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p><strong>Normality describes shape; constant variance describes spread.</strong> Normal errors can have variances that grow with <span class="math inline">\(x\)</span>, and nonnormal errors can have constant variance. Neither the predictors nor the marginal distribution of <span class="math inline">\(Y\)</span> must be normal. The assumptions concern errors <strong>conditional on the predictors</strong>; a mixture of normal responses with different conditional means need not have a normal histogram.</p>
-</div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-ch7-error-assumptions" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Three panels compare zero-centred conditional error densities: identical normal curves, normal curves of increasing width, and identical skewed curves with mean zero." data-fig-pos="H">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-ch7-error-assumptions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="07_files/figure-html/fig-ch7-error-assumptions-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Three panels compare zero-centred conditional error densities: identical normal curves, normal curves of increasing width, and identical skewed curves with mean zero." width="672">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-error-assumptions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.3: Conditional error distributions at three predictor values. A satisfies normality and constant variance; B is normal but has increasing variance; C is skewed but has constant variance. All have mean zero. These are population illustrations, not residual plots.
+<p><strong>Why distinguish them?</strong> A correct mean and full column rank give unbiased OLS estimates. Normality is not needed for that result. Constant variance and uncorrelated errors give the usual OLS covariance formula. Normality adds the exact <span class="math inline">\(t\)</span> and <span class="math inline">\(F\)</span> distributions from <a href="./03_OLS_inference.html">Chapter 3</a> and <a href="./04.html">Chapter 4</a>.</p>
+<p><strong>Four assumptions, four visual questions.</strong> The mean locates the centre. Variance describes the spread. Normality describes the shape. Independence concerns links between observations.</p>
+<div id="tbl-ch7-check-map" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ch7-check-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;7.1: Match each assumption to its diagnostic. A reassuring plot is evidence, not proof.
 </figcaption>
+<div aria-describedby="tbl-ch7-check-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Assumption</th>
+<th>What to inspect</th>
+<th>Reassuring pattern</th>
+<th>Pattern to investigate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Correct mean</td>
+<td>Residuals versus fitted values or predictors</td>
+<td>Local centres stay near zero</td>
+<td>A curve or group shift</td>
+</tr>
+<tr class="even">
+<td>Constant variance</td>
+<td>Residual widths; Scale-Location plot</td>
+<td>Similar widths</td>
+<td>A fan or changing widths</td>
+</tr>
+<tr class="odd">
+<td>Independence</td>
+<td>Study design; time and lag plots</td>
+<td>No clear order pattern</td>
+<td>Runs, cycles or linked neighbours</td>
+</tr>
+<tr class="even">
+<td>Normality</td>
+<td>Normal Q-Q plot of standardized residuals</td>
+<td>Points follow a straight line</td>
+<td>Systematic bending or extreme tails</td>
+</tr>
+</tbody>
+</table>
+</div>
 </figure>
 </div>
-</div>
-</div>
-<p><strong>From assumptions about errors to checks using residuals.</strong> We cannot observe <span class="math inline">\(\varepsilon_i=Y_i-m(\mathbf x_i)\)</span> because the true mean <span class="math inline">\(m\)</span> is unknown. After fitting, we inspect <span class="math inline">\(e_i=y_i-\hat y_i\)</span> instead. A residual contains both random error and any mean pattern the model missed. A wrong mean can therefore make the spread or Q-Q plot look problematic too. This connects the assumptions to the <a href="./06.html">Chapter 6 diagnostics</a>: first identify the feature that fails, then choose a response to that feature.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>A useful checking order
+<span class="screen-reader-only">Note</span>Read the plots in a useful order
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Study design and dependence → mean pattern → conditional spread → distributional shape → refit and repeat.</strong></p>
-<p>Check how observations were collected before fitting. Then inspect the residual mean pattern before interpreting spread and normality. The checks are related, so revisit all of them after changing the model. Here “check” means assess compatibility with the assumptions; neither a tidy plot nor a nonsignificant test proves them true.</p>
+<p>Check the study design first. Then check <strong>mean → spread → shape</strong>. Refit and repeat after a model change.</p>
+<p>We observe residuals <span class="math inline">\(e_i=y_i-\hat y_i\)</span>, not the true errors. A residual may contain a mean pattern that the model missed. Fix that pattern before interpreting spread or normality.</p>
 </div>
 </div>
-<p><strong>1. Correct mean: is the residual pattern centred near zero?</strong> Plot residuals against fitted values and against each relevant predictor. Look for a roughly horizontal smooth around zero throughout the predictor range, without a curve or systematic group differences. A U-shaped smooth suggests missing curvature; different group centres may suggest a missing group effect or interaction. These are reasons to revise the mean model. Inspect individual predictors as well: a residual-versus-fitted plot can hide a pattern in one predictor.</p>
-<p>With an intercept, OLS automatically gives <span class="math inline">\(\sum_i e_i=0\)</span> and makes residuals orthogonal to the fitted design columns. Thus a residual mean of zero, or zero sample correlation with an included predictor, <strong>does not verify</strong> <span class="math inline">\(E(\varepsilon_i\mid\mathbf X)=0\)</span>. The question is whether a systematic pattern remains locally. Residual plots also cannot establish that an unmeasured confounder is absent.</p>
-<p><strong>2. Constant variance: is the conditional spread stable?</strong> Compare the widths of the residual clouds across fitted values and predictors after accounting for the mean. A fan suggests that conditional variance changes. R’s <strong>Scale-Location</strong> plot displays <span class="math inline">\(\sqrt{|r_i|}\)</span> against fitted values, where <span class="math inline">\(r_i\)</span> is a standardized residual; a roughly level smooth is compatible with constant variance. Its vertical axis is nonnegative, so the reference is a <strong>level trend, not a line at zero</strong>. Check group-specific spread when groups matter.</p>
-<p>Standardization accounts for the leverage-related residual variance under the working model; it does not automatically remove heteroscedasticity. See the <a href="./06.html#sec-ch6-supplementary">Chapter 6 supplement</a> for the scaling details. If spread still changes after fixing the mean, consider a meaningful response transformation or a variance model such as weighted least squares. Heteroscedasticity-robust standard errors are another option for coefficient inference; they do not repair a wrong mean or automatically give valid individual prediction intervals.</p>
-<p><strong>3. Independence: are observations linked?</strong> Could one observation’s error help predict another’s? Begin with the sampling units: are observations from different people, or repeated visits to the same person? Are measurements ordered in time, grouped by site, or spatially close? For a genuine time sequence, plot residuals in <strong>collection order</strong> and look for long runs, cycles, or drift; an autocorrelation plot can help for an equally spaced series. For repeated or clustered observations, inspect within-unit patterns and account for the grouping in the model.</p>
-<p>Arbitrary row numbers, or observations sorted by their predictor values, are not a substitute for collection order. Absence of an obvious pattern does not establish independence. Even under a correct mean model with independent, constant-variance errors, fitted residuals have covariance <span class="math inline">\(\sigma^2(\mathbf I_n-\mathbf H)\)</span>, so some residual dependence is induced by fitting. Interpret patterns together with the design; a transformation alone does not remove repeated-measurement dependence. A correlation model or the <a href="./App_G-mixed-effects.html">optional mixed-effects material</a> may be appropriate.</p>
-<p><strong>4. Normality: is the remaining error shape approximately normal?</strong> After checking mean and spread, inspect a <strong>normal Q-Q plot of standardized residuals</strong>. It compares ordered residuals with theoretical normal quantiles. Points should follow an approximately straight reference line, allowing sampling variability; the slope need not be 1. Systematic curvature suggests skewness or tail differences, while one isolated departure calls for the <a href="./06.html">Chapter 6 outlier and influence checks</a>.</p>
-<p>A near-straight Q-Q plot does not establish constant variance or independence. Conversely, a fan-shaped variance pattern can distort a pooled Q-Q plot even when errors at each predictor value are normal. Revisit mean and spread before attributing every Q-Q departure to error shape. The relevant distribution is the conditional error distribution, not a histogram of the raw response or predictors. <a href="https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd44.htm">NIST’s guide to model checking</a> explains why residual graphics complement numerical fit summaries.</p>
-<p><strong>See the checks in R.</strong> Fit the original-scale tree-volume model that we will revisit in <a href="#sec-ch7-transform-procedure">Section 7.3</a>. These three panels address mean form, spread, and normality:</p>
+<p><strong>1. Correct mean: follow the centre of the cloud.</strong> In <a href="#fig-ch7-mean-spread" class="quarto-xref">Figure&nbsp;<span>7.3</span></a>, read the top row first. The purple line joins the average residual at each predictor value. A flat line near zero is reassuring. A U-shaped line indicates missed curvature.</p>
+<p><strong>2. Constant variance: compare the widths of the cloud.</strong> Now read the bottom row. Both centres stay near zero. The orange dashed lines show the vertical extent of each group. The widening fan on the right points to changing variance.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ch7-mean-spread" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Four residual plots. Top left has a flat centre near zero; top right has a U-shaped centre. Bottom left has equal widths; bottom right has a widening fan with its centre still at zero." data-fig-pos="H">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ch7-mean-spread-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="07_files/figure-html/fig-ch7-mean-spread-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Four residual plots. Top left has a flat centre near zero; top right has a U-shaped centre. Bottom left has equal widths; bottom right has a widening fan with its centre still at zero." width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-mean-spread-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.3: Centre versus width. These four constructed datasets are each fitted with a straight line and an intercept. All residuals average to zero overall. Top: check the local centre. Bottom: check the local width. The axes are identical across panels.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div id="tbl-ch7-centre-width" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ch7-centre-width-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;7.2: Choose the next step from the feature that fails.
+</figcaption>
+<div aria-describedby="tbl-ch7-centre-width-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>What you see</th>
+<th>What it suggests</th>
+<th>Next step</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Curved centre</td>
+<td>The mean model misses a pattern</td>
+<td>Try a meaningful predictor function or interaction.</td>
+</tr>
+<tr class="even">
+<td>Stable centre, changing width</td>
+<td>Error variance may change</td>
+<td>Consider a response transformation or variance model.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>With an intercept, OLS automatically gives <span class="math inline">\(\sum_i e_i=0\)</span>. This does <strong>not</strong> verify the mean assumption. Look for local patterns, including patterns against individual predictors.</p>
+<p>R’s <strong>Scale-Location plot</strong> uses <span class="math inline">\(\sqrt{|r_i|}\)</span>, where <span class="math inline">\(r_i\)</span> is a standardized residual. Large values mean large residual magnitudes. Look for a <strong>level trend</strong>, not a line at zero. Standardization adjusts for leverage under the working model. It does not fix heteroscedasticity. See the <a href="./06.html#sec-ch6-supplementary">Chapter 6 supplement</a>.</p>
+<p><strong>3. Independence: keep the observation order.</strong> Imagine measurements taken once per minute. In <a href="#fig-ch7-order-lag" class="quarto-xref">Figure&nbsp;<span>7.4</span></a>, the left dataset uses independent normal errors. The right uses positively correlated normal errors. Both generating models have constant error variance.</p>
+<p>Read the top row in time order. Long runs suggest that nearby errors may be linked. Then read the bottom row. Each dot pairs two neighbours: <span class="math inline">\((e_{i-1},e_i)\)</span>. An upward pattern suggests persistence. Positive residuals often follow positive residuals. Negative residuals often follow negative residuals.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ch7-order-lag" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Four panels compare independent and serially dependent errors. The dependent sequence has long runs; its lag plot forms an upward-sloping cloud. The independent sequence looks more irregular and its lag cloud has little structure." data-fig-pos="H">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ch7-order-lag-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="07_files/figure-html/fig-ch7-order-lag-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Four panels compare independent and serially dependent errors. The dependent sequence has long runs; its lag plot forms an upward-sloping cloud. The independent sequence looks more irregular and its lag cloud has little structure." width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-order-lag-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.4: Check order as well as distribution. Top: residuals in collection order. Bottom: each residual against its predecessor. Left: independent normal errors. Right: stationary normal errors with lag-one correlation 0.85. Each dataset is fitted with an intercept.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Use actual collection order. Do not sort by residual size or use arbitrary row numbers. Repeated people, shared sites and spatial neighbours also need attention. Inspect within-group patterns and the study design. A lag plot only checks selected forms of dependence. An unstructured cloud does not prove independence. <a href="https://www.itl.nist.gov/div898/handbook/eda/section3/lagplot.htm">Lag-plot guide</a>.</p>
+<p>If dependence is plausible, model the time or group structure. A log transformation alone will not remove it. The <a href="./App_G-mixed-effects.html">mixed-effects appendix</a> gives one approach for grouped observations.</p>
+<p><strong>4. Normality: compare matching percentiles.</strong> Q-Q means <em>quantile versus quantile</em>. A normal Q-Q plot asks: <strong>are the small, middle and large residuals in the proportions expected from a normal distribution?</strong></p>
+<div id="exm-ch7-qq-reading" class="theorem example">
+<p><span class="theorem-title"><strong>Example 7.3 (Build a Q-Q Plot from Five Residuals)</strong></span> Take the sorted toy residuals <span class="math inline">\(-2,-1,0,1,2\)</span>.</p>
+<ol type="1">
+<li>Give the <span class="math inline">\(i\)</span>th value a plotting position <span class="math inline">\(p_i=(i-0.5)/5\)</span>.</li>
+<li>Find the matching standard normal quantile <span class="math inline">\(z_i=\Phi^{-1}(p_i)\)</span>.</li>
+<li>Plot <span class="math inline">\((z_i,e_{(i)})\)</span>: <strong>normal benchmark horizontally, observed residual vertically</strong>.</li>
+</ol>
+<p>Here <span class="math inline">\(e_{(i)}\)</span> is the <span class="math inline">\(i\)</span>th smallest residual. Sorting changes the order, not the values.</p>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">Rank</th>
+<th style="text-align: left;">Plotting percentile</th>
+<th style="text-align: left;">Normal quantile (x)</th>
+<th style="text-align: right;">Residual (y)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">10%</td>
+<td style="text-align: left;">-1.28</td>
+<td style="text-align: right;">-2</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">30%</td>
+<td style="text-align: left;">-0.52</td>
+<td style="text-align: right;">-1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">3</td>
+<td style="text-align: left;">50%</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">4</td>
+<td style="text-align: left;">70%</td>
+<td style="text-align: left;">0.52</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">5</td>
+<td style="text-align: left;">90%</td>
+<td style="text-align: left;">1.28</td>
+<td style="text-align: right;">2</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The last row pairs the <strong>90th percentile with the 90th percentile</strong>. Its plotted point is approximately <span class="math inline">\((1.28,2)\)</span>. The vertical coordinate is a residual value, in response units.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ch7-qq-construction" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Five ordered toy residuals plotted against matching normal quantiles. The 90 percent point is highlighted at x equal to 1.28 and y equal to 2. A straight quartile reference line is shown." data-fig-pos="H">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ch7-qq-construction-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="07_files/figure-html/fig-ch7-qq-construction-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Five ordered toy residuals plotted against matching normal quantiles. The 90 percent point is highlighted at x equal to 1.28 and y equal to 2. A straight quartile reference line is shown." width="595">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-qq-construction-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.5: Each table row becomes one point. Labels show the plotting percentiles. The orange guides locate the 90% pair. The purple reference line passes through the first and third quartiles. Five points explain the construction; they do not establish normality.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Why should the points form a line?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>For a <span class="math inline">\(N(\mu,\sigma^2)\)</span> distribution, the <span class="math inline">\(p\)</span>th quantile is <span class="math inline">\(\mu+\sigma\Phi^{-1}(p)\)</span>. Thus matching normal quantiles gives a straight line: <strong>vertical value = centre + scale × horizontal value</strong>.</p>
+<p>The intercept reflects location. The slope reflects scale. Normality concerns the shape around this line; the slope need not equal 1. This is a distribution comparison, not the fitted regression line of <span class="math inline">\(Y\)</span> on <span class="math inline">\(X\)</span>.</p>
+</div>
+</div>
+<p>For regression, usually use standardized residuals from <code>rstandard(fit)</code>. Then <code>qqnorm()</code> plots them and <code>qqline()</code> adds a quartile reference line. Software may use slightly different plotting positions. The reading is the same. <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/qqnorm.html">R Q-Q documentation</a>.</p>
+<p><strong>Read departures from the line.</strong> In <a href="#fig-ch7-qq-patterns" class="quarto-xref">Figure&nbsp;<span>7.6</span></a>, the horizontal benchmark is always normal. Only the vertical distribution changes. These idealized quantiles make the patterns clear. Real samples add random scatter.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ch7-qq-patterns" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Three Q-Q panels for normal, centred exponential, and scaled t with five degrees of freedom. The normal panel is straight. The right-skewed panel bends upward. The heavy-tailed panel has its lower end below and upper end above the reference line." data-fig-pos="H">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ch7-qq-patterns-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="07_files/figure-html/fig-ch7-qq-patterns-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Three Q-Q panels for normal, centred exponential, and scaled t with five degrees of freedom. The normal panel is straight. The right-skewed panel bends upward. The heavy-tailed panel has its lower end below and upper end above the reference line." width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-qq-patterns-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.6: Three idealized Q-Q patterns, all with mean zero and variance one. Purple lines match the theoretical quartiles. Compare each tail with its reference line. Real samples add scatter.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div id="tbl-ch7-qq-reading" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ch7-qq-reading-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;7.3: Interpret the tails using the axis directions shown above.
+</figcaption>
+<div aria-describedby="tbl-ch7-qq-reading-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Q-Q pattern</th>
+<th>Read the points</th>
+<th>Meaning to investigate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Approximately straight</td>
+<td>Small, middle and large values match a normal shape</td>
+<td>Normality is plausible. Allow sampling scatter.</td>
+</tr>
+<tr class="even">
+<td>Upper end bends upward</td>
+<td>Large residuals exceed the normal benchmark</td>
+<td>A long right tail or right skew</td>
+</tr>
+<tr class="odd">
+<td>Left end below; right end above</td>
+<td>Both extremes exceed the normal benchmark in magnitude</td>
+<td>Heavier tails than normal</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>One isolated departure may be an unusual observation. Use the <a href="./06.html">Chapter 6 checks</a> to investigate it. A whole curved pattern suggests a broader distributional issue. <a href="https://www.itl.nist.gov/div898/handbook/eda/section3/normprpl.htm">Normal probability-plot guide</a>.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>A straight Q-Q plot does not check every assumption
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A Q-Q plot sorts the residuals. It discards time order. It therefore cannot establish independence. It also pools residuals across predictor values, so it cannot establish constant conditional variance.</p>
+<p>Check the mean and spread first. Then read the Q-Q plot. Neither the predictors nor the raw response must have a normal histogram.</p>
+</div>
+</div>
+<p><strong>Now read real diagnostics.</strong> The tree-volume model below uses diameter and height. Read its panels in the same order: centre, width, then shape. We revisit this model in <a href="#sec-ch7-transform-procedure">Section 7.3</a>.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
@@ -735,33 +977,21 @@ Figure&nbsp;7.3: Conditional error distributions at three predictor values. A sa
 <img src="07_files/figure-html/fig-ch7-assumption-checks-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Three standard lm diagnostic panels for tree volume regressed on diameter and height: residuals versus fitted values, Scale-Location, and a normal Q-Q plot. The residual smooth is curved, motivating a review of the mean model." width="691">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-assumption-checks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.4: Original-scale tree-volume diagnostics: mean pattern (left), spread (middle), and normality (right). Read the mean pattern first, then reconsider spread and shape after refitting. None of these panels establishes independence between trees.
+Figure&nbsp;7.7: Original-scale tree-volume diagnostics: mean pattern (left), spread (middle), and normality (right). Read the mean pattern first, then reconsider spread and shape after refitting. None of these panels establishes independence between trees.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>The curved residual smooth is a reason to revisit the mean specification. A reasonable-looking Q-Q plot would not remove that concern. The <code>trees</code> dataset provides no collection-time or repeated-unit identifiers, so these plots cannot verify independence; that requires information about how the trees were sampled.</p>
-<div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>Four default R plots do not check four assumptions
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>For <code>plot(fit)</code>, <code>which = 1</code> checks residual mean patterns, <code>which = 3</code> helps assess spread, and <code>which = 2</code> assesses normal shape. The fourth default panel, <code>which = 5</code>, concerns residuals, leverage, and influence; it is <strong>not an independence check</strong>. Study-design information and appropriate order/group diagnostics must be added separately. <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/plot.lm.html">R diagnostic-plot documentation</a>.</p>
-</div>
-</div>
+<p>The residual smooth is curved. Revisit the mean model first. The Q-Q plot cannot settle that issue. These data lack collection times and group identifiers. Independence needs information about how the trees were sampled.</p>
+<p><strong>R plot numbers.</strong> Use <code>which = 1</code> for residual mean patterns, <code>which = 3</code> for spread, and <code>which = 2</code> for normal shape. The default <code>which = 5</code> panel concerns leverage and influence. Check independence separately. <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/plot.lm.html">R diagnostic-plot documentation</a>.</p>
 <div id="exr-ch7-assumptions" class="theorem exercise">
-<p><span class="theorem-title"><strong>Exercise 7.1 (Shape or Spread?)</strong></span> Suppose <span class="math inline">\(Y_i=2+3x_i+\varepsilon_i\)</span> and the errors are independent. In model A, <span class="math inline">\(\varepsilon_i\mid x_i\sim N(0,(1+x_i)^2)\)</span> for <span class="math inline">\(x_i\geq0\)</span>. In model B, <span class="math inline">\(\varepsilon_i=U_i-1\)</span>, where <span class="math inline">\(U_i\sim\operatorname{Exponential}(1)\)</span> independently of <span class="math inline">\(x_i\)</span>. Which assumptions fail? Must the slope estimate be biased?</p>
+<p><span class="theorem-title"><strong>Exercise 7.1 (Read the Tree Diagnostics)</strong></span> Look at the three panels above. Which model component would you revisit first? Which assumption cannot be assessed from these panels?</p>
 </div>
 <div id="sol-ch7-assumptions" class="proof solution">
-<p><span class="proof-title"><em>Solution 7.1</em>. </span>A has a correct linear mean and normal errors, but nonconstant variance. B has a correct linear mean and constant variance 1, but nonnormal errors. With a full-rank design, neither violation alone biases OLS: both have conditional error mean zero. The usual homoscedastic standard errors are not justified for A, while exact normal-model <span class="math inline">\(t\)</span> and <span class="math inline">\(F\)</span> inference is not justified for B.</p>
+<p><span class="proof-title"><em>Solution 7.1</em>. </span>Revisit the mean first: the residual centre curves. Then recheck spread and the Q-Q plot. These panels do not assess independence between trees. We need sampling information and any relevant time or group identifiers.</p>
 </div>
-<p>We can now choose a transformation for a stated reason: <strong>improve the mean form, stabilize the conditional variance, or obtain a more plausible error distribution.</strong> One transformation may help several features, but each must be checked after refitting.</p>
+<p>The pictures now guide the next step. A transformation may improve the <strong>mean form</strong>, stabilize <strong>variance</strong>, or improve the <strong>error shape</strong>. Choose it for a stated reason. Then refit and check again.</p>
 </section>
 <section id="sec-ch7-transform-procedure" class="level2" data-number="7.3">
 <h2 data-number="7.3" class="anchored" data-anchor-id="sec-ch7-transform-procedure"><span class="header-section-number">7.3</span> Transform the model, fit, and check again</h2>
@@ -846,7 +1076,7 @@ g(Y_i)=\beta_0+\sum_{j=1}^d\beta_jh_j(\mathbf x_i)+\varepsilon_i,
 <li><strong>Interpret and validate.</strong> Explain the new coefficients, back-transform appropriately, and compare predictions on a common scale. If choices are learned from data, repeat that learning within training folds.</li>
 </ol>
 <div id="exm-ch7-tree-power" class="theorem example">
-<p><span class="theorem-title"><strong>Example 7.3 (From Tree Geometry to a Log-Linear Model)</strong></span> For the 31 trees, consider</p>
+<p><span class="theorem-title"><strong>Example 7.4 (From Tree Geometry to a Log-Linear Model)</strong></span> For the 31 trees, consider</p>
 <p><span class="math display">\[
 V_i=aD_i^{b}H_i^{c}\exp(\varepsilon_i)
 \quad\Longrightarrow\quad
@@ -871,7 +1101,7 @@ V_i=aD_i^{b}H_i^{c}\exp(\varepsilon_i)
 <img src="07_files/figure-html/fig-ch7-tree-scales-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Side-by-side plots show volume versus diameter on the original scale and log volume versus log diameter. A purple straight line is fitted separately in each panel." width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-tree-scales-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.5: The same 31 trees on two scales, each with a simple least-squares line using diameter alone. The log-log view motivates a power relationship; the fitted multiple regression above also adjusts for height. This plot does not establish that the transformed model is adequate.
+Figure&nbsp;7.8: The same 31 trees on two scales, each with a simple least-squares line using diameter alone. The log-log view motivates a power relationship; the fitted multiple regression above also adjusts for height. This plot does not establish that the transformed model is adequate.
 </figcaption>
 </figure>
 </div>
@@ -886,7 +1116,7 @@ Figure&nbsp;7.5: The same 31 trees on two scales, each with a simple least-squar
 <img src="07_files/figure-html/fig-ch7-tree-residuals-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Two panels compare standardized residuals versus fitted values for the original and log-response tree models, with zero reference lines and smooth trend lines." width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-tree-residuals-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.6: Standardized residuals from the additive original-scale model and the log-log model, both using diameter and height. The smooth orange line helps reveal remaining mean structure. Inspect each pattern; their fitted-value scales differ, so raw SSE or R-squared values across response scales would not be a fair comparison.
+Figure&nbsp;7.9: Standardized residuals from the additive original-scale model and the log-log model, both using diameter and height. The smooth orange line helps reveal remaining mean structure. Inspect each pattern; their fitted-value scales differ, so raw SSE or R-squared values across response scales would not be a fair comparison.
 </figcaption>
 </figure>
 </div>
@@ -1074,7 +1304,7 @@ Y_i=\beta_0+\sum_{j\in S}\beta_jx_{ij}+\varepsilon_{i,S},
 </div>
 </div>
 <div id="exm-ch7-sensor-selection" class="theorem example">
-<p><span class="theorem-title"><strong>Example 7.4 (Which Sensor Measurements Help Predict an Outcome?)</strong></span> Imagine a manufacturing outcome and eight candidate sensor readings. We simulate data so the useful predictors are known: <span class="math inline">\(Y=5+3x_1-2x_2+1.5x_3+\varepsilon\)</span>, with independent <span class="math inline">\(N(0,4)\)</span> errors. Predictors <span class="math inline">\(x_1,x_2\)</span> are correlated; <span class="math inline">\(x_4,\ldots,x_8\)</span> have no additional mean contribution. All methods receive the same eight candidates. This is a teaching simulation, not an industrial dataset.</p>
+<p><span class="theorem-title"><strong>Example 7.5 (Which Sensor Measurements Help Predict an Outcome?)</strong></span> Imagine a manufacturing outcome and eight candidate sensor readings. We simulate data so the useful predictors are known: <span class="math inline">\(Y=5+3x_1-2x_2+1.5x_3+\varepsilon\)</span>, with independent <span class="math inline">\(N(0,4)\)</span> errors. Predictors <span class="math inline">\(x_1,x_2\)</span> are correlated; <span class="math inline">\(x_4,\ldots,x_8\)</span> have no additional mean contribution. All methods receive the same eight candidates. This is a teaching simulation, not an industrial dataset.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show R code</summary>
@@ -1263,7 +1493,7 @@ L(\beta_0,\boldsymbol\beta)=
 </div>
 <p><strong>Two tuning parameters, two roles.</strong> <span class="math inline">\(\lambda\)</span> controls the overall penalty strength; <span class="math inline">\(\alpha\)</span> controls its mixture. At <span class="math inline">\(\alpha=0\)</span> the objective is ridge, and at <span class="math inline">\(\alpha=1\)</span> it is lasso. At <span class="math inline">\(\lambda=0\)</span> all reduce to OLS, with uniqueness depending on design rank. Here <span class="math inline">\(\alpha\)</span> is a mixing parameter, <strong>not a significance level</strong>. Elastic net can retain related predictors together, but it does not guarantee selection of the true variables.</p>
 <div id="exm-ch7-shrinkage" class="theorem example">
-<p><span class="theorem-title"><strong>Example 7.5 (See How a Small Coefficient Becomes Zero)</strong></span> Consider centred, mutually orthogonal predictor columns scaled so that <span class="math inline">\(\mathbf Z^\top\mathbf Z/n_{\mathrm{tr}}=\mathbf I_d\)</span>. Let <span class="math inline">\(b_j\)</span> be a slope from unpenalized OLS. In this special case, each slope is fitted separately:</p>
+<p><span class="theorem-title"><strong>Example 7.6 (See How a Small Coefficient Becomes Zero)</strong></span> Consider centred, mutually orthogonal predictor columns scaled so that <span class="math inline">\(\mathbf Z^\top\mathbf Z/n_{\mathrm{tr}}=\mathbf I_d\)</span>. Let <span class="math inline">\(b_j\)</span> be a slope from unpenalized OLS. In this special case, each slope is fitted separately:</p>
 <p><span class="math display">\[
 \begin{aligned}
 \text{Ridge:}\quad &amp;\hat\beta_j^R=\frac{b_j}{1+\lambda},\\
@@ -1281,7 +1511,7 @@ L(\beta_0,\boldsymbol\beta)=
 <img src="07_files/figure-html/fig-ch7-shrinkage-rules-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Three panels plot a penalized slope against its OLS value. Ridge is a shallower straight line; lasso and elastic net have flat segments at zero." width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-shrinkage-rules-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.7: An orthogonal-design illustration with lambda = 0.5 and elastic-net alpha = 0.5. Dashed lines show no shrinkage. The flat portions at zero show how lasso and elastic net remove small coefficients; ridge continuously shrinks them.
+Figure&nbsp;7.10: An orthogonal-design illustration with lambda = 0.5 and elastic-net alpha = 0.5. Dashed lines show no shrinkage. The flat portions at zero show how lasso and elastic net remove small coefficients; ridge continuously shrinks them.
 </figcaption>
 </figure>
 </div>
@@ -1447,7 +1677,7 @@ Figure&nbsp;7.7: An orthogonal-design illustration with lambda = 0.5 and elastic
 <img src="07_files/figure-html/fig-ch7-lasso-path-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Lasso coefficient paths against lambda on a log scale; x1, x2, and x3 are colored and the other five predictors are gray. More paths become zero at larger penalties." width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-lasso-path-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.8: Lasso coefficient paths from the sensor training data. Larger penalties move slopes toward zero. The three true signal predictors are colored; the other five are gray. A path displays fitted coefficients, not confidence intervals.
+Figure&nbsp;7.11: Lasso coefficient paths from the sensor training data. Larger penalties move slopes toward zero. The three true signal predictors are colored; the other five are gray. A path displays fitted coefficients, not confidence intervals.
 </figcaption>
 </figure>
 </div>
@@ -1461,7 +1691,7 @@ Figure&nbsp;7.8: Lasso coefficient paths from the sensor training data. Larger p
 <img src="07_files/figure-html/fig-ch7-lasso-cv-1.png" class="img-fluid figure-img" data-fig-pos="H" alt="Cross-validation mean squared error for lasso versus lambda, with standard-error bars and vertical lines for lambda.min and lambda.1se." width="624">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ch7-lasso-cv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7.9: Five-fold CV within the sensor training set. Bars show plus or minus one estimated CV standard error, not confidence intervals for individual responses. Dashed: minimum-error lambda. Solid: the more regularized one-SE choice used below.
+Figure&nbsp;7.12: Five-fold CV within the sensor training set. Bars show plus or minus one estimated CV standard error, not confidence intervals for individual responses. Dashed: minimum-error lambda. Solid: the more regularized one-SE choice used below.
 </figcaption>
 </figure>
 </div>
