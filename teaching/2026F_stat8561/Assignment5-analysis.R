@@ -69,7 +69,8 @@ a5_selected <- step(a5_null,
 a5_candidates <- lapply(names(a5_swiss)[-1], function(term)
   lm(reformulate(term, response = "Fertility"), data = a5_swiss))
 knitr::kable(data.frame(
-  `First-step candidate` = c("Intercept only", names(a5_swiss)[-1]),
+  `First-step candidate model` = c("Intercept only",
+    paste("Intercept +", names(a5_swiss)[-1])),
   AIC = c(AIC(a5_null), vapply(a5_candidates, AIC, numeric(1))),
   check.names = FALSE), digits = 3, row.names = FALSE)
 knitr::kable(data.frame(
@@ -102,11 +103,13 @@ library(glmnet)
 a5_xtrain <- model.matrix(y ~ ., data = a5_train)[, -1]
 a5_xtest <- model.matrix(y ~ ., data = a5_test)[, -1]
 a5_lasso <- cv.glmnet(a5_xtrain, a5_train$y,
-  family = "gaussian", alpha = 1, foldid = a5_folds,
+  family = "gaussian", alpha = 1, intercept = TRUE,
+  foldid = a5_folds,
   lambda = c(0.80, 0.40, 0.20, 0.10, 0.05),
   standardize = TRUE, type.measure = "mse")
 a5_ridge <- cv.glmnet(a5_xtrain, a5_train$y,
-  family = "gaussian", alpha = 0, foldid = a5_folds,
+  family = "gaussian", alpha = 0, intercept = TRUE,
+  foldid = a5_folds,
   standardize = TRUE, type.measure = "mse")
 
 
